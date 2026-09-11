@@ -379,7 +379,6 @@ build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_SUFFIX_BYTES
 # so the combined real end is 0x2d5c8 (re-probed after integration).
 # 4B2F4's complete matrix/graphics body replaces the old short skeleton.
 # With upstream 4CEFC, last NM symbol 62F08 is at 0x2d758, size 0x50.
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2d75c gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 # game_libs_func_0005FDC4): tail symbol game_libs_func_00062F08 @0x2d538 + 0x50.
 build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2d75c gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
