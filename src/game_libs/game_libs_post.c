@@ -3749,20 +3749,22 @@ int y;
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_00020FFC)();
+#endif
 /* Per-frame decay pass: for each of the *(s8*)(&D+1) records (stride 0x158),
  * decay the u16 field at +0x24 by 25% (v -= v/4), repeated var_v0 (1 or 2,
- * per &D+0x2034) times. m2c dropped the &D record base (rec = &D + v1*0x158)
- * and the &D scalar bases; field is a halfword (sh). Simple inner loop lets
- * IDO unroll it (x4 + remainder) as the target does.
- * 2026-06-20: structure/size/insn-count byte-exact (77 words). Levers applied:
- * (1) v0-select as ternary (target uses explicit beq zero,zero unconditional
- * branch w/ v0=2 in delay); (2) record base ptr `rec = &D + v1*0x158` with the
- * +0x24 kept on the ACCESS (not folded into the addiu) so the field offset is
- * 36(rec); (3) inline-deref the field (no named temp) so the unroller chains the
- * masked u16 value in one register instead of copying to a sibling reg.
- * Residual = 29 single-register-renumber diffs: target chains the field value in
- * $a2 / count-copy in $a3; build mirrors them ($a3/$a2). Named temp / count-down
- * / decl-reorder all REGRESS. Genuine $a2<->$a3 coloring cap in the unroller. */
+ * per &D+0x2034) times. IDO unrolls the inner loop x4 + remainder.
+ * 2026-06-20 levers: (1) v0-select as ternary (explicit beq zero,zero with
+ * v0=2 in the delay); (2) record base `rec = &D + v1*0x158` with +0x24 kept on
+ * the access (field offset 36(rec)).
+ * BYTE-EXACT 77/77 2026-09-11 (agent-c): the "genuine $a2<->$a3 coloring cap
+ * in the unroller" (remainder temp / its loop-bound copy / the chained field
+ * value) is the field spelling: a block-local `s32 f = *(u16 *)(rec + 0x24);
+ * *(u16 *)(rec + 0x24) = f - f / 4;` colours the remainder $a2, the copy $a3
+ * and the field $a2 as in the target (0 diff standalone); the inline triple
+ * deref `*p = (u16)(*p - (s32)*p / 4)` and `*p -= *p / 4` mirror them
+ * ($a3/$a2, 29 words). for(<)/for(!=)/count-down loops are 78-79 words.
+ * docs/IDO_CODEGEN.md#same-stride-cursor-sweep-iv-init-order-33b6c (tail).
+ * Reloc-blind (&D_00000000). */
 void game_libs_func_00020FFC(void) {
     s32 var_v0;
     s32 var_v1;
@@ -3777,7 +3779,8 @@ void game_libs_func_00020FFC(void) {
                 rec = (char *)&D_00000000 + var_v1 * 0x158;
                 var_a1 = 0;
                 do {
-                    *(u16 *)(rec + 0x24) = (u16) (*(u16 *)(rec + 0x24) - (s32) *(u16 *)(rec + 0x24) / 4);
+                    s32 f = *(u16 *)(rec + 0x24);
+                    *(u16 *)(rec + 0x24) = f - f / 4;
                     var_a1 += 1;
                 } while (var_a1 != var_v0);
             }
@@ -3785,9 +3788,6 @@ void game_libs_func_00020FFC(void) {
         } while (var_v1 < *(s8 *)((char *)&D_00000000 + 1));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020FFC);
-#endif
 
 /* game_libs_func_00021130: zero a 0xB00-byte short array. Logic + STRUCTURE
  * exact; IDO unrolls the `for(a1!=0xB00;a1+=2) *(short*)(reload+a1)=0` loop x4.
