@@ -1125,6 +1125,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064388);
  * {u; Vec3 max; min; zero} box -> 0x10-strided set[3] copies -> t=box.u
  * reload -> tmp Vec3 float writes. Parent init call uses a PROTOTYPED
  * float alias (single-precision mfc1 a2/a3 + swc1 0x10(sp) ABI shape). */
+/* 2026-09-11 (agent-g) HOMING PASS, 95.64 -> 95.64 (same objdiff score, target
+ * structure): the target's per-slot staging homes are SHARED -- t at sp+0xB4
+ * (30 uses = 15 expansions) and m at sp+0xB8 (26 uses) -- so `char *m; struct
+ * SB64588 t;` are now FUNCTION-scope (one home each) instead of the 1C54 kit's
+ * per-expansion sibling blocks (which stacked 30 homes at sp+0x28..0x9C and
+ * over-grew the frame to 0x168). At 15 full `t = u_k` copies to the shared
+ * dest the 1C54 ">= 8 copies flips to memcpy-form" did NOT fire: 538 words,
+ * every sw a2,8(sp) jal-delay struct-arg store and rotating dead u_k home kept.
+ * (Scalar `t.v = u_k.v` DCEs the 15 rotating u_k stores: 521 words, do not.)
+ * RESIDUAL, measured standalone (labels + sp offsets masked): (1) frame 0xF8
+ * vs target 0x150 -- the target keeps 88 more bytes BELOW t/m (t/m at 0xB4/0xB8
+ * with the tmp Vec3 at 0x4C..0x54, a 2-use slot at 0x38 and one at 0x94 under
+ * them; ours has t/m at 0x28/0x2C directly above s0/ra) = extra declared locals
+ * or block-scoped staging in the two box slots; all singles above t/m map 1:1
+ * at +84; (2) ~50 register-number diffs confined to the two box regions
+ * (mtc1/swc1/sw of the 1000/-1000/0 and 1/1/0 constant webs = "box const-web
+ * colouring"); (3) the per-site gl_ref alias relocs carry 0 imms in the .o
+ * where the target words bake lui 2/addiu (link-resolved, ROM-neutral). The
+ * 37 jals are blank in the target; an EXACT must call gl_func_00000000 (the
+ * K&R gl_func_0001CA10 and the gl_init_0001CA10_64588 = 0x1CA10 alias both
+ * link real addresses into the ROM). */
 #define FW64(p, o) (*(int *)((char *)(p) + (o)))
 #define FF64(p, o) (*(float *)((char *)(p) + (o)))
 
@@ -1198,6 +1219,8 @@ void *gl_func_00064588(void *arg0, void *arg1) {
     V364588 tmp;
     char *base;
     char *p;
+    char *m;
+    struct SB64588 t;
 
     if (arg0 != 0 || (arg0 = (void *)gl_func_0001CA10(0x3D4)) != 0) {
         gl_init_0001CA10_64588(arg0, arg1, 0.0f, 0.0f, 0.0f);
@@ -1210,8 +1233,6 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             }
             u1.v = gl_ref_000223D0_64588_i;
             {
-                char *m;
-                struct SB64588 t;
                 t = u1;
                 if ((m = base + 0x8) != 0 || (m = (char *)gl_func_0001CA10(0x18)) != 0) {
                     gl_func_0001CA10(m, base, t, 1);
@@ -1222,8 +1243,6 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             }
             u2.v = gl_ref_000223D4_64588_i;
             {
-                char *m;
-                struct SB64588 t;
                 t = u2;
                 if ((m = base + 0x20) != 0 || (m = (char *)gl_func_0001CA10(0x18)) != 0) {
                     gl_func_0001CA10(m, base, t, 1);
@@ -1234,8 +1253,6 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             }
             u3.v = gl_ref_000223D8_64588_i;
             {
-                char *m;
-                struct SB64588 t;
                 t = u3;
                 if ((m = base + 0x38) != 0 || (m = (char *)gl_func_0001CA10(0x18)) != 0) {
                     gl_func_0001CA10(m, base, t, 1);
@@ -1246,8 +1263,6 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             }
             u4.v = gl_ref_000223DC_64588_i;
             {
-                char *m;
-                struct SB64588 t;
                 t = u4;
                 if ((m = base + 0x50) != 0 || (m = (char *)gl_func_0001CA10(0x18)) != 0) {
                     gl_func_0001CA10(m, base, t, 1);
@@ -1258,8 +1273,6 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             }
             u5.v = gl_ref_000223E0_64588_i;
             {
-                char *m;
-                struct SB64588 t;
                 t = u5;
                 if ((m = base + 0x68) != 0 || (m = (char *)gl_func_0001CA10(0x18)) != 0) {
                     gl_func_0001CA10(m, base, t, 1);
@@ -1270,8 +1283,6 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             }
             u6.v = gl_ref_000223E4_64588_i;
             {
-                char *m;
-                struct SB64588 t;
                 t = u6;
                 if ((m = base + 0x80) != 0 || (m = (char *)gl_func_0001CA10(0x18)) != 0) {
                     gl_func_0001CA10(m, base, t, 1);
@@ -1282,8 +1293,6 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             }
             u7.v = gl_ref_000223E8_64588_i;
             {
-                char *m;
-                struct SB64588 t;
                 t = u7;
                 if ((m = base + 0x98) != 0 || (m = (char *)gl_func_0001CA10(0x18)) != 0) {
                     gl_func_0001CA10(m, base, t, 1);
@@ -1294,8 +1303,6 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             }
             u8.v = gl_ref_000223EC_64588_i;
             {
-                char *m;
-                struct SB64588 t;
                 t = u8;
                 if ((m = base + 0xB0) != 0 || (m = (char *)gl_func_0001CA10(0x18)) != 0) {
                     gl_func_0001CA10(m, base, t, 1);
@@ -1306,8 +1313,6 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             }
             u9.v = gl_ref_000223F0_64588_i;
             {
-                char *m;
-                struct SB64588 t;
                 t = u9;
                 if ((m = base + 0xC8) != 0 || (m = (char *)gl_func_0001CA10(0x18)) != 0) {
                     gl_func_0001CA10(m, base, t, 1);
@@ -1317,8 +1322,6 @@ void *gl_func_00064588(void *arg0, void *arg1) {
                 }
             }
             {
-                char *m;
-                struct SB64588 t;
                 b1min.x = -1000.0f;
                 b1min.y = -1000.0f;
                 b1min.z = -1000.0f;
@@ -1345,8 +1348,6 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             }
             u10.v = gl_ref_000223F8_64588_i;
             {
-                char *m;
-                struct SB64588 t;
                 t = u10;
                 if ((m = base + 0x100) != 0 || (m = (char *)gl_func_0001CA10(0x18)) != 0) {
                     gl_func_0001CA10(m, base, t, 1);
@@ -1357,8 +1358,6 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             }
             u11.v = gl_ref_000223FC_64588_i;
             {
-                char *m;
-                struct SB64588 t;
                 t = u11;
                 if ((m = base + 0x118) != 0 || (m = (char *)gl_func_0001CA10(0x18)) != 0) {
                     gl_func_0001CA10(m, base, t, 1);
@@ -1369,8 +1368,6 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             }
             u12.v = gl_ref_00022400_64588_i;
             {
-                char *m;
-                struct SB64588 t;
                 t = u12;
                 if ((m = base + 0x130) != 0 || (m = (char *)gl_func_0001CA10(0x18)) != 0) {
                     gl_func_0001CA10(m, base, t, 1);
@@ -1381,8 +1378,6 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             }
             u13.v = gl_ref_00022404_64588_i;
             {
-                char *m;
-                struct SB64588 t;
                 t = u13;
                 if ((m = base + 0x148) != 0 || (m = (char *)gl_func_0001CA10(0x18)) != 0) {
                     gl_func_0001CA10(m, base, t, 1);
@@ -1392,8 +1387,6 @@ void *gl_func_00064588(void *arg0, void *arg1) {
                 }
             }
             {
-                char *m;
-                struct SB64588 t;
                 b2zero.x = 1.0f;
                 b2zero.y = 1.0f;
                 b2min.x = -10.0f;
