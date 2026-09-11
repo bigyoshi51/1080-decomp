@@ -1760,23 +1760,26 @@ int gl_func_0000BDA8(int a0) {
     return tmp;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0000BDE8: copies a 384-byte struct from src into a stack buffer, then
  * runs 7 callbacks marshalling buf1 (384B) and buf2 (8B) with a 0xDEADBBAD
  * sentinel and the field constants 8/384/392/0x7DD8/0x7F58. Fresh decode
  * 2026-05-29: 96.15%, everything exact (the 3-word-unrolled 384B copy, all 7
  * calls + args, buffer layout buf1@sp+0x28/buf2@sp+0x20) EXCEPT a 2-instruction
- * prologue scheduler tie — target emits `move t9,a0` (copy-cursor init) before
- * `sw ra,28(sp)`; IDO here emits the ra-save first. List-scheduler ordering of
- * two independent prologue insns; local-decl-order swap regressed (broke the
- * buffer layout). NM-wrap. */
+ * prologue tie -- target emits `move t9,a0` (copy-cursor init) before
+ * `sw ra,28(sp)`; the multi-line source emitted the ra-save first.
+ * 2026-09-11 (agent-g): EXACT 52/52. as1 breaks that tie by SOURCE LINE
+ * (docs/IDO_CODEGEN.md#same-line-brace-return-sinks-arg-home-c3e8): `sw ra`
+ * belongs to the entry line (the `{`), the copy-cursor `or t9,a0` to the
+ * `buf1 = *src` line; on separate lines line order wins (sw ra first). The
+ * initializer `struct B384 buf1 = *src;` ON THE BRACE LINE gives both the
+ * same line and the copy init sinks first. The brace-line layout is
+ * LOAD-BEARING -- do not reformat. (A plain `buf1 = *src;` statement on the
+ * brace line works too; the copy + first call joined on a later line does
+ * not.) */
 extern int gl_func_00000000();
 struct B384 { int w[96]; };
 struct B8 { int w[2]; };
-void gl_func_0000BDE8(int s0, struct B384 *src) {
-    struct B384 buf1;
-    struct B8 buf2;
-    buf1 = *src;
+void gl_func_0000BDE8(int s0, struct B384 *src) { struct B384 buf1 = *src; struct B8 buf2;
     gl_func_00000000(&buf1);
     gl_func_00000000(s0, 8, &buf1, 384);
     gl_func_00000000(&buf2, &buf1, 384, 0xDEADBBAD);
@@ -1785,9 +1788,6 @@ void gl_func_0000BDE8(int s0, struct B384 *src) {
     gl_func_00000000(s0, 0x7F58, &buf2, 8);
     gl_func_00000000(s0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000BDE8);
-#endif
 
 /* gl_func_0000BEB8: record-pair load/compare/store, sibling of gl_func_0000BC84
  * (same 0xDEADBBAD-sentinel compare structure; bigger 384-byte records, keys
