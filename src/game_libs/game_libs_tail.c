@@ -957,18 +957,27 @@ void gl_func_0000AA7C(int *a0, int a1, int a2, int a3, int arg5, int arg6, int a
  * and raw USO data immediates. INSN_PATCH REMOVED 2026-05-23 as match-faking
  * per feedback_no_instruction_forcing_matches_policy. Now an honest NM cap.
  */
-extern int D_1D438, D_1D3E8;
-#ifdef NON_MATCHING
-void gl_func_0000AAEC(int *a0) {
-  int *self_p;
-  int *self2 = &D_1D438;
-  int *data2 = &D_1D3E8;
-  int i;
- do { self_p = a0; for (i = 0; i < 3; i++) { int a1 = i + ((i + 4) << 3); gl_func_00000000(self_p, a1, self2, data2); self_p = (int *) (((char *) self_p) + 0x20); data2 = (int *) (((char *) data2) + 0x18); } } while (0);
+/* 2026-09-11 (agent-g): EXACT 33/33. The "IDO's unreachable setup
+ * scheduling" cap was the A670 eliminated-induction-variable shape
+ * (docs/IDO_CODEGEN.md#basic-iv-elimination-leaves-dead-init-a670): the
+ * hand-stepped self_p / data2 cursors rotate the s-colours (s1<->s2, 12
+ * words); `for (i = 0; i < 3; i++)` with both cursors derived as
+ * `base + i * stride` gives s0 = i, s1 = a0 + i*0x20, s2 = D + 0xD3E8 +
+ * i*0x18 (A670's second-table END cursor: this walks the next 3 records),
+ * s3 = D + 0xD438 held, s4 = 3 (the old "D_1D438 / D_1D3E8" reading of the
+ * `lui 1; addiu -0x2C18` pair ignored the carry: the pair is D + 0xD3E8). The index arg `(i | 0) + ((i + 4)
+ * << 3)` keeps the candidate FIRST in the addu (target `addu a1,s0,t7`; the
+ * bare `i + ...` / `... + i` both put the sll temp first -- the 675A4
+ * deeper-operand-first rule); `(i + 4) * 8 + i` / `i * 9 + 32` are
+ * strength-reduced into a second derived IV (32 words, `addiu s2,s2,9`). */
+void gl_func_0000AAEC(char *a0) {
+    int i;
+    for (i = 0; i < 3; i++) {
+        gl_func_00000000(a0 + i * 0x20, (i | 0) + ((i + 4) << 3),
+                         (char *)&D_00000000 + 0xD438,
+                         (char *)&D_00000000 + 0xD3E8 + i * 0x18);
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AAEC);
-#endif
 
 extern int gl_func_00000000();
 
