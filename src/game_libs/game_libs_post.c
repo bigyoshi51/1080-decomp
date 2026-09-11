@@ -21253,29 +21253,26 @@ int gl_func_00033B28(int a0, int a1, int a2) {{
 //   game_libs object subsystem (per-frame or per-state-change
 //   teardown before re-registration; the table is the collection
 //   the gl_func_0002FB74 interpreter iterates).
-// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callback + &D_0
-//   record-array sweep (0x44 stride, +0x2D8 limit) — byte-match
-//   needs USO mnemonic disasm + record struct typed. Real-C
-//   STRUCTURAL body below per the analysis (teardown counterpart
-//   to gl_func_000337AC / gl_func_00033880). Byte-match deferred.
-//   Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+// BYTE-EXACT 30/30 2026-09-11 (agent-c): the 98.67% wrap's residual (the four
+//   preheader `addiu sN,sN,K` cursor inits emitted s0..s3 where the target has
+//   s3..s0, colours already right) was the eliminated-induction-variable shape of
+//   docs/IDO_CODEGEN.md#basic-iv-elimination-leaves-dead-init-a670: the three
+//   hand-stepped `+= 0x44` cursors are uopt-derived IVs of one counter k. Written
+//   as `for (k = 0; k < 10; k++)` with every cursor derived inline (`D + k*0x44`
+//   for the +0x3C flag store, `D + 0x18 + k*0x44` / `D + 0x30 + k*0x44` as the
+//   call args), uopt emits the IV inits in ITS order (end s3, f18 s2, rec s1,
+//   f30 s0), retargets the trip test onto the f30 IV vs the folded end D+0x2D8
+//   (s3) and leaves no k corpse (k has only linear uses). Hand-stepped cursors
+//   in any decl order stay at 4 swapped words. Ten records of 0x44 bytes.
+//   Callee = the gl_func_00000000 blank (USO-reloc jal). Name pre-checked.
 void gl_func_00033B6C(void) {
-    char *f30 = (char *)&D_00000000 + 0x30;
-    char *rec = (char *)&D_00000000;
-    char *f18 = (char *)&D_00000000 + 0x18;
-    char *end = (char *)&D_00000000 + 0x2D8;
-    do {
-        *(int *)(rec + 0x3C) = 0;
-        gl_func_00000000(f18, f30, 1);
-        rec += 0x44;
-        f18 += 0x44;
-        f30 += 0x44;
-    } while (f30 != end);
+    int k;
+
+    for (k = 0; k < 10; k++) {
+        *(int *)((char *)&D_00000000 + k * 0x44 + 0x3C) = 0;
+        gl_func_00000000((char *)&D_00000000 + 0x18 + k * 0x44, (char *)&D_00000000 + 0x30 + k * 0x44, 1);
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033B6C);
-#endif
 
 // gl_func_00033BE4 — STRUCTURAL PASS (0x2D4 / 181 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
