@@ -461,7 +461,6 @@ void game_libs_func_00009D24(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
   *((int *) (((char *) arg0) + 0x0)) = (s32) ((*((int *) (((char *) arg0) + 0x0))) | 0x80);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00009DB8: 65-insn 3-iter batch dispatcher (size 0x104, frame 0x48, saves s0-s7).
  *
  * Iterates 3 times over a 3-element record array (12-byte stride), each
@@ -530,26 +529,28 @@ void game_libs_func_00009D24(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
  * RESIDUAL (~7.7%): 2-insn prologue schedule (sw ra/addiu s6 placement) + a
  * dead pre-header `move v0,zero` in target (kept init of a copy-propagated
  * z=0 third arg; a plain `int z=0` local gets DCE'd, does not reproduce).
- * Stays NM. */
+ * Stays NM.
+ * 2026-09-11 (agent-g): EXACT 65/65. The "dead pre-header move v0,zero that
+ * no C form reproduces" + the sw ra/addiu s6 prologue split are the A670
+ * eliminated-induction-variable shape
+ * (docs/IDO_CODEGEN.md#basic-iv-elimination-leaves-dead-init-a670): the
+ * loop is `for (k = 0; k < 3; k++)` with EVERY cursor derived inline in the
+ * call -- out + k*2 (s1), ia + k (s2), ib + k (s3), src[k*3 + n] (s0 = src
+ * + 12k) -- so k itself is eliminated (its init is the dead or v0,zero,zero
+ * at 0x4C) and the trip test is retargeted onto the 12k byte-index IV (s4 vs
+ * s7 = 36). Naming any cursor (`p = src + k*3`) re-orders the colours and
+ * retargets the test onto the out cursor (s1 vs 24): keep them all inline.
+ * ctx stays the inline `(char *)&D_00000000 + 0xD430` (uopt hoists it: lui
+ * s6 / sw ra / addiu s6). */
 extern int gl_func_00000000();
-void gl_func_00009DB8(int *out_p, int ia, int ib, int *src) {
-    int *op = out_p;
-    int va = ia;
-    int vb = ib;
-    int i;
-    int *ctx = (int*)((char*)&D_00000000 + 0xD430);
-
-    for (i = 0; i != 36; i += 12) {
-        gl_func_00000000(op, (va % 5) + ((vb % 8) << 3), 0, ctx, src[0], src[1], src[2]);
-        op += 2;
-        va++;
-        vb++;
-        src += 3;
+void gl_func_00009DB8(int *out, int ia, int ib, int *src) {
+    int k;
+    for (k = 0; k < 3; k++) {
+        gl_func_00000000(out + k * 2, ((ia + k) % 5) + (((ib + k) % 8) << 3), 0,
+                         (char *)&D_00000000 + 0xD430,
+                         src[k * 3], src[k * 3 + 1], src[k * 3 + 2]);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009DB8);
-#endif
 
 extern int gl_data_0000D434;
 
