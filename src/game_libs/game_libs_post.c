@@ -246,29 +246,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CD64);
 /* Clears bit 7 of the byte field of consecutive elements in the 2D global
  * table at &D_00000000 (D+0x14 = base ptr, D+0x2070 = row stride, D+0x2040 =
  * s16 element count), column a1, starting at row a0+1, until an element whose
- * (word<<1)<0 (bit30 set) is hit. Structurally exact (29/29 insns, same
- * opcodes/immediates); 14 $t-register fields differ — loop $t-renumber, both
- * permuter-resistant (loop) and C-tweak-resistant (named vars regressed to 19,
- * shifted &D base out of a2). Reloc-blind (&D_00000000). */
-#ifdef NON_MATCHING
+ * bit 30 is set. BYTE-EXACT 29/29 2026-09-11 (agent-c): the old "14 $t-register
+ * fields differ, loop $t-renumber, permuter-resistant" residual was two
+ * spellings -- (1) the row address must be PRODUCT FIRST, `stride * v0 * 32 +
+ * base + v1` (base-first, `(base | 0)`, `<< 5`, pointer-typed base and (int)
+ * casts all number the base AFTER the product: `addu t1,t9,t0`); (2) the
+ * `lw; sll t4,t2,1; bltz t4` bit-30 test with the skipped $t3 is a 1-bit
+ * BITFIELD read (ugen numbers the extraction's srl temp, uopt folds it into
+ * bltz); `(x << 1) < 0`, `x & 0x40000000`, `(x >> 30) & 1` keep consecutive
+ * temps. Plain rotated `while (v0 < count)` (the bottom-test copy is uopt's,
+ * renumbered `lh t8`); the do/while + guard form numbers both tests t6.
+ * docs/IDO_CODEGEN.md#same-stride-cursor-sweep-iv-init-order-33b6c (tail).
+ * Reloc-blind (&D_00000000). */
+typedef struct { unsigned b0:1, b1:1, rest:30; } ElemFlags1CF68;
 void game_libs_func_0001CF68(int a0, int a1) {
     int v0 = a0 + 1;
     int v1 = a1 << 5;
-    if (v0 < *(short *)((char *)&D_00000000 + 0x2040)) {
-        do {
-            char *elem = (char *)(*(int *)((char *)&D_00000000 + 0x14)
-                + (*(unsigned int *)((char *)&D_00000000 + 0x2070) * v0) * 32 + v1);
-            if ((*(int *)elem << 1) < 0) {
-                break;
-            }
-            *(unsigned char *)elem = *(unsigned char *)elem & 0xFF7F;
-            v0++;
-        } while (v0 < *(short *)((char *)&D_00000000 + 0x2040));
+
+    while (v0 < *(short *)((char *)&D_00000000 + 0x2040)) {
+        char *elem = (char *)((*(unsigned int *)((char *)&D_00000000 + 0x2070) * v0) * 32
+            + *(int *)((char *)&D_00000000 + 0x14) + v1);
+        if (((ElemFlags1CF68 *)elem)->b1) {
+            break;
+        }
+        *(unsigned char *)elem = *(unsigned char *)elem & 0xFF7F;
+        v0++;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001CF68);
-#endif
 
 
 // gl_func_0001CFDC — STRUCTURAL PASS (0xD0 / 52 words, no episode).
