@@ -12724,7 +12724,9 @@ float game_libs_func_00029CCC(void *p) {
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00029B6C_pad.s")
 
 #ifdef NON_MATCHING
-/* gl_func_0002A014: byte-table 2-way dispatch.
+/* gl_func_0002A014: byte-table 2-way dispatch (0x68 / 26 words since the
+ * 2026-09-11 boundary fix: its former last word 0x2A07C `addiu t6,a2,-242`
+ * is the head of game_libs_func_0002A07C below).
  *   v = *(u8*)(D_2A014_table + (a1 & 0xFF));
  *   if ((v & 3) == 1)
  *       v1 = ((v & 0x80) ? gl_func_0003F024() : gl_func_0003F010()) & 0xFFFF;
@@ -12751,107 +12753,89 @@ int gl_func_0002A014(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A014);
 #endif
 
-// gl_func_0002A080 — 92.03% redecode 2026-07-30 (was 48.25 structural
-// pass). Caps still gating a full match:
-// (1) CALLER-SET $t6 dispatch: the head does `sltiu at,t6,14` with t6
-// never set in-symbol while a0 stays live in the case bodies (reads
-// a0+0x18) -- so t6 cannot be a coalesced arg web; the normal-arg C
-// form emits sltiu at,a0 (tested per the ECEC diagnostic). The
-// bytecode-VM family's callers pass the opcode in $t6.
-// (2) case 1's jal is BAKED (no R_MIPS_26 in expected/ .o) to USO-local
-// 0x3F05C = gl_func_0003F05C (0x0C00FC17); our reloc'd jal resolves at
-// link but objdiff scores the reloc'd-vs-baked word as a mismatch.
-// (3) two copy-prop-immune pure copies (`or v0,a2,zero` head /
-// `or a0,v0,zero` case 5) — 3E1B0 web-split cap class; while(0)
-// phantom defs, if(1)/else, and param-reassign spellings all fold.
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). A command-opcode dispatcher (single jump table) in the
-// gl_func_00026790 bytecode-interpreter family.
-//
-//   ret gl_func_0002A080(int op, Buf *a1, int a2, int a3) {
-//     if ((unsigned)op >= 0xE) return ...;              // out of range
-//     goto *((void**)(&D_0 + 0x1020))[op];               // jump table
-//     // 14 opcode cases, each operating on the a1 buffer, e.g.:
-//     //   case X: a1->b_18 = a3; a1->w_0 = a1->w_4; ...
-//     //   case Y: jal 0x3F05C(a1);   // 0x0C00FC17
-//     //   ...
-//   }
-//
-// Struct-typing reference: a bytecode/command processor. `op` (a0)
-//   is an opcode in [0, 0xE) decoded by a REAL computed jump table at
-//   &D_0+0x1020 (14 entries; out-of-range = default return). Each
-//   case mutates the `a1` command buffer — byte +0x18 a status/cursor
-//   flag, words +0x0 / +0x4 a read/commit cursor pair — with some
-//   opcodes invoking the fixed USO-relocated handler 0x0C00FC17
-//   (≈0x3F05C). This &D_0+0x1020 table joins the contiguous bank of
-//   game_libs dispatch tables (&D_0+0xE7C / 0xEA0 / 0xEE0 / 0xF10
-//   from gl_func_0002119C / 00023914 / 00026790) — the subsystem's
-//   command-VM step over a per-buffer instruction stream.
-// Caps (DEFERRED): raw-word USO + computed jump-table dispatch +
-//   jal-0 USO-reloc handler (0x3F05C) — byte-match needs USO
-//   mnemonic disasm + reloc-pad jal infra. Real-C STRUCTURAL body
-//   below per the analysis. Byte-match deferred.
-//   Name pre-checked: no extern reuse.
+// game_libs_func_0002A07C -- command-buffer VM step (0x1DC / 119 words; was
+// gl_func_0002A080 + the LAST word of gl_func_0002A014). BOUNDARY FIX
+// 2026-09-11 agent-c: the word at 0x2A07C `addiu t6,a2,-242` (three baked
+// jal targets land on 0x2A07C, per the fake-param sweep oracle) is this
+// function's hoisted `switch (a2)` range-normalise, sheared onto the tail
+// of 2A014 (whose `jr ra; nop` ends at 0x2A078). The old "CALLER-SET $t6
+// dispatch, permanent cap" on 2A080 was this head: the opcode is a2, the
+// 14-entry jumptable at RoData +0x1020 is indexed by a2 - 242 (opcodes
+// 242..255; arms in source order = target layout: 255 pop, 253 call, 254
+// return 1, 252 push, 248 set-counter, 247 loop, 246 pop-frame, 245/249/
+// 250/251 conditional jump, 242/243/244 conditional add, default).
+// a0 = interpreter (+0x18 = pc/base), a1 = buffer (+0x0 value, +0x4 value
+// stack, +0x13.. loop counters, +0x18 stack cursor, +0x19 flag byte).
+// Exact route when the two copies fall: the 29CCC/44B78 jumptable donor
+// splice (GAMELIBS_2A07C_DONOR + REPLACE_FUNC_BODY on the post objects +
+// game_libs_func_0002A07C_rodata = 0x1020 pin + C_FILES filter-out).
 #ifdef NON_MATCHING
+/* NM (agent-c 2026-09-11): 117/119 words, LCS 100 by strict operand match
+ * (was 92.03 on the headless 2A080). Residual = the two copy-prop-immune
+ * pure copies already logged by the 2026-07-30 redecode (3E1B0 class):
+ * the target's `or v0,a2,zero` in the beqz delay slot (opcode copy that
+ * the 250/249/245 and 243/242 compares read from v0 -- ours compares a2
+ * directly) and the loop arm's `or a0,v0,zero; sll t0,a0,2` index copy
+ * (ours `sll t1,v0,2`); everything downstream is the same tree with the
+ * ring one register off. Spellings that fold: named copy, `register`,
+ * `switch (cmd)`, unsigned param/local, `switch (a2 - 242)` with 0..13
+ * cases, volatile launder, `a0 = (char *)n` index, `n = n - 1` else-arm
+ * redefinition; `a2 -= 242` before the switch DOES materialise `or
+ * v0,a2,zero` but keeps the normalised value in a2 (`sltiu at,a2`), and a
+ * dead `if (cmd == 0) a2 = 1;` costs 3 words. Loop-arm shape lever that
+ * landed: inline deref for the FIRST +0x18 read (`a1[a1[0x18] + 0x13] -= 1`
+ * = ring t5), named `n` for the second (colours v0). Pop arm: guard first,
+ * then `m = (n - 1) & 0xFF` = one v1 web (addiu in the bnez delay slot). */
 extern int gl_func_0003F05C();
-// Command-buffer VM step. The opcode is a caller-set $t6 (the ONE remaining
-// cap, approximated by switching on a0 so the arm bodies' register usage
-// matches and only the dispatch reg differs). 2026-07-30 redecode from
-// expected/ .o (old raw-.s analysis was reloc-blind): case 1's jal IS
-// reloc'd — game_libs_func_0003443C, not a hardcoded 0x3F05C; cases 7/8
-// compare a LOCAL COPY of a2 (cmd, colored $v0 via the dispatch-delay
-// `or v0,a2,zero`), not a2 itself; arm exits are `break` (tail-merged
-// return 0 at .LD834) except the 245/242 inner returns, case 0's -1 and
-// case 2's 1; stack indexing is array-form ((int*)a1)[m+1] (addu a1,idx
-// operand order + lw/sw offset 4). a1 buffer: +0x18 stack cursor, +4
-// value stack, +0x0 live value, +0x13/+0x14/+0x19 counters/flags.
-int gl_func_0002A080(char *a0, char *a1, int a2, int a3) {
+int game_libs_func_0002A07C(char *a0, char *a1, int a2, int a3) {
     int cmd;
     int m;
     int n;
 
     cmd = a2;
-    switch ((unsigned int)a0) {
-        case 0:
+    switch (a2) {
+        case 255:
             n = *(unsigned char *)(a1 + 0x18);
-            m = n - 1;
             if (n == 0) {
                 return -1;
             }
-            m = m & 0xFF;
+            m = (n - 1) & 0xFF;
             *(unsigned char *)(a1 + 0x18) = m;
             *(int *)a1 = ((int *)a1)[m + 1];
             break;
-        case 1:
+        case 253:
             return gl_func_0003F05C(a1);
-        case 2:
+        case 254:
             return 1;
-        case 3:
+        case 252:
             n = *(unsigned char *)(a1 + 0x18);
             ((int *)a1)[n + 1] = *(int *)a1;
             *(unsigned char *)(a1 + 0x18) += 1;
             *(int *)a1 = *(int *)(a0 + 0x18) + (a3 & 0xFFFF);
             break;
-        case 4:
+        case 248:
             n = *(unsigned char *)(a1 + 0x18);
             *(char *)(a1 + n + 0x14) = a3;
             ((int *)a1)[*(unsigned char *)(a1 + 0x18) + 1] = *(int *)a1;
             *(unsigned char *)(a1 + 0x18) += 1;
             break;
-        case 5:
+        case 247:
+            *(unsigned char *)(a1 + *(unsigned char *)(a1 + 0x18) + 0x13) -= 1;
             n = *(unsigned char *)(a1 + 0x18);
-            *(unsigned char *)(a1 + n + 0x13) -= 1;
-            n = *(unsigned char *)(a1 + 0x18);
+            m = n;
             if (*(unsigned char *)(a1 + n + 0x13) != 0) {
-                *(int *)a1 = ((int *)a1)[n];
+                *(int *)a1 = ((int *)a1)[m];
             } else {
                 *(unsigned char *)(a1 + 0x18) = n - 1;
             }
             break;
-        case 6:
+        case 246:
             *(unsigned char *)(a1 + 0x18) -= 1;
             break;
-        case 7:
+        case 245:
+        case 249:
+        case 250:
+        case 251:
             if (cmd == 250) {
                 if (*(signed char *)(a1 + 0x19) != 0) break;
             }
@@ -12863,7 +12847,9 @@ int gl_func_0002A080(char *a0, char *a1, int a2, int a3) {
             }
             *(int *)a1 = *(int *)(a0 + 0x18) + (a3 & 0xFFFF);
             break;
-        case 8:
+        case 242:
+        case 243:
+        case 244:
             if (cmd == 243) {
                 if (*(signed char *)(a1 + 0x19) != 0) break;
             }
@@ -12872,19 +12858,13 @@ int gl_func_0002A080(char *a0, char *a1, int a2, int a3) {
             }
             *(int *)a1 = *(int *)a1 + (signed char)a3;
             break;
-        case 9:
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-            break;
         default:
             break;
     }
     return 0;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A080);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A07C);
 #endif
 
 
