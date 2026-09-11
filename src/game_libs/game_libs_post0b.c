@@ -22612,137 +22612,110 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FBA4);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004FD00);
-
-// gl_func_0004FD18 — STRUCTURAL PASS (0x3D0 / 245 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0 → ONE clean function (large). Single prologue frame
-// 0x88 (saves ra + s0..). Structured-record decode + halfword accumulate
-// (FP-assisted; relates to the segment's record-decode routines).
+// game_libs_func_0004FD00 -- edge-midpoint plane-side test (0x3EC / 251 words,
+// no episode). The 6-word orphan game_libs_func_0004FD00 (`lw t7,0x68(a0);
+// sll v1,a1,3; li t1,6; addu t8,t7,v1; lhu t9,2(t8); lw t6,0x60(a0)`) is the
+// hoisted head of gl_func_0004FD18 (retired 2026-09-11 agent-c, .s merged):
+// the record-table + edge*8 index + vertex-table base of the FIRST vertex
+// load, scheduled above `addiu sp`. Leaf, frame 0x88, no relocs.
 //
-//   void gl_func_0004FD18(void *a0, int a1, int a2) {
-//     float two = 2.0f;                              // 0x40000000
-//     float acc = 0.0f;                               // mtc1 zero
-//     short *r = base + idx*?;                         // multu/mflo index
-//     short scr[..];                                   // sp+0x44/0x46/0x48
-//     scr[0] = r[0]; scr[1] = r[1]; scr[2] = r[2];      // lh -> sp 6-byte
-//                                                       //   record extract
-//     // combine/accumulate loop: re-index off a0->0x60 / a0->0x68 with
-//     // multu, lhu the per-record fields, add into the sp+0x44.. scratch
-//     // (87AD0044 + 87AE0046 -> A7B80044) advancing through the array;
-//     // FP (two / acc) folds a scaled term into the running total.
-//   }
-// Decodes a 6-byte record (3 packed 16-bit fields at +0/+2/+4) from an
-// index-scaled position, stages it into the sp+0x44.. scratch, then runs an
-// accumulate loop that re-indexes the a0->0x60 / a0->0x68 base/stride array
-// (multu-scaled), lhu-loads per-record fields and folds them — plus an FP
-// term (2.0f scale, 0.0f seed) — into the running scratch totals.
-//
-// Caps (DEFERRED): a0/record struct untyped; inner accumulate
-//   arithmetic not decoded (245-word decoder); fold/advance detail
-//   representative. Real-C STRUCTURAL body below — record stage +
-//   accumulate skeleton only. Byte-match deferred. Name pre-checked:
-//   no extern reuse.
+// Semantics: obj+0x68 = edge table (8-byte records; u16 vertex indices at
+// +2/+4/+6), obj+0x60 = 6-byte s16[3] vertex table, obj+0x54 = per-edge
+// float plane rows (12-byte stride). For edge e1 and e2: sum the three
+// vertex triples into `short sum[3]`, convert to float (v[4] = A, v[3] = B),
+// mid = (A + B) / 2, d1 = mid - A, d2 = mid - B, return 1 iff
+// dot(d1, plane[e1]) >= 0 and dot(d2, plane[e2]) >= 0.
 #ifdef NON_MATCHING
-/* PASS-3 2026-08-23 REDECODE (was broken m2c graft w/ M2C-unset zeros, 5.3%).
- * True head = orphan game_libs_func_0004FD00 (caller-hoisted 6 insns: rec
- * table +0x68, v1=a1*8, six=6, idx=lhu+2, base +0x60). Semantics: sum the 3
- * s16 vertex triples of edge arg1 and of edge arg2 (vertex indices at
- * rectab[edge]+2/4/6, 6-byte s16[3] vertices at +0x60), convert to float,
- * midpoint=(A+B)/2, deltas mid-A / mid-B, dot vs plane rows at +0x54
- * (stride 12); return 1 iff both dots >= 0. */
-s32 gl_func_0004FD18(char *arg0, s32 arg1, s32 arg2) {
-    Vec3 fA;    /* sp+0x7C */
-    Vec3 fB;    /* sp+0x70 */
-    Vec3 mid;   /* sp+0x64 */
-    Vec3 d1;    /* sp+0x58 */
-    Vec3 d2;    /* sp+0x4C */
+/* NM 43.0 -> see report (agent-c 2026-09-11, hand-analysis; 3rd pass).
+ * Structure now reproduces the target's memory traffic exactly: the five
+ * Vec3 locals are ONE `Vec3 v[5]` array (sp+0x4C..0x87; an array is never
+ * promoted, so every intermediate `v[k].x = ...` store survives -- separate
+ * struct locals get DSE'd to one store per field); the `*tp = v[k]` copies
+ * are the lw/sw triples through the held &tmp (sp+0x14) / &mid (sp+0x64)
+ * bases; `sum[k] += rec[k]` on a short array gives the lh/addu/sh with the
+ * second-vertex reload and third-vertex store-forward; the 9 named scalars
+ * between `sum` and `tmp` + one after `tp` are the phantom words that put
+ * sum at +0x44 and tmp at +0x14 (frame 0x88 exact); `do { } while (0)`
+ * around each FP block splits the basic block so `two` colours $f0 and the
+ * hoisted 0.0f $f12 (one block colours two $f12 and materialises 0.0f late).
+ * Residual (LCS 53/251 by strict operand match, ~all 251 words match by
+ * mnemonic): (a) uopt colour order -- target rec=v0, a1*8=v1, a2*8=a3,
+ * plane base=t0, six=t1, &tmp=t2, &mid=t3, twelve=t4, ret=v0, row=v1; ours
+ * gives six=t0/t1, &tmp v0 (late), &mid a3, twelve t0, base a3, row v0,
+ * ret v1 (so the tail is `bc1fl; or v0,v1` instead of `b; addiu v0,1`)
+ * in every spelling tried (named `planes` at top/late, ret at top, dots
+ * inlined in the if, return-1/return-0 form, while(0) anchors, whole-body
+ * do/for wrappers, do-while around the sum blocks -- the last shrinks the
+ * frame to 0x80); (b) the third-vertex forwarded sum is a DOUBLE `or`
+ * (`or t6,t8; or t8,t6; addu t6,t8,t7`) in the target vs one `or` here --
+ * s16 temps, struct-of-shorts, pointer walk, per-k loops all lose it.
+ * Both are uopt colouring/phantom-temp artefacts of the same tree. */
+s32 game_libs_func_0004FD00(char *arg0, s32 arg1, s32 arg2) {
+    Vec3 v[5];  /* sp+0x4C: d2, d1, mid, B, A */
     s16 sum[3]; /* sp+0x44 */
-    Vec3 tmp;   /* sp+0x14 */
     s16 *rec;
     f32 *pl;
     f32 dot1, dot2;
-    s32 w0, w1, w2;
     s32 ret;
     f32 two = 2.0f;
+    f32 zero = 0.0f;
+    s32 padB, padC;
+    Vec3 tmp;   /* sp+0x14 */
     Vec3 *tp = &tmp;
-    Vec3 *mp = &mid;
-    Vec3 *ap = &fA;
-    Vec3 *bp = &fB;
+    s32 padD;
 
-    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg1 * 8) + 2) * 6);
-    sum[0] = rec[0];
-    sum[1] = rec[1];
-    sum[2] = rec[2];
-    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg1 * 8) + 4) * 6);
-    w0 = sum[0] + rec[0];
-    sum[0] = w0;
-    w1 = sum[1] + rec[1];
-    sum[1] = w1;
-    w2 = sum[2] + rec[2];
-    sum[2] = w2;
-    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg1 * 8) + 6) * 6);
-    w0 = w0 + rec[0];
-    sum[0] = w0;
-    w1 = w1 + rec[1];
-    sum[1] = w1;
-    w2 = w2 + rec[2];
-    sum[2] = w2;
-    ap->x = (s16) w0;
-    ap->y = (s16) w1;
-    ap->z = (s16) w2;
-    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg2 * 8) + 2) * 6);
-    sum[0] = rec[0];
-    sum[1] = rec[1];
-    sum[2] = rec[2];
-    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg2 * 8) + 4) * 6);
-    w0 = sum[0] + rec[0];
-    sum[0] = w0;
-    w1 = sum[1] + rec[1];
-    sum[1] = w1;
-    w2 = sum[2] + rec[2];
-    sum[2] = w2;
-    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg2 * 8) + 6) * 6);
-    w0 = w0 + rec[0];
-    sum[0] = w0;
-    w1 = w1 + rec[1];
-    sum[1] = w1;
-    w2 = w2 + rec[2];
-    sum[2] = w2;
-    bp->x = (s16) w0;
-    bp->y = (s16) w1;
-    bp->z = (s16) w2;
     ret = 0;
-    *tp = *ap;
-    mp->x = tp->x;
-    mp->y = tp->y;
-    mp->x = tp->x + bp->x;
-    mp->y = tp->y + bp->y;
-    mp->x = mp->x / two;
-    mp->y = mp->y / two;
-    mp->z = (tp->z + bp->z) / two;
-    *tp = *mp;
-    d1.x = tp->x;
-    d1.x = tp->x - ap->x;
-    d1.y = tp->y;
-    d1.y = tp->y - ap->y;
-    d1.z = tp->z - ap->z;
-    *tp = *mp;
-    d2.x = tp->x;
-    d2.x = tp->x - bp->x;
-    d2.y = tp->y;
-    d2.y = tp->y - bp->y;
-    d2.z = tp->z - bp->z;
+    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg1 * 8) + 2) * 6);
+    sum[0] = rec[0]; sum[1] = rec[1]; sum[2] = rec[2];
+    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg1 * 8) + 4) * 6);
+    sum[0] += rec[0]; sum[1] += rec[1]; sum[2] += rec[2];
+    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg1 * 8) + 6) * 6);
+    sum[0] += rec[0]; sum[1] += rec[1]; sum[2] += rec[2];
+    v[4].x = sum[0]; v[4].y = sum[1]; v[4].z = sum[2];
+    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg2 * 8) + 2) * 6);
+    sum[0] = rec[0]; sum[1] = rec[1]; sum[2] = rec[2];
+    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg2 * 8) + 4) * 6);
+    sum[0] += rec[0]; sum[1] += rec[1]; sum[2] += rec[2];
+    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg2 * 8) + 6) * 6);
+    sum[0] += rec[0]; sum[1] += rec[1]; sum[2] += rec[2];
+    v[3].x = sum[0]; v[3].y = sum[1]; v[3].z = sum[2];
+    do {
+        *tp = v[4];
+        v[2].x = tp->x;
+        v[2].y = tp->y;
+        v[2].x += v[3].x;
+        v[2].y += v[3].y;
+        v[2].x /= two;
+        v[2].y /= two;
+        v[2].z = (tp->z + v[3].z) / two;
+    } while (0);
+    do {
+        *tp = v[2];
+        v[1].x = tp->x;
+        v[1].x -= v[4].x;
+        v[1].y = tp->y;
+        v[1].y -= v[4].y;
+        v[1].z = tp->z - v[4].z;
+    } while (0);
+    do {
+        *tp = v[2];
+        v[0].x = tp->x;
+        v[0].x -= v[3].x;
+        v[0].y = tp->y;
+        v[0].y -= v[3].y;
+        v[0].z = tp->z - v[3].z;
+    } while (0);
     pl = (f32 *) (*(s32 *)(arg0 + 0x54) + (arg1 * 12));
-    dot1 = (d1.x * pl[0]) + (d1.y * pl[1]) + (d1.z * pl[2]);
+    dot1 = (v[1].x * pl[0]) + (v[1].y * pl[1]) + (v[1].z * pl[2]);
     pl = (f32 *) (*(s32 *)(arg0 + 0x54) + (arg2 * 12));
-    dot2 = (d2.x * pl[0]) + (d2.y * pl[1]) + (d2.z * pl[2]);
-    if ((dot1 >= 0.0f) && (dot2 >= 0.0f)) {
+    dot2 = (v[0].x * pl[0]) + (v[0].y * pl[1]) + (v[0].z * pl[2]);
+    if ((dot1 >= zero) && (dot2 >= zero)) {
         ret = 1;
     }
     return ret;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FD18);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004FD00);
 #endif
 
 // gl_func_000500EC — FULL DECODE (0x2B8 / 174 words, no episode).
