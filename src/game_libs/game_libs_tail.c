@@ -1185,7 +1185,6 @@ block_7:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AD9C);
 #endif
 
-#ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -1198,7 +1197,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AD9C);
  * Calls are jal 0x0 zero-alias. RESIDUAL 6 words = three adjacent-pair
  * as1 emission-order ties (li 8/move zero preheader; lui at/lui v1; sw
  * flag/addiu base) — probed 12 spellings (joins, statement order, decl
- * order, if(1), loop-form): all inert. NM wrap; INCLUDE_ASM build path. */
+ * order, if(1), loop-form): all inert. NM wrap; INCLUDE_ASM build path.
+ * 2026-09-11 (agent-g): EXACT 57/57. The three "as1 emission-order ties"
+ * were two spellings: (1) `for (var_v1 = 0; var_v1 != 8; var_v1 += 4)` puts
+ * the counter init AFTER the hoisted bound (`addiu a0,8; or v1,zero`) where
+ * the do/while put it before (docs/IDO_CODEGEN.md
+ * #for-init-vs-dowhile-preheader-lui-addiu-adjacency-66d54, C784 corollary);
+ * (2) the held `&D_00000000` web (lui v1 / addiu v1,v1,0: the vtable load
+ * base AND the `addu a0,t2,v1` arg) is hoisted to the top of its basic block,
+ * i.e. above the flag-store chain (`lui at ... sw t0,0(at)`); a
+ * `do { } while (0)` around the vtable-call block starts that BB after the
+ * flag store, so uopt emits the flag chain first and as1 lands `lui at; lui
+ * v1; ...; sw t0,0(at); addiu v1,v1,0` (64DEC finding 3). A `do {}` around
+ * the flag store alone or `if (1) { }` work the same; a named `base` local
+ * grows the frame (+8) and keeps the web first. */
 typedef char *(*GP_0000AFC4)();
 extern int gl_flag_AFC4_bit2;
 void gl_func_0000AFC4(char *arg0) {
@@ -1216,15 +1228,13 @@ void gl_func_0000AFC4(char *arg0) {
     arg0[19] = 8;
     arg0[20] = 8;
     var_v0 = arg0;
-    var_v1 = 0;
-    do {
-        var_v1 += 4;
+    for (var_v1 = 0; var_v1 != 8; var_v1 += 4) {
         var_v0[6] = 0;
         var_v0[7] = 0;
         var_v0[8] = 0;
         var_v0[9] = 0;
         var_v0 += 4;
-    } while (var_v1 != 8);
+    }
     arg0[14] = 0;
     arg0[15] = 0;
     arg0[16] = 0;
@@ -1234,13 +1244,12 @@ void gl_func_0000AFC4(char *arg0) {
     gl_func_00000000(*(u8 *)(arg0 + 20));
     gl_func_00000000(*(u16 *)(arg0 + 4) & 3);
     gl_flag_AFC4_bit2 = (*(u16 *)(arg0 + 4) & 4) == 4;
-    temp_v0 = *(char **)((char *)&D_00000000 + 0x28);
-    sp3C = 0x15;
-    ((GP_0000AFC4)FW(temp_v0, 0x34))(*(s16 *)(temp_v0 + 0x30) + (int)&D_00000000, &sp3C);
+    do {
+        temp_v0 = *(char **)((char *)&D_00000000 + 0x28);
+        sp3C = 0x15;
+        ((GP_0000AFC4)FW(temp_v0, 0x34))(*(s16 *)(temp_v0 + 0x30) + (int)&D_00000000, &sp3C);
+    } while (0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AFC4);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0000B0A8: constructor. obj = arg0 ?: alloc(0x18); obj->0x10=arg1,
