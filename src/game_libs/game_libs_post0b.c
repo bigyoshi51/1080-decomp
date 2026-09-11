@@ -2231,102 +2231,60 @@ void gl_func_0003604C(int *a0) {
 }
 
 
-// game_libs_func_00036074 — STRUCTURAL PASS / BOUNDARY NOTE
-// (0x14 / 5 words, no episode). Raw-.word USO form (game_libs).
-//
-// NOT A REAL FUNCTION. Splat-missplit HEAD FRAGMENT (same class as
-// game_libs_func_000309AC / game_libs_func_00033444 documented
-// earlier in this file — just longer: an FP-constant + base-load
-// prologue prefix rather than a lone 2-word base load). Five
-// instructions, NO prologue (no addiu $sp), NO jr $ra —
-//     mtc1  $zero, $f0       ( 44800000 )   ; f0 = 0.0f
-//     lui   $v0, 0           ( 3C020000 )
-//     addiu $v0, $v0, 0      ( 24420000 )   ; v0 = &D_0
-//     lui   $at, 0x3F80      ( 3C013F80 )
-//     mtc1  $at,  $f2        ( 44812000 )   ; f2 = 1.0f
-// i.e. it materializes the FP constants 0.0f / 1.0f and loads the
-// &D_0 base into $v0. These five words logically belong to the
-// ENTRY of the NEXT function (at 0x00036088): splat could not see
-// the function boundary in this relocatable USO segment and
-// sheared the successor's constant-setup / base-load prologue
-// prefix off as a standalone 0x14-byte symbol.
-//
-// Resolution: DEFERRED USO BOUNDARY RE-SPLIT (tracked with the
-// other game_libs_post.c head-fragment / multi-jr boundary notes).
-// NOT fixable with the mnemonic split-fragments.py /
-// merge-fragments tooling — raw-.word relocatable USO needs the
-// spimdisasm-USO migration to re-derive the boundary. No merge
-// attempted (would corrupt the successor's bytes); no episode
-// (tautology-trap; and this is not a function). Body
-// INCLUDE_ASM-preserved (.s = source of truth).
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00036074);
-
-// gl_func_00036088 — STRUCTURAL PASS (0x19C / 103 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, has
-// its OWN prologue). The SUCCESSOR of the game_libs_func_00036074
-// splat-missplit FP-const HEAD fragment (that fragment's
-// f0=0.0f / f2=1.0f / &D_0 setup is this constructor's sheared-off
-// prologue prefix — the two are one logical unit).
-//
-//   void gl_func_00036088(O *o, float arg) {
-//     o->f_00 = 0.0f; o->f_04 = 0.0f;          // (f0 from frag 36074)
-//     o->f_08 = 0.0f; o->f_0C = arg;
-//     o->f_88 = 0.0f; o->w_1D8 = 0;
-//     o->f_2C = o->f_30 = o->f_34 =
-//       o->f_38 = o->f_3C = o->f_40 = 0.0f;     // zero FP block
-//     o->f_8C = o->f_90 = 0.0f;
-//     o->f_44 = 200.0f;                          // 0x43480000 default
-//     Desc d;                                    // local sp+0x64
-//     d = (Vec3){ o->f_88, o->f_8C, o->f_90 };
-//     o->p_DC = &d; ...                          // wire sub-pointers
-//   }
-//
-// Struct-typing reference: a large object / state-block CONSTRUCTOR.
-//   It zero-initializes long runs of FP fields in the passed object
-//   (offsets 0x00..0x0C, 0x2C..0x44, 0x88..0x90, plus the int at
-//   0x1D8), installs default scalar constants — 1.0f (materialized
-//   by the sheared-off game_libs_func_00036074 prologue fragment)
-//   and 200.0f at o->0x44 (a default limit/scale, the same
-//   0x43480000 seen in the gl_func_00035E6C projector) — builds a
-//   small Vec3-shaped descriptor on the stack (sp+0x64) from
-//   o->0x88/0x8C/0x90, and wires interior sub-pointers (o->0xDC
-//   etc.). A factory/init node of the game_libs object subsystem
-//   (companion to the gl_func_00034890 / 00035B1C / 00032E18
-//   constructor family); confirms game_libs_func_00036074 is this
-//   function's sheared prologue prefix pending the deferred USO
-//   re-split.
-// Caps (DEFERRED): raw-word USO + FP field-zeroing constructor +
-//   sheared-prologue-fragment dependency
-//   (game_libs_func_00036074) — byte-match needs USO mnemonic
-//   disasm + 00036074 boundary re-split + object struct typed.
-//   Real-C STRUCTURAL body below per the analysis. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-void gl_func_00036088(char *o, float arg) {
-    char d[0x10];
-    *(float *)(o + 0x00) = 0.0f;
-    *(float *)(o + 0x04) = 0.0f;
-    *(float *)(o + 0x08) = 0.0f;
-    *(float *)(o + 0x0C) = arg;
-    *(float *)(o + 0x88) = 0.0f;
-    *(int *)(o + 0x1D8) = 0;
-    *(float *)(o + 0x2C) = 0.0f;
-    *(float *)(o + 0x30) = 0.0f;
-    *(float *)(o + 0x34) = 0.0f;
-    *(float *)(o + 0x38) = 0.0f;
-    *(float *)(o + 0x3C) = 0.0f;
-    *(float *)(o + 0x40) = 0.0f;
-    *(float *)(o + 0x8C) = 0.0f;
-    *(float *)(o + 0x90) = 0.0f;
-    *(float *)(o + 0x44) = 200.0f;
-    *(float *)(d + 0) = *(float *)(o + 0x88);
-    *(float *)(d + 4) = *(float *)(o + 0x8C);
-    *(float *)(d + 8) = *(float *)(o + 0x90);
-    *(int *)(o + 0xDC) = (int)&d;
+// game_libs_func_00036074 -- object-state constructor (0x1B0 / 108 words,
+// BYTE-EXACT 2026-09-11 agent-c; the 5-word orphan `mtc1 zero,$f0; lui v0;
+// addiu v0; lui at,0x3f80; mtc1 at,$f4` was the hoisted 0.0f / 1.0f /
+// &D_00000000 head of gl_func_00036088, retired and merged). Writes the
+// identity quaternion {0,0,0,1} into the D_00000000 record, zeroes the
+// object's FP fields (+0x88, +0x2C..+0x40, +0x8C, +0x90, int +0x1D8), sets
+// +0x44 = 200.0f, then chains five Vec3 copies through three stack temps
+// (+0x94 <- +0x88, +0xD0 <- +0x94, quat +0x48 <- D, quat +0x58 <- +0x48,
+// quat +0x78 <- +0x58, each w carried separately), calls the USO-relocated
+// init callback on the +0xDC and +0x11C sub-objects, and clears +0x160 /
+// +0x15C / +0x184. The struct copies into the temps are lw/sw triples, the
+// copies OUT are per-field float stores; uopt rebases every object store
+// after `a0 = o + 0xDC` (the first call's hoisted argument) to negative
+// offsets. The 19 `pad` words are named-scalar homes (frame 0x88: a at
+// +0x64, b at +0x4C, c at +0x24) -- see docs/IDO_CODEGEN.md#vec3-array-keeps-intermediate-stores-4fd00.
+void game_libs_func_00036074(char *o) {
+    s32 pad0, pad1, pad2, pad3, pad4, pad5;
+    Vec3 a;
+    s32 pad6, pad7, pad8;
+    Vec3 b;
+    s32 pad9, pad10, pad11, pad12, pad13, pad14, pad15;
+    Vec3 c;
+    s32 pad16, pad17, pad18;
+    ((f32 *)&D_00000000)[0] = 0.0f;
+    ((f32 *)&D_00000000)[1] = 0.0f;
+    ((f32 *)&D_00000000)[2] = 0.0f;
+    ((f32 *)&D_00000000)[3] = 1.0f;
+    *(f32 *)(o + 0x88) = 0.0f;
+    *(s32 *)(o + 0x1D8) = 0;
+    *(f32 *)(o + 0x40) = 0.0f;
+    *(f32 *)(o + 0x3C) = 0.0f;
+    *(f32 *)(o + 0x38) = 0.0f;
+    *(f32 *)(o + 0x34) = 0.0f;
+    *(f32 *)(o + 0x30) = 0.0f;
+    *(f32 *)(o + 0x2C) = 0.0f;
+    *(f32 *)(o + 0x90) = 0.0f;
+    *(f32 *)(o + 0x8C) = 0.0f;
+    *(f32 *)(o + 0x44) = 200.0f;
+    a = *(Vec3 *)(o + 0x88);
+    *(f32 *)(o + 0x94) = a.x; *(f32 *)(o + 0x98) = a.y; *(f32 *)(o + 0x9C) = a.z;
+    b = *(Vec3 *)(o + 0x94);
+    *(f32 *)(o + 0xD0) = b.x; *(f32 *)(o + 0xD4) = b.y; *(f32 *)(o + 0xD8) = b.z;
+    a = *(Vec3 *)&D_00000000;
+    *(f32 *)(o + 0x48) = a.x; *(f32 *)(o + 0x4C) = a.y; *(f32 *)(o + 0x50) = a.z; *(f32 *)(o + 0x54) = ((f32 *)&D_00000000)[3];
+    b = *(Vec3 *)(o + 0x48);
+    *(f32 *)(o + 0x58) = b.x; *(f32 *)(o + 0x5C) = b.y; *(f32 *)(o + 0x60) = b.z; *(f32 *)(o + 0x64) = *(f32 *)(o + 0x54);
+    c = *(Vec3 *)(o + 0x58);
+    *(f32 *)(o + 0x78) = c.x; *(f32 *)(o + 0x7C) = c.y; *(f32 *)(o + 0x80) = c.z; *(f32 *)(o + 0x84) = *(f32 *)(o + 0x64);
+    gl_func_00000000(o + 0xDC, o);
+    gl_func_00000000(o + 0x11C, o);
+    *(s32 *)(o + 0x160) = 0;
+    *(s32 *)(o + 0x15C) = 0;
+    *(s32 *)(o + 0x184) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036088);
-#endif
 
 // gl_func_00036224 — STRUCTURAL PASS (0x470 / 284 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one

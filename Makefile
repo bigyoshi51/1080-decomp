@@ -386,7 +386,9 @@ build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_SUFFIX_BYTES
 # +0x740 of NM body over the three retired stubs): 62F08 NM offset 0x2df2c + 0x50.
 # Clip re-probed 2026-09-11 (4FD00/4FD18 merged as one NM wrap, +0x20 of NM body over the
 # retired 4FD18 stub + INCLUDE_ASM head): 62F08 NM offset 0x2df4c + 0x50.
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2df9c gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# Clip re-probed 2026-09-11 (36074/36088 exact merge: the 0x1B0 body replaces the old
+# 0x90 36088 NM stub + INCLUDE_ASM head): 62F08 NM offset 0x2e06c + 0x50.
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2e0bc gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
