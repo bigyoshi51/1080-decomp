@@ -2196,68 +2196,63 @@ void gl_func_0000C714(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0000C784: constructor. Allocs self (0xB8) if arg0==NULL; inits via
- * cb(self, 0xD678); sets self->0x28 = &D_00000000; zeros ~17 scalar fields;
- * allocs a 0x300 buffer into self->0x44; a 2-iteration do-while loop (v1 += 0x180,
- * bound 0x300) zeros 8 records in the buffer (re-reading self->0x44 per store, no
- * CSE); then cb(self), cb(*(int*)(&D+0x134), self), cb(self). Returns self. Fresh
- * decode 2026-05-29 (m2c-confirmed, m2c-faithful short-circuit head). 93.5% reg-
- * blind, exact 77-insn count. Residuals: (a) move s0,a0 / bnez ordering (IDO
- * schedules the branch first; a scheduling choice not C-drivable); (b) the 0xD678
- * arg — target bakes it as a literal lui 0x1; addiu -10632 (USO-relocated data
- * address baked at disasm time), so `&D_0000D678` gets the right lui+addiu FORM but
- * emits R_MIPS_HI16/LO16 relocs the literal baseline lacks — a splat-symbolization
- * cap, not C-fixable. Caps: self struct + 3 cb prototypes untyped. NON_MATCHING. */
+/* gl_func_0000C784: constructor, 77/77 BYTE-EXACT (2026-09-11 agent-g; was
+ * NM 95.84 with three "not C-drivable" residuals, all three were spellings).
+ * Allocs self (0xB8) if arg0 == NULL; cb(self, D+0xD678); self->0x28 = &D;
+ * zeros 17 fields; allocs a 0x300 buffer into self->0x44 and zeros 8 records
+ * of it in a 2-iteration stride-0x180 loop (self->0x44 re-read per store);
+ * cb(self), cb(*(D+0x134), self), cb(self); returns self (NULL on alloc
+ * failure). (1) `or s0,a0,zero; bnez a0; sw ra` head: the PARAM itself is
+ * the s0 web (a `self = arg0` local puts the copy after `sw ra` and as1
+ * fills the bnez delay with it); (2) the 0xD678 argument is
+ * `(char *)&D_00000000 + 0xD678` -- the addend is baked into the lui/addiu
+ * words (`extern char D_0000D678` gives blank hi/lo fields, the reloc-blind
+ * gate's non-exception class); (3) the record loop is a for-init loop:
+ * `v1 = 0; do {} while (v1 != 0x300)` emits the same words with
+ * `or v1,zero,zero` scheduled before the hoisted `addiu v0,zero,768` (see
+ * docs/IDO_CODEGEN.md #for-init-vs-dowhile-preheader-lui-addiu-adjacency-66d54).
+ * Calls are jal 0x0 blanks (gl_func_00000000). */
 extern int gl_func_00000000();
-extern char D_0000D678;
 void *gl_func_0000C784(char *arg0) {
-    char *self;
     int v1;
 
-    self = arg0;
-    if ((self != 0) || (self = (char *)gl_func_00000000(0xB8), (self != 0))) {
-        gl_func_00000000(self, &D_0000D678);
-        *(char **)(self + 0x28) = (char *)&D_00000000;
-        *(int *)(self + 0x4C) = 0;
-        *(int *)(self + 0xB4) = 0;
-        *(int *)(self + 0x5C) = 0;
-        *(int *)(self + 0x58) = 0;
-        *(int *)(self + 0x54) = 0;
-        *(int *)(self + 0x68) = 0;
-        *(int *)(self + 0x64) = 0;
-        *(int *)(self + 0x60) = 0;
-        *(int *)(self + 0x6C) = 0;
-        *(int *)(self + 0x70) = 0;
-        *(int *)(self + 0x8C) = 0;
-        *(int *)(self + 0x78) = 0;
-        *(int *)(self + 0x80) = 0;
-        *(int *)(self + 0x84) = 0;
-        *(int *)(self + 0x94) = 0;
-        *(int *)(self + 0x98) = 0;
-        *(int *)(self + 0x48) = 0;
-        *(int *)(self + 0x44) = gl_func_00000000(0x300);
-        v1 = 0;
-        do {
-            *(int *)(*(char **)(self + 0x44) + v1) = 0;
-            *(int *)(*(char **)(self + 0x44) + v1 + 4) = 0;
-            *(int *)(*(char **)(self + 0x44) + v1 + 0x60) = 0;
-            *(int *)(*(char **)(self + 0x44) + v1 + 0x64) = 0;
-            *(int *)(*(char **)(self + 0x44) + v1 + 0xC0) = 0;
-            *(int *)(*(char **)(self + 0x44) + v1 + 0xC4) = 0;
-            *(int *)(*(char **)(self + 0x44) + v1 + 0x120) = 0;
-            *(int *)(*(char **)(self + 0x44) + v1 + 0x124) = 0;
-            v1 += 0x180;
-        } while (v1 != 0x300);
-        gl_func_00000000(self);
-        gl_func_00000000(*(int *)((char *)&D_00000000 + 0x134), self);
-        gl_func_00000000(self);
+    if ((arg0 != 0) || (arg0 = (char *)gl_func_00000000(0xB8), (arg0 != 0))) {
+        gl_func_00000000(arg0, (char *)&D_00000000 + 0xD678);
+        *(char **)(arg0 + 0x28) = (char *)&D_00000000;
+        *(int *)(arg0 + 0x4C) = 0;
+        *(int *)(arg0 + 0xB4) = 0;
+        *(int *)(arg0 + 0x5C) = 0;
+        *(int *)(arg0 + 0x58) = 0;
+        *(int *)(arg0 + 0x54) = 0;
+        *(int *)(arg0 + 0x68) = 0;
+        *(int *)(arg0 + 0x64) = 0;
+        *(int *)(arg0 + 0x60) = 0;
+        *(int *)(arg0 + 0x6C) = 0;
+        *(int *)(arg0 + 0x70) = 0;
+        *(int *)(arg0 + 0x8C) = 0;
+        *(int *)(arg0 + 0x78) = 0;
+        *(int *)(arg0 + 0x80) = 0;
+        *(int *)(arg0 + 0x84) = 0;
+        *(int *)(arg0 + 0x94) = 0;
+        *(int *)(arg0 + 0x98) = 0;
+        *(int *)(arg0 + 0x48) = 0;
+        *(int *)(arg0 + 0x44) = gl_func_00000000(0x300);
+        for (v1 = 0; v1 != 0x300; v1 += 0x180) {
+            *(int *)(*(char **)(arg0 + 0x44) + v1) = 0;
+            *(int *)(*(char **)(arg0 + 0x44) + v1 + 4) = 0;
+            *(int *)(*(char **)(arg0 + 0x44) + v1 + 0x60) = 0;
+            *(int *)(*(char **)(arg0 + 0x44) + v1 + 0x64) = 0;
+            *(int *)(*(char **)(arg0 + 0x44) + v1 + 0xC0) = 0;
+            *(int *)(*(char **)(arg0 + 0x44) + v1 + 0xC4) = 0;
+            *(int *)(*(char **)(arg0 + 0x44) + v1 + 0x120) = 0;
+            *(int *)(*(char **)(arg0 + 0x44) + v1 + 0x124) = 0;
+        }
+        gl_func_00000000(arg0);
+        gl_func_00000000(*(int *)((char *)&D_00000000 + 0x134), arg0);
+        gl_func_00000000(arg0);
     }
-    return self;
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C784);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
