@@ -22074,52 +22074,65 @@ void game_libs_func_0004F0AC(int a0, int a1, int a2, int a3) {
 
 void game_libs_func_0004F0C0(int a0) {}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004F0C8);
-
-// gl_func_0004F0E0 — STRUCTURAL PASS (0x1FC / 133 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0, NO calls (leaf) → ONE clean function. Single
-// prologue frame 0x18. Unrolled FP matrix multiply / matrix-vector
-// transform (pure FP, no cb).
-//
-//   void gl_func_0004F0E0(void *dst, Mat a1, Mat a2) {
-//     // fully-unrolled row x column dot products: loads matrix elements
-//     // via lwc1 from a1->0x30/0x34/0x38 (a vector / row) and a2->0x40..
-//     // 0x64 (matrix columns), forms mul.s products and add.s sums per
-//     // output lane, with a 0x3FE00000 (1.75f) constant folded in:
-//     dst->c0 = a1->m30*a2->m40 + a1->m34*a2->m50 + a1->m38*a2->m60 + K;
-//     dst->c1 = a1->m30*a2->m44 + a1->m34*a2->m54 + a1->m38*a2->m64 + ... ;
-//     // ... the mul.s/add.s lattice repeats per output element (3-4
-//     //     lanes), straight-line, no loop.
-//   }
-// A classic straight-line 4x4 (or 3x4) matrix-vector / matrix-matrix
-// multiply: each output element is the dot product of an a1 row
-// (+0x30/0x34/0x38) with an a2 column (+0x40/0x44/0x48 .. /0x50/0x54 ..
-// /0x60/0x64), accumulated via the mul.s -> add.s chain with a 0x3FE00000
-// constant.
-//
-// Caps (DEFERRED): Mat/dst struct untyped; per-lane operand pairing
-//   representative. Real-C STRUCTURAL body below — 3 output lanes via
-//   the 3-row x 3-column dot pattern. Byte-match deferred. Name
-//   pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-void gl_func_0004F0E0(char *dst, char *a1, char *a2) {
-    float r0 = *(float *)(a1 + 0x30);
-    float r1 = *(float *)(a1 + 0x34);
-    float r2 = *(float *)(a1 + 0x38);
-    float K = 1.75f;
-    *(float *)(dst + 0x00) = r0 * *(float *)(a2 + 0x40)
-                           + r1 * *(float *)(a2 + 0x50)
-                           + r2 * *(float *)(a2 + 0x60) + K;
-    *(float *)(dst + 0x04) = r0 * *(float *)(a2 + 0x44)
-                           + r1 * *(float *)(a2 + 0x54)
-                           + r2 * *(float *)(a2 + 0x64) + K;
-    *(float *)(dst + 0x08) = r0 * *(float *)(a2 + 0x48)
-                           + r1 * *(float *)(a2 + 0x58)
-                           + r2 * *(float *)(a2 + 0x68) + K;
+/* game_libs_func_0004F0C8 (0x214, 133 words): the 6-word game_libs_func_0004F0C8
+ * orphan + gl_func_0004F0E0 are ONE function -- bootup.uso Sym exports text
+ * 0x63734 (= splat 0x4F0C8); 0x4F0E0 is not exported/referenced. The orphan is
+ * the hoisted head (the v->x/y/z loads + the first two m[.][3] loads and the
+ * first `mul.s` scheduled above `addiu sp`). Point projection: the 4x4 at
+ * cam+0x30 (row-major, translation in row 3) transforms v (w implicit 1.0);
+ * w <= 0 -> return 0 with the untransformed clip xyz written back; else
+ * divide by w, scale to the half viewport (int width/height at 0xC8/0xCC via
+ * the double 0.5, y negated), optionally return 1/w through outw, and when
+ * `flag` add the viewport offset (w*0.5 + c0 + d0 / h*0.5 + c1 + d1, ints at
+ * 0xC0/0xC4 and 0xD0/0xD4). Pure leaf, frame 0x18, no relocs.
+ * Levers (docs/IDO_CODEGEN.md#reversed-right-assoc-sum-load-last-phantom-slots-4f0c8):
+ * (1) each lane's 4-term sum spelled REVERSED and right-associated
+ * `m[3][c] + (m[2][c]*z + (m[1][c]*y + m[0][c]*x))` -- uopt emits the target's
+ * left-linear `((p0+p1)+p2)+m3` with the m3 load as the SECOND add operand and
+ * the x/z lanes' loads in $f10; the natural left-linear spelling puts the
+ * m[3][c] load FIRST in the final add.s (the load-outranks-temp rule) and
+ * re-colours the lanes (72 diff lines); (2) the three result stores on
+ * separate lines (y, x, z order; one line emits x, y, z); (3) the int offset
+ * (0xC0 / 0xC4) through ONE named `int c` reused per axis -- it colours $v0,
+ * which blocks the `addiu v0,1` hoist to the function top and gives the
+ * `beqzl a2` + delay-slot return; (4) five phantom words above the z home:
+ * an unused `float pad[5]` (uncoloured locals keep their slots; z declared
+ * after it lands at sp+0 in the 0x18 frame). */
+typedef struct { float x, y, z; } Vec3_4F0C8;
+typedef struct {
+    char pad0[0x30];
+    float m[4][4];              /* 0x30: row-major, row 3 = translation */
+    char pad1[0xC0 - 0x70];
+    int c0, c1;                 /* 0xC0, 0xC4: viewport offset */
+    int w, h;                   /* 0xC8, 0xCC: viewport size */
+    int d0, d1;                 /* 0xD0, 0xD4: second offset */
+} Cam4F0C8;
+int game_libs_func_0004F0C8(Cam4F0C8 *cam, Vec3_4F0C8 *v, int flag, float *outw) {
+    float pad[5];
+    float z, w, y, x;
+    float inv;
+    int c;
+    w = cam->m[3][3] + (cam->m[2][3] * v->z + (cam->m[1][3] * v->y + cam->m[0][3] * v->x));
+    x = cam->m[3][0] + (cam->m[2][0] * v->z + (cam->m[1][0] * v->y + cam->m[0][0] * v->x));
+    y = cam->m[3][1] + (cam->m[2][1] * v->z + (cam->m[1][1] * v->y + cam->m[0][1] * v->x));
+    z = cam->m[3][2] + (cam->m[2][2] * v->z + (cam->m[1][2] * v->y + cam->m[0][2] * v->x));
+    v->y = y;
+    v->x = x;
+    v->z = z;
+    if (w <= 0.0f) return 0;
+    inv = 1.0f / w;
+    v->x *= inv; v->y *= inv; v->z *= inv;
+    v->x = v->x * (cam->w * 0.5);
+    v->y = v->y * (-cam->h * 0.5);
+    if (outw) *outw = inv;
+    if (flag) {
+        c = cam->c0;
+        v->x = v->x + (cam->w * 0.5 + c + cam->d0);
+        c = cam->c1;
+        v->y = v->y + (cam->h * 0.5 + c + cam->d1);
+    }
+    return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F0E0);
-#endif
 
 
 // game_libs_func_0004F2DC — MERGED 2026-08-22 (forward-merge, 26B40 precedent):
