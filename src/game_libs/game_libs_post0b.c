@@ -16110,91 +16110,109 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046FA8);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000470E4);
-
-// gl_func_000470FC — STRUCTURAL PASS (0x294 / 172 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0 → ONE clean function. Tiny prologue frame 0x10
-// (near-leaf). Saturating float-to-int converter over a Vec3-ish triple
-// (FP-heavy; the classic IDO float->int-with-overflow-clamp idiom).
-//
-//   void gl_func_000470FC(Out a0, Vec a1) {
-//     float x = a1->p04, y = a1->p08, z = a1->p0C;
-//     int cw = read_fpcsr();                          // cfc1
-//     set_round_to_zero();                            // ctc1 (mask round mode)
-//     // per lane: cvt.w.s; read FPCSR cause bits; if (cause & 0x78) the
-//     // conversion overflowed -> clamp to INT_MIN (0x80000000) or -1
-//     // (0xFFFFFFFF) using the 0x4F000000 (=2^31 as float) unsigned-bias
-//     // compare; else take the converted word:
-//     int ix = sat_cvt(x), iy = sat_cvt(y), iz = sat_cvt(z);
-//     restore_fpcsr(cw);                              // ctc1 back
-//     a0->b0 = (i8)ix; a0->b1 = (i8)iy; a0->b2 = (i8)iz; // store clamped
-//   }
-// Converts three floats to saturated integers using the IDO
-// float-to-int-with-clamp pattern: cfc1/ctc1 round-mode bracket, cvt.w.s,
-// then an `andi cause, 0x78` FPU-exception-cause test that, on overflow,
-// substitutes the 0x80000000 / 0xFFFFFFFF saturation value (the
-// 0x4F000000 = 2^31 float constant drives the unsigned-range branch).
-//
-// Caps (DEFERRED): Out/Vec struct untyped; saturating-cast asm idiom
-//   is exact; plain (int)cast C produces fewer insns. Real-C
-//   STRUCTURAL body below — first member of the 000470FC / 000473AC /
-//   00047B40 duplicate family. Byte-match deferred. Name pre-checked:
-//   no extern reuse.
+/* game_libs_func_000470E4 (0x2B0, 172 words): the 6-word game_libs_func_000470E4
+ * orphan + gl_func_000470FC are ONE function (the 255.0f `lui/mtc1` into $f16,
+ * the c[0] load, the rounding-mode `addiu t8,1`, the self->0x254 load and the
+ * first `mul.s` are the hoisted head; the old "caller-set $t6 + $f4" verdict
+ * was this head). One of the three identical colour-packet twins 470E4 /
+ * 47394 / 47B28 (only the command word differs: G_SETPRIMCOLOR). Converts the
+ * RGBA float quad c[0..3] * 255.0f through IDO's unsigned float->int
+ * sequence (cfc1/ctc1 round-to-zero bracket, cvt.w.s, `andi 0x78` overflow
+ * test, the 2^31 bias path) into four u8 homes at sp+4..7, then appends the
+ * 8-byte packet 0xFA000000, r<<24|g<<16|b<<8|a to the current object's display
+ * list (obj = self->0x254->0x158; the 4CDB0 packet kit: g = obj->0xC,
+ * i = g->4++, p = obj->0xC->0 + i*8). Leaf, frame 0x10.
+ * NM wrap on the merged symbol, 172/172 words by mnemonic (standalone strict
+ * word diff 64 lines): every colour (obj v0, gp v1, i a2, p a3, the four
+ * lane results t8/t0/t2/t4, saved FCSR t7/t9/t1/t3, 255.0f $f16, inputs
+ * $f0/$f2/$f12/$f14) and all four conversion sequences are exact. Residual:
+ * (a) head order -- the target schedules the hoisted 2^31 `lui at,0x4f00`
+ * BEFORE the three g/b/a input loads (`lui; lwc1 f2; lwc1 f12; lwc1 f14; lw
+ * v0`), we emit the loads first; every spelling tried keeps loads-first
+ * (loads assigned before/after obj, r's product named, interleaved
+ * assignments lose the hoist entirely behind the ctc1 barrier, struct
+ * pointer, named 255.0f, (unsigned) casts); (b) the pack's ten t-temps are
+ * numbered t4/t1/t8/t3/t5/t2/t6/t9/t0/t4 in the target vs t2/t0/t5/t8/
+ * t3/t1/t4/t6/t7/t9 here -- the tree shape is exact only with the reversed
+ * right-associated `a | (b<<8 | (g<<16 | r<<24))` (the 4F0C8 rule; natural
+ * left-linear order emits a | r<<24 first), so this is uopt's temp colouring,
+ * not the expression. Levers that hold: named float inputs (hoisted loads +
+ * $f16 constant), `unsigned char col[4]` (sb/lbu homes; four separate u8
+ * locals get register-promoted), `float r, g;` declared BEFORE the array and
+ * `float b, a;` after = the two phantom words above the col home (frame
+ * 0x10, col at sp+4). See docs/IDO_CODEGEN.md#colour-packet-twins-unsigned-cvt-head-order-470e4. */
 #ifdef NON_MATCHING
-void gl_func_000470FC(char *a0, char *a1) {
-    float x = *(float *)(a1 + 0x04);
-    float y = *(float *)(a1 + 0x08);
-    float z = *(float *)(a1 + 0x0C);
-    *(signed char *)(a0 + 0) = (signed char)(int)x;
-    *(signed char *)(a0 + 1) = (signed char)(int)y;
-    *(signed char *)(a0 + 2) = (signed char)(int)z;
+void game_libs_func_000470E4(char *self, float *c) {
+    float r, g;
+    unsigned char col[4];
+    float b, a;
+    char *obj; char *gp; unsigned int *p; int i;
+    obj = *(char **)(*(char **)(self + 0x254) + 0x158);
+    r = c[0]; g = c[1]; b = c[2]; a = c[3];
+    col[0] = r * 255.0f;
+    col[1] = g * 255.0f;
+    col[2] = b * 255.0f;
+    col[3] = a * 255.0f;
+    gp = *(char **)(obj + 0xC); i = *(int *)(gp + 4); *(int *)(gp + 4) = i + 1;
+    p = (unsigned int *)(**(char ***)(obj + 0xC) + i * 8);
+    p[0] = 0xFA000000;
+    p[1] = col[3] | ((col[2] << 8) | ((col[1] << 16) | (col[0] << 24)));
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000470FC);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000470E4);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047394);
-
-// gl_func_000473AC — STRUCTURAL PASS (0x294 / 166 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0 → ONE clean function. Tiny prologue frame 0x10
-// (near-leaf). SIBLING: near-identical instruction stream to
-// gl_func_000470FC (same 3C014F00 / C4A20004-08-0C / cfc1-ctc1-cvt.w.s /
-// 0x78-cause / 0x4F000000-bias sequence; only the .s addresses differ) —
-// the same saturating float-to-int converter over a Vec3-ish triple.
-//
-//   void gl_func_000473AC(Out a0, Vec a1) {
-//     float x = a1->p04, y = a1->p08, z = a1->p0C;
-//     int cw = read_fpcsr(); set_round_to_zero();     // cfc1 / ctc1
-//     // per lane: cvt.w.s; if (fpcsr_cause & 0x78) overflow -> clamp to
-//     // 0x80000000 / 0xFFFFFFFF via the 0x4F000000 (2^31) unsigned-bias
-//     // branch; else take the converted word:
-//     int ix = sat_cvt(x), iy = sat_cvt(y), iz = sat_cvt(z);
-//     restore_fpcsr(cw);                              // ctc1 back
-//     a0->b0 = (i8)ix; a0->b1 = (i8)iy; a0->b2 = (i8)iz;
-//   }
-// Duplicate of the gl_func_000470FC saturating-cast converter (this +
-// 000470FC are an adjacent pair, likely the same template instantiated for
-// two output targets). See the gl_func_000470FC structural pass above for
-// the full instruction-level rationale and the IDO float->int-with-clamp
-// idiom (cfc1/ctc1 round-mode bracket + cvt.w.s + andi cause,0x78 +
-// 0x4F000000 bias; see docs/IDO_CODEGEN float->int saturating-cast).
-//
-// Caps (DEFERRED): Out/Vec struct untyped; saturating-cast asm idiom
-//   (cfc1/ctc1 + cvt.w.s + 0x78 cause-check) is exact; plain (int)cast
-//   C produces fewer insns. Real-C STRUCTURAL body below. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
+/* game_libs_func_00047394 (0x2B0, 172 words): the 6-word game_libs_func_00047394
+ * orphan + gl_func_000473AC are ONE function (the 255.0f `lui/mtc1` into $f16,
+ * the c[0] load, the rounding-mode `addiu t8,1`, the self->0x254 load and the
+ * first `mul.s` are the hoisted head; the old "caller-set $t6 + $f4" verdict
+ * was this head). One of the three identical colour-packet twins 470E4 /
+ * 47394 / 47B28 (only the command word differs: G_SETENVCOLOR). Converts the
+ * RGBA float quad c[0..3] * 255.0f through IDO's unsigned float->int
+ * sequence (cfc1/ctc1 round-to-zero bracket, cvt.w.s, `andi 0x78` overflow
+ * test, the 2^31 bias path) into four u8 homes at sp+4..7, then appends the
+ * 8-byte packet 0xFB000000, r<<24|g<<16|b<<8|a to the current object's display
+ * list (obj = self->0x254->0x158; the 4CDB0 packet kit: g = obj->0xC,
+ * i = g->4++, p = obj->0xC->0 + i*8). Leaf, frame 0x10.
+ * NM wrap on the merged symbol, 172/172 words by mnemonic (standalone strict
+ * word diff 64 lines): every colour (obj v0, gp v1, i a2, p a3, the four
+ * lane results t8/t0/t2/t4, saved FCSR t7/t9/t1/t3, 255.0f $f16, inputs
+ * $f0/$f2/$f12/$f14) and all four conversion sequences are exact. Residual:
+ * (a) head order -- the target schedules the hoisted 2^31 `lui at,0x4f00`
+ * BEFORE the three g/b/a input loads (`lui; lwc1 f2; lwc1 f12; lwc1 f14; lw
+ * v0`), we emit the loads first; every spelling tried keeps loads-first
+ * (loads assigned before/after obj, r's product named, interleaved
+ * assignments lose the hoist entirely behind the ctc1 barrier, struct
+ * pointer, named 255.0f, (unsigned) casts); (b) the pack's ten t-temps are
+ * numbered t4/t1/t8/t3/t5/t2/t6/t9/t0/t4 in the target vs t2/t0/t5/t8/
+ * t3/t1/t4/t6/t7/t9 here -- the tree shape is exact only with the reversed
+ * right-associated `a | (b<<8 | (g<<16 | r<<24))` (the 4F0C8 rule; natural
+ * left-linear order emits a | r<<24 first), so this is uopt's temp colouring,
+ * not the expression. Levers that hold: named float inputs (hoisted loads +
+ * $f16 constant), `unsigned char col[4]` (sb/lbu homes; four separate u8
+ * locals get register-promoted), `float r, g;` declared BEFORE the array and
+ * `float b, a;` after = the two phantom words above the col home (frame
+ * 0x10, col at sp+4). See docs/IDO_CODEGEN.md#colour-packet-twins-unsigned-cvt-head-order-470e4. */
 #ifdef NON_MATCHING
-void gl_func_000473AC(char *a0, char *a1) {
-    float x = *(float *)(a1 + 0x04);
-    float y = *(float *)(a1 + 0x08);
-    float z = *(float *)(a1 + 0x0C);
-    *(signed char *)(a0 + 0) = (signed char)(int)x;
-    *(signed char *)(a0 + 1) = (signed char)(int)y;
-    *(signed char *)(a0 + 2) = (signed char)(int)z;
+void game_libs_func_00047394(char *self, float *c) {
+    float r, g;
+    unsigned char col[4];
+    float b, a;
+    char *obj; char *gp; unsigned int *p; int i;
+    obj = *(char **)(*(char **)(self + 0x254) + 0x158);
+    r = c[0]; g = c[1]; b = c[2]; a = c[3];
+    col[0] = r * 255.0f;
+    col[1] = g * 255.0f;
+    col[2] = b * 255.0f;
+    col[3] = a * 255.0f;
+    gp = *(char **)(obj + 0xC); i = *(int *)(gp + 4); *(int *)(gp + 4) = i + 1;
+    p = (unsigned int *)(**(char ***)(obj + 0xC) + i * 8);
+    p[0] = 0xFB000000;
+    p[1] = col[3] | ((col[2] << 8) | ((col[1] << 16) | (col[0] << 24)));
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000473AC);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047394);
 #endif
 
 void gl_func_00047644(int* a0, int* a1) {
@@ -16388,54 +16406,56 @@ void game_libs_func_00047AD8(char *a0, float *a1) {
     a0[0x1FA] = (int)(a1[2] * 127.0f);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047B28);
-
-// gl_func_00047B40 — STRUCTURAL PASS (0x294 / 166 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0 → ONE clean function. Tiny prologue frame 0x10
-// (near-leaf). SIBLING: byte-for-byte identical instruction stream to
-// gl_func_000470FC / 000473AC (same 3C014F00 / C4A20004-08-0C /
-// cfc1-ctc1-cvt.w.s / 0x78-cause / 0x4F000000-bias sequence; only the .s
-// addresses differ) — the same saturating float-to-int converter over a
-// Vec3-ish triple. This is the THIRD member of the
-// 000470FC / 000473AC / 00047B40 duplicate family (same template
-// instantiated for three output targets).
-//
-//   void gl_func_00047B40(Out a0, Vec a1) {
-//     float x = a1->p04, y = a1->p08, z = a1->p0C;
-//     int cw = read_fpcsr(); set_round_to_zero();     // cfc1 / ctc1
-//     // per lane: cvt.w.s; if (fpcsr_cause & 0x78) overflow -> clamp to
-//     // 0x80000000 / 0xFFFFFFFF via the 0x4F000000 (2^31) unsigned-bias
-//     // branch; else take the converted word:
-//     int ix = sat_cvt(x), iy = sat_cvt(y), iz = sat_cvt(z);
-//     restore_fpcsr(cw);
-//     a0->b0 = (i8)ix; a0->b1 = (i8)iy; a0->b2 = (i8)iz;
-//   }
-// See the gl_func_000470FC structural pass for the full instruction-level
-// rationale and the IDO float->int-with-clamp idiom (cfc1/ctc1 round-mode
-// bracket + cvt.w.s + andi cause,0x78 + 0x4F000000 bias; see
-// docs/IDO_CODEGEN float->int saturating-cast).
-//
-// Caps (DEFERRED): Out/Vec struct untyped; saturating-cast asm idiom
-//   is exact; plain (int)cast C produces fewer insns. Real-C
-//   STRUCTURAL body below — third member of the 000470FC / 000473AC /
-//   00047B40 duplicate family. Byte-match deferred. Name pre-checked:
-//   no extern reuse.
-/* gl_func_00047B40 CLASSIFIED 2026-06-10: CALLER-SET $t6 + $f4 (m2c
- * `M2C unset` markers at the head -- the caller leaves a state ptr in
- * $t6 and a float in $f4; the documented game_libs caller-set-reg cap
- * class). 24% COP1 density is the u32-dance from the $f4 conversion,
- * not bitwise-FP. Permanent structural cap; do not graft (item 25). */
+/* game_libs_func_00047B28 (0x2B0, 172 words): the 6-word game_libs_func_00047B28
+ * orphan + gl_func_00047B40 are ONE function (the 255.0f `lui/mtc1` into $f16,
+ * the c[0] load, the rounding-mode `addiu t8,1`, the self->0x254 load and the
+ * first `mul.s` are the hoisted head; the old "caller-set $t6 + $f4" verdict
+ * was this head). One of the three identical colour-packet twins 470E4 /
+ * 47394 / 47B28 (only the command word differs: G_SETBLENDCOLOR). Converts the
+ * RGBA float quad c[0..3] * 255.0f through IDO's unsigned float->int
+ * sequence (cfc1/ctc1 round-to-zero bracket, cvt.w.s, `andi 0x78` overflow
+ * test, the 2^31 bias path) into four u8 homes at sp+4..7, then appends the
+ * 8-byte packet 0xF9000000, r<<24|g<<16|b<<8|a to the current object's display
+ * list (obj = self->0x254->0x158; the 4CDB0 packet kit: g = obj->0xC,
+ * i = g->4++, p = obj->0xC->0 + i*8). Leaf, frame 0x10.
+ * NM wrap on the merged symbol, 172/172 words by mnemonic (standalone strict
+ * word diff 64 lines): every colour (obj v0, gp v1, i a2, p a3, the four
+ * lane results t8/t0/t2/t4, saved FCSR t7/t9/t1/t3, 255.0f $f16, inputs
+ * $f0/$f2/$f12/$f14) and all four conversion sequences are exact. Residual:
+ * (a) head order -- the target schedules the hoisted 2^31 `lui at,0x4f00`
+ * BEFORE the three g/b/a input loads (`lui; lwc1 f2; lwc1 f12; lwc1 f14; lw
+ * v0`), we emit the loads first; every spelling tried keeps loads-first
+ * (loads assigned before/after obj, r's product named, interleaved
+ * assignments lose the hoist entirely behind the ctc1 barrier, struct
+ * pointer, named 255.0f, (unsigned) casts); (b) the pack's ten t-temps are
+ * numbered t4/t1/t8/t3/t5/t2/t6/t9/t0/t4 in the target vs t2/t0/t5/t8/
+ * t3/t1/t4/t6/t7/t9 here -- the tree shape is exact only with the reversed
+ * right-associated `a | (b<<8 | (g<<16 | r<<24))` (the 4F0C8 rule; natural
+ * left-linear order emits a | r<<24 first), so this is uopt's temp colouring,
+ * not the expression. Levers that hold: named float inputs (hoisted loads +
+ * $f16 constant), `unsigned char col[4]` (sb/lbu homes; four separate u8
+ * locals get register-promoted), `float r, g;` declared BEFORE the array and
+ * `float b, a;` after = the two phantom words above the col home (frame
+ * 0x10, col at sp+4). See docs/IDO_CODEGEN.md#colour-packet-twins-unsigned-cvt-head-order-470e4. */
 #ifdef NON_MATCHING
-void gl_func_00047B40(char *a0, char *a1) {
-    float x = *(float *)(a1 + 0x04);
-    float y = *(float *)(a1 + 0x08);
-    float z = *(float *)(a1 + 0x0C);
-    *(signed char *)(a0 + 0) = (signed char)(int)x;
-    *(signed char *)(a0 + 1) = (signed char)(int)y;
-    *(signed char *)(a0 + 2) = (signed char)(int)z;
+void game_libs_func_00047B28(char *self, float *c) {
+    float r, g;
+    unsigned char col[4];
+    float b, a;
+    char *obj; char *gp; unsigned int *p; int i;
+    obj = *(char **)(*(char **)(self + 0x254) + 0x158);
+    r = c[0]; g = c[1]; b = c[2]; a = c[3];
+    col[0] = r * 255.0f;
+    col[1] = g * 255.0f;
+    col[2] = b * 255.0f;
+    col[3] = a * 255.0f;
+    gp = *(char **)(obj + 0xC); i = *(int *)(gp + 4); *(int *)(gp + 4) = i + 1;
+    p = (unsigned int *)(**(char ***)(obj + 0xC) + i * 8);
+    p[0] = 0xF9000000;
+    p[1] = col[3] | ((col[2] << 8) | ((col[1] << 16) | (col[0] << 24)));
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047B40);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047B28);
 #endif
 
 /* IDO picked $a3 not $a2 for the temp at offset 0x4/0x14 — INSN_PATCH overrides
