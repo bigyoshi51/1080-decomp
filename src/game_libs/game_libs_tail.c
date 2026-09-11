@@ -2699,7 +2699,6 @@ void gl_func_0000D288(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D288);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0000D318: 64-insn (0x100) conditional sub-object builder + color init.
  * Fresh hand-decode 2026-05-28 (raw-.word USO, m2c can't parse).
  *
@@ -2709,31 +2708,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D288);
  *       obj->0xAC = 0.0f;
  *       gl_func(obj, 0xDC, 0x78, 1.0f, 1.0f);      // jal @0xD370, K&R float args
  *                                                  //   (4th arg 1.0f via mfc1->a3, 5th on stack)
- *       obj->0xA8 = 0.0f;  obj->0xA4 = 0.0f;       // color/param normalize (÷255)
+ *       obj->0xA8 = 0.0f;  obj->0xA4 = 0.0f;       // color/param normalize (/255)
  *       obj->0x64 = 235.0f/255; obj->0x68 = 80.0f/255;
  *       obj->0x6C = 80.0f/255;  obj->0x70 = 0.0f/255;
  *       gl_func(0x17, a0->0xA0 / 1000);            // jal @0xD3D4
  *       a0->0xA0 += a1->0x88 * 1000;               // tail: *1000 via shift-add (t1*125<<3)
  *   }
  * div.s forced via named-local denom (else IDO folds 235.0/255.0 to lwc1-pool).
- * 96.17% as of 2026-05-28 (fresh decode: 0% → 75% → 92% → 96%). Levers:
- *  (1) positive `if(cond){body}` + void return (not `if(!cond) return 0;`) →
+ * 96.17% as of 2026-05-28 (fresh decode: 0% -> 75% -> 92% -> 96%). Levers:
+ *  (1) positive `if(cond){body}` + void return (not `if(!cond) return 0;`) ->
  *      direct `beqz t7, epilogue`, no separate `move v0,zero` block.
- *  (2) the 2nd call's two trailing floats must stay SINGLE — a K&R call promotes
+ *  (2) the 2nd call's two trailing floats must stay SINGLE -- a K&R call promotes
  *      them to double (cvt.d.s + sdc1, +8 frame). FIXED with the differently-named
  *      prototyped extern `gl_proto_D318` (resolves via R_MIPS_26 to the same jal-0
- *      target) → direct `jal` + single floats, per
+ *      target) -> direct `jal` + single floats, per
  *      docs/IDO_CODEGEN.md#feedback-ido-knr-float-call. (A function-pointer cast
  *      also keeps singles but emits indirect `jalr t9`; the named-proto avoids that.)
- * RESIDUAL CAP (~4%, FP/int regalloc, not C-forceable): the target materializes
- * the 0.0f constant in THREE distinct FP regs (f4 pre-call for ->0xAC, f16 as the
- * 0/255 div numerator, f12 post-call for ->0xA8/0xA4); IDO CSEs mine into one
- * fewer mtc1-zero, which cascades the FP-reg numbering (f4/f6/f8 vs f6/f8/f10) and
- * shifts the epilogue by 4. Plus tail int-reg renumber (t9/t2 vs t0/t1). Stays NM. */
+ * 2026-09-11 (agent-g): EXACT 64/64. The "0.0f in THREE FP regs, not
+ * C-forceable" residual was the same-literal CSE: with every zero spelled
+ * `0.0f`, uopt makes ONE 4-use candidate ($f12) that spans the call (pre-call
+ * store, 0/255 numerator, two post-call stores) and the ring renumbers. The
+ * target has two zero PSEUDOS in the post-call block: the two-use store zero
+ * (candidate $f12) and the one-use numerator (ring $f16). Spelling the
+ * numerator as the CAST form `(float)0 / denom` (distinct pseudo from the
+ * `0.0f` literal, docs/IDO_CODEGEN.md
+ * #game-libs-64124-distinct-f4-zero-via-cast-2026-07-03) splits them; the
+ * pre-call `obj->0xAC = 0.0f` then stays a one-use ring temp ($f4) on its own
+ * (any spelling). Swapping which side is the literal also works; `0.0` as the
+ * numerator promotes the div to double. The int tail `a0->0xA0 += ...*1000`
+ * must be the COMPOUND assignment: `x = x + p` emits the product first in the
+ * addu (t1+t2) and renumbers t9/t0; `+=` gives the target's base-first
+ * `addu t3,t9,t2` with the a1 reload in t0. */
 extern int gl_func_00000000();
 /* Differently-named prototyped extern: resolves via R_MIPS_26 to the SAME jal-0
  * target as gl_func_00000000, but lets the trailing float args stay SINGLE with a
- * DIRECT `jal` — avoids both K&R float→double promotion AND the fn-ptr-cast
+ * DIRECT `jal` -- avoids both K&R float->double promotion AND the fn-ptr-cast
  * `jalr $t9`. Per docs/IDO_CODEGEN.md#feedback-ido-knr-float-call verified workaround. */
 extern int gl_proto_D318(void*, int, int, float, float);
 void gl_func_0000D318(int *a0, int *a1) {
@@ -2750,14 +2759,11 @@ void gl_func_0000D318(int *a0, int *a1) {
         *(float*)((char*)obj + 0x64) = 235.0f / denom;
         *(float*)((char*)obj + 0x68) = 80.0f / denom;
         *(float*)((char*)obj + 0x6C) = 80.0f / denom;
-        *(float*)((char*)obj + 0x70) = 0.0f / denom;
+        *(float*)((char*)obj + 0x70) = (float)0 / denom;
         gl_func_00000000(0x17, a0[0xA0 / 4] / 1000);
-        a0[0xA0 / 4] = a0[0xA0 / 4] + a1[0x88 / 4] * 1000;
+        a0[0xA0 / 4] += a1[0x88 / 4] * 1000;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D318);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_0000D418(int *arg0) {

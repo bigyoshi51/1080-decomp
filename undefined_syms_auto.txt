@@ -1180,6 +1180,7 @@ D_92f_e = 0x00000000;
 D_92f_f = 0x00000000;
 gl_proto_3787C = 0x00000000;
 gl_proto_39C8C = 0x00000000;
+gl_proto_D318 = 0x00000000;  /* blank prototyped alias (single-float args, direct jal) for gl_func_0000D318 2nd call */
 D_00000380_A = 0x00000000;
 D_0000032C_A = 0x00000000;
 D_000002D8_A = 0x00000000;
