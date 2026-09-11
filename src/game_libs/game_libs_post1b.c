@@ -3202,67 +3202,58 @@ void gl_func_00066C74(char *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066C74);
 #endif
 
-#ifdef NON_MATCHING
+/* gl_func_00066D54: per-slot (4) controller/message poll loop (102 words,
+ * BYTE-EXACT 2026-09-11 agent-g). All four loop-invariant s-register holds
+ * (s5 = &D+0x22570 message base, s6 = &sp53, s7 = 0x68 stride, s8 = 10)
+ * are uopt's own hoists: naming them as locals (the 97.99 wrap) reorders
+ * the s-register candidates and adds a frame slot. The `== 10` / `== 0`
+ * dispatch on the call result is an if/else CHAIN (test order 10 first:
+ * `bne v0,s8` then `bnez v0`); a `switch` lowers the compare chain in
+ * case-label order (0 first) and lands 2 words off (docs/IDO_CODEGEN.md
+ * #switch-arm-order-is-test-chain-and-layout-309ac). The loop must be a
+ * `for (i = 0; i != 4; i++)`: the do/while + `i = 0` spelling emits the
+ * same 102 words but as1 schedules `or s1,zero,zero` between the hoisted
+ * `lui s5` / `addiu s5` pair (2 words swapped); the for-init keeps the
+ * pair adjacent (docs/IDO_CODEGEN.md
+ * #for-init-vs-dowhile-preheader-lui-addiu-adjacency-66d54). */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00066D54)();
 void gl_func_00066D54(char *arg0) {
-    u8 sp53;
-    s32 temp_s0;
-    char *temp_s4;
-    char *msgbase;
-    s32 ten;
-    s32 stride;
-    u8 *psp53;
-    s32 temp_v0;
     s32 var_s1;
-    char *temp_s0_2;
-    char *temp_s2;
+    u8 sp53;
+    s32 r;
 
-    temp_s4 = arg0 + 0x11B0;
-    gl_func_00062F64(temp_s4, (int)arg0 + 0x13EC, (int)arg0 + 0x1218);
-    msgbase = (char *)&D_00000000 + 0x22570;
-    var_s1 = 0;
-    ten = 10;
-    stride = 0x68;
-    psp53 = &sp53;
-    do {
-        temp_s0 = 1 << var_s1;
-        if (*(u8*)((char*)arg0 + 0x13EC) & temp_s0) {
-            temp_s2 = (int)arg0 + (var_s1 * 4);
-            if (!(*(u8*)((char*)temp_s2 + 0x121B) & 8)) {
-                gl_func_00062F64(msgbase, var_s1);
+    gl_func_00000000(arg0 + 0x11B0, (int)arg0 + 0x13EC, (int)arg0 + 0x1218);
+    for (var_s1 = 0; var_s1 != 4; var_s1++) {
+        if (*(u8*)((char*)arg0 + 0x13EC) & (1 << var_s1)) {
+            if (!(*(u8*)((char*)((char *)&((int *)arg0)[var_s1]) + 0x121B) & 8)) {
+                gl_func_00000000(((char *)&D_00000000 + 0x22570), var_s1);
                 sp53 = 0;
-                gl_func_00062F64(temp_s4, (s32) psp53);
-                if (sp53 & temp_s0) {
-                    temp_s0_2 = (int)arg0 + (var_s1 * stride) + 0x1228;
-                    temp_v0 = gl_func_00062F64(temp_s4, (s32) temp_s0_2, var_s1);
-                    if (temp_v0 == ten) {
-                        if (gl_func_00062F64(temp_s4, (s32) temp_s0_2, var_s1) != 0) {
-                            gl_func_00062F64(msgbase + 0x14);
-                            FW(temp_s2, 0x13C8) = 0;
+                gl_func_00000000((arg0 + 0x11B0), &sp53);
+                if (sp53 & (1 << var_s1)) {
+                    r = gl_func_00000000((arg0 + 0x11B0), (int)arg0 + (var_s1 * 0x68) + 0x1228, var_s1);
+                    if (r == 10) {
+                        if (gl_func_00000000((arg0 + 0x11B0), (int)arg0 + (var_s1 * 0x68) + 0x1228, var_s1) != 0) {
+                            gl_func_00000000(((char *)&D_00000000 + 0x22570) + 0x14);
+                            FW(((char *)&((int *)arg0)[var_s1]), 0x13C8) = 0;
                         } else {
-                            gl_func_00062F64(msgbase + 0x1C);
-                            FW(temp_s2, 0x13C8) = 2;
+                            gl_func_00000000(((char *)&D_00000000 + 0x22570) + 0x1C);
+                            FW(((char *)&((int *)arg0)[var_s1]), 0x13C8) = 2;
                             *(u8*)((char*)arg0 + var_s1 + 0x13DC) = 1;
                         }
-                    } else if (temp_v0 == 0) {
-                        gl_func_00062F64(msgbase + 0x24);
-                        FW(temp_s2, 0x13C8) = 1;
+                    } else if (r == 0) {
+                        gl_func_00000000(((char *)&D_00000000 + 0x22570) + 0x24);
+                        FW(((char *)&((int *)arg0)[var_s1]), 0x13C8) = 1;
                     }
                 } else {
-                    gl_func_00062F64(msgbase + 0x28);
+                    gl_func_00000000(((char *)&D_00000000 + 0x22570) + 0x28);
                 }
-                gl_func_00062F64(msgbase + 0x30);
+                gl_func_00000000(((char *)&D_00000000 + 0x22570) + 0x30);
             }
         }
-        var_s1 += 1;
-    } while (var_s1 != 4);
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066D54);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
