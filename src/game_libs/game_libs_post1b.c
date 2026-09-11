@@ -1437,24 +1437,28 @@ void *gl_func_00064588(void *arg0, void *arg1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064588);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_00064DEC: 157-insn physics-step + velocity-normalize (fresh hand decode
- * 2026-07-23; base-pin + named-diff-var pass 2026-07-30, 86.9->91.5, size exact
- * 0x274 restoring 66A50's downstream parity). All 5 jals are USO-reloc
- * placeholders (jal 0x0). Shape notes:
- *  - pB/pC = if(1)-mutation-materialized Vec3* bases (addiu rX,s0,0x318/0x33C);
- *    plain `arg0+K` folds to s0+imm.
- *  - dz/dy/dx named diff locals batch the 6 lwc1 then 3 sub.s into candidate
- *    regs; same trio REUSED for the sumsq reloads (792->f2, 800->f12, 796->f0)
- *    and sumsq = dy*dy+dx*dx; += dz*dz gives target mul/add order.
- *  - Stack layout tuned via decl order: spA4[1] first (0xA4), then pB,pC,
- *    dz,dy,dx, padA[2] (locals slots), sp7C@7C sp70@70 sp54@54 sp34@34.
- * RESIDUAL (~8.5%): (1) pB/pC color swap — build pB->v0/pC->v1, target
- *    pB->v1/pC->v0 (target reuses freed v0 for the sp7C base; build colors it
- *    a2); both def orders probed, always wrong pairing. (2) FP temp-ring phase
- *    +1 from the accumulate region on (f18 where f16 expected, cascades). 
- *    (3) c.eq.s operand order zero-first vs sum-first. Coloring-order cap. */
-extern f32 gl_func_00064DEC_sqrtf(f32);
+/* gl_func_00064DEC: velocity integrate + delta/prev snapshot + direction normalize
+ * (157 insns, frame 0xA8) -- EXACT 157/157 (2026-09-11 agent-g; was NM 91.5).
+ * All 5 jals are USO-reloc blanks (jal 0x0); the sqrt-family callee goes through the
+ * prototyped f32(f32) blank gl_func_00000000_sqf (K&R would promote to double).
+ * The five levers that closed the 91.5% "coloring-order cap":
+ *  (1) the squared length is NOT a candidate: `spA4[0] = ...; if (spA4[0] != ...)` --
+ *      uopt store-forwards the ring temp ($f8) across the branch and the 0.0f
+ *      constant takes $f14; a named sumsq took $f14 and pushed zero to $f16, which
+ *      removed $f16 from the ring for the WHOLE function (every temp -1 phase);
+ *  (2) `while (0) { dx = pC->x; }` anchor before the FF(B8) line colours pC $v0
+ *      ahead of pB $v1 (and the anchor must name dx, the first-coloured diff);
+ *  (3) the diff block in its own `do { } while (0)` keeps the &sp7C address web
+ *      from being hoisted above pC's loads, so it re-uses $v0 instead of $a2;
+ *  (4) the three diffs as ONE comma expression: cfe emits comma operands z,y,x
+ *      (target schedule) while the ring numbers stay x,y,z (f4/f6 .. f16/f18);
+ *  (5) `!= (0, 0.0f)` puts the forwarded sum FIRST in c.eq.s (5D754 comma-constant
+ *      rank lever applied to a compare); a plain 0.0f literal is const-first.
+ * Colours are per-variable: the later block re-reads 318/320/31C into dy/dz/dx so the
+ * diff-block colours (dx f0, dy f2, dz f12) carry over. FC store before the 100 = D8
+ * copy fixes the last pre-jal ring order. The unused `sumsq` decl is load-bearing:
+ * removing it moves both arg spill homes down 4 (33 byte diffs). See docs/IDO_CODEGEN.md#comma-expression-emits-right-to-left-64dec. */
+extern f32 gl_func_00000000_sqf(f32);
 void gl_func_00064DEC(char *arg0) {
     f32 spA4[1];
     Vec3 *pB;
@@ -1467,7 +1471,7 @@ void gl_func_00064DEC(char *arg0) {
     Vec3 sp54;
     f32 padF[5];
     Vec3 sp34;
-    f32 sumsq;
+    f32 sumsq; /* dead: its ghost home keeps the spill slots at 0x28/0x24 (65060 rule) */
     f32 r;
 
     gl_func_00000000(arg0 + 0x2FC);
@@ -1482,14 +1486,15 @@ void gl_func_00064DEC(char *arg0) {
     if (1) {
         pC = (Vec3 *)((char *)pC + 0x33C);
     }
+    while (0) { dx = pC->x; }
     FF(arg0, 0xB8) += FF(arg0, 0x31C);
     FF(arg0, 0xBC) += FF(arg0, 0x320);
-    dz = pB->z - pC->z;
-    dy = pB->y - pC->y;
-    dx = pB->x - pC->x;
-    sp70.z = dz;
-    sp70.y = dy;
-    sp70.x = dx;
+    do {
+        dx = pB->x - pC->x, dy = pB->y - pC->y, dz = pB->z - pC->z;
+        sp70.x = dx;
+        sp70.y = dy;
+        sp70.z = dz;
+    } while (0);
     sp7C = sp70;
     sp54 = sp7C;
     FF(arg0, 0x330) = sp54.x;
@@ -1511,17 +1516,15 @@ void gl_func_00064DEC(char *arg0) {
     sp34 = *(Vec3 *)(arg0 + 0xCC);
     FF(arg0, 0xF4) = sp34.x;
     FF(arg0, 0xF8) = sp34.y;
-    FF(arg0, 0x100) = FF(arg0, 0xD8);
     FF(arg0, 0xFC) = sp34.z;
+    FF(arg0, 0x100) = FF(arg0, 0xD8);
     gl_func_00000000(arg0, arg0 + 0xCC);
     dy = FF(arg0, 0x318);
-    dx = FF(arg0, 0x320);
-    dz = FF(arg0, 0x31C);
-    sumsq = dy * dy + dx * dx;
-    sumsq += dz * dz;
-    spA4[0] = sumsq;
-    if (sumsq != 0.0f) {
-        r = gl_func_00064DEC_sqrtf(sumsq);
+    dz = FF(arg0, 0x320);
+    dx = FF(arg0, 0x31C);
+    spA4[0] = dy * dy + dz * dz + dx * dx;
+    if (spA4[0] != (0, 0.0f)) {
+        r = gl_func_00000000_sqf(spA4[0]);
         FF(arg0, 0x348) = r;
         FF(arg0, 0x30C) = FF(arg0, 0x318) / r;
         FF(arg0, 0x310) = FF(arg0, 0x31C) / r;
@@ -1533,9 +1536,6 @@ void gl_func_00064DEC(char *arg0) {
         FF(arg0, 0x314) = 0.0f;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064DEC);
-#endif
 
 /* gl_func_00065060: 58-insn full transform-reset + 2-dispatch (0xE8, frame 0x38).
  *
