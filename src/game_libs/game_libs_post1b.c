@@ -3610,7 +3610,19 @@ int gl_func_00067550(int *a0) {
  * spelling. Needs the uoptlist trace or a source shape that lowers a
  * double's adjsave below the two floats'.
  * GOTCHA logged: probe loop must check cc exit status -- a silent NM build
- * break froze the .o and five probes measured stale (false-inert). */
+ * break froze the .o and five probes measured stale (false-inert).
+ * 2026-09-11 agent-g: 13 -> 8 words. A dead `while (0) { temp_f2 = y; }`
+ * anchor before the divisions gives e an earlier ucode appearance / extra
+ * ref and colours it f2 (the 80.0 constant's colour, dead after the two
+ * div.s) -- exactly the target. RESIDUAL 8 words = zero/thr swap only:
+ * target zero f12 / thr f14, ours thr f12 / zero f14. Inert on top of the
+ * e anchor: zero anchors in every form (dead store of 0.0f, dead compare,
+ * `temp_f2 = 0.0f`, named fzero + dead uses -- the 0.0f constant LR is
+ * NOT moved by while(0) refs), thr span extension (load before the abs
+ * if: -1 word; before the divisions: ldc1 moves up, thr still f12),
+ * thr anchor (thr then takes f0 ahead of e), inline thr (reload). The
+ * D+0x2200 read is a data variable (0x2210 is a float var elsewhere in
+ * the TU; the 0.5 doubles are lui/mtc1 inline), not a literal. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
@@ -3677,6 +3689,7 @@ void gl_func_000675A4(char *arg0) {
                 (*(s8*)((char*)arg0 + 0x9)) = *(s8*)((char*)temp_v0_3 + 0x1);
             }
         }
+        while (0) { temp_f2 = (*(f32*)((char*)arg0 + 0x4)); }
         temp_f0 = (f32) (*(s8*)((char*)arg0 + 0x8)) / 80.0f;
         (*(f32*)((char*)arg0 + 0x0)) = temp_f0;
         (*(f32*)((char*)arg0 + 0x4)) = (f32) ((f32) (*(s8*)((char*)arg0 + 0x9)) / 80.0f);
