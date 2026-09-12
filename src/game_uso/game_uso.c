@@ -1125,57 +1125,25 @@ void game_uso_func_00001DC4(void *a0) {
     *(f32*)((char*)a0 + 0x34) = 0.0f;
 }
 
-/* game_uso_func_00001DDC: 0x5FC (382 insns). Per-entity AI "homing/follow"
- * spine. Twin of game_uso_func_000028C0 (same 070238/071028/072EE8 callee
- * trio and same out=a0->0x14 / s=a0->0x3C->0x38 layout), but performs TWO
- * homing passes (planar XZ then vertical Y), each gated by a magnitude
- * clamp, and commits a frame-delta into the entity's 0x2C..0x34 Vec3.
+/* game_uso_func_00001DDC: 0x5F8 (382 words). Two-pass entity homing.
+ * key 0 does nothing; key 3 mirrors the source orientation into out+0x60
+ * and out+0xA0. Other keys apply planar and vertical magnitude clamps,
+ * emit each correction via 072EE8, and commit the frame-delta Vec3.
  *
- * Dispatch on key = a0[0x40]:
- *   key == 0 : return (no work)
- *   key == 3 : short path — mirror the source orientation Vec3 from
- *              v1(=a0[0x3C])->0xA0 into out(=a0[0x14])->0x60 and out->0xA0.
- *   else     : the homing body (branch_88) below.
+ * 2026-09-12 (agent-h): 68.96 -> 90.43% NON_MATCHING. Reconstruct the
+ * descending stack homes, a separately homed output pointer, self_v as
+ * a float array, and scoped pointers for the scaling sources and shared
+ * integer-copy hop. These reproduce the target's 384-byte frame, ra-only
+ * save, a2 argument web and caller-home spills. The former claim that the
+ * no-s-reg shape was unreachable is superseded by this compiled C.
+ * Coefficients at +0xAC/+0x10C load after the first copy hop, as in target.
+ * Named X/Z results and reuse of the short-path output pointer improve
+ * floating-point and pointer lifetimes without changing the algorithm.
  *
- * REBUILD 2026-06-22 (this pass): the body was previously a folded 2-emit
- * approximation calling the gl_func_00000000 placeholder. Re-decoded region
- * by region from expected/.o and rewritten as the real 4-emit / 2-pass
- * structure with the actual callee symbols:
- *   ref_v  = out->{0xA0,0xA4,0xA8}                 (out = a0[0x14])
- *   self_v = (a0[0x38])->{0xA0,0xA4,0xA8}          (via +0x70 / +0x34,+0x38)
- *   delta  = game_uso_func_000023D4(&scratch, a0); self_v += *delta
- *   diff   = { self_v.x-ref_v.x, 0, self_v.z-ref_v.z };  speed = a0[0x94]
- *   mag    = game_uso_func_070238(diff.x^2 + 0 + diff.z^2)
- *   game_uso_func_071028(&diff)                    (normalize diff xyz)
- *   PASS 1 (planar): excess = (mag < a0[0x7C]) ? mag-a0[0x7C] : mag-speed
- *     acc1 = diff * excess; game_uso_func_072EE8(out+0x30, &acc1)
- *     a0->{0x2C,0x30,0x34} = diff * speed
- *   sel = (a0[0x40]==2) ? a0[0xF4] : a0[0xDC]
- *   PASS 2 (vertical): yd = ref_v.y - self_v.y; up = {0,1,0}
- *     y_excess = (yd < a0[0xC4]) ? a0[0xC4]-yd : sel-yd
- *     acc2 = up * y_excess; game_uso_func_072EE8(out+0x30, &acc2)
- *     prev = scratch; scratch = up * sel
- *     a0->{0x2C,0x30,0x34} -= prev
- * The struct copies fan each scaled Vec3 through two stack temps (the
- * *(Tri3i*)d2 = *(Tri3i*)d1 = *(Tri3i*)src integer-copy idiom, same as the
- * 028C0 family) — that double-buffering is what produces the interleaved
- * lw/sw fanout in the target.
- *
- * REBUILD 2026-07-30 (55.8 -> 69.4, fresh-Vec3 fanout pass): every scaled
- * result now has its OWN stack Vec3 and travels a TWO-hop Tri3i chain
- * through shared hop buffers `scratch` (0xFC, also the 23D4 out-arg) and
- * `hopB` (0xC4); *delta is int-copied into `dcopy` (0x154) before the
- * float adds; key==3 stages through float m[3] + a homed out copy read
- * back once (exact target shape). Decl order = expected slot ladder.
- * RESIDUAL CAP (family-wide, twin 28C0 shows the same target shape): the
- * target colors NO s-regs — obj lives in $a2 spilled to its own arg home
- * 0x180(sp), &scratch re-materializes as addiu $a3,sp,0xFC per region.
- * Our build promotes obj->$s0 and &scratch->$s1 (call-arg use makes the
- * address web s-colorable per IDO_CODEGEN W65-70). Probed: obj=0;if(1)
- * guard (coalesces back to s0), if(0)&param escape (prologue-home flavor,
- * breaks bnel), volatile param (per-use reloads), float[3] scratch
- * (fuzzy-neutral). Frame 352 vs 384 = dead named-local gaps in original
- * (0x160-0x16F, 0xE8-0xFB, 0xD0-0xDB, 0x6C-0x73), same class as 0B3C. */
+ * Still not exact: 378 C words versus 382 target words, with FP register
+ * allocation/load ordering and pointer-copy residuals (not merely four
+ * differing words). Keep the ASM fallback; no training episode.
+ * See docs/IDO_CODEGEN.md#homing-scoped-pointers-1ddc. */
 #ifdef NON_MATCHING
 extern Vec3* game_uso_func_000023D4(Vec3 *out, char *a1);
 extern float game_uso_func_070238(float);
@@ -1183,19 +1151,53 @@ extern void game_uso_func_071028(Vec3 *v);
 extern void game_uso_func_072EE8(char *dst, Vec3 *v);
 
 void game_uso_func_00001DDC(int *a0) {
-    int key = a0[0x40 / 4];
+    /* Descending stack homes; dead slots retain the target layout. */
+    float m[3];
+    char *outh[1];
+    char *out;
+    char *o2_unused; /* dead pointer home; out is reused on the short path */
+    char *src;
+    int key;
+    Vec3 dcopy;
+    Vec3 fin_c2;
+    Vec3 ref_v;
+    float self_v[3];
+    char *out_home[1];
+    Vec3 acc;
+    float speed;
+    Vec3 diff;
+    float mag;
+    float sel;
+    float scratch[3];
+    float excess, yd, y_excess;
+    char *s;
+    Vec3 *delta;
+    Vec3 st_p1t;
+    Tri3i *hopA;
+    char pad_d0[8];
+    Vec3 hopB;
+    char pad_bc[8];
+    Vec3 hop_p1e;
+    Vec3 st_p1e;
+    char pad_a0[4];
+    Vec3 st_p1e2;
+    Vec3 *scaled_src;
+    float fx, fy_unused, fz; /* X/Z results plus a dead scalar home */
+    char pad_80[4];
+    Vec3 fin_e;
+    char pad_6c[8];
+    Vec3 st_c1;
+    Vec3 st_p2t;
+    Vec3 hop_p2e;
+    Vec3 st_p2e;
+    Vec3 st_p2e2;
+    Vec3 st_c2;
+    key = a0[0x40 / 4];
 
     if (key == 0) {
         return;
     }
     if (key == 3) {
-        /* m + out are MEMORY-homed (f32[3] staging + ptr[1] array): every
-         * read reloads through the just-written stack home. */
-        float m[3];      /* 0x174..0x17C */
-        char *outh[1];   /* 0x170: homed copy, read back once for batch 2 */
-        char *out;       /* register (t6) for batch 1 */
-        char *o2;        /* register (v0) for batch 2 */
-        char *src;
         out = (char *)a0[0x14 / 4];
         outh[0] = out;
         src = (char *)a0[0x3C / 4];
@@ -1206,104 +1208,77 @@ void game_uso_func_00001DDC(int *a0) {
         *(float *)(out + 0x60) = m[0];
         *(float *)(out + 0x64) = m[1];
         *(float *)(out + 0x68) = m[2];
-        o2 = outh[0];
-        *(float *)(o2 + 0xA0) = m[0];
-        *(float *)(o2 + 0xA4) = m[1];
-        *(float *)(o2 + 0xA8) = m[2];
+        out = outh[0];
+        *(float *)(out + 0xA0) = m[0];
+        *(float *)(out + 0xA4) = m[1];
+        *(float *)(out + 0xA8) = m[2];
         return;
     }
 
     {
-        /* Fresh-Vec3 fanout (kit-IV / 0B3C recipe): every scaled result gets
-         * its OWN stack Vec3, then travels a TWO-hop Tri3i int-copy chain
-         * through the shared hop buffers `scratch` (also the 23D4 out-arg,
-         * 0xFC) and `hopB` (0xC4) before its floats are re-read.  Declaration
-         * order below reproduces the expected slot ladder 0x154..0x24. */
-        Vec3 dcopy;      /* 0x154: int-copy of *delta               */
-        Vec3 fin_c2;     /* 0x148: final hop of commit pass 2       */
-        Vec3 ref_v;      /* 0x13C                                   */
-        Vec3 self_v;     /* 0x130                                   */
-        Vec3 acc;        /* 0x120: arg to both 072EE8 calls         */
-        Vec3 diff;       /* 0x110: planar dir, reused as up-vector  */
-        float scratch[3]; /* 0xFC : 23D4 out-arg + shared hop A (array base remats) */
-        Vec3 st_p1t;     /* 0xDC : pass1-true stage                 */
-        Vec3 hopB;       /* 0xC4 : shared hop B                     */
-        Vec3 hop_p1e;    /* 0xB0 : pass1-else post-hopA landing     */
-        Vec3 st_p1e;     /* 0xA4 : pass1-else stage 1               */
-        Vec3 st_p1e2;    /* 0x94 : pass1-else stage 2 (*k)          */
-        Vec3 fin_e;      /* 0x74 : shared else-final (both passes)  */
-        Vec3 st_c1;      /* 0x60 : commit-1 stage (diff*speed)      */
-        Vec3 st_p2t;     /* 0x54 : pass2-true stage                 */
-        Vec3 hop_p2e;    /* 0x48 : pass2-else post-hopA landing     */
-        Vec3 st_p2e;     /* 0x3C : pass2-else stage 1               */
-        Vec3 st_p2e2;    /* 0x30 : pass2-else stage 2 (*k)          */
-        Vec3 st_c2;      /* 0x24 : commit-2 stage (diff*sel)        */
-        char *out;
-        char *s;
-        Vec3 *delta;
-        float speed, mag, excess, sel, yd, y_excess;
-
+        /* Keep the output pointer homed across both emit calls. */
         out = 0;
         if (1) { out = (char *)a0[0x14 / 4]; }
+        out_home[0] = out;
         s = (char *)a0[0x38 / 4];
 
         ref_v.x = *(float *)(out + 0xA0);
         ref_v.y = *(float *)(out + 0xA4);
         ref_v.z = *(float *)(out + 0xA8);
 
-        self_v.x = *(float *)(s + 0xA0);
+        self_v[0] = *(float *)(s + 0xA0);
         s += 0x70;
-        self_v.y = *(float *)(s + 0x34);
-        self_v.z = *(float *)(s + 0x38);
+        self_v[1] = *(float *)(s + 0x34);
+        self_v[2] = *(float *)(s + 0x38);
 
         delta = game_uso_func_000023D4((Vec3 *)scratch, (char *)a0);
         *(Tri3i *)&dcopy = *(Tri3i *)delta;
-        self_v.x = self_v.x + dcopy.x;
-        self_v.y = self_v.y + dcopy.y;
-        self_v.z = self_v.z + dcopy.z;
+        self_v[0] = self_v[0] + dcopy.x;
+        self_v[1] = self_v[1] + dcopy.y;
+        self_v[2] = self_v[2] + dcopy.z;
 
         speed = *(float *)((char *)a0 + 0x94);
-        diff.x = self_v.x - ref_v.x;
-        diff.y = 0.0f;
-        diff.z = self_v.z - ref_v.z;
+        excess = self_v[0] - ref_v.x;
+        diff.x = excess;
+        diff.y = (float)0; /* retain the target's zero-square term */
+        mag = self_v[2] - ref_v.z;
+        diff.z = mag;
 
         mag = game_uso_func_070238(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
         game_uso_func_071028(&diff);
 
+        /* These scoped pointer definitions split the cross-call webs. */
+        if (1) { scaled_src = (Vec3 *)&diff; }
+        if (1) { hopA = (Tri3i *)scratch; }
         if (mag < *(float *)((char *)a0 + 0x7C)) {
             excess = mag - *(float *)((char *)a0 + 0x7C);
-            st_p1t.x = diff.x * excess;
-            st_p1t.y = diff.y * excess;
-            st_p1t.z = diff.z * excess;
-            *(Tri3i *)scratch = *(Tri3i *)&st_p1t;
-            *(Tri3i *)&hopB = *(Tri3i *)scratch;
-            acc.x = hopB.x;
-            acc.y = hopB.y;
+            st_p1t.x = (fx = scaled_src->x * excess); st_p1t.y = scaled_src->y * excess; st_p1t.z = (fz = scaled_src->z * excess);
+            *hopA = *(Tri3i *)&st_p1t;
+            *(Tri3i *)&hopB = *hopA;
             acc.z = hopB.z;
+            acc.y = hopB.y;
+            acc.x = hopB.x;
         } else {
-            float k = *(float *)((char *)a0 + 0xAC);
             excess = mag - speed;
-            st_p1e.x = diff.x * excess;
-            st_p1e.y = diff.y * excess;
-            st_p1e.z = diff.z * excess;
-            *(Tri3i *)scratch = *(Tri3i *)&st_p1e;
-            *(Tri3i *)&hop_p1e = *(Tri3i *)scratch;
-            st_p1e2.x = hop_p1e.x * k;
-            st_p1e2.y = hop_p1e.y * k;
-            st_p1e2.z = hop_p1e.z * k;
+            st_p1e.x = (fx = scaled_src->x * excess); st_p1e.y = scaled_src->y * excess; st_p1e.z = (fz = scaled_src->z * excess);
+            *hopA = *(Tri3i *)&st_p1e;
+            *(Tri3i *)&hop_p1e = *hopA;
+            if (1) { scaled_src = &hop_p1e; }
+            excess = *(float *)((char *)a0 + 0xAC);
+            st_p1e2.x = (fx = scaled_src->x * excess); st_p1e2.y = scaled_src->y * excess; st_p1e2.z = (fz = scaled_src->z * excess);
             *(Tri3i *)&hopB = *(Tri3i *)&st_p1e2;
             *(Tri3i *)&fin_e = *(Tri3i *)&hopB;
-            acc.x = fin_e.x;
-            acc.y = fin_e.y;
             acc.z = fin_e.z;
+            acc.y = fin_e.y;
+            acc.x = fin_e.x;
         }
-        game_uso_func_072EE8(out + 0x30, &acc);
+        game_uso_func_072EE8(out_home[0] + 0x30, &acc);
 
-        st_c1.x = diff.x * speed;
-        st_c1.y = diff.y * speed;
-        st_c1.z = diff.z * speed;
-        *(Tri3i *)scratch = *(Tri3i *)&st_c1;
-        *(Tri3i *)&hopB = *(Tri3i *)scratch;
+        if (1) { scaled_src = (Vec3 *)&diff; }
+        if (1) { hopA = (Tri3i *)scratch; }
+        st_c1.x = (fx = scaled_src->x * speed); st_c1.y = scaled_src->y * speed; st_c1.z = (fz = scaled_src->z * speed);
+        *hopA = *(Tri3i *)&st_c1;
+        *(Tri3i *)&hopB = *hopA;
         *(float *)((char *)a0 + 0x2C) = hopB.x;
         *(float *)((char *)a0 + 0x30) = hopB.y;
         *(float *)((char *)a0 + 0x34) = hopB.z;
@@ -1314,41 +1289,37 @@ void game_uso_func_00001DDC(int *a0) {
         diff.x = 0.0f;
         diff.y = 1.0f;
         diff.z = 0.0f;
-        yd = ref_v.y - self_v.y;
+        yd = ref_v.y - self_v[1];
+        if (1) { scaled_src = &diff; }
         if (yd < *(float *)((char *)a0 + 0xC4)) {
             y_excess = *(float *)((char *)a0 + 0xC4) - yd;
-            st_p2t.x = diff.x * y_excess;
-            st_p2t.y = diff.y * y_excess;
-            st_p2t.z = diff.z * y_excess;
-            *(Tri3i *)scratch = *(Tri3i *)&st_p2t;
-            *(Tri3i *)&hopB = *(Tri3i *)scratch;
-            acc.x = hopB.x;
-            acc.y = hopB.y;
+            st_p2t.x = (fx = scaled_src->x * y_excess); st_p2t.y = scaled_src->y * y_excess; st_p2t.z = (fz = scaled_src->z * y_excess);
+            *hopA = *(Tri3i *)&st_p2t;
+            *(Tri3i *)&hopB = *hopA;
             acc.z = hopB.z;
+            acc.y = hopB.y;
+            acc.x = hopB.x;
         } else {
-            float k = *(float *)((char *)a0 + 0x10C);
             y_excess = sel - yd;
-            st_p2e.x = diff.x * y_excess;
-            st_p2e.y = diff.y * y_excess;
-            st_p2e.z = diff.z * y_excess;
-            *(Tri3i *)scratch = *(Tri3i *)&st_p2e;
-            *(Tri3i *)&hop_p2e = *(Tri3i *)scratch;
-            st_p2e2.x = hop_p2e.x * k;
-            st_p2e2.y = hop_p2e.y * k;
-            st_p2e2.z = hop_p2e.z * k;
+            st_p2e.x = (fx = scaled_src->x * y_excess); st_p2e.y = scaled_src->y * y_excess; st_p2e.z = (fz = scaled_src->z * y_excess);
+            *hopA = *(Tri3i *)&st_p2e;
+            *(Tri3i *)&hop_p2e = *hopA;
+            if (1) { scaled_src = &hop_p2e; }
+            excess = *(float *)((char *)a0 + 0x10C);
+            st_p2e2.x = (fx = scaled_src->x * excess); st_p2e2.y = scaled_src->y * excess; st_p2e2.z = (fz = scaled_src->z * excess);
             *(Tri3i *)&hopB = *(Tri3i *)&st_p2e2;
             *(Tri3i *)&fin_e = *(Tri3i *)&hopB;
-            acc.x = fin_e.x;
-            acc.y = fin_e.y;
             acc.z = fin_e.z;
+            acc.y = fin_e.y;
+            acc.x = fin_e.x;
         }
-        game_uso_func_072EE8(out + 0x30, &acc);
+        game_uso_func_072EE8(out_home[0] + 0x30, &acc);
 
-        st_c2.x = diff.x * sel;
-        st_c2.y = diff.y * sel;
-        st_c2.z = diff.z * sel;
-        *(Tri3i *)scratch = *(Tri3i *)&st_c2;
-        *(Tri3i *)&fin_c2 = *(Tri3i *)scratch;
+        if (1) { scaled_src = (Vec3 *)&diff; }
+        if (1) { hopA = (Tri3i *)scratch; }
+        st_c2.x = (fx = scaled_src->x * sel); st_c2.y = scaled_src->y * sel; st_c2.z = (fz = scaled_src->z * sel);
+        *hopA = *(Tri3i *)&st_c2;
+        *(Tri3i *)&fin_c2 = *hopA;
         *(float *)((char *)a0 + 0x2C) -= fin_c2.x;
         *(float *)((char *)a0 + 0x30) -= fin_c2.y;
         *(float *)((char *)a0 + 0x34) -= fin_c2.z;
