@@ -243,19 +243,36 @@ void mgrproc_uso_func_000005D0(char *a0) {
  * or in a nested switch all promote; only a LEAF gets the caller-saved copy
  * (`or a2,a1,zero`). Switch-expression spelling (unsigned/long/short/u8,
  * -0, &0xffff, volatile deref, *(int*)&, default arms) never changes the
- * class. No cfe-side knob exists (unlike the ==/!= comma lever), so the
- * t1 target is unreachable with three jal's in the body. Do not re-probe. */
+ * class in those probes; they did not produce the target t1 dispatch.
+ *
+ * 2026-09-12 (agent-h): correct the case-1 address to import_8005C6E0,
+ * as named by the target HI16 relocation. D_00000000 was a different
+ * symbol despite sharing its zero placeholder bytes. The instruction
+ * bytes are unchanged; this is a relocation-binding correction, not a
+ * new exact match.
+ *
+ * A direct follow-up also corrects the ternary claim in the agent notes:
+ * switch(arg1 ? arg1 : arg1) still compares s1, not t1. It first loads
+ * t1, then selects/copies the value into s1; the save/restore pair remains
+ * and the body grows to 712 bytes versus 688 for the current C and 680
+ * for the target. Its higher fuzzy score is not evidence that the switch
+ * temporary changed register class. Comma/constant-expression variants
+ * likewise did not fix it. Explicit forward if/goto dispatch reloads the
+ * selector per comparison and also grows the body. Keep this smaller
+ * partial C. These finite negative results do not prove impossibility.
+ * See docs/IDO_CODEGEN.md#mgr700-import-and-ternary-audit. */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 extern struct { char pad[0x154]; unsigned short *v; } import_800201EC;
+extern char import_8005C6E0;
 mgrproc_uso_func_00000700(arg0, arg1) char *arg0; int arg1; {
-    register char *base; /* s0; case-1 dead la of &D (import_8005C6E0) */
+    register char *base; /* s0; case-1 dead address of import_8005C6E0 */
     *(int*)(FW(arg0, 0x8)) = 3;
     FW(FW(arg0, 0x8), 0x4) = 0;
     switch (arg1) { /* irregular */
     case 1:
-        base = (char *)&D_00000000;
+        base = &import_8005C6E0;
         if (*(s32 *)0xA0000284 == 0x240B17D7) {
             FW(FW(arg0, 0x8), 0x8) = 4;
         } else {
