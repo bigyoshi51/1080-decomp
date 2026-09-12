@@ -7468,90 +7468,89 @@ skip9:;
         float cross1 = (*(float*)&local_160[2] * *(float*)&local_154[0]) - (*(float*)&local_154[2] * *(float*)&local_160[0]); return ((*(float*)&local_178[2] * *(float*)&local_16C[0]) - (*(float*)&local_16C[2] * *(float*)&local_178[0])) * cross1 < (float)0;
     }
 }
-/* game_uso_func_0000A0E8 - verified structural decode (~163-insn FPU
- * geometry op; Vec3-diff + multi struct-copy + dispatch = documented
- * FP-regalloc + struct-copy-sp-slot sub-80 ceiling -> INCLUDE_ASM
- * build path; struct-typing reference).
- *   f(a0, b /sp204/, a2 /sp208/):
- *   if (a2 == 0) gl_func_00000000(&D+0x7D4, &D+0x7E0, 1586);  // assert
- *   v0 = a2;                                                  // reloaded
- *   d.x = v0->0x30 - b->0x30;                                  // Vec3 diff
- *   d.y = v0->0x38 - b->0x38;                                  // (sp+92)
- *   d.z = v0->0x34 - b->0x34;
- *   copy d -> sp+108 (3 int-words);  copy sp+108 -> sp+188;
- *   if (sp+160 == 0) { v1 = gl_func_00000000(b+0x30); }        // build
- *   else v1 = sp+160;
- *   v1->0x0 = *(float*)(sp+188);  v1->0x8 = *(float*)(sp+196);
- *   ... (continues: more FP writes into v1 from the diff/copy block) ...
- * Struct-typing: v0/a2 and b (a1) are objects holding a Vec3 at +0x30
- * (x@0x30, z@0x34, y@0x38 - note z/y order); function computes the
- * component difference v0.vec - b.vec, replicates it across stack
- * scratch (sp+92 / +108 / +188 / +160), then writes it into a result
- * object v1 (built via gl_func_00000000(b+0x30) when sp+160 slot is
- * null). &D+0x7D4 / +0x7E0 = assert format/string (1586 = line?).
- * Caps <80: FP sub.s pipeline + 3-int struct-copy sp-slot allocation +
- * the result-object reload - combined FP-regalloc/struct-copy
- * divergence (cf gl_func_00065250). Full body INCLUDE_ASM-preserved.
- * INCLUDE_ASM (no episode; tautology-trap rule). */
+/* game_uso_func_0000A0E8: projected-height predicate, 163 target words.
+ * Build two XZ vectors relative to a1->position: a2's position and
+ * a0's child position at +0xB4. Compare their projected height against
+ * the child height above a1.y - 400. The three length calls are retained.
+ *
+ * 2026-09-12: 43.03 -> 99.88% NM; 159/163 raw words, 0x28C size/0xC8 frame.
+ * Keep the shared word-copy buffer, the two guarded XZ fills, same-line
+ * delta staging and named pointer homes. Both deltas use a1 + 0x30;
+ * the assertion does not replace a2 with its source-line number.
+ * fx/fy/fz are reused scalar scratch, not fixed vector components.
+ * Remaining: X loads/stores in the two XZ fills use f2 rather than f12.
+ * A 4062-variant permuter run (stack differences enabled) did not improve
+ * this residual. See agent docs/IDO_CODEGEN.md#projected-height-staging-a0e8.
+ * Keep NON_MATCHING until the actual C bytes match; no episode yet.
+ */
 extern float game_uso_func_082880(float);
 extern char game_uso_D_807FEDD0;
 #ifdef NON_MATCHING
 int game_uso_func_0000A0E8(char *a0, char *a1, char *a2) {
-    char *w;
-    Vec3 d1, d1b, d1c;
-    Vec3 d2, d2b, d2c;
-    Vec3 xz1, xz2;
-    Vec3 *p1, *p2;
-    float mag, normv;
-    float a1y, lhs, rhs;
-    int ret;
-
+    volatile int local_BC[3];
+    volatile int local_B0[3];
+    char pad_AC[4];
+    float local_A0[3];
+    float local_94[3];
+    float mag;
+    float *p, *w; char pad_78[16];
+    volatile int local_6C[3];
+    char pad_68[4];
+    float local_5C[3];
+    char pad_3C[32];
+    float local_30[3];
+    float fx, fy, fz;
+    float *q;
     if (a2 == 0) {
-        game_uso_func_047B1C((char *)&game_uso_D_807FEDD0 + 2004,
-                             (char *)&game_uso_D_807FEDD0 + 2016, 1586);
-        a2 = (char *)1586;
+        game_uso_func_047B1C(&game_uso_D_807FEDD0 + 0x7D4,
+                           &game_uso_D_807FEDD0 + 0x7E0, 1586);
     }
-    /* block1: d1 = a2.vec - a1.vec (0x30/0x34/0x38), copied through 2 buffers,
-     * then a dead-alloc XZ Vec3 (y zeroed). */
-    d1.x = *(float *)(a2 + 0x30) - *(float *)(a1 + 0x30);
-    d1.y = *(float *)(a2 + 0x34) - *(float *)(a1 + 0x34);
-    d1.z = *(float *)(a2 + 0x38) - *(float *)(a1 + 0x38);
-    d1b = d1;
-    d1c = d1b;
-    p1 = &xz1;
-    if (p1 == 0) p1 = (Vec3 *)game_uso_func_055750(12);
-    p1->x = d1c.x;
-    p1->z = d1c.z;
-    p1->y = 0.0f;
-    /* block2: w = a0->0x30; d2 = w->{0xB4,0xB8,0xBC} - a1->{0,4,8}; dead-alloc XZ. */
-    w = *(char **)(a0 + 0x30);
-    d2.x = *(float *)(w + 0xB4) - *(float *)(a1 + 0x0);
-    d2.y = *(float *)(w + 0xB8) - *(float *)(a1 + 0x4);
-    d2.z = *(float *)(w + 0xBC) - *(float *)(a1 + 0x8);
-    d2b = d2;
-    d2c = d2b;
-    p2 = &xz2;
-    if (p2 == 0) p2 = (Vec3 *)game_uso_func_055750(12);
-    p2->x = d2c.x;
-    p2->z = d2c.z;
-    p2->y = 0.0f;
-    /* block3: normalize the dot of the two XZ vecs by |xz1|. */
-    mag = game_uso_func_082880(xz1.x * xz1.x + xz1.z * xz1.z);
-    if (0.0f < game_uso_func_082880(xz1.x * xz1.x + xz1.z * xz1.z)) {
-        normv = (xz1.x * xz2.x + xz1.z * xz2.z) /
-                game_uso_func_082880(xz1.x * xz1.x + xz1.z * xz1.z);
+    w = 0; if (1) { w = (float*)(a2 + 0x30); }
+    q = 0; if (1) { q = (float*)(a1 + 0x30); }
+    fy = w[0] - q[0]; fx = w[1] - q[1]; fz = w[2] - q[2];
+    local_5C[0] = fy;
+    local_5C[2] = fz;
+    local_5C[1] = fx;
+    *(Tri3i*)local_6C = *(Tri3i*)local_5C;
+    *(Tri3i*)local_BC = *(Tri3i*)local_6C;
+    p = (float*)(unsigned)local_A0;
+    if (p == 0) {
+        p = (float*)game_uso_func_055750(12);
+        if (p == 0) goto skip1;
+    }
+    fx = *(float*)&local_BC[0];
+    fz = *(float*)&local_BC[2];
+    p[0] = fx;
+    p[2] = fz;
+    p[1] = 0.0f;
+skip1:;
+    w = (float*)*(char**)(a0 + 0x30); if (1) { w = (float*)((char*)w + 0xB4); }
+    fy = w[0] - q[0]; fx = w[1] - q[1]; fz = w[2] - q[2];
+    local_30[0] = fy;
+    local_30[1] = fx;
+    local_30[2] = fz;
+    *(Tri3i*)local_6C = *(Tri3i*)local_30;
+    *(Tri3i*)local_B0 = *(Tri3i*)local_6C;
+    p = (float*)(unsigned)local_94;
+    if (p == 0) {
+        p = (float*)game_uso_func_055750(12);
+        if (p == 0) goto skip2;
+    }
+    fx = *(float*)&local_B0[0];
+    fz = *(float*)&local_B0[2];
+    p[0] = fx;
+    p[2] = fz;
+    p[1] = 0.0f;
+skip2:;
+    mag = game_uso_func_082880(local_A0[2]*local_A0[2] + local_A0[0]*local_A0[0]);
+    if (0.0f < game_uso_func_082880(local_A0[2]*local_A0[2] + local_A0[0]*local_A0[0])) {
+        fx = (local_A0[0]*local_94[0] + local_A0[2]*local_94[2]) /
+                game_uso_func_082880(local_A0[2]*local_A0[2] + local_A0[0]*local_A0[0]);
     } else {
-        normv = 0.0f;
+        fx = (float)0;
     }
-    /* block4: range predicate. */
-    a1y = *(float *)(a1 + 0x34);
-    lhs = (*(float *)(a2 + 0x34) - a1y) * normv;
-    rhs = mag * (*(float *)(w + 0xB8) - (a1y - 400.0f));
-    ret = 0;
-    if (lhs < rhs) {
-        ret = 1;
-    }
-    return ret;
+    fz = *(float*)(a1 + 0x34);
+    return mag * (*(float*)(*(char**)(a0 + 0x30) + 0xB8) - (fz - 400.0f)) > (*(float*)(a2 + 0x34) - fz)*fx;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A0E8);
