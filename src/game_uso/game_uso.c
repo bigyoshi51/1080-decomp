@@ -8374,6 +8374,10 @@ void game_uso_func_0000B498(char *a0) {
  * and s0 save recovered. Only 14/150 raw words match: pointer/scalar
  * allocation, early loads, branch scheduling and FP registers still differ.
  * Preserve the ASM fallback; this is not an exact training episode.
+ * Follow-up: 86.27 -> 86.87% NM by naming the unsigned-halfword cell
+ * inside the bounds-checked block. The read must stay after both bounds.
+ * Length/frame and 14/150 raw words are unchanged; no exact episode.
+ * See docs/IDO_CODEGEN.md#sentinel-guarded-cell-b4b8.
  * See docs/IDO_CODEGEN.md#sentinel-neighbor-pointer-walk-b4b8. */
 extern short game_uso_D_807FF2B4[];
 #ifdef NON_MATCHING
@@ -8400,8 +8404,9 @@ int game_uso_func_0000B4B8(char *obj) {
     float prev;
     for (i = 0; i < 9; i++, tbl += 2) {
         idx = tbl[1] + (x + (y + tbl[0]) * w);
-        if (idx > 0 && idx < w * h && data[idx] == 0xFFFC) {
-            count++;
+        if (idx > 0 && idx < w * h) {
+            unsigned short cell = data[idx];
+            if (cell == 0xFFFC) count++;
         }
     }
     result = (float)count / 9.0f;
