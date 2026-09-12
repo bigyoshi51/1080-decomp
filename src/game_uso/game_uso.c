@@ -7230,10 +7230,8 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 
 extern void game_uso_func_047B1C();
 extern char game_uso_D_807FEDB8;
-#ifdef NON_MATCHING
 /* game_uso_func_00009B88: XZ segment-side predicate, 344 target words.
- * 2026-09-09: 62.17 -> 99.74% NM (99.70% standalone); 328/344 raw words.
- * The C now has the target 0x560-byte size and 0x1A8-byte frame.
+ * 2026-09-12: exact C, all 344 words; 0x560 bytes, 0x1A8-byte frame.
  *
  * Project a2's position onto XZ, subtract a1's position, rotate/normalize
  * that delta, and form two scaled axes. Project a0's child-position
@@ -7248,12 +7246,14 @@ extern char game_uso_D_807FEDB8;
  * - Load both X/Z values before storing. Keep paired delta expressions
  *   on one line, and separate their source pointer from the child source.
  * - src_vec's home is 0x114; padding/declaration order preserves the
- *   remaining named stack slots. The do/while(0) scope shapes A0's remat.
+ *   remaining named stack slots. The four do/while(0) scopes shape pointer
+ *   rematerialization and keep the endpoint scratch addresses in a1.
+ * - The first scale's right-hand constant assignment and the second
+ *   scale's compound multiply retain constant-first mul.s operands.
  * - Inline only the second final cross product, keeping cross1 named.
  *
- * Remaining: two mul.s operand swaps and A0/6C pointer-register choices.
- * Not exact: retain the ASM fallback and do not create an episode.
- * See agent docs/IDO_CODEGEN.md#vector-staging-stack-map-9b88.
+ * See agent docs/IDO_CODEGEN.md#vector-staging-stack-map-9b88 and
+ * #vector-endpoint-scopes-exact-9b88.
  */
 int game_uso_func_00009B88(a0, a1, a2)
     int *a0;
@@ -7358,11 +7358,11 @@ skip3:;
     game_uso_func_071028((Vec3 *)local_138);
 
     *(Tri3i *)local_12C = *(Tri3i *)local_138;
-    scale0 = 250.0f * (*(float*)((char*)a1 + 0x54)) + 50.0f;
+    scale0 = (*(float*)((char*)a1 + 0x54)) * (src_x = 250.0f) + 50.0f;
     local_12C[0] *= scale0;
     local_12C[1] *= scale0;
     local_12C[2] *= scale0;
-    scale0 = 250.0f * (*(float*)((char*)a2 + 0x54) - *(float*)((char*)a1 + 0x54));
+    scale0 = 250.0f; scale0 *= (*(float*)((char*)a2 + 0x54) - *(float*)((char*)a1 + 0x54));
     local_138[0] *= scale0;
     local_138[1] *= scale0;
     local_138[2] *= scale0;
@@ -7413,7 +7413,7 @@ skip6:;
 
     *(Tri3i *)local_EC = *(Tri3i *)p;
     *(Tri3i *)local_178 = *(Tri3i *)local_EC;
-    p = (int*)local_88; out = p;
+    do { p = (int*)local_88; } while (0); out = p;
     if ((unsigned)out == 0) {
         out = (int*)game_uso_func_055750(0xC);
         if (out == 0) goto skip7;
@@ -7428,7 +7428,7 @@ skip6:;
 skip7:;
     *(Tri3i *)local_94 = *(Tri3i *)p;
     *(Tri3i *)local_16C = *(Tri3i *)local_94;
-    p = (int*)local_6C; out = p;
+    do { p = (int*)local_6C; } while (0); out = p;
     if ((unsigned)out == 0) {
         out = (int*)game_uso_func_055750(0xC);
         if (out == 0) goto skip8;
@@ -7443,7 +7443,7 @@ skip7:;
 skip8:;
     *(Tri3i *)local_7C = *(Tri3i *)p;
     *(Tri3i *)local_160 = *(Tri3i *)local_7C;
-    p = (int*)local_38; out = p; if ((unsigned)out == 0) {
+    do { p = (int*)local_38; } while (0); out = p; if ((unsigned)out == 0) {
         out = (int*)game_uso_func_055750(0xC);
         if (out == 0) goto skip9;
     }
@@ -7468,10 +7468,6 @@ skip9:;
         float cross1 = (*(float*)&local_160[2] * *(float*)&local_154[0]) - (*(float*)&local_154[2] * *(float*)&local_160[0]); return ((*(float*)&local_178[2] * *(float*)&local_16C[0]) - (*(float*)&local_16C[2] * *(float*)&local_178[0])) * cross1 < (float)0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
-#endif
-
 /* game_uso_func_0000A0E8 - verified structural decode (~163-insn FPU
  * geometry op; Vec3-diff + multi struct-copy + dispatch = documented
  * FP-regalloc + struct-copy-sp-slot sub-80 ceiling -> INCLUDE_ASM
