@@ -8044,37 +8044,13 @@ void game_uso_func_0000ADE0(int *dst) {
     *dst = buf[0];
 }
 
-#ifdef NON_MATCHING
-/* game_uso_func_0000AE1C: 278-insn (0x458) spine constructor. Frame -0xA0.
- * Same family as the find-or-create alloc-cascade constructors
- * (000034A4 / 00003018 / 0000C48C). Reconstructed 2026-06-26 from the
- * resolved EXPECTED .o: the prior body used gl_func_00000000 placeholder
- * callees + &D_00000000 bases (ALL WRONG). Real symbols wired:
- *   allocator        game_uso_func_055750(size)
- *   sub-obj init     game_uso_func_04C678(self, tmpl)
- *   misc inits       game_uso_func_04D3D0(self), game_uso_func_04D3C8(self,2)
- *   vec3 setter      game_uso_func_072EE8(self+0x30, &v3)
- *   24-byte node init game_uso_func_04A188(node, parent, idx, flag)
- *   tail import      import_000F5ADC(0, &game_uso_D_807FF214)
- *   global flag word import_8005EE6C
- *   vtable           &import_80086288, &game_uso_D_807FF24C, ...
- *
- * Find-or-create idiom (dead-sentinel cascade): each sub-object is
- *   p = base + off;  if (base == (T)-off) { p = alloc(N); if (!p) goto skip; }
- * where base+off==NULL iff base==-off — so the alloc arm is statically dead,
- * but IDO emits it (li at,-off; bne base,at,skip; alloc). Several sub-objects
- * use a TWO-LEVEL nested cascade (outer keyed on a reloaded arg0 @ sp+0xA0,
- * inner keyed on the resulting pointer).
- *
- * RESIDUAL: likely a frame-spread / per-stage spill-slot coloring cap (same
- * class as 0000C48C's -0x48-vs-0xC8 residual). Real-symbol reconstruction;
- * NM build path = INCLUDE_ASM.
- * 2026-07-30 agent-g probes (both NEGATIVE, do not repeat): root residual is
- * self colored $a2 + sw/lw 132(sp) spill pairs around every call vs target's
- * $s0 promotion (frame -0x88 vs -0xA0, build +11 insns). (1) `void **arg_home
- * = &arg0` home-slot pin regressed 62.26->61.29; (2) `register void *s0`
- * hint byte-inert (62.259). Needs a web-split spelling that decouples s0 from
- * the arg0 web without memory-homing arg0, or uoptlist ordering session. */
+/* game_uso_func_0000AE1C: primary + embedded-child constructor, 278 words.
+ * Exact stock IDO 7.1 -O2: 0x458 bytes, 0xA0 frame. The final child is
+ * at (arg0 + 0xEC) + 0x68, with that sub-object passed as its parent.
+ * Sub-object/last-child allocation failure skips children, not the tail.
+ * Shared parent/zero-node webs, One1 index arguments, aggregate copies and
+ * scoped pointer definitions recover the target without instruction edits.
+ * See docs/IDO_CODEGEN.md#embedded-child-constructor-exact-ae1c. */
 extern void game_uso_func_04D3D0(void *self);
 extern void game_uso_func_04D3C8(void *self, int a1);
 extern char game_uso_D_807FF340, game_uso_D_807FF24C, game_uso_D_807FEE38,
@@ -8086,22 +8062,35 @@ extern char import_80086288, import_8005EE6C;
 extern int import_000F5ADC();
 
 void *game_uso_func_0000AE1C(void *arg0) {
-    void *s0;
+    /* Declaration order preserves the original 0xA0 stack frame. */
+    char *s0;
+    char *r;
     void *p;
     void *q;
-    char *o16;
-    char *o140;
-    char *o36;
-    Vec3 v3;
+    float v3[3];
+    float z;
+    char *unused7c;
+    char *unused78;
+    int *state;
+    One1 idx0, idx1, idx2, idx3;
     float v4[4];
+    One1 idx4;
+    int flags;
+    char *nfirst;
+    One1 idx_arg;
+    char *unused40;
+    char *n;
+    char *tbl1;
+    char *tbl2;
+    char *o36;
+    Quad4 v4_copy;
 
-    /* Stage 1: find-or-create primary 0x178 buffer (homed at sp+0xA0). */
+    /* Primary object; all exits reload its argument home. */
     if (arg0 == NULL) {
         arg0 = (void *)game_uso_func_055750(0x178);
-        if (arg0 == NULL) return arg0;
+        if (arg0 == NULL) goto end_ret;
     }
 
-    /* Stage 2: secondary 0xB4 sub-object into s0. */
     s0 = arg0;
     if (s0 == NULL) {
         s0 = (void *)game_uso_func_055750(0xB4);
@@ -8110,7 +8099,6 @@ void *game_uso_func_0000AE1C(void *arg0) {
     game_uso_func_04C678(s0, (char *)&game_uso_D_807FF340 + 0xD50);
     *(int *)((char *)s0 + 0x28) = (int)&import_80086288;
 
-    /* Stage 3: zero a 4-byte node at s0+0x2C (dead-sentinel cascade). */
     p = (char *)s0 + 0x2C;
     if (s0 == (void *)-0x2C) {
         p = (void *)game_uso_func_055750(4);
@@ -8124,141 +8112,138 @@ void *game_uso_func_0000AE1C(void *arg0) {
     *(int *)q = 0;
 after_node:
     game_uso_func_04D3D0(s0);
-    v3.x = 0.0f;
-    v3.y = 0.0f;
-    v3.z = 0.0f;
-    game_uso_func_072EE8((char *)s0 + 0x30, &v3);
+    z = (float)0; v3[0] = z; v3[1] = z; v3[2] = z;
+    game_uso_func_072EE8((char *)s0 + 0x30, (Vec3 *)v3);
 skip_sub:
 
-    /* Stage 4: vtable on reloaded arg0. */
     *(int *)((char *)arg0 + 0x28) = (int)&game_uso_D_807FF24C;
 
-    /* Stage 5: o16 sub-object = arg0+0xDC, nested 2-level cascade. */
-    o16 = (char *)arg0 + 0xDC;
+    s0 = (char *)arg0 + 0xDC;
     if (arg0 == (void *)-0xDC) {
-        o16 = (char *)game_uso_func_055750(0x10);
-        if (o16 == NULL) goto after_o16;
+        s0 = (char *)game_uso_func_055750(0x10);
+        if (s0 == NULL) goto after_o16;
     }
     {
-        char *r = o16;
-        if (o16 == NULL) {
+        r = s0;
+        if (s0 == NULL) {
             r = (char *)game_uso_func_055750(0x10);
             if (r == NULL) goto o16_set;
         }
         {
-            char *w = r;
+            p = r;
             if (r == NULL) {
-                w = (char *)game_uso_func_055750(4);
-                if (w == NULL) goto o16_fill;
+                p = (char *)game_uso_func_055750(4);
+                if (p == NULL) goto o16_fill;
             }
-            *(int *)w = (int)((char *)&game_uso_D_807FEE38 + 0x848);
+            *(int *)p = (int)((char *)&game_uso_D_807FEE38 + 0x848);
         o16_fill:
             *(int *)(r + 4) = (int)arg0;
-            *(int *)(r + 8) = *(int *)((char *)&game_uso_D_807FEE30 + 0x840);
-            *(int *)(r + 12) = *(int *)((char *)&game_uso_D_807FEE30 + 0x844);
+            *(Pair2 *)(r + 8) = *(Pair2 *)((char *)&game_uso_D_807FEE30 + 0x840);
         }
     o16_set:
-        *(int *)o16 = (int)((char *)&game_uso_D_807FF234 + 0xC44);
+        *(int *)s0 = (int)((char *)&game_uso_D_807FF234 + 0xC44);
     }
 after_o16:
 
-    /* Stage 6: o140 sub-object = arg0+0xEC (alloc 140), four 24-byte child
-     * nodes via 04A188, then the o36 node. */
-    o140 = (char *)arg0 + 0xEC;
-    if (arg0 == (void *)-0xEC) {
-        o140 = (char *)game_uso_func_055750(140);
-        if (o140 == NULL) goto end_ret;
-    }
+    /* The five children belong to this 140-byte sub-object, not arg0. */
+    s0 = (char *)arg0 + 0xEC;
+    if ((arg0 != (void *)-0xEC) ||
+        (s0 = (char *)game_uso_func_055750(140), s0 != NULL)) {
     {
-        char *s = o140;
-        if (o140 == NULL) {
-            s = (char *)game_uso_func_055750(8);
-            if (s == NULL) goto after_o140hdr;
+        r = s0;
+        if (s0 == NULL) {
+            r = (char *)game_uso_func_055750(8);
+            if (r == NULL) goto after_o140hdr;
         }
-        *(int *)s = (int)((char *)&game_uso_D_807FF344 + 0xD54);
-        *(int *)(s + 4) = 0;
+        *(int *)r = (int)((char *)&game_uso_D_807FF344 + 0xD54);
+        *(int *)(r + 4) = 0;
     }
 after_o140hdr:
     {
-        int idx = *(int *)((char *)&game_uso_D_807FF34C + 0xD5C);
-        char *n = o140 + 8;
-        if (o140 == (char *)-8) {
-            n = (char *)game_uso_func_055750(24);
-            if (n == NULL) goto node1;
+        idx0.a = *(int *)((char *)&game_uso_D_807FF34C + 0xD5C);
+        /* One-word index records are passed by value to 04A188. */
+        idx_arg = idx0;
+        nfirst = s0 + 8;
+        if (s0 == (char *)-8) {
+            nfirst = (char *)game_uso_func_055750(24);
+            if (nfirst == NULL) goto node1;
         }
-        game_uso_func_04A188(n, o140, idx, 1);
-        *(int *)(n + 12) = (int)((char *)&game_uso_D_807FEE50 + 0x860);
-        *(int *)(n + 20) = 0;
-        *(float *)(n + 16) = 0.0f;
+        game_uso_func_04A188(nfirst, s0, idx_arg, 1);
+        *(int *)(nfirst + 12) = (int)((char *)&game_uso_D_807FEE50 + 0x860);
+        *(int *)(nfirst + 20) = 0;
+        *(float *)(nfirst + 16) = 0.0f;
     }
 node1:
     {
-        int idx = *(int *)((char *)&game_uso_D_807FF350 + 0xD60);
-        char *n = o140 + 32;
-        if (o140 == (char *)-32) {
+        idx1.a = *(int *)((char *)&game_uso_D_807FF350 + 0xD60);
+        idx_arg = idx1;
+        n = s0 + 32;
+        if (s0 == (char *)-32) {
             n = (char *)game_uso_func_055750(24);
             if (n == NULL) goto node2;
         }
-        game_uso_func_04A188(n, o140, idx, 1);
-        *(int *)(n + 12) = (int)((char *)&game_uso_D_807FEE50 + 0x860);
+        game_uso_func_04A188(n, s0, idx_arg, 1);
+        { if (1) { tbl1 = (char *)&game_uso_D_807FEE50 + 0x860; } *(int *)(n + 12) = (int)tbl1; }
         *(int *)(n + 20) = 0;
         *(float *)(n + 16) = 0.0f;
     }
 node2:
     {
-        int idx = *(int *)((char *)&game_uso_D_807FF354 + 0xD64);
-        char *n = o140 + 56;
-        if (o140 == (char *)-56) {
+        idx2.a = *(int *)((char *)&game_uso_D_807FF354 + 0xD64);
+        idx_arg = idx2;
+        n = s0 + 56;
+        if (s0 == (char *)-56) {
             n = (char *)game_uso_func_055750(24);
             if (n == NULL) goto node3;
         }
-        game_uso_func_04A188(n, o140, idx, 1);
-        *(int *)(n + 12) = (int)((char *)&game_uso_D_807FEE50 + 0x860);
+        game_uso_func_04A188(n, s0, idx_arg, 1);
+        { if (1) { tbl2 = (char *)&game_uso_D_807FEE50 + 0x860; } *(int *)(n + 12) = (int)tbl2; }
         *(int *)(n + 20) = 0;
         *(float *)(n + 16) = 2.0f;
     }
 node3:
     {
-        int idx = *(int *)((char *)&game_uso_D_807FF358 + 0xD68);
-        char *n = o140 + 80;
-        if (o140 == (char *)-80) {
+        idx3.a = *(int *)((char *)&game_uso_D_807FF358 + 0xD68);
+        idx_arg = idx3;
+        n = s0 + 80;
+        if (s0 == (char *)-80) {
             n = (char *)game_uso_func_055750(24);
             if (n == NULL) goto node4;
         }
-        game_uso_func_04A188(n, o140, idx, 0);
+        game_uso_func_04A188(n, s0, idx_arg, 0);
         *(int *)(n + 12) = (int)((char *)&game_uso_D_807FEE68 + 0x878);
         *(int *)(n + 20) = 0;
         *(int *)(n + 16) = 0;
     }
 node4:;
     {
-        int idx = *(int *)((char *)&game_uso_D_807FF35C + 0xD6C);
-        char *n;
+        idx4.a = *(int *)((char *)&game_uso_D_807FF35C + 0xD6C);
         v4[0] = 1.0f;
         v4[1] = 1.0f;
         v4[2] = 1.0f;
         v4[3] = 1.0f;
-        n = (char *)arg0 + 0x68;
-        if (arg0 == (void *)-0x68) {
-            n = (char *)game_uso_func_055750(36);
-            if (n == NULL) goto end_ret;
-        }
-        o36 = n;
-        game_uso_func_04A188(o36, arg0, idx, 0);
+        /* Retain both integer-word copies around the child initializer. */
+        v4_copy = *(Quad4 *)v4;
+        idx_arg = idx4;
+        if (1) { o36 = s0 + 0x68; }
+        if ((s0 != (char *)-0x68) ||
+            (o36 = (char *)game_uso_func_055750(36), o36 != NULL)) {
+
+        game_uso_func_04A188(o36, s0, idx_arg, 0);
         *(int *)(o36 + 12) = (int)((char *)&game_uso_D_807FEE80 + 0x890);
         *(int *)(o36 + 32) = 0;
-        *(float *)(o36 + 16) = v4[0];
-        *(float *)(o36 + 20) = v4[1];
-        *(float *)(o36 + 24) = v4[2];
-        *(float *)(o36 + 28) = v4[3];
+        *(Quad4 *)(o36 + 16) = v4_copy;
+        }
     }
 
-    /* Tail: clear two flag bits in the global state word, set scalars. */
+    }
+tail_init:
+    /* Failed sub-object/last-child allocation still reaches this tail. */
     {
-        int flags = *(int *)((char *)&import_8005EE6C + 4);
+        if (1) { state = (int *)((char *)&import_8005EE6C + 4); } flags = *state;
         flags &= ~0x00080000;
         flags &= ~2;
-        *(int *)((char *)&import_8005EE6C + 4) = flags;
+        if (1) { state = (int *)((char *)&import_8005EE6C + 4); } *state = flags;
     }
     *(float *)((char *)arg0 + 0xC8) = 1.0f;
     game_uso_func_04D3C8(arg0, 2);
@@ -8267,9 +8252,6 @@ node4:;
 end_ret:
     return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AE1C);
-#endif
 
 /* game_uso_func_0000B274 — verified structural decode (108-insn double-
  * precision easing/animation update; ldc1/c.lt.d/div.d/mul.d + bc1tl/bc1fl
