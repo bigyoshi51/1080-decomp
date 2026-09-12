@@ -7833,74 +7833,55 @@ void game_uso_func_0000A7D8(int *a0) {
     *(float *)((char *)a0 + 0x60) = *(float *)((char *)&D_00000000 + 0x110);
 }
 
-// game_uso_func_0000A7F8 — STRUCTURAL PASS (0x3A0 / 232 words,
-// no episode). Raw-.word USO form (single function, game_uso main
-// game-logic). Same FP world-matrix-builder family as
-// game_uso_func_000028C0 / 00002CC8 / 0000A604.
-//
-//   void game_uso_func_0000A7F8(Obj *obj) {              // obj -> a2
-//     World *w = obj->0x30;
-//     // copy obj->0xB4/0xB8/0xBC transform into sp scratch;
-//     // Vec3 = { w->0x318, w->0x31C, w->0x320 } scaled by w->0xA8;
-//     //   (mul.s f0=w->0xA8; f14=f4*f0, f2=f6*f0, f12=f8*f0);
-//     //   store sp+0xB8/0xBC/0xC0;
-//     // copy 3-word matrix-row blocks between obj sub-records and sp;
-//     // matrix*vector FP chains compose a world transform; ~6
-//     //   func_00000000 sub-calls (transform helpers);
-//     // write the composed transform back into obj fields.
-//   }
-//
-// Struct-typing reference:
-//   obj: 0x30 -> World (w->0xA8 scale, w->0x318/0x31C/0x320 a Vec3),
-//     0xB4/0xB8/0xBC a transform Vec3. sp scratch = matrix rows +
-//     output. func_00000000 = USO placeholder dispatcher (transform
-//     helper). See game_uso_func_000028C0's comment for the shared
-//     family shape.
-// Caps (DEFERRED): raw-word USO + placeholder calls + 232-word FP
-//   transform; USO mnemonic disasm limitation prevents byte-match.
-//   Real-C STRUCTURAL body below — world-Vec3 scale + transform
-//   compose skeleton (family of 000028C0 / 00002CC8 / 0000A604).
-//   Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-/* game_uso_func_0000A7F8 — DECODE PASS (0x3A0 / 232 words). Same FP
- * world-transform-compose family as 000028C0 / 00002CC8 / 0000A604.
- * Decode upgrade over prior STRUCTURAL stub: the three placeholder
- * func_00000000 dispatch calls are now bound to their reloc-resolved
- * real callees —
- *   a8e0  jal game_uso_func_0000A374 (varargs: 4th arg `node` homed to sp+4)
- *   a908  jal game_uso_func_0000A0E8 (obj, r1, m)
- *   a96c/a9b0/aa40/aa7c  jal game_uso_func_055750 (12-byte node allocator)
- * — and the static-table lookup node = *(*(D[obj->0x5C]+0x548)) is kept.
- * Byte-match still deferred (A374 varargs ABI + raw-word USO disasm); this
- * pass raises decode fidelity (placeholder calls -> typed real callees). */
+/* game_uso_func_0000A7F8: nearest projected-segment distance update.
+ * MATCHED: 232/232 target words. Predict the child position from
+ * obj's scale and child direction, query the indexed segment, test its
+ * projected height, then minimize squared XZ distance to the segment line.
+ * Increment the scan index on every path; clear bit 2 after ten entries.
+ *
+ * 2026-09-12 matching levers:
+ * - A374's second argument is One1 by value (not an extra vararg), giving
+ *   both the node home at F0 and the outgoing argument home at sp+4.
+ * - slots[0/1] preserve child/link and segment pointers at DC/E0; keep r1
+ *   separate until the height call so the E0 store stays after both tests.
+ *   cnt doubles as the link-pointer integer and the final scan counter.
+ * - Shared c1 at CC stages all three integer-copy chains. q is reassigned
+ *   to c1 for the opening copy; the scoped out definitions keep fixed
+ *   endpoints separate from the possibly allocated p at b2/b5.
+ * - Scalar homes occupy the padding above b1, preserving frame 0x100.
+ * - Group X/Z subtraction assignments on one line; reverse the zero
+ *   equality operands; name b3.z before the squared-length expression.
+ * See docs/IDO_CODEGEN.md#projected-distance-exact-a7f8.
+ */
 void game_uso_func_0000A7F8(char *obj) {
-    char *w = *(char **)(obj + 0x30);
-    char *r1, *m;
-    Vec3 blockA, scaled, c1, c2;
-    Vec3 b1, b2, b3, b4, b5, b6;
-    Vec3 *p1, *p2, *p4, *p5;
+    Vec3 c2;
+    One1 node;
+    Vec3 blockA;
+    char *slots[2];
+    char *r1;
+    Vec3 c1;
+    char pad_C4[8];
+    Vec3 scaled;
+    float f0, f2, f12, f14; Vec3 *out; char pad_8C[24];
+    Vec3 b1, b4, b3, b6;
+    char pad_54[8];
+    Vec3 b2;
+    char pad_34[20];
+    Vec3 b5;
     float *q;
-    float mx, my, mz;
-    float s, d, magsq, cross, result;
-    int idx, cnt;
-    char *node;
-    /* blockA(sp+0xE4) = w transform (0xB4) Vec3; scaled(sp+0xB8) = world-vec
-     * (0x318) * obj scale (0xA8) as three separate mul.s. The scaled vec is
-     * then fanned out through two scratch copies c1(sp+0xCC) <- scaled,
-     * c2(sp+0xF4) <- c1 (Tri3i int-word copies), and blockA += c2 element-wise.
-     * The intermediate buffers must be addressed (&) to survive as distinct
-     * scratch slots — see docs/IDO_CODEGEN.md float-Vec3 fanout. */
-    *(Tri3i *)&blockA = *(Tri3i *)(w + 0xB4);
-    w = *(char **)(obj + 0x30);
-    s = *(float *)(obj + 0xA8);
-    q = (float *)(w + 0x318);
-    mx = q[0] * s;
-    my = q[1] * s;
-    mz = q[2] * s;
+    Vec3 *p;
+    int cnt;
+
+    blockA = *(Vec3 *)(*(char **)(obj + 0x30) + 0xB4);
+    f0 = *(float *)(obj + 0xA8);
+    q = (float *)(*(char **)(obj + 0x30) + 0x318);
+    f14 = q[0] * f0;
+    f2 = q[1] * f0;
+    f12 = q[2] * f0;
     q = (float *)&c1;
-    scaled.x = mx;
-    scaled.y = my;
-    scaled.z = mz;
+    scaled.x = f14;
+    scaled.y = f2;
+    scaled.z = f12;
     if (1) {
         *(Vec3 *)q = scaled;
         c2 = *(Vec3 *)q;
@@ -7908,84 +7889,85 @@ void game_uso_func_0000A7F8(char *obj) {
     blockA.x = blockA.x + c2.x;
     blockA.y = blockA.y + c2.y;
     blockA.z = blockA.z + c2.z;
-    /* node = *(*(GLOBAL + obj->0x5C*4 + 0x548)) */
-    idx = *(int *)(obj + 0x5C);
-    node = *(char **)(*(char **)((char *)&D_00000000 + 0x548 + idx * 4));
-    /* A374: world-query. Target homes a 4th vararg (node) to sp+4, but A374's
-     * established 3-arg prototype blocks that here (see func_00006F38 note);
-     * call with the matching 3 args to stay compilable. */
+    node.a = **(int **)((char *)&D_00000000 + 0x548 + *(int *)(obj + 0x5C)*4);
     r1 = (char *)game_uso_func_0000A374(obj, node, &blockA);
     if (r1 != 0) {
-    m = *(char **)(r1 + 0x2C);
-    if (m != 0) {
-    if (game_uso_func_0000A0E8(obj, r1, m) != 0) {
-    /* FP threshold gate: d = blockA.z - r1->0x38; if (d<0) d += 250*r1->0x54;
-     * if (d<0) return. */
-    d = blockA.z - *(float *)(r1 + 0x38);
-    if (d < 0.0f) d += 250.0f * *(float *)(r1 + 0x54);
-    if (d >= 0.0f) {
-        /* b1 = m's XZ vec; b2 = b1 - r1's XZ vec; b3 = b2. Each Vec3 slot is a
-         * conditionally-allocated node using the NESTED-goto alloc-guard shape
-         * (docs/IDO_CODEGEN.md #nested-goto-alloc-guard-bnezl-9b88): the
-         * (unsigned) launder keeps IDO from folding the guard, and the nested
-         * form emits the target's `bne ptr,zero,BODY` + jal alloc +
-         * `beq v0,zero,SKIP` with `or out,v0,zero` in the delay. */
-        p1 = (Vec3 *)(unsigned)&b1;
-        if (p1 == 0) {
-            p1 = (Vec3 *)game_uso_func_055750(12);
-            if (p1 == 0) goto skipb1;
-        }
-        { p1->x = *(float *)(m + 0x30); p1->z = *(float *)(m + 0x38); p1->y = 0.0f; }
-skipb1:;
-        p2 = (Vec3 *)(unsigned)&b2;
-        if (p2 == 0) {
-            p2 = (Vec3 *)game_uso_func_055750(12);
-            if (p2 == 0) goto skipb2;
-        }
-        { p2->z = p1->z - *(float *)(r1 + 0x38); p2->x = p1->x - *(float *)(r1 + 0x30); p2->y = 0.0f; }
-skipb2:;
-        *(Tri3i *)&b3 = *(Tri3i *)&b2;
-        /* b4 = blockA XZ; b5 = b4 - r1's XZ vec; b6 = b5 */
-        p4 = (Vec3 *)(unsigned)&b4;
-        if (p4 == 0) {
-            p4 = (Vec3 *)game_uso_func_055750(12);
-            if (p4 == 0) goto skipb4;
-        }
-        { p4->x = blockA.x; p4->z = blockA.z; p4->y = 0.0f; }
-skipb4:;
-        p5 = (Vec3 *)(unsigned)&b5;
-        if (p5 == 0) {
-            p5 = (Vec3 *)game_uso_func_055750(12);
-            if (p5 == 0) goto skipb5;
-        }
-        { p5->z = p4->z - *(float *)(r1 + 0x38); p5->x = p4->x - *(float *)(r1 + 0x30); p5->y = 0.0f; }
-skipb5:;
-        *(Tri3i *)&b6 = *(Tri3i *)&b5;
-        /* result = cross(b3,b6)^2 / |b3|^2 in the XZ plane */
-        magsq = b3.x * b3.x + b3.z * b3.z;
-        if (magsq == 0.0f) {
-            result = 0.0f;
-        } else {
-            cross = b3.z * b6.x - b3.x * b6.z;
-            result = cross * cross / magsq;
-        }
-        if (result < *(float *)(obj + 0x60)) {
-            *(float *)(obj + 0x60) = result;
-            *(int *)(obj + 0x40) = *(int *)(obj + 0x5C);
+        cnt = *(int *)(r1 + 0x2C);
+        slots[0] = (char *)cnt;
+        if (cnt != 0) {
+            slots[1] = r1;
+            if (game_uso_func_0000A0E8(obj, r1, (char *)cnt) != 0) {
+                f0 = blockA.z - *(float *)(slots[1] + 0x38);
+                if (f0 < 0.0f) f0 += 250.0f * *(float *)(slots[1] + 0x54);
+                if (f0 >= 0.0f) {
+                    p = (Vec3 *)(unsigned)&b1;
+                    if (p == 0) {
+                        p = (Vec3 *)game_uso_func_055750(12);
+                        if (p == 0) goto skip1;
+                    }
+                    q = (float *)(slots[0] + 0x30);
+                    f0 = q[0];
+                    f2 = q[2];
+                    p->y = 0.0f;
+                    p->z = f2;
+                    p->x = f0;
+                skip1:;
+                    do { out = &b2; } while (0); p = out;
+                    if (p == 0) {
+                        p = (Vec3 *)game_uso_func_055750(12);
+                        if (p == 0) goto skip2;
+                    }
+                    q = (float *)(slots[1] + 0x30);
+                    f12 = b1.x - q[0]; f0 = b1.z - q[2];
+                    p->y = 0.0f;
+                    p->z = f0;
+                    p->x = f12;
+                skip2:;
+                    *(Tri3i *)&c1 = *(Tri3i *)out;
+                    *(Tri3i *)&b3 = *(Tri3i *)&c1;
+                    p = (Vec3 *)(unsigned)&b4;
+                    if (p == 0) {
+                        p = (Vec3 *)game_uso_func_055750(12);
+                        if (p == 0) goto skip4;
+                    }
+                    f0 = blockA.x;
+                    f2 = blockA.z;
+                    p->y = 0.0f;
+                    p->x = f0;
+                    p->z = f2;
+                skip4:;
+                    do { out = &b5; } while (0); p = out;
+                    if (p == 0) {
+                        p = (Vec3 *)game_uso_func_055750(12);
+                        if (p == 0) goto skip5;
+                    }
+                    q = (float *)(slots[1] + 0x30);
+                    f12 = b4.x - q[0]; f0 = b4.z - q[2];
+                    p->y = 0.0f;
+                    p->z = f0;
+                    p->x = f12;
+                skip5:;
+                    *(Tri3i *)&c1 = *(Tri3i *)out;
+                    *(Tri3i *)&b6 = *(Tri3i *)&c1;
+                    f14 = b3.z; f12 = b3.x*b3.x + f14*f14;
+                    if (0.0f == f12) {
+                        f0 = 0.0f;
+                    } else {
+                        f2 = b3.z*b6.x - b3.x*b6.z;
+                        f0 = f2*f2 / f12;
+                    }
+                    if (f0 < *(float *)(obj + 0x60)) {
+                        *(float *)(obj + 0x60) = f0;
+                        *(int *)(obj + 0x40) = *(int *)(obj + 0x5C);
+                    }
+                }
+            }
         }
     }
-    }
-    }
-    }
-    /* common tail (runs on every path): cnt = obj->0x5C + 1; obj->0x5C = cnt;
-     * if (cnt >= 10) obj->0x68 &= ~4. */
     cnt = *(int *)(obj + 0x5C) + 1;
     *(int *)(obj + 0x5C) = cnt;
     if (cnt >= 10) *(int *)(obj + 0x68) &= ~4;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A7F8);
-#endif
 
 void game_uso_func_0000AB98(void *a0) {
     *(int*)((char*)a0 + 0x5C) = 0;
