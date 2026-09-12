@@ -70,9 +70,38 @@ struct GfxRing_413C { int *buf; int idx; };
  * Both the 128- and 136-byte layouts have numlr=37/finalnumlr=45 (eight
  * splits) in a completed uopt trace: split count alone does not explain
  * the frame delta. See docs/IDO_CODEGEN.md#glyph-grid-frame-trace-gui148.
+ * 2026-09-12: recover the 40-byte grid and 20-byte cell types below, with
+ * pointer-valued arguments and sizeof-based allocations. Both build modes
+ * retain their prior instruction bytes; this is not a new exact match.
+ * The smaller-frame variant's incoming pixel pointer and max-width value
+ * share one P+4 live range (s6), while the separate sum local gets s5.
+ * See docs/IDO_CODEGEN.md#glyph-grid-types-and-parameter-web-gui148.
  * See docs/IDO_CODEGEN.md#glyph-grid-pointer-reuse-gui148. Still NON_MATCHING. */
 #ifdef NON_MATCHING
-void *gui_func_00000148(char *a0, int a1, int a2, int a3, int rows, int cols) {
+/* Layouts recovered from this constructor. The final word of the grid is
+ * left untouched here; the text-rendering family uses +0x24 as draw state. */
+typedef struct GuiGlyphCell148 {
+    int x;                      /* 0x00: first ink column in the atlas */
+    int y;                      /* 0x04: cell's atlas row */
+    int ink_width;              /* 0x08: right edge minus left bearing */
+    int advance;                /* 0x0C: shared maximum right edge */
+    int left_bearing;           /* 0x10: first ink column within the cell */
+} GuiGlyphCell148;
+
+typedef struct GuiGlyphGrid148 {
+    int cell_count;             /* 0x00 */
+    char *pixels;               /* 0x04 */
+    int half_mean_width;        /* 0x08: integer-truncated half-sum / count */
+    int cell_width;             /* 0x0C: initial width, then maximum right edge */
+    int cell_height;            /* 0x10 */
+    int height_14;              /* 0x14: initialized to the same height */
+    int atlas_width;            /* 0x18 */
+    int atlas_height;           /* 0x1C */
+    GuiGlyphCell148 *cells;     /* 0x20 */
+    void *draw_state;           /* 0x24: not initialized by this function */
+} GuiGlyphGrid148;
+
+GuiGlyphGrid148 *gui_func_00000148(GuiGlyphGrid148 *a0, char *a1, int a2, int a3, int rows, int cols) {
     /* Declaration order preserves the column and scan-bound spill homes. */
     int sum;
     int maxw;
@@ -90,21 +119,21 @@ void *gui_func_00000148(char *a0, int a1, int a2, int a3, int rows, int cols) {
     int x;
 
     if (a0 == 0) {
-        a0 = (char *)gl_func_00000000(40);
+        a0 = (GuiGlyphGrid148 *)gl_func_00000000(sizeof(GuiGlyphGrid148));
         if (a0 == 0) {
             goto end;
         }
     }
     gw = a2 / rows;
     gh = a3 / cols;
-    *(int *)(a0 + 4) = a1;
-    *(int *)(a0 + 0xC) = gw;
-    *(int *)(a0 + 0) = rows * cols;
-    *(int *)(a0 + 0x10) = gh;
-    *(int *)(a0 + 0x14) = gh;
-    *(int *)(a0 + 0x18) = a2;
-    *(int *)(a0 + 0x1C) = a3;
-    *(int *)(a0 + 0x20) = gl_func_00000000(rows * cols * 20);
+    a0->pixels = a1;
+    a0->cell_width = gw;
+    a0->cell_count = rows * cols;
+    a0->cell_height = gh;
+    a0->height_14 = gh;
+    a0->atlas_width = a2;
+    a0->atlas_height = a3;
+    a0->cells = (GuiGlyphCell148 *)gl_func_00000000(rows * cols * sizeof(GuiGlyphCell148));
 
     sum = 0;
     maxw = 0;
@@ -113,7 +142,7 @@ void *gui_func_00000148(char *a0, int a1, int a2, int a3, int rows, int cols) {
         if (rows > 0) {
             gi = col * rows;
             do {
-                px = (char *)*(int *)(a0 + 4) + (col * gh) * a2 + row * gw;
+                px = a0->pixels + (col * gh) * a2 + row * gw;
                 idx = gi;
                 maxx = 0; minx = gw;
                 for (y = 0; y < gh; y++) {
@@ -124,21 +153,21 @@ void *gui_func_00000148(char *a0, int a1, int a2, int a3, int rows, int cols) {
                 }
                 maxx += 1;
                 if (maxw < maxx) maxw = maxx;
-                *(int *)(*(int *)(a0 + 0x20) + idx * 0x14 + 0x0) = row * gw + minx;
-                *(int *)(*(int *)(a0 + 0x20) + idx * 0x14 + 0x4) = col * gh;
-                *(int *)(*(int *)(a0 + 0x20) + idx * 0x14 + 0x8) = maxx - minx;
+                a0->cells[idx].x = row * gw + minx;
+                a0->cells[idx].y = col * gh;
+                a0->cells[idx].ink_width = maxx - minx;
                 sum += maxx;
-                *(int *)(*(int *)(a0 + 0x20) + idx * 0x14 + 0x10) = minx;
+                a0->cells[idx].left_bearing = minx;
                 gi++;
                 row++;
             } while (row != rows);
         }
     }
-    *(int *)(a0 + 0xC) = maxw;
-    *(int *)(a0 + 8) = (int)((float)sum * 0.5f) / *(int *)(a0 + 0);
+    a0->cell_width = maxw;
+    a0->half_mean_width = (int)((float)sum * 0.5f) / a0->cell_count;
     {
-        for (row = 0; row < *(int *)(a0 + 0); row++) {
-            *(int *)(*(int *)(a0 + 0x20) + row * 0x14 + 0xC) = *(int *)(a0 + 0xC);
+        for (row = 0; row < a0->cell_count; row++) {
+            a0->cells[row].advance = a0->cell_width;
         }
     }
 end:
