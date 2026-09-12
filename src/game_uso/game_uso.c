@@ -8253,18 +8253,19 @@ end_ret:
     return arg0;
 }
 
-/* game_uso_func_0000B274 — verified structural decode (108-insn double-
- * precision easing/animation update; ldc1/c.lt.d/div.d/mul.d + bc1tl/bc1fl
- * branch-likely + 4 calls = documented heavy-double-FPU sub-80 ceiling →
- * INCLUDE_ASM build path; struct-typing reference).
- * Struct-typing: s0->0xA0/0xA4/0xA8 source vec3 (float), s0->0xC8 eased
- * progress, 0xCC its reset value, 0xD0/0xD4 int-trunc'd vec, 0xD8 handle,
- * 0xC4 child obj (vtable @+0x28→{fn@0x1C, short@0x18}; +0xB0/0xB4 float
- * pair, +0xC0 short), 0x134 scale, 0x14C value, 0x164 sub-region. s1=&D
- * global ctx: +0x2A0 float timer, +0x254 handle. D-double consts @0x120/
- * 0x128/0x130/0x138 (thresholds + ease divisor). Caps <80: double-prec
- * FPU chain + bc1tl/bc1fl branch-likely + &D %hi/%lo reloc + 4-call
- * spill. INCLUDE_ASM remains build path (no episode; tautology). */
+/* game_uso_func_0000B274: easing/update, corrected 107-word boundary.
+ * The former last word (mtc1 zero,f0 at B420) is the successor's entry,
+ * after this function's return and delay slot; no inherited-FP-state cap.
+ * Corrected C: continue only when threshold < progress (return on an
+ * unordered comparison), and load the full word at +0x14C before storing its
+ * low half to the child. The old short load selected the wrong half on
+ * this big-endian target. Full-TU fuzzy 76.94 -> 88.77%; C is 432 bytes
+ * versus target 428, frame 88 versus 64. Held context, compound scaling,
+ * scoped temporaries and product ordering were tested; prologue scheduling,
+ * stack homes, destination base and late pointer/FP registers still differ.
+ * Retain NON_MATCHING until raw bytes agree.
+ * See docs/MATCHING_WORKFLOW.md#b274-b420-zero-head-boundary and
+ * docs/IDO_CODEGEN.md#easing-gate-and-halfword-b274. */
 #ifdef NON_MATCHING
 /* game_uso_func_0000B274 — reconstructed from expected/.o (reloc-aware). s1 base =
  * import_8005C108 cached in a saved register; four double thresholds live in distinct
@@ -8283,11 +8284,10 @@ extern void game_uso_func_04D700();
 extern void game_uso_func_05B750();
 
 void game_uso_func_0000B274(char *s0) {
-    char *s1 = &import_8005C108;
+    char *s1 = (char *)(unsigned)&import_8005C108;
     char *dst;
     float vec[3];
     float r;
-    char *t2;
     char *v1;
     int *vt;
 
@@ -8305,24 +8305,21 @@ void game_uso_func_0000B274(char *s0) {
     *(float *)(s0 + 0xC8) = *(float *)(s0 + 0xCC);
 
     if (*(double *)(&game_uso_D_807FFA48 + 0x128) < (double)*(float *)(s1 + 0x2A0)) {
-        double d = ((double)*(float *)(s1 + 0x2A0) - *(double *)(&game_uso_D_807FFA48 + 0x128))
-                   / *(double *)(&game_uso_D_807FFA50 + 0x130);
-        *(float *)(s0 + 0xC8) = (float)((double)*(float *)(s0 + 0xC8) * (1.0 - d));
+        *(float *)(s0 + 0xC8) *= (1.0 - (((double)*(float *)(s1 + 0x2A0) - *(double *)(&game_uso_D_807FFA48 + 0x128)) / *(double *)(&game_uso_D_807FFA50 + 0x130)));
     }
 
-    if (*(double *)(&game_uso_D_807FFA58 + 0x138) < (double)*(float *)(s0 + 0xC8)) return;
+    if (!(*(double *)(&game_uso_D_807FFA58 + 0x138) < (double)*(float *)(s0 + 0xC8))) return;
 
     game_uso_func_04D700(s0);
 
-    dst = &import_8005C1A8;
-    *(float *)(dst + 0xD0) = *(float *)(s0 + 0xA0);
-    *(float *)(dst + 0xD4) = *(float *)(s0 + 0xA4);
-    *(float *)(dst + 0xD8) = *(float *)(s0 + 0xA8);
-    r = *(float *)(s0 + 0x134) * *(float *)(s0 + 0xC8);
+    dst = &import_8005C1A8 + 0xA0;
+    *(float *)(dst + 0x30) = *(float *)(s0 + 0xA0);
+    *(float *)(dst + 0x34) = *(float *)(s0 + 0xA4);
+    *(float *)(dst + 0x38) = *(float *)(s0 + 0xA8);
+    r = *(float *)(s0 + 0xC8) * *(float *)(s0 + 0x134);
     game_uso_func_05B750(s1, s0 + 0x164);
 
-    t2 = *(char **)(s0 + 0xC4);
-    *(short *)(t2 + 0xC0) = *(short *)(s0 + 0x14C);
+    *(short *)(*(char **)(s0 + 0xC4) + 0xC0) = *(int *)(s0 + 0x14C);
     *(float *)(*(char **)(s0 + 0xC4) + 0xB0) = r;
     *(float *)(*(char **)(s0 + 0xC4) + 0xB4) = r;
 
@@ -8335,7 +8332,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B274);
 #endif
 
 #ifdef NON_MATCHING
-/* 96.55% NM. 29-insn FPU helper. Init local Vec3 buffer at sp+0x24..0x2C with 3
+/* Boundary corrected: B420 is a 30-word FPU helper. Init local Vec3 buffer at sp+0x24..0x2C with 3
  * floats (first 2 = 0.0, third = D_0+0x140), call gl_func(D_0+0x11C, &buf28,
  * &buf2C); call again gl_func(D_0+0x104, &buf24, &buf2C); writes 3 float
  * results from buf24/28/2C into a0+0x60/0x64/0x68.
@@ -8345,17 +8342,17 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B274);
  * and using only [2..4] reserves those 2 low slots (GCC can't partially-elide a
  * single array), forcing frame -48 and the exact 0x24/0x28/0x2C offsets — a
  * plain `float buf[3]` gave -40 and shifted every stack offset by 8 (96.03%).
- * RESIDUAL (1 insn): target stores `swc1 $f0,buf[2]/buf[3]` with NO
- * `mtc1 zero,$f0` anywhere — it relies on $f0 already holding 0.0 from calling
- * context (full-TU artifact). In isolation GCC must materialize the zero
- * (`mtc1 zero,$f0`), the lone extra insn. Isolated-vs-full-TU cap.
+ * The zero initialization is at B420, after B274's return/delay slot.
+ * It belongs to this helper, not B274: the prior B424 boundary dropped
+ * the leading mtc1 zero,f0. No caller-inherited f0 or compiler cap is needed.
+ * See docs/MATCHING_WORKFLOW.md#b274-b420-zero-head-boundary.
  * 2026-06-22: replaced the bogus separate `extern float D_b424_140` (resolved to
  * its own symbol @ off 0 -> `lwc1 $f4,0(at)`) with `*(float*)((char*)&D_00000000
  * + 0x140)` -> `lwc1 $f4,0x140(at)` reloc-form, the true address. Sole counted
- * residual is now the `mtc1 zero,$f0` FP-zero materialization cap. */
+ * residual must be rechecked against the corrected 30-word boundary. */
 extern void game_uso_func_070338(float f, float *p1, float *p2);
 extern void game_uso_func_04DA24(int *a0);
-void game_uso_func_0000B424(int *a0) {
+void game_uso_func_0000B420(int *a0) {
     float buf[5];
     buf[2] = 0.0f;
     buf[3] = 0.0f;
@@ -8369,7 +8366,7 @@ void game_uso_func_0000B424(int *a0) {
     game_uso_func_04DA24(a0);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B424);
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B420);
 #endif
 
 void game_uso_func_0000B498(char *a0) {
