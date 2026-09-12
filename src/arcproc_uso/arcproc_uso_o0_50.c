@@ -50,9 +50,8 @@ void arcproc_uso_func_00000050(Quad4 *dst) {
  *     byte-identically to the current best load/order shape and still keeps
  *     the extra dead BBL marker; no new leverage.
  *
- * The dead `b epilogue; nop` appears to be unconditional from C in this
- * shape. Cap-source: IDO -O0 statement-list-end marker that even the
- * compiler's own dead-code elim doesn't strip.
+ * The extra `b epilogue; nop` remains in the tested -O0 shapes. This is
+ * an observed residual, not proof that all valid C shapes are exhausted.
  *
  * Byte-correct status (CORRECTED 2026-05-30): the ROM build is exact via the
  * INCLUDE_ASM #else path (the .s bytes), NOT via INSN_PATCH — the INSN_PATCH
@@ -67,20 +66,28 @@ void arcproc_uso_func_00000050(Quad4 *dst) {
  * (register-ptr / direct a0[1]++ / p-for-all / inverted-if / goto-exit /
  * else-block / single-return r): every s0-using form (the target uses s0 for
  * the increment-path pointer, needs `register int *p`) is 32 insns WITH the dead
- * BB; every 30-insn form drops the s0 save and uses t-regs (wrong). The
- * s0+merged-marker combination is not reachable — an IDO -O0 BBL-emission
- * artifact (likely original-IDO-version-specific). Genuine cap; stays NM.
+ * BB; the tested 30-insn forms drop the s0 save and use t-regs (wrong).
+ * No compiler-version explanation was established by those probes.
  *
- * 2026-07-10 (agent-f): DEFINITIVE root cause established — see the big
- * characterization block in arcproc_uso_o0_12C.c (this B4 is the identical
- * class). Summary: the trailing `b epilogue; nop` is an unconditional
- * end-of-function marker emitted by ido-static-recomp's ugen at the closing
- * `}` (proven via `cc -S`, attributed to the '}' source line); the redundant
- * consecutive branch is elided only by uopt, which -O0 bypasses. -O0/-O1/-O2
- * sweep: 3/1/1 branches (raising opt removes the marker but destroys the -O0
- * body). Leaf -O0 value-returns match (11D40/78/BC) because a leaf has no
- * epilogue label; this non-leaf class cannot. 17+ shapes + option probes
- * exhausted. Only a corrected cc binary can produce these bytes. */
+ * 2026-09-12 (agent-h): direct B4 audit supersedes the July claim that
+ * only uopt can fold the marker or that a corrected compiler is required.
+ * The 12C sibling's -O1/-g2 result must NOT be extrapolated here: B4's
+ * -O1/-g2 output is 116 bytes and still has THREE unconditional branches,
+ * with filled call/return-branch delay slots and reordered loads. It does
+ * not match the 120-byte target. Stock IDO 5.3/7.1 -O0 emit identical B4
+ * bytes; -g0/-g1/-g2/-g3 do not change them.
+ *
+ * Ten additional C shapes tested: ternary return, short-circuit OR,
+ * do/while(0), nested block, while/return, goto-full, Boolean zero return,
+ * switch, infinite for, and block-local register pointer. None improved
+ * on this body. Loop/block/Boolean-zero forms were byte-identical;
+ * short-circuit OR was 124 bytes but changed the control flow/registers.
+ *
+ * Raw comparison: 23/30 words identical at their original offsets; after
+ * aligning the extra pair at +0x64, only branch displacements at +0x40 and
+ * +0x5C differ. The frame remains 40 bytes. Full-TU fuzzy remains 93.33%
+ * (standalone 93.17% due to object context). Keep NON_MATCHING, no episode.
+ * See docs/IDO_CODEGEN.md#o0-return-branch-b4-direct-audit. */
 #ifdef NON_MATCHING
 int arcproc_uso_func_000000B4(int *a0, int a1) {
     register int *p;
