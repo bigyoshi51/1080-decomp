@@ -8361,37 +8361,20 @@ void game_uso_func_0000B498(char *a0) {
     game_uso_func_00000000(a0 + 0xEC);
 }
 
-// game_uso_func_0000B4B8 — STRUCTURAL PASS (0x258 / 150 words,
-// no episode). Raw-.word USO form (single function, game_uso main
-// game-logic; boundary already split by commit c305c2b1 — named fn
-// still undecoded). Hand-decoded.
-//
-// 2D-grid / height-map sample with FP interpolation.
-//
-//   float game_uso_func_0000B4B8(Obj *obj) {             // obj -> a0
-//     Ctx *c = *(Ctx**)(D_0 + 0x240);
-//     // grid = obj->0xD8; W = obj->0xD0; H = obj->0xD4;
-//     // i = c->0x148-derived * W + …  (multu index calc into the
-//     //   2D cell array; bounds-checked vs W*H);
-//     // read u16 cell values (lhu) at neighbouring grid points;
-//     // FP block (~10 ops): convert cells to float and bilinear-
-//     //   interpolate using obj->0xB8/0xBC fractional coords;
-//     obj->0xCC = result;                                  // sampled value
-//     return result;
-//   }
-//
-// Struct-typing reference:
-//   obj: 0xD0 grid width, 0xD4 grid height, 0xD8 -> u16 cell array,
-//     0xB8/0xBC fractional sample coords, 0xCC f32 sampled output;
-//     0xD0/0xF0 sub-fields used in the index calc. *(Ctx**)(D_0 +
-//     0x240) = global ctx (->0x148 / ->0xB8 inputs to the index).
-//     Terrain/height-map lookup (snowboard ground sampling).
-// Caps (DEFERRED): raw-word USO + 2D-index multu + FP interp; USO
-//   mnemonic disasm limitation prevents byte-match. Real-C
-//   STRUCTURAL body below — 2D-grid sample + bilinear interp
-//   skeleton (terrain/height-map lookup; snowboard ground
-//   sampling). Byte-match deferred. Name pre-checked: no extern
-//   reuse.
+/* B4B8: nine-neighbor sentinel count, then asymmetric smoothing (150 words).
+ * obj+D0/D4 are x/y cell coordinates; obj+D8 points to grid metadata whose
+ * B8/BC fields are width/height. The u16 cell buffer comes from the global
+ * context's +148 child, at child+F0. Only 0 < index < width*height counts.
+ * This is not bilinear interpolation: count the 0xFFFC cells, divide by 9,
+ * immediately accept a lower fraction, otherwise approach it using the
+ * double-precision coefficient. The difference is computed as float first.
+ * Walk the signed-halfword offset pairs independently of the trip counter;
+ * IDO peels one iteration and unrolls the remaining eight in groups of four.
+ * 2026-09-12: 77.74 -> 86.27% NM, 576 -> 600 bytes, target 8-byte frame
+ * and s0 save recovered. Only 14/150 raw words match: pointer/scalar
+ * allocation, early loads, branch scheduling and FP registers still differ.
+ * Preserve the ASM fallback; this is not an exact training episode.
+ * See docs/IDO_CODEGEN.md#sentinel-neighbor-pointer-walk-b4b8. */
 extern short game_uso_D_807FF2B4[];
 #ifdef NON_MATCHING
 /* Re-decoded 2026-06-24: prior body counted the 0xFFFC sentinel neighbours but
@@ -8406,17 +8389,17 @@ int game_uso_func_0000B4B8(char *obj) {
     char *grid = *(char **)(obj + 0xD8);
     unsigned short *data = *(unsigned short **)(*(char **)(c + 0x148) + 0xF0);
     short *tbl = game_uso_D_807FF2B4;
-    int y = *(int *)(obj + 0xD4);
-    int x = *(int *)(obj + 0xD0);
     int w = *(int *)(grid + 0xB8);
     int h = *(int *)(grid + 0xBC);
+    int y = *(int *)(obj + 0xD4);
+    int x = *(int *)(obj + 0xD0);
     int count = 0;
     int i;
     int idx;
     float result;
     float prev;
-    for (i = 0; i < 9; i++) {
-        idx = (y + tbl[2 * i]) * w + x + tbl[2 * i + 1];
+    for (i = 0; i < 9; i++, tbl += 2) {
+        idx = tbl[1] + (x + (y + tbl[0]) * w);
         if (idx > 0 && idx < w * h && data[idx] == 0xFFFC) {
             count++;
         }
