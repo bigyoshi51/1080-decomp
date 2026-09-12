@@ -1140,9 +1140,15 @@ void game_uso_func_00001DC4(void *a0) {
  * Named X/Z results and reuse of the short-path output pointer improve
  * floating-point and pointer lifetimes without changing the algorithm.
  *
- * Still not exact: 378 C words versus 382 target words, with FP register
- * allocation/load ordering and pointer-copy residuals (not merely four
- * differing words). Keep the ASM fallback; no training episode.
+ * Follow-up: 90.43 -> 96.65% NM, now 382/382 instruction words in length
+ * and 259/382 raw words exact. Scope the X/Z position updates to retain
+ * their reloads and the second a2-home store; stage planar Z before X.
+ * Distinguish correction/coefficient/commit scalar lifetimes, reuse mag
+ * and excess in the vertical pass, and read the saved output home directly
+ * when capturing the reference vector. All five call offsets now agree.
+ * Still not exact: FP registers/load order and early pointer registers
+ * differ. Keep the ASM fallback; no training episode.
+ * See docs/IDO_CODEGEN.md#homing-full-length-staging-1ddc.
  * See docs/IDO_CODEGEN.md#homing-scoped-pointers-1ddc. */
 #ifdef NON_MATCHING
 extern Vec3* game_uso_func_000023D4(Vec3 *out, char *a1);
@@ -1169,8 +1175,8 @@ void game_uso_func_00001DDC(int *a0) {
     float mag;
     float sel;
     float scratch[3];
-    float excess, yd, y_excess;
-    char *s;
+    float excess, yd_unused, y_excess_unused;
+    char *s_unused;
     Vec3 *delta;
     Vec3 st_p1t;
     Tri3i *hopA;
@@ -1182,7 +1188,7 @@ void game_uso_func_00001DDC(int *a0) {
     char pad_a0[4];
     Vec3 st_p1e2;
     Vec3 *scaled_src;
-    float fx, fy_unused, fz; /* X/Z results plus a dead scalar home */
+    float fx, fy, fz; /* shared result slots; roles vary by scaling stage */
     char pad_80[4];
     Vec3 fin_e;
     char pad_6c[8];
@@ -1217,32 +1223,29 @@ void game_uso_func_00001DDC(int *a0) {
 
     {
         /* Keep the output pointer homed across both emit calls. */
-        out = 0;
-        if (1) { out = (char *)a0[0x14 / 4]; }
-        out_home[0] = out;
-        s = (char *)a0[0x38 / 4];
+        out_home[0] = (char *)a0[0x14 / 4];
+        src = (char *)a0[0x38 / 4];
 
-        ref_v.x = *(float *)(out + 0xA0);
-        ref_v.y = *(float *)(out + 0xA4);
-        ref_v.z = *(float *)(out + 0xA8);
+        ref_v.x = *(float *)(out_home[0] + 0xA0);
+        ref_v.y = *(float *)(out_home[0] + 0xA4);
+        ref_v.z = *(float *)(out_home[0] + 0xA8);
 
-        self_v[0] = *(float *)(s + 0xA0);
-        s += 0x70;
-        self_v[1] = *(float *)(s + 0x34);
-        self_v[2] = *(float *)(s + 0x38);
+        self_v[0] = *(float *)(src + 0xA0);
+        src += 0x70;
+        self_v[1] = *(float *)(src + 0x34);
+        self_v[2] = *(float *)(src + 0x38);
 
         delta = game_uso_func_000023D4((Vec3 *)scratch, (char *)a0);
         *(Tri3i *)&dcopy = *(Tri3i *)delta;
-        self_v[0] = self_v[0] + dcopy.x;
+        /* Separate update scopes retain the target's post-store reloads. */
+        if (1) { self_v[0] = self_v[0] + dcopy.x; }
         self_v[1] = self_v[1] + dcopy.y;
-        self_v[2] = self_v[2] + dcopy.z;
+        if (1) { self_v[2] = self_v[2] + dcopy.z; }
 
         speed = *(float *)((char *)a0 + 0x94);
-        excess = self_v[0] - ref_v.x;
-        diff.x = excess;
-        diff.y = (float)0; /* retain the target's zero-square term */
-        mag = self_v[2] - ref_v.z;
-        diff.z = mag;
+        diff.y = (fz = (float)0); /* retain the target's zero-square term */
+        mag = self_v[2] - ref_v.z; diff.z = mag;
+        excess = self_v[0] - ref_v.x; diff.x = excess;
 
         mag = game_uso_func_070238(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
         game_uso_func_071028(&diff);
@@ -1250,8 +1253,9 @@ void game_uso_func_00001DDC(int *a0) {
         /* These scoped pointer definitions split the cross-call webs. */
         if (1) { scaled_src = (Vec3 *)&diff; }
         if (1) { hopA = (Tri3i *)scratch; }
-        if (mag < *(float *)((char *)a0 + 0x7C)) {
-            excess = mag - *(float *)((char *)a0 + 0x7C);
+        fy = *(float *)((char *)a0 + 0x7C);
+        if (mag < fy) {
+            excess = mag - fy;
             st_p1t.x = (fx = scaled_src->x * excess); st_p1t.y = scaled_src->y * excess; st_p1t.z = (fz = scaled_src->z * excess);
             *hopA = *(Tri3i *)&st_p1t;
             *(Tri3i *)&hopB = *hopA;
@@ -1265,59 +1269,62 @@ void game_uso_func_00001DDC(int *a0) {
             *(Tri3i *)&hop_p1e = *hopA;
             if (1) { scaled_src = &hop_p1e; }
             excess = *(float *)((char *)a0 + 0xAC);
-            st_p1e2.x = (fx = scaled_src->x * excess); st_p1e2.y = scaled_src->y * excess; st_p1e2.z = (fz = scaled_src->z * excess);
+            st_p1e2.x = (fy = scaled_src->x * excess); st_p1e2.y = (fx = scaled_src->y * excess); st_p1e2.z = (fz = scaled_src->z * excess);
             *(Tri3i *)&hopB = *(Tri3i *)&st_p1e2;
             *(Tri3i *)&fin_e = *(Tri3i *)&hopB;
             acc.z = fin_e.z;
             acc.y = fin_e.y;
             acc.x = fin_e.x;
         }
-        game_uso_func_072EE8(out_home[0] + 0x30, &acc);
+        out = out_home[0];
+        game_uso_func_072EE8(out + 0x30, &acc);
 
         if (1) { scaled_src = (Vec3 *)&diff; }
         if (1) { hopA = (Tri3i *)scratch; }
-        st_c1.x = (fx = scaled_src->x * speed); st_c1.y = scaled_src->y * speed; st_c1.z = (fz = scaled_src->z * speed);
+        st_c1.x = (excess = scaled_src->x * speed); st_c1.y = (fx = scaled_src->y * speed); st_c1.z = (fy = scaled_src->z * speed);
         *hopA = *(Tri3i *)&st_c1;
         *(Tri3i *)&hopB = *hopA;
         *(float *)((char *)a0 + 0x2C) = hopB.x;
         *(float *)((char *)a0 + 0x30) = hopB.y;
         *(float *)((char *)a0 + 0x34) = hopB.z;
 
-        sel = (a0[0x40 / 4] == 2) ? *(float *)((char *)a0 + 0xF4)
+        excess = (a0[0x40 / 4] == 2) ? *(float *)((char *)a0 + 0xF4)
                                   : *(float *)((char *)a0 + 0xDC);
 
+        sel = excess;
         diff.x = 0.0f;
         diff.y = 1.0f;
         diff.z = 0.0f;
-        yd = ref_v.y - self_v[1];
+        mag = ref_v.y - self_v[1];
         if (1) { scaled_src = &diff; }
-        if (yd < *(float *)((char *)a0 + 0xC4)) {
-            y_excess = *(float *)((char *)a0 + 0xC4) - yd;
-            st_p2t.x = (fx = scaled_src->x * y_excess); st_p2t.y = scaled_src->y * y_excess; st_p2t.z = (fz = scaled_src->z * y_excess);
+        if (mag < *(float *)((char *)a0 + 0xC4)) {
+            excess = *(float *)((char *)a0 + 0xC4) - mag;
+            st_p2t.x = (fx = scaled_src->x * excess); st_p2t.y = scaled_src->y * excess; st_p2t.z = (fz = scaled_src->z * excess);
             *hopA = *(Tri3i *)&st_p2t;
             *(Tri3i *)&hopB = *hopA;
             acc.z = hopB.z;
             acc.y = hopB.y;
             acc.x = hopB.x;
         } else {
-            y_excess = sel - yd;
-            st_p2e.x = (fx = scaled_src->x * y_excess); st_p2e.y = scaled_src->y * y_excess; st_p2e.z = (fz = scaled_src->z * y_excess);
+            excess = sel - mag;
+            st_p2e.x = (fx = scaled_src->x * excess); st_p2e.y = scaled_src->y * excess; st_p2e.z = (fz = scaled_src->z * excess);
             *hopA = *(Tri3i *)&st_p2e;
             *(Tri3i *)&hop_p2e = *hopA;
             if (1) { scaled_src = &hop_p2e; }
             excess = *(float *)((char *)a0 + 0x10C);
-            st_p2e2.x = (fx = scaled_src->x * excess); st_p2e2.y = scaled_src->y * excess; st_p2e2.z = (fz = scaled_src->z * excess);
+            st_p2e2.x = (fy = scaled_src->x * excess); st_p2e2.y = (fx = scaled_src->y * excess); st_p2e2.z = (fz = scaled_src->z * excess);
             *(Tri3i *)&hopB = *(Tri3i *)&st_p2e2;
             *(Tri3i *)&fin_e = *(Tri3i *)&hopB;
             acc.z = fin_e.z;
             acc.y = fin_e.y;
             acc.x = fin_e.x;
         }
-        game_uso_func_072EE8(out_home[0] + 0x30, &acc);
+        out = out_home[0];
+        game_uso_func_072EE8(out + 0x30, &acc);
 
         if (1) { scaled_src = (Vec3 *)&diff; }
         if (1) { hopA = (Tri3i *)scratch; }
-        st_c2.x = (fx = scaled_src->x * sel); st_c2.y = scaled_src->y * sel; st_c2.z = (fz = scaled_src->z * sel);
+        st_c2.x = (excess = scaled_src->x * sel); st_c2.y = (fx = scaled_src->y * sel); st_c2.z = (fy = scaled_src->z * sel);
         *hopA = *(Tri3i *)&st_c2;
         *(Tri3i *)&fin_c2 = *hopA;
         *(float *)((char *)a0 + 0x2C) -= fin_c2.x;
