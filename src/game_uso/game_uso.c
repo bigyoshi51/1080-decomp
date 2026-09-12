@@ -1163,6 +1163,11 @@ void game_uso_func_00001DC4(void *a0) {
  * Frame, instruction count and all five calls still agree. Early output
  * pointers and shared FP values remain different; no exact episode.
  * See docs/IDO_CODEGEN.md#homing-correction-result-lifetimes-1ddc.
+ * Next pass: 98.94 -> 99.46% NM, 343/382 raw words. Keep the short-path
+ * output-home reload and first orientation store on one physical line.
+ * This recovers target scheduling without changing the pointer or values;
+ * 39 real pointer/FP-register differences remain. No exact episode.
+ * See docs/IDO_CODEGEN.md#homing-output-reload-sameline-1ddc.
  * See docs/IDO_CODEGEN.md#homing-scoped-pointers-1ddc. */
 #ifdef NON_MATCHING
 extern Vec3* game_uso_func_000023D4(Vec3 *out, char *a1);
@@ -1228,8 +1233,8 @@ void game_uso_func_00001DDC(int *a0) {
         *(float *)(out + 0x60) = m[0];
         *(float *)(out + 0x64) = m[1];
         *(float *)(out + 0x68) = m[2];
-        out = outh[0];
-        *(float *)(out + 0xA0) = m[0];
+        /* Same source line preserves IDO's target reload scheduling. */
+        out = outh[0]; *(float *)(out + 0xA0) = m[0];
         *(float *)(out + 0xA4) = m[1];
         *(float *)(out + 0xA8) = m[2];
         return;
