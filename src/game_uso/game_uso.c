@@ -7473,19 +7473,19 @@ skip9:;
  * a0's child position at +0xB4. Compare their projected height against
  * the child height above a1.y - 400. The three length calls are retained.
  *
- * 2026-09-12: 43.03 -> 99.88% NM; 159/163 raw words, 0x28C size/0xC8 frame.
+ * MATCHED 2026-09-12: 163/163 raw words, 0x28C size/0xC8 frame.
  * Keep the shared word-copy buffer, the two guarded XZ fills, same-line
  * delta staging and named pointer homes. Both deltas use a1 + 0x30;
  * the assertion does not replace a2 with its source-line number.
  * fx/fy/fz are reused scalar scratch, not fixed vector components.
- * Remaining: X loads/stores in the two XZ fills use f2 rather than f12.
- * A 4062-variant permuter run (stack differences enabled) did not improve
- * this residual. See agent docs/IDO_CODEGEN.md#projected-height-staging-a0e8.
- * Keep NON_MATCHING until the actual C bytes match; no episode yet.
+ * Final four-word fix: reuse fy for the X loads/stores in both XZ fills,
+ * and assign the first length-call argument to fy. The actual float
+ * argument constrains fy to f12; changing the fills alone instead gives
+ * it f2 and cascades the remaining FP allocation. No extra call arguments
+ * or instructions are needed. See docs/IDO_CODEGEN.md#projected-height-exact-a0e8.
  */
 extern float game_uso_func_082880(float);
 extern char game_uso_D_807FEDD0;
-#ifdef NON_MATCHING
 int game_uso_func_0000A0E8(char *a0, char *a1, char *a2) {
     volatile int local_BC[3];
     volatile int local_B0[3];
@@ -7518,9 +7518,9 @@ int game_uso_func_0000A0E8(char *a0, char *a1, char *a2) {
         p = (float*)game_uso_func_055750(12);
         if (p == 0) goto skip1;
     }
-    fx = *(float*)&local_BC[0];
+    fy = *(float*)&local_BC[0];
     fz = *(float*)&local_BC[2];
-    p[0] = fx;
+    p[0] = fy;
     p[2] = fz;
     p[1] = 0.0f;
 skip1:;
@@ -7536,13 +7536,13 @@ skip1:;
         p = (float*)game_uso_func_055750(12);
         if (p == 0) goto skip2;
     }
-    fx = *(float*)&local_B0[0];
+    fy = *(float*)&local_B0[0];
     fz = *(float*)&local_B0[2];
-    p[0] = fx;
+    p[0] = fy;
     p[2] = fz;
     p[1] = 0.0f;
 skip2:;
-    mag = game_uso_func_082880(local_A0[2]*local_A0[2] + local_A0[0]*local_A0[0]);
+    mag = game_uso_func_082880(fy = local_A0[2]*local_A0[2] + local_A0[0]*local_A0[0]);
     if (0.0f < game_uso_func_082880(local_A0[2]*local_A0[2] + local_A0[0]*local_A0[0])) {
         fx = (local_A0[0]*local_94[0] + local_A0[2]*local_94[2]) /
                 game_uso_func_082880(local_A0[2]*local_A0[2] + local_A0[0]*local_A0[0]);
@@ -7552,9 +7552,6 @@ skip2:;
     fz = *(float*)(a1 + 0x34);
     return mag * (*(float*)(*(char**)(a0 + 0x30) + 0xB8) - (fz - 400.0f)) > (*(float*)(a2 + 0x34) - fz)*fx;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A0E8);
-#endif
 
 /* MATCHED 2026-06-20 (stale-cap catch): the "2 pre-jal a1 spills" cap
  * (sw a1,0x1C(sp) incoming-home + sw a1,0x4(sp) in the jal delay slot) is the
