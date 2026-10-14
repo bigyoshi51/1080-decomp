@@ -905,89 +905,54 @@ void gl_func_00064170(float *a0, int *a1) {
     a0[12] = tmp.f[2];
 }
 
-#ifdef NON_MATCHING
-/* 84.75% NM. gl_func_000641DC: 107-insn Vec3 transform/accumulator.
- * First-pass NM with structural decode; register-alloc + scheduling
- * caps to be ground in later runs.
- *
- * Pseudocode:
- *   mag_a = sqrt_like(a2->x² + a2->y² + a2->z²);    // jal #1, ret in $f0
- *   a0->f00  += mag_a;                              // s0[0] += ret
- *   a0->f04  += a1->x * mag_a;                      // s0[1..3] += a1.xyz * mag_a
- *   a0->f08  += a1->y * mag_a;
- *   a0->f0C  += a1->z * mag_a;
- *   a0->f10  += a2->x;                              // s0[4..6] += a2.xyz
- *   a0->f14  += a2->y;
- *   a0->f18  += a2->z;
- *
- *   local = *a1;                                    // copy Vec3 via 3 word lw/sw
- *   mag_b = sqrt_like(local.x² + y² + z²);          // jal #2
- *   if (mag_b >= D_dbl_threshold) {                 // ldc1+cvt.d.s+c.lt.d
- *       out = some_transform(local, a2, &out);      // jal #3
- *       out *= 1.0f / mag_b;                        // 3x mul by 1/mag
- *       a0->f1C += out.x;                           // s0[7..9] += out
- *       a0->f20 += out.y;
- *       a0->f24 += out.z;
- *   }
- *
- * RESIDUAL (84.75%, 2026-06-02 forensic): the build FAILS to promote a0 to a
- * saved register. Target keeps `self` in s0 (`or s0,a0,zero` before the first
- * jal, frame -0x80/-128, saves s0) and spills a1/a2 to their incoming home
- * slots; my build uses NO callee-saved regs at all (frame -0x48/-72, saves only
- * ra) and instead re-homes a0 to sp+0x48 and reloads it as a3/a2 around every
- * jal — IDO chose caller-saved+spill over s0 for the long-lived self pointer.
- * Lever TESTED NEGATIVE: caching a2->x/y/z into float locals before jal #1 (to
- * shorten a2/a1 live ranges and leave a0 dominant) did NOT trigger s0-promotion
- * (still frame -72, no s0, 114 insns — worse). The real lever is forcing a0 into
- * a saved reg / matching the -128 frame; not yet found from C. Permuter-class.
- * Notable shapes:
- *  - $f12 set in jal delay slot for arg passing (mag-squared computed inline)
- *  - 3 jals total; #1 and #2 likely same fn (sqrtf-ish), #3 unknown 3-arg
- *  - a2 spilled at sp+0x88, reloaded as a3 mid-body (caller-slot reuse)
- *  - a1 spilled at sp+0x84
- *  - local buf at sp+0x64, out buf at sp+0x70
- *  - threshold comparison via ldc1 (8-byte double load) + cvt.d.s + c.lt.d
- *
- * Externs reference D_00000000 + offset for the threshold double constant
- * and the three jal targets; identifiers below are placeholders. */
-extern float func_641DC_sqrtish(float magSq);
-extern int func_641DC_xform(void *out, void *local, void *a2);
-
+/* gl_func_000641DC: Vec3 force/torque accumulator (107 words, EXACT
+ * 2026-10-14 agent-g; was 84.70 NM). The old "IDO won't promote self to
+ * s0" residual was the v10 accumulate: through a `Vec3 *pp = &a0->v10`
+ * pointer local the a2 web loses the s0 contest to a0 (direct
+ * `a0->v10.x += a2->x` keeps a2 in s0 and spills a0 to its arg home).
+ * Frame 0x80: pp/out/local homed top-down (0x7C/0x70/0x64), a 12-byte
+ * function-scope pad below local puts the compiler's |m| spill at 0x54,
+ * and a 36-byte BLOCK-scope pad in the then-arm supplies the rest (block
+ * locals stack below the spill). Both calls to the magnitude callee go
+ * through the per-site f32(f32) blank alias (single-precision $f12). The
+ * threshold double is &D+0x20C0; `thr < (double)m` = c.lt.d thr,m + bc1f. */
+extern f32 gl_func_00000000_sq641DC(f32);
 typedef struct S641DC_s {
     float f00, f04, f08, f0C;
-    Vec3 v10;   /* f10..f18 */
-    Vec3 v1C;   /* f1C..f24 */
+    Vec3 v10;
+    Vec3 v1C;
 } S641DC;
-
-void gl_func_000641DC(S641DC *a0, Vec3 *a1, Vec3 *a2, void *a3) {
-    Vec3 local;
+void gl_func_000641DC(S641DC *a0, Vec3 *a1, Vec3 *a2) {
+    Vec3 *pp;
     Vec3 out;
-    float mag_a, mag_b, inv;
-    (void)a3;
+    Vec3 local;
+    Vec3 padA;
+    float m;
+    float inv;
 
-    mag_a = func_641DC_sqrtish(a2->x*a2->x + a2->y*a2->y + a2->z*a2->z);
-    a0->f00 += mag_a;
-    a0->f04 += a1->x * mag_a;
-    a0->f08 += a1->y * mag_a;
-    a0->f0C += a1->z * mag_a;
-    a0->v10.x += a2->x;
-    a0->v10.y += a2->y;
-    a0->v10.z += a2->z;
-
+    m = gl_func_00000000_sq641DC(a2->x * a2->x + a2->y * a2->y + a2->z * a2->z);
+    a0->f00 += m;
+    a0->f04 += a1->x * m;
+    a0->f08 += a1->y * m;
+    a0->f0C += a1->z * m;
+    pp = &a0->v10;
+    pp->x += a2->x;
+    pp->y += a2->y;
+    pp->z += a2->z;
     local = *a1;
-    mag_b = func_641DC_sqrtish(local.x*local.x + local.y*local.y + local.z*local.z);
-    if ((double)mag_b >= 1e-6) {   /* exact threshold = D_dbl_const, TBD */
-        func_641DC_xform(&out, &local, a2);
-        inv = 1.0f / mag_b;
-        out.x *= inv; out.y *= inv; out.z *= inv;
+    m = gl_func_00000000_sq641DC(local.x * local.x + local.y * local.y + local.z * local.z);
+    if (*(double *)((char *)&D_00000000 + 0x20C0) < m) {
+        Vec3 padB[3];
+        gl_func_00000000(&local, a2, &out);
+        inv = 1.0f / m;
+        out.x *= inv;
+        out.y *= inv;
+        out.z *= inv;
         a0->v1C.x += out.x;
         a0->v1C.y += out.y;
         a0->v1C.z += out.z;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000641DC);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
