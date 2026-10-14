@@ -12589,79 +12589,30 @@ int gl_func_0004211C(int a0) {
     return gl_func_00000000(gl_func_00000000, a0);
 }
 
-/* gl_func_00042144 - verified structural decode (36-insn br=0
- * deterministic init; v0-spill + li-encoding divergence -> INCLUDE_ASM
- * build path; struct-typing reference).
- *   gl_func_00000000();                            // X1 (no args)
- *   gl_func_00000000(&D);                          // X2
- *   r = gl_func_00000000(&D);                      // X3
- *   gl_func_00000000(0x1F6EC, (u32)r>>10, (u32)r>>10);   // X4
- *   r = gl_func_00000000(&D);                      // X5
- *   gl_func_00000000(0x1F704, (u32)r>>10,
- *                    (u32)*(int*)(&D+40) >> 10);   // X6
- *   gl_func_00000000(&D);                          // X7
- *   gl_func_00000000();                            // X8
- * Struct-typing: an 8-call subsystem init; X3/X5 return values are
- * right-shifted by 10 (>>0xA, a fixed-point/page scale) and passed with
- * magic addrs 0x1F6EC / 0x1F704 (region registration) plus a third arg
- * = *(int*)(&D+40) >> 10. Caps 34/36: target spills X3-ret to sp+28
- * (frame -32) and reloads it for one of the two >>10 args while keeping
- * v0 for the other (IDO regalloc spill not reproduced by clean C, which
- * computes once + reg-copies, frame -24); also IDO li-encodes 0x1F6EC
- * as `lui 0x2; addiu -0x914` vs GCC `lui 0x1; ori 0xF6EC`. The
- * spill-divergence changes length (not INSN_PATCH-able). br=0 but the
- * spill-divergence variant, not the clean-episode subset. INCLUDE_ASM
- * (no episode).
- * 2026-05-31 RULED OUT: the lone diff is `srl a1,a1` (target) vs `srl a3,a1`
- * (here) — r2>>10 lands in a1 vs a3. Reshaping the call to 3-arg
- * f(fmt, r2>>10, r3>>10) does NOT fix it: it moves the spill schedule and
- * REGRESSES 99.86->88.9%. Register-renumber cap (a1 vs a3); also placeholder
- * jal => never byte-exact anyway. Don't re-try the arg-reshape. */
-/* 2026-06-11 permuter run CONCLUDED: score 115 flat through 319k
- * iterations (past the ~250k single-diff budget) -- allocator-
- * internal, same disposition as the timproc twins. 99.86 stands. */
-#ifdef NON_MATCHING
-/* gl_func_00042144: 36-insn diagnostic dump. Runs a sequence of (collapsed)
- * calls including two printf-like calls with fixed format-string addresses
- * (0x1F6EC, 0x1F704) and >>10-scaled result/global values (byte->KB style).
- * NM (reference decode): ~8 collapsed-placeholder calls + several collapsed D
- * refs (distinct globals/strings collapsed to D_00000000 / literal RO addrs);
- * raw-.word game_libs reloc depression. Call-result chaining approximated.
- * 99.86% CAP (2026-06-01): the sole diff is `srl a1,a1` (target) vs `srl a3,a1`
- * (build) — the unused-4th-arg-save spill (sw v0,0x1C(sp)) assigns the in-place
- * shift to a1 vs a3. The 4-arg form (r2 spilled) is required for the spill;
- * dropping to 3 args regresses to 88.89%, swapping arg order to 99.72%. The
- * a1/a3 pick is a register-renumber cap, not C-controllable.
- * 2026-06-10: classified -- the CALL-ARG-MARSHAL-REUSE class (46C4C):
- * the target computes the >>10 IN the marshal register (srl a1,a1)
- * where ours uses a temp; allocator-level, uoptlist-ceiling.
- * 2026-06-11 wave-2 (see CALL-RESULT SPILL ANATOMY in docs/IDO_CODEGEN):
- * the TRUE shape is the fully-nested 3-arg printf -- it reproduces all 36
- * insns incl. srl a1,a1 and the CUP-time sw-in-delay, sole residue = the
- * spill slot 0x18-vs-0x1C (cfe right-to-left temps put arg3's DEAD temp
- * at -4). Wave-2 closes the remaining spellings: named r2 / hybrid
- * named+nested -> statement-time sw (2-word schedule swap, no better);
- * embedded (r2 = call())>>10 inside the arg -> CUP sw but cfe STILL temps
- * the call separately and the named slot bloats the frame to 0x28. cfe
- * temp order is grammar-invariant; the 2-word residue is unreachable.
- * Keeping the 4-arg 99.86 body (monotonic best). */
+/* gl_func_00042144: 36-insn diagnostic dump -- two printf-like calls with
+ * fixed format-string addresses (0x1F6EC, 0x1F704) and >>10 (byte->KB)
+ * scaled call results / a global field. BYTE-EXACT 2026-10-14: the
+ * "a1-vs-a3 renumber / spill-slot 0x18-vs-0x1C cap" was the call SHAPE --
+ * the first call's result goes to a FUNCTION-scope named local (slot 0x1C,
+ * the sw lands in the next jal's delay slot) and the second call stays
+ * nested inside the printf arg list. A block-scoped temp gives slot 0x18;
+ * a fully-nested pair bloats the frame to 0x28. The `r = ...;` and the
+ * first printf MUST share one source line (as1 line-number tie-break,
+ * IDO_CODEGEN same-line lever): split onto two lines the sw v0 is
+ * scheduled before the jal instead of into its delay slot. Do not reformat. */
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_00042144(void) {
-    unsigned int r2, r3, r5;
+    unsigned int r;
     gl_func_00000000();
-    r2 = gl_func_00000000(&D_00000000);
-    r3 = gl_func_00000000(&D_00000000);
-    gl_func_00000000((int)((char *)&D_00000000 + 0x1F6EC), r2, r3 >> 10, r2 >> 10);
-    r5 = gl_func_00000000(&D_00000000);
-    gl_func_00000000((int)((char *)&D_00000000 + 0x1F704), r5 >> 10,
+    r = gl_func_00000000(&D_00000000); gl_func_00000000((int)((char *)&D_00000000 + 0x1F6EC), r >> 10,
+                     (unsigned int)gl_func_00000000(&D_00000000) >> 10);
+    gl_func_00000000((int)((char *)&D_00000000 + 0x1F704),
+                     (unsigned int)gl_func_00000000(&D_00000000) >> 10,
                      *(unsigned int *)((char *)&D_00000000 + 0x28) >> 10);
     gl_func_00000000(&D_00000000);
     gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042144);
-#endif
 
 // gl_func_000421D4 — STRUCTURAL PASS (0xB0 / 45 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x68
