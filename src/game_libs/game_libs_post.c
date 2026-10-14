@@ -5968,72 +5968,46 @@ int game_libs_func_000233A0(int a0, int *a1) {
     return (int)(*(char **)(gl_d_233A0 + 0x2028) + off);
 }
 
-// gl_func_000233E4 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). Another SIBLING of the gl_func_00022FC0 / gl_func_000232E8
-// buffer-run consumer family: per-element poll + lookup + handler.
-//
-//   void gl_func_000233E4(int idx) {
-//     S *g = &D_0;
-//     short *buf = g->w_2028;                            // record buf
-//     int cur = buf[idx];                                 // run start
-//     byte cnt = *((char*)buf + cur);                     // run length
-//     do {
-//       cur++;
-//       byte e = *((char*)buf + cur);                      // element
-//       jal 0x38174(e);                                    // 0x0C00E05D
-//       int r = (*lookup)(1);                              // jal 0 USO
-//       if (r != 0) {
-//         jal 0x37B00(r);                                  // 0x0C00DEC0
-//         (*handler)(0);                                   // jal 0 USO
-//       }
-//       cnt--;
-//     } while (cnt != 0);
-//     ... finalize via buf[idx] / &D_0+0x23FA ...
-//   }
-//
-// Struct-typing reference: walks the SAME per-slot record buffer as
-//   gl_func_00022FC0 / gl_func_000232E8 (word &D_0+0x2028 base,
-//   idx<<1 stride, cursor + run-length byte stream). Per element it
-//   calls the shared poll routine 0x0C00E05D (≈0x38174), then a
-//   USO-relocated lookup (`jal 0` slot); on a hit it runs the fixed
-//   action 0x0C00DEC0 (≈0x37B00) and a second USO-reloc handler.
-//   Halfword &D_0+0x23FA is read in the tail finalize. The
-//   poll+lookup+conditional-handler member of the buffer-run family.
-// Caps (DEFERRED): CLEAN single jr $ra. poll+lookup+conditional-
-//   handler member of the gl_func_00022FC0 / gl_func_000232E8
-//   buffer-run consumer family. Real-C STRUCTURAL body below per the
-//   analysis (same &D_0+0x2028 idx<<1 cursor buffer; per element
-//   poll 0x38174(e), jal-0 USO-reloc lookup(1); on hit run fixed
-//   0x37B00(r) + a second jal-0 handler(0); finalize via buf[idx] /
-//   &D_0+0x23FA). Byte-match deferred — placeholder jal-0 calls need
-//   USO reloc infra + loop schedule. Name pre-checked: no extern
-//   reuse (collision-safe). gl_func_00000000 = canonical
-//   never-defined USO placeholder.
+/* gl_func_000233E4 (0xB0, 44 insns): run-list consumer over the halfword-indexed
+ * byte stream at *(D+0x2028) (same buffer as gl_func_00022FC0 / gl_func_000232E8).
+ * cur = buf16[idx]; cnt = buf[cur++]; per element: p = poll(1, buf[cur++])
+ * (baked jal 0x38174 = gl_ref_00038174); if lookup(1, p) == 0 (jal-0 USO slot)
+ * run the TU-local deregister (baked jal 0x37B00 = gl_ref_00037B00); then always
+ * handler(p, 0) (jal-0 USO slot).
+ * 2026-10-14 (agent-c) rewrite from the target words: the old body had the
+ * conditional inverted (handler only on a hit) and the poll/lookup args crossed.
+ * `*(cur + buf)` for the run-length read gives the index-first `addu t8,s1,v0`;
+ * the struct view of D keeps &D in s3 across the loop (`lw t9,0x2028(s3)` per
+ * element). RESIDUAL (1 insn class): target skips the deregister with a plain
+ * `bnez v0; nop` onto the merge block's `or a0,s0`; IDO here fills that slot
+ * branch-likely (`bnezl v0,merge+4; or a0,s0`) -- every other word identical.
+ * Probed without effect: if/else both-arms, goto skip, empty else, `!r`, named r,
+ * void/prototyped callees, distinct extern per call, block-scoped p, do-while,
+ * `if (1) {}` after the if (see docs/IDO_CODEGEN.md
+ * #branch-likely-emission-cap-no-flag). */
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-extern int D_00000000;
+extern int gl_ref_00038174();
+extern int gl_ref_00037B00();
+typedef struct { char p0[0x2028]; unsigned char *buf; } gl_233E4_GS;
+#define GS_233E4 (*(gl_233E4_GS *)&D_00000000)
 void gl_func_000233E4(int idx) {
-    unsigned char **g = (unsigned char **)((char *)&D_00000000 + 0x2028);
-    unsigned char *buf = *g;
-    int cur = ((unsigned short *)buf)[idx];
-    int cnt = buf[cur];
+    int cur;
+    int cnt;
+    int p;
+
+    cur = ((unsigned short *)GS_233E4.buf)[idx];
+    cnt = *(cur + GS_233E4.buf);
     cur++;
-    if (cnt > 0) {
-        do {
-            unsigned char e;
-            int p;
-            cnt--;
-            e = (*g)[cur];
-            cur++;
-            p = gl_func_00000000(1, e);
-            if (gl_func_00000000(1, p) != 0) {
-                gl_func_00000000(p);
-                gl_func_00000000(p, 0);
-            }
-        } while (cnt > 0);
+    while (cnt > 0) {
+        cnt--;
+        p = gl_ref_00038174(1, GS_233E4.buf[cur++]);
+        if (gl_func_00000000(1, p) == 0) {
+            gl_ref_00037B00(p);
+        }
+        gl_func_00000000(p, 0);
     }
 }
+#undef GS_233E4
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000233E4);
 #endif
