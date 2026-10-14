@@ -16186,65 +16186,19 @@ void gl_func_0002DCF8(void) {
 /* game_libs_func_0002DD30: 2-insn empty stub (jr ra; nop). */
 void game_libs_func_0002DD30(void) { }
 
-#ifdef NON_MATCHING
-/* game_libs_func_0002DD38: 8-insn 2-global store.
- *   D_a = a0 & 0xFF; D_b = 0xD2;
- *
- * Caps:
- *  (a) std C produces 7 insns (no leading `sw a0, 0(sp)` arg-save).
- *  (b) std C uses $t6/$t7 for andi-result + 0xD2 constant; target uses
- *      $a0/$t6 (one register lower — andi modifies a0 in-place).
- *
- * 2026-05-15 attempt: `int *p = &a0; (void)p;` to force save-arg-to-stack.
- *   Result: save emitted (32-byte size matches target), BUT placed at +0x14
- *   (between addiu and jr ra) instead of +0x0, AND still uses $t6/$t7.
- *   Both diffs are IDO scheduler decisions not reachable via natural C.
- *
- * 2026-05-16 closure (size-sort re-roll; DOCUMENTED CAP — future size-sort
- * /sibling rolls should SKIP, not re-grind):
- *   - Natural body builds 7 insns vs target 8 (LEN-DIFF, missing the
- *     leading `sw a0,0(sp)` arg-home-AT-ENTRY). Per
- *     docs/PATTERNS.md#feedback-uso-no-frame-save-args-stub the entry
- *     arg-home is an IDO emit gated on caller-reference / scheduler, not
- *     C-reachable for a body-bearing leaf.
- *   - INSN_PATCH NOT viable: it requires SAME-LEN; this is 1-short. The
- *     only SAME-LEN variant (`&a0`) places the save at +0x14, which
- *     shifts every subsequent insn -> high op-mismatch (whole-function
- *     rewrite = the tautology trap, per
- *     docs/POST_CC_RECIPES.md#feedback-insn-patch-screen-by-opmismatch-count).
- *   - Remaining path is permuter only. Cap stands; INCLUDE_ASM. */
+/* game_libs_func_0002DD38: 8-insn 2-global setter. EXACT 2026-10-14
+ * (agent-c), 85.0 -> 100. The "entry arg-home not C-reachable" cap (and the
+ * `int *p = &a0` lever that only worked standalone) was a type decode error:
+ * the param is an `unsigned char`. IDO homes the narrow param
+ * (`sw a0,0(sp)`) and zero-extends it in place (`andi a0,a0,0xFF`) -- the
+ * fourth application of docs/IDO_CODEGEN.md#char-param-home-copy-26c6c
+ * (no copy register here since a0 is dead after the store). */
 extern int D_2DD38_byte;
 extern int D_2DD38_const;
-void game_libs_func_0002DD38(int a0) {
-    D_2DD38_byte = a0 & 0xFF;
+void game_libs_func_0002DD38(unsigned char a0) {
+    D_2DD38_byte = a0;
     D_2DD38_const = 0xD2;
 }
-#else
-/* game_libs_func_0002DD38: 8-insn 2-global setter.
- *   D_a = a0 & 0xFF;
- *   D_b = 0xD2;
- *
- * Documented arg-shadow-spill cap (full-TU strips the `int *p = &a0;
- * (void)p;` lever that worked standalone — in-tree IDO inlines the
- * andi to t6 and drops the home spill). Sibling of 2DDBC but the
- * lever doesn't transfer in-tree. 2026-06-10: re-verified -- still 0
- * diffs standalone / 85.0 in-tree (strip unchanged); the bare INCLUDE
- * upgraded to a proper NM wrap with the proven body per the >=80
- * convention. The plain (void)&a0 form (5B5D8 lever) does NOT emit
- * the home when the arg is USED -- the pointer-var form is required
- * for used args (lever taxonomy note). */
-#ifdef NON_MATCHING
-void game_libs_func_0002DD38(int a0) {
-    int *p = &a0;
-    (void)p;
-    a0 = a0 & 0xFF;
-    *(int *)&D_00000000 = a0;
-    *(int *)&D_00000000 = 0xD2;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DD38);
-#endif
-#endif
 
 /* gl_func_0002DD58: GBI-cmd emit, packs (a0 & 0xFF) << 8 into 0x82030000 and
  * calls the cross-module emitter with 1000. EXACT 2026-10-14 (agent-c), 92.5 ->
@@ -17946,7 +17900,7 @@ int gl_func_0002FB54(int a0) {
  * emit point. */
 extern void gl2FB74_snd();                  /* USO-relocated submit (jal 0) */
 void gl_func_00030504(int a0);              /* fixed tail call (0x44B70) */
-void game_libs_func_0002DD38(int a0);       /* fixed call (0x423A4), case 512 */
+void game_libs_func_0002DD38(unsigned char a0); /* fixed call (0x423A4), case 512 */
 
 extern s32 D_2FB74_mode;                    /* t2 web (==0/1/8 state) */
 extern s32 D_2FB74_cmdsrc;                  /* per-case cmd reload */
