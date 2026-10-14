@@ -1866,65 +1866,26 @@ void* gl_func_0000C210(void *arg0) {
 }
 
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
-/* Struct-assign lever per docs/IDO_CODEGEN.md#feedback-ido-struct-copy-vs-field-copy-treg-order
- * (dest-pointer-reuses-call-arg variant): the initial 4-int copy from
- * arg1 into buf10 needs `addiu a2, sp, X` + lw/sw via a2 pattern so a2
- * is reused as call arg-2 for the `gl_func(arg0, 0x218, buf10, 0x10)`
- * call.
- *
- * RESIDUAL (99.83%, 1 register = 2 insns): the `*(arg0+4) = arg1->a` load/store
- * lands in $t8 vs the target's $t9 (`lw t8,0(a1); sw t8,4(a0)` vs `t9`). Pure
- * register-rename. Verified irreducible 2026-05-30 across 6 C variants:
- * use-buf10.a (regresses, +frame), store-first/store-after-c0 (7-23 half-diffs),
- * tmp-a local (19 half-diffs) — none flip t8->t9, all the others only worsen the
- * surrounding allocation. Genuine register-renumber cap (same class as the
- * 274E0/8000969C t-reg caps); stays NM.
- * 2026-06-10 temp-number forensics: the target NEVER USES t8 -- its
- * temp sequence runs t6/t7 (copy ping-pong) then JUMPS to t9. A skipped
- * temp means the original had an expression that consumed t8 and was
- * optimized away AFTER temp numbering (uoptlist-visible, not
- * C-steerable: dead-load probes allocate a frame slot, +8, without
- * occupying the temp). Definitive uoptlist-class; do not re-grind.
- * 2026-06-11 ugen-crack session (-Wc,-d trace + reg_mgr decompiled; see
- * docs/IDO_CODEGEN "UGEN TEMP ROTATION MECHANISM"): mechanism now exact.
- * ugen reg_mgr = circular scratch queue t6,t7,t8,t9,t0..t5 (head-take,
- * tail-append). eval_mov (16-byte struct copy) pops the data pair (t6,t7)
- * and binds them REVERSED (first emitted word uses pop#2) -> ping-pong
- * t7,t6 matches both sides; frees t6,t7 at move end. Our istr-value uilod
- * then pops queue head = t8; target has t9. So the original popped ONE
- * extra scratch STRICTLY between the move's pair-pop and the istr's
- * value-pop -- a translate-time pop whose instruction was deleted later
- * (ugen labelopt or as1 redundant-move cleanup; as1 DOES delete
- * ugen-emitted moves and rename registers: ugen emits lw t8,0(s0) here,
- * as1 renames to 0(a1)). That window contains only the move tail (no C
- * handle), the sw-zero stmt, and the uilod itself. ~25 spellings probed
- * vs a byte-comparator harness (named ptr, int* index, cast/cvt chains,
- * bitfield c:32, volatile, xor-zero, stmt-order swaps): all byte-neutral
- * (uopt canonicalizes before ugen) or regress. No C grammar reaches the
- * window. Cap stands -- mechanism precisely documented.
- * 2026-07-15 re-check vs the newer subsumed-mask 1-slot ring burn (IDO_CODEGEN
- * 2026-07-03, the "+1 temp-ring offset" killer): INAPPLICABLE here -- the burn
- * needs a byte-RANGED value for uopt range-folding; this window's value is a
- * full-width int (lw arg1->a), where 32-bit/identity masks fold in cfe (0-slot)
- * and a u64 mask burns 5 slots. No 1-quantum handle. Cap confirmed.
- * 2026-07-15b re-check vs the D63C split-shift-phantom + 2A4D0 folded-cast ring
- * levers: a LONE `<<0` on the store RHS VN-folds before ugen (no burn — the
- * D63C phantom survives only inside a live shift chain); `x*0 + x` additive
- * phantom promotes the RHS to a uopt CANDIDATE (sw v0 + frame +8, regress);
- * `(int)arg0*0` as the sw-zero RHS cfe-folds (no burn); int-cast address form
- * `*(int*)((int)arg0+4)` inert. The 2A4D0 fitted narrowing cast needs a
- * provably-ranged value — lw is unrangeable, so no fitted width exists.
- * Phantom class exhausted; cap stands. */
-struct gl_func_0000C28C_Four { int a, b, c, d; };
-void gl_func_0000C28C(void *arg0, struct gl_func_0000C28C_Four *arg1) {
+/* gl_func_0000C28C: 16-byte record copy + header writes (0xEC, frame 0x38).
+ * EXACT 59/59 (2026-10-14, agent-g). The 99.83 wrap's documented "t8 vs t9
+ * skipped-temp uoptlist cap" (ugen pops one extra scratch between the 16-byte
+ * move and the self->4 copy) was the copy's TYPE: self->4 = arg1->0 is a
+ * 4-byte struct assignment, and eval_mov pops a data pair (t8,t9) and binds
+ * pop #2 -- `lw t9,0(a1); sw t9,4(a0)` exactly. The 16-byte move keeps the
+ * struct-assign + `&buf10`-in-a2 reuse for the first call
+ * (docs/IDO_CODEGEN.md#feedback-ido-struct-copy-vs-field-copy-treg-order).
+ * docs/IDO_CODEGEN.md#c49c-one-word-struct-move-skips-ring-slot */
+typedef struct { int x; } C28C_W;
+typedef struct { int pad0; C28C_W f4; } C28C_Self;
+struct gl_func_0000C28C_Four { C28C_W a; int b, c, d; };
+void gl_func_0000C28C(C28C_Self *arg0, struct gl_func_0000C28C_Four *arg1) {
     struct gl_func_0000C28C_Four buf10;
     int buf08[2];
 
     buf10 = *arg1;
     buf10.c = 0;
 
-    *(int*)((char*)arg0 + 4) = arg1->a;
+    arg0->f4 = arg1->a;
     gl_func_00000000(arg0, 0x218, &buf10, 0x10);
     if (gl_func_00000000(arg1) != 0) {
         gl_func_00000000(arg0, 0x230, arg1->c, arg1->b * 4);
@@ -1936,9 +1897,6 @@ void gl_func_0000C28C(void *arg0, struct gl_func_0000C28C_Four *arg1) {
     gl_func_00000000(arg0, 0x7FF8, buf08, 8);
     gl_func_00000000(arg0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C28C);
-#endif
 
 int gl_func_0000C378(void *arg0) {
     int current16[4];
