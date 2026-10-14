@@ -2247,56 +2247,56 @@ void *gl_func_0000C784(char *arg0) {
     return arg0;
 }
 
-#ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0000C8B8)();
-void gl_func_0000C8B8(char *arg0) {
-    s32 var_v0;
-    char *temp_a0;
-    char *temp_t3;
-    char *temp_v0;
+/* gl_func_0000C8B8: entry-array reset + view setup. Zeroes the five 0x60
+ * entries at self->0x44 (floats 0x08/0x0C/0x10/0x30, ints 0x14..0x28/0x34,
+ * stage counters 0x38/0x3C/0x40 = 3), then 0x30 = 0, 0x34 = 600000,
+ * 0xB0 = 1, copies the camera floats from (*(D + 0x134))->0x98 (+0xC4,
+ * +0xCC, +0xD8 - 0x3C), notifies self and the optional child 0x6C, sets
+ * (self->0x98)->0xC8 = 100 and 0x2C = 1.
+ * Matching note: the first call takes ONE argument. Spelled
+ * `gl_func_00000000(self, self)` (the old wrap) self colours a2 and both
+ * calls get `or a1,a2` copies (+2 words, 32 diffs); with the single-arg
+ * call self colours a1 from the entry and the second call's a1 is just
+ * that colouring (the target never writes a1 before either jal). */
+void gl_func_0000C8B8(char *self) {
+    s32 i;
+    char *p;
 
-    var_v0 = 0;
-    do {
-        *(f32*)((char*)(FW(arg0, 0x44) + var_v0) + 0x8) = 0.0f;
-        *(f32*)((char*)(FW(arg0, 0x44) + var_v0) + 0xC) = 0.0f;
-        *(f32*)((char*)(FW(arg0, 0x44) + var_v0) + 0x10) = 0.0f;
-        FW((FW(arg0, 0x44) + var_v0), 0x18) = 0;
-        FW((FW(arg0, 0x44) + var_v0), 0x14) = 0;
-        FW((FW(arg0, 0x44) + var_v0), 0x1C) = 0;
-        FW((FW(arg0, 0x44) + var_v0), 0x20) = 0;
-        FW((FW(arg0, 0x44) + var_v0), 0x24) = 0;
-        FW((FW(arg0, 0x44) + var_v0), 0x28) = 0;
-        *(f32*)((char*)(FW(arg0, 0x44) + var_v0) + 0x30) = 0.0f;
-        FW((FW(arg0, 0x44) + var_v0), 0x34) = 0;
-        FW((FW(arg0, 0x44) + var_v0), 0x38) = 3;
-        FW((FW(arg0, 0x44) + var_v0), 0x3C) = 3;
-        temp_t3 = FW(arg0, 0x44) + var_v0;
-        var_v0 += 0x60;
-        FW(temp_t3, 0x40) = 3;
-    } while (var_v0 != 0x300);
-    FW(arg0, 0x30) = 0;
-    FW(arg0, 0x34) = 0x927C0;
-    FW(arg0, 0xB0) = 1;
-    *(f32*)((char*)arg0 + 0x38) = *(f32*)((char*)FW((*(char**)((char*)&D_00000000 + 0x134)), 0x98) + 0xC4);
-    *(f32*)((char*)arg0 + 0x3C) = *(f32*)((char*)FW((*(char**)((char*)&D_00000000 + 0x134)), 0x98) + 0xCC);
-    *(f32*)((char*)arg0 + 0x40) = *(f32*)((char*)FW((*(char**)((char*)&D_00000000 + 0x134)), 0x98) + 0xD8) - *(f32*)((char*)arg0 + 0x3C);
-    gl_func_0000959C(arg0, arg0);
-    temp_a0 = FW(arg0, 0x6C);
-    if (temp_a0 != 0) {
-        gl_func_0000959C(temp_a0, arg0);
+    for (i = 0; i != 0x300; i += 0x60) {
+        *(f32 *)(FW(self, 0x44) + i + 0x8) = 0.0f;
+        *(f32 *)(FW(self, 0x44) + i + 0xC) = 0.0f;
+        *(f32 *)(FW(self, 0x44) + i + 0x10) = 0.0f;
+        FW(FW(self, 0x44) + i, 0x18) = 0;
+        FW(FW(self, 0x44) + i, 0x14) = 0;
+        FW(FW(self, 0x44) + i, 0x1C) = 0;
+        FW(FW(self, 0x44) + i, 0x20) = 0;
+        FW(FW(self, 0x44) + i, 0x24) = 0;
+        FW(FW(self, 0x44) + i, 0x28) = 0;
+        *(f32 *)(FW(self, 0x44) + i + 0x30) = 0.0f;
+        FW(FW(self, 0x44) + i, 0x34) = 0;
+        FW(FW(self, 0x44) + i, 0x38) = 3;
+        FW(FW(self, 0x44) + i, 0x3C) = 3;
+        FW(FW(self, 0x44) + i, 0x40) = 3;
     }
-    temp_v0 = FW(arg0, 0x98);
-    if (temp_v0 != 0) {
-        FW(temp_v0, 0xC8) = 0x64;
+    FW(self, 0x30) = 0;
+    FW(self, 0x34) = 0x927C0;
+    FW(self, 0xB0) = 1;
+    *(f32 *)(self + 0x38) = *(f32 *)(FW(FW(&D_00000000, 0x134), 0x98) + 0xC4);
+    *(f32 *)(self + 0x3C) = *(f32 *)(FW(FW(&D_00000000, 0x134), 0x98) + 0xCC);
+    *(f32 *)(self + 0x40) = *(f32 *)(FW(FW(&D_00000000, 0x134), 0x98) + 0xD8) - *(f32 *)(self + 0x3C);
+    gl_func_00000000(self);
+    if (FW(self, 0x6C) != 0) {
+        gl_func_00000000(FW(self, 0x6C), self);
     }
-    FW(arg0, 0x2C) = 1;
+    p = (char *)FW(self, 0x98);
+    if (p != 0) {
+        FW(p, 0xC8) = 0x64;
+    }
+    FW(self, 0x2C) = 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C8B8);
-#endif
 
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
