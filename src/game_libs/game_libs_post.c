@@ -9134,45 +9134,16 @@ void gl_func_00026C6C(int a0, char a1) {
     gl_ref_0003B244(a0, &local);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_00026C9C: 12-insn (0x30) helper — packs a1 into a stack-local
- * (a1<<16, high-short-of-pair encoding) and tail-calls alt-entry
- * gl_func_0003B244 (inside gl_func_0003B1AC at +0x98) with (a0, &local, a1).
- *
- * (The 9 insns that followed at 0x26CCC were NOT a donation: they are the
- * hoisted head of game_libs_func_00026CCC, merged + BYTE-EXACT 2026-09-09.)
- *
- * 42 % NM: missing (a) `sw a1, 0x24(sp)` caller-slot spill (IDO DCE'd), (b)
- * `or a2, a1, 0` explicit move before sll (IDO inlined as `sll t6, a1, 16`),
- * (c) SUFFIX_BYTES for the 9 trailing alt-entry-prologue donation insns.
- * Multi-tick promotion territory. */
-extern int gl_func_0003B244();
-int gl_func_00026C9C(int a0, int a1) {
-    int local = a1 << 16;
-    return gl_func_0003B244(a0, &local, a1);
-}
-#else
-/* gl_func_00026C9C: 12-insn 1-call helper. Computes `a1 << 16` into a
- * stack local then calls gl_ref_0003B244(a0, &local).
- *
- * 1-insn off (mine 11, target 12): target has `or a2, a1, 0` + `sll t6, a2, 16`
- * (explicit copy a1→a2 before shift); mine emits `sll t7, a1, 16` direct.
- * Same a0-home-spill+copy-to-a2 cap class as gl_func_0002DD58 — IDO C can't
- * emit the explicit move-then-shift from clean source. */
+/* 2026-10-14 EXACT (agent-c): twin of gl_func_00026C6C with a `short`
+ * parameter (`sll t6,a2,16`). The old NM drafts' 3-arg / int-param decode was
+ * wrong: the entry `or a2,a1,zero` + `sw a1,0x24(sp)` is IDO's narrow-param
+ * home copy (docs/IDO_CODEGEN.md#char-param-home-copy-26c6c). */
 extern int gl_ref_0003B244();
-#ifdef NON_MATCHING
-void gl_func_00026C9C(int a0, int a1) {
+void gl_func_00026C9C(int a0, short a1) {
     int local;
-    int *p = &a1;
     local = a1 << 16;
     gl_ref_0003B244(a0, &local);
-    (void)p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026C9C);
-#endif
-
-#endif
 
 /* game_libs_func_00026CCC (0x80, 32 words): the 9-word "alt-entry prologue"
  * game_libs_func_00026CCC orphan + gl_func_00026CF0 are ONE function. bootup.uso
