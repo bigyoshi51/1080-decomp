@@ -10122,31 +10122,38 @@ void gl_func_0003EE1C(int a0) {
     gl_func_00000000(&local);
 }
 
-/* gl_func_0003EE50: 28-insn 6-arg variant of the 3F008/3EF2C wrapper
- * family. Writes a 96-byte struct on stack starting at sp+0x18:
- *   buf[0x00]=2; jal#1(buf+8, a1);
- *   buf[0x48]=1, [0x4C]=*a2, [0x50]=a2, [0x54]=0,
- *   [0x58]=a3, [0x5C]=a4, [0x60]=a5; jal#2(buf+0).
- * 16-insn INSN_PATCH closes the inter-jal $t-reg reload-order + 4-reg
- * permutation that IDO -O2 schedules differently than target. */
-#ifdef NON_MATCHING
+/* gl_func_0003EE50 (0x70, 28 insns): posts the same 0xA0-byte stack message
+ * record as 3FA54/3EDBC (type 2). The old NM (char buf[] + INSN_PATCH note on
+ * an "inter-jal t-reg reload order + 4-reg permutation") was a source-order
+ * problem only: with a typed record, the post-call statement order picks the
+ * t-reg numbering (t6..t9 are assigned in source evaluation order, the
+ * scheduler then hoists the li-1 store first). a0 unused (homed by IDO). */
+typedef struct {
+    int type;
+    char p0[4];
+    char sub[0x40];
+    int f48;
+    int f4C;
+    int *f50;
+    int f54;
+    int f58;
+    int f5C;
+    int f60;
+    char p1[0xA0 - 0x64];
+} GlMsg3EE50;
 void gl_func_0003EE50(int a0, int a1, int *a2, int a3, int a4, int a5) {
-    char buf[0xA0];
-    (void)a0;
-    func_00000000(&buf[0x08], a1);
-    *(int*)&buf[0x48] = 1;
-    *(int*)&buf[0x60] = a5;
-    *(int*)&buf[0x58] = a3;
-    *(int*)&buf[0x5C] = a4;
-    *(int*)&buf[0x54] = 0;
-    *(int*)&buf[0x00] = 2;
-    *(int*)&buf[0x50] = (int)a2;
-    *(int*)&buf[0x4C] = *a2;
-    func_00000000(&buf[0x00]);
+    GlMsg3EE50 s;
+    gl_func_00000000(s.sub, a1);
+    s.f60 = a5;
+    s.f58 = a3;
+    s.f5C = a4;
+    s.f48 = 1;
+    s.f4C = *a2;
+    s.f54 = 0;
+    s.type = 2;
+    s.f50 = a2;
+    gl_func_00000000(&s);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EE50);
-#endif
 
 /* gl_func_0003EEC0 - verified structural decode (27-insn br=0 deterministic
  * stack-struct builder; IDO local sp-slot layout = sp-slot divergence class
