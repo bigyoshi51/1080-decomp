@@ -32896,37 +32896,23 @@ void gl_func_0005FF14(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FF14);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0005FFD0: 22-insn 2-call ternary-pick wrapper.
- *   rv = func(a0, &buf); p = rv ? &buf : a0;
- *   g = *(int**)&D_0; if (g == 0) return 0;
- *   return func(g, p, g->[0x44]);
- * Refactored 2026-05-15: pre-assign + conditional-overwrite idiom
- * lands a0's caller-slot reload in the bne's delay slot (matches
- * target's `lw a3, 0x80(sp)` in delay slot + conditional `addiu
- * a3, sp, 0x1C` only on the v0 != 0 fall-through). Score 73.5%
- * (up from prior 33.7%). Remaining cap:
- *   - Frame 0x88 vs target 0x80 (8 bytes extra; my a0 spill goes
- *     to local sp+0x20 rather than caller-slot sp+0x80). Target's
- *     caller-slot spill is the K&R-style; trigger unclear since
- *     a0 IS used here.
- *   - Trailing branch shape (b .end vs longer fall-through). */
+/* gl_func_0005FFD0: 22-insn 2-call pick wrapper, BYTE-EXACT 2026-10-14 (was NM
+ * 73.5: frame 0x88 + "trailing branch shape" cap). Overwrite the PARAM itself
+ * (`a0 = buf`, no `p` copy local): the copy local got its own home (+8 frame)
+ * while the param keeps the caller-slot home at 0x80 (`lw a3,0x80(sp)` in the
+ * beqz delay). `if (g != NULL) return call; return 0;` gives the preset
+ * `or v0,zero,zero` + `b` join. Line breaks are load-bearing: `return 0;` on
+ * the SAME line as the `if (g != NULL) return ...;` hoists the `or v0,zero`
+ * above `or a1,a3` (2 words swapped); on its own line it schedules after
+ * (docs/IDO_CODEGEN.md#same-line-inner-unrolled-loop-42374, 5FFD0 note). */
 int gl_func_0005FFD0(char *a0) {
     char buf[0x64];
-    char *p = a0;
     char *g;
-    if (gl_func_00000000(a0, buf) != 0) {
-        p = buf;
-    }
+    if (gl_func_00000000(a0, buf)) a0 = buf;
     g = *(char**)&D_00000000;
-    if (g == NULL) {
-        return 0;
-    }
-    return gl_func_00000000(g, p, *(int*)(g + 0x44));
+    if (g != NULL) return gl_func_00000000(g, a0, *(int*)(g + 0x44));
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FFD0);
-#endif
 
 int gl_func_00060028(int* a0, int a1) {
     int* n;
