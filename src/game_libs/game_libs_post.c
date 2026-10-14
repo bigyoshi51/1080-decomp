@@ -16246,45 +16246,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DD38);
 #endif
 #endif
 
-#ifdef NON_MATCHING
-/* NON_MATCHING: 92.5% — missing `or a2, a0, zero` copy before andi.
- *
- * Target prologue:
- *   sw   a0, 0x18(sp)        ; caller-slot spill (matches our `int *p = &a0`)
- *   or   a2, a0, zero        ; ← extra copy a0->a2
- *   andi a0, a2, 0xFF        ; ← uses a2 as source (we use a0)
- *
- * Variants tested 2026-05-02 (all stay at 92.5%):
- *   v1: int saved = a0; ...((saved & 0xFF) << 8)... — saved inlined to a0
- *   v2: int b = a0; b used in expr — same, b inlined
- *   v3: gl_func_00000000(..., 0x3E8, a0) — got `or a2,a0,zero` BUT also
- *       extra `sw a2, 0x18(sp)` (worse — IDO spills 3rd arg)
- *   v4: volatile int saved = a0 — frame grew to 0x20, full reshuffle
- *   v5: prototype `extern int gl_func_00000000(int, int)` — no change
- *
- * Root cause: target's `or a2, a0, zero` looks like a dead arg-preserve copy
- * (a2 is computed but only used as andi source, no callee uses a2). IDO -O2
- * never emits dead copies from C — would need explicit `register int x asm("$a2")`
- * which IDO rejects (per feedback_ido_no_gcc_register_asm.md). NM-only. */
+/* gl_func_0002DD58: GBI-cmd emit, packs (a0 & 0xFF) << 8 into 0x82030000 and
+ * calls the cross-module emitter with 1000. EXACT 2026-10-14 (agent-c), 92.5 ->
+ * 100. The "dead `or a2,a0,zero` copy / a0-home-spill cap" (and the 2026-06-24
+ * "a2 is a 3rd call arg" reading) was a type decode error: the param is a
+ * `char`. IDO homes the narrow param (`sw a0,0x18(sp)`) and works on a copy
+ * (`or a2,a0`; `andi a0,a2,0xFF`) exactly like gl_func_00026C6C
+ * (docs/IDO_CODEGEN.md#char-param-home-copy-26c6c). Standalone cc hoists the
+ * sll above `sw ra`; in-tree it schedules like the ROM. */
 extern int gl_func_00000000();
-
-/* gl_func_0002DD58: GBI-cmd emit. NON_MATCHING (a0-home-spill cap, -1 insn):
- * target home-saves a0 (sw a0,0x18) AND copies a0->a2, working from a2; built
- * uses a0 directly (1 short). volatile `*p` forces the spill but via an
- * address-comp (addiu+lw, wrong form, +2). The direct sw-a0-home + a2-copy
- * isn't C-reachable (same class as gl_func_00035164/66BD4).
- * 2026-06-24 CORRECTION: the `move a2,a0` is NOT a dead copy — a2 is the 3RD CALL ARG
- * (real call is gl_func_0001CA10(packed, 1000, a0)). The 2-arg NM body here scores higher
- * (92.5%) than the correct 3-arg form (78%, move misplaced + a0-home-save/mask-from-a2
- * reg-alloc diverges). Near-miss cap either way; the 3-arg form is the true semantics. */
-void gl_func_0002DD58(int a0) {
-    int *p = &a0;
-    gl_func_00000000(0x82030000 | ((a0 & 0xFF) << 8), 0x3E8);
-    (void)p;
+void gl_func_0002DD58(char a0) {
+    gl_func_00000000(0x82030000 | ((a0 & 0xFF) << 8), 1000);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DD58);
-#endif
 
 /* gl_func_0002DD90: 1-call wrapper. gl_func_00042428((u8)a0, a1, 0, 0x3F800000
  * /1.0f-as-int/). Byte-exact: gl_func_00042428 reloc resolves to 0x42428
