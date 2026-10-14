@@ -6264,38 +6264,49 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023760);
 //   regalloc/slot-base diff (target keeps c2/c3 in a0/a2; build uses temps
 //   + a 4-byte-lower frame). Name pre-checked: no extern reuse.
 //   gl_func_00000000 = canonical never-defined USO placeholder.
-#ifdef NON_MATCHING
-extern int gl_func_00000000();
+// 2026-10-14 EXACT (agent-c): the 85% residual was decode shape, not a cap.
+//   (1) the lookup result reuses the PARAM (`a0 = 38174(1, a0)`) -> spilled to
+//   the a0 home slot 0x48 (a separate `j` local takes its own slot); (2) c2/c3
+//   are their own locals copied into the struct (keeps c2 in a0, c3 in a2 with
+//   its own spill slot 0x3C); (3) locals declared res, c2, c3, buf[7], rec ->
+//   res 0x44 / c2 0x40 / c3 0x3C / buf 0x20 (rec never gets a slot, but declaring
+//   it above buf pushed buf 4 lower). Baked jals pinned as gl_ref_<addr>.
 extern int D_00000000;
+extern int gl_ref_00038174();
+extern int gl_ref_00037DCC();
+extern int gl_ref_00037F80();
+extern int gl_ref_00039B70();
 int gl_func_00023838(int a0) {
-    int j = gl_func_00000000(1, a0);                         /* 38174(1, a0) */
-    char *rec = *(char **)((char *)&D_00000000 + 0x2030) + j * 0x14;
-    int buf[7];                                              /* stack struct @32..56(sp) */
     int res;
-    buf[0] = *(unsigned char *)(rec + 2);                    /* c2 */
-    buf[1] = *(unsigned char *)(rec + 3);                    /* c3 */
-    if (buf[0] != 0xFF) {
-        buf[2] = gl_func_00000000(buf[0], &buf[4]);          /* 37dcc(c2, &xo) */
+    int c2;
+    int c3;
+    int buf[7];                                              /* @0x20..0x3B(sp) */
+    char *rec;
+    a0 = gl_ref_00038174(1, a0);
+    rec = *(char **)((char *)&D_00000000 + 0x2030) + a0 * 0x14;
+    c2 = *(unsigned char *)(rec + 2);
+    c3 = *(unsigned char *)(rec + 3);
+    buf[0] = c2;
+    buf[1] = c3;
+    if (c2 != 0xFF) {
+        buf[2] = gl_ref_00037DCC(c2, &buf[4]);
     } else {
         buf[2] = 0;
     }
-    if (buf[1] != 0xFF) {
-        buf[3] = gl_func_00000000(buf[1], &buf[5]);          /* 37dcc(c3, &yo) */
+    if (c3 != 0xFF) {
+        buf[3] = gl_ref_00037DCC(c3, &buf[5]);
     } else {
         buf[3] = 0;
     }
-    res = gl_func_00000000(1, j, &buf[6]);                   /* 37f80(1, j, &zo) */
+    res = gl_ref_00037F80(1, a0, &buf[6]);
     if (res == 0) {
         return 0;
     }
     if (buf[6] == 1) {
-        gl_func_00000000(j, res, &buf[0], 0);                /* 39b70(j, res, &pair, 0) */
+        gl_ref_00039B70(a0, res, &buf[0], 0);
     }
     return res;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023838);
-#endif
 
 // gl_func_00023914 — STRUCTURAL PASS (0x1F4 / 125 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
