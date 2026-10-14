@@ -706,50 +706,18 @@ void gl_func_00063E84(char *a0) {
 }
 
 
-/* game_libs_func_00063F34: one 108-insn (0x1B0) function. BOUNDARY MERGED
- * 2026-06-02: splat had split it into 00063F34 (3-insn FP-const prologue:
- * `mtc1 a1,$f12` (input value, ARG-DERIVED) + `lui 0x4120`->$f4=10.0 — hoisted
- * above the frame; the real entry) + gl_func_00063F40 (the prologue+body using
- * f12 in `c.lt.s $f12,$f4`). SINGLE-entry per the dual-vs-single test (f12 is
- * arg-derived + FP-op use, NOT mfc1-back; no callers). Absorbed 00063F40's 105
- * words into 00063F34 (0xC -> 0x1B0); dropped the 00063F40 symbol. Brings f12
- * (=a1) and f4 (=10.0) in-scope (retracts the implicit caller-set-float cap);
- * the 105-insn body is decodable in a future pass. */
-/* game_libs_func_00063F34: one 108-insn (0x1B0) function. BOUNDARY MERGED
- * 2026-06-02: splat had split it into 00063F34 (3-insn FP-const prologue:
- * `mtc1 a1,$f12` (input value, ARG-DERIVED) + `lui 0x4120`->$f4=10.0 — hoisted
- * above the frame; the real entry) + gl_func_00063F40 (the prologue+body using
- * f12 in `c.lt.s $f12,$f4`). SINGLE-entry per the dual-vs-single test (f12 is
- * arg-derived + FP-op use, NOT mfc1-back; no callers). Absorbed 00063F40's 105
- * words into 00063F34 (0xC -> 0x1B0); dropped the 00063F40 symbol. Brings f12
- * (=a1) and f4 (=10.0) in-scope (retracts the implicit caller-set-float cap).
- * 2026-06-26: fixed register-independent bugs vs target: (1) the temp_f0_3
- * term was computed with INTEGER loads + integer multiply ((int)arg3 +
- * (int*int)); target uses FLOAT loads + single-precision mul + single-precision
- * add, only then promoted to double for the *D[0x20A8] scale. (2) dropped the
- * spurious trailing `arg0` 5th argument on the final gl_func_00062F64 call
- * (target passes only 0.0f, FW(arg0,0x16C), arg0+0x120, &sp44 — 4 args, no
- * stack-arg spills). (3) removed the (s32) casts on the unk4/unk8 field copies
- * (they emitted trunc.w.s/cvt.s.w; target is a plain word copy).
- * 2026-07-18 REDECODE (agent-h, 68.28 -> 86.98): (1) sp44 struct is 12 BYTES
- * (3 f32), not 8 fields — frame 120 -> 80 exact; (2) field copy-in is an INT
- * struct copy (*(V3i*)&sp44 = *(V3i*)(arg0+0x114) — lw/sw via addiu t6,sp base,
- * not lwc1/swc1); (3) all three jals are UNDEFINED-extern placeholders (jal 0x0;
- * calling the file-local gl_func_00062F64 def bakes a local target). First call
- * needs a PROTOTYPED f32 extern (gl_func_00000000_s(f32)) — unprototyped K&R
- * promotes the float arg to double; (4) the 4 f64/f32 constants are per-symbol
- * pad-struct externs (D_63F34_20A0.v etc.) — ONE symbol with 4 offsets gets its
- * %hi CSEd into a reg (lui/addiu pair); distinct symbols give the assembler
- * at-macro form (lui at; ldc1 %lo(at)) the target has; (5) sp40 IS the call
- * result (assigned before the if; mov.s f2,f0 + home 64(sp)); var_f0 = t*t
- * merged in place (mul.s f0,f0,f0); scale merged into var_f0; 3-temp scale
- * block (muls before stores); (6) volatile pad pair below sp40 reproduces the
- * phantom 8-byte slot (frame 72 -> 80, zero insns); (7) dot product split
- * x+y then += z, a2->0 deref'd twice (named temp_f2 hoisted its load a slot
- * early). RESIDUAL: FP-temp rotation (f4/f6/f16 vs f6/f8/f18 rings) + one
- * z-load hoist into a mul shadow the coloring blocks (B keeps a nop at +0x58,
- * shifting the tail by one word). Coloring cap class — honest NM. */
-#ifdef NON_MATCHING
+/* game_libs_func_00063F34: 108-insn reflect-and-push (boundary merged 2026-06-02:
+ * the 3-word `lui 0x4120; mtc1 a1,f12; mtc1 at,f4` FP-const head is the real entry).
+ * if (speed < 10): s = a reflected about unit n (s = (s.n) n - s), len = sqrtf(|s|^2);
+ * if len > K0, normalise s via the callee, scale by clamp(((arg3 + f150 * obj->f360) * K1)^2)
+ * * len, push via the 0x16C object. EXACT 108/108 (2026-10-14 agent-g, 87.22 -> 100):
+ * (1) the dot product is spelled REVERSED + right-associated `z + (y + x)`
+ * (docs/IDO_CODEGEN.md#reversed-right-assoc-sum-load-last-phantom-slots-4f0c8); (2) the
+ * reflected components are written straight back into sp44 (no tx/ty/tz temps) and the
+ * squared length reads sp44 -- uopt forwards the stores, so the values ride the f4/f16/f6
+ * ring instead of coloured f14/f16/f18; (3) every commutative mul/add whose target puts the
+ * VARIABLE first gets a comma operand: `n.x * (0, s.x)`, `n.i * (0, d)`, `prod + (0, arg3)`
+ * (docs/IDO_CODEGEN.md#feedback-ido-fp-commutative-operand-order-assignment-lever). */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -776,18 +744,14 @@ void game_libs_func_00063F34(char *arg0, f32 arg1, char *arg2, f32 arg3) {
 
     if (arg1 < 10.0f) {
         *(V3i_63F34 *)&sp44 = *(V3i_63F34 *)(arg0 + 0x114);
-        temp_f0 = (sp44.unk0 * *(f32 *)(arg2 + 0x0)) + (sp44.unk4 * *(f32 *)(arg2 + 0x4));
-        temp_f0 += sp44.unk8 * *(f32 *)(arg2 + 0x8);
-        tx = (temp_f0 * *(f32 *)(arg2 + 0x0)) - sp44.unk0;
-        sp44.unk0 = tx;
-        ty = (temp_f0 * *(f32 *)(arg2 + 0x4)) - sp44.unk4;
-        sp44.unk4 = ty;
-        tz = (temp_f0 * *(f32 *)(arg2 + 0x8)) - sp44.unk8;
-        sp44.unk8 = tz;
-        sp40 = gl_func_00000000_s((tx * tx) + (ty * ty) + (tz * tz));
+        temp_f0 = (sp44.unk8 * *(f32 *)(arg2 + 0x8)) + ((sp44.unk4 * *(f32 *)(arg2 + 0x4)) + (*(f32 *)(arg2 + 0x0) * (0, sp44.unk0)));
+        sp44.unk0 = (*(f32 *)(arg2 + 0x0) * (0, temp_f0)) - sp44.unk0;
+        sp44.unk4 = (*(f32 *)(arg2 + 0x4) * (0, temp_f0)) - sp44.unk4;
+        sp44.unk8 = (*(f32 *)(arg2 + 0x8) * (0, temp_f0)) - sp44.unk8;
+        sp40 = gl_func_00000000_s((sp44.unk0 * sp44.unk0) + (sp44.unk4 * sp44.unk4) + (sp44.unk8 * sp44.unk8));
         if (D_63F34_20A0.v < (f64) sp40) {
             gl_func_00000000(&sp44);
-            var_f0 = (f32) ((f64) (arg3 + ((*(f32 *)((char *)arg0 + 0x150)) * (*(f32 *)((char *)FW(arg0, 0x16C) + 0x360)))) * D_63F34_20A8.v);
+            var_f0 = (f32) ((f64) (((*(f32 *)((char *)arg0 + 0x150)) * (*(f32 *)((char *)FW(arg0, 0x16C) + 0x360))) + (0, arg3)) * D_63F34_20A8.v);
             var_f0 = var_f0 * var_f0;
             if (D_63F34_20B0.v < (f64) var_f0) {
                 var_f0 = D_63F34_20B8.v;
@@ -806,9 +770,6 @@ void game_libs_func_00063F34(char *arg0, f32 arg1, char *arg2, f32 arg3) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00063F34);
-#endif
 
 /* gl_func_000640E4: 16-insn dispatcher. EXACT — keys: pass a0 through
  * to both calls (gl_func_00000000(a0)) so IDO does not emit the unused-
