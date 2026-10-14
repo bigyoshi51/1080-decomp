@@ -901,61 +901,77 @@ void gl_func_000641DC(S641DC *a0, Vec3 *a1, Vec3 *a2) {
 }
 
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef struct { s32 x, y, z; } V3_64388;
+/* gl_func_00064388: normalize-and-apply step. NM (see report for %).
+ * Layout: every declared scalar owns a home slot, so the decl order interleaving
+ * scalars between the Vec3 locals reproduces the target frame (0xB0) exactly:
+ * m 164, len 160, g 148, spd 144, 6 scalars 120..143, t 108 (struct carrier),
+ * d 96, c0..c2/one 80..95, e 68, pv/qv 60..67, h 48, CSE temp (arg0+0x1C) 40.
+ * pv/qv computed BEFORE the len test stay materialized (addiu v0,a0,4 / v1,a0,40)
+ * instead of folding into offsets (cf. 26AA4); the late base reuses qv (no new slot).
+ * if (1) blocks around the sub and the scale give the target FP colouring
+ * (x f0, y f2, z f12) and the carrier in v0. if(1)/else keeps x*1.0f unfolded.
+ * Residuals: len colours f0 (target f2); the six sub loads issue pair-wise
+ * (target: all pv loads, then all qv loads); g[] copy temps f8/f16 swapped;
+ * mtc1 1.0 one slot early in the scale block. */
 extern f32 gl_func_00000000_sq64388(f32);
 extern void gl_func_00000000_n64388(char *);
 extern void gl_func_00000000_p64388(char *, char *, f32);
-void gl_func_00064388(char *arg0, char *arg1, char *arg2, f32 arg3) {
-    V3_64388 m;      /* sp164 */
-    f32 g[3];        /* sp148 */
-    f32 spd;         /* sp144 */
-    V3_64388 t;      /* sp108 carrier */
-    V3_64388 d;      /* sp96 */
-    V3_64388 e;      /* sp68 */
-    V3_64388 h;      /* sp48 */
+void gl_func_00064388(char *arg0, char *arg1, Vec3 *arg2, f32 arg3) {
+    Vec3 m;
     f32 len;
-    f32 one;
+    f32 g[3];
+    f32 spd;
+    f32 ax, ay, az, bx, by, bz;
+    Vec3 t;
+    Vec3 d;
     f32 c0, c1, c2;
-    char *pv;
-    char *qv;
-    char *pn;
-    char *pw;
+    f32 one;
+    Vec3 e;
+    Vec3 *pv;
+    Vec3 *qv;
+    Vec3 h;
 
+    pv = (Vec3 *)(arg0 + 4);
+    qv = (Vec3 *)(arg0 + 0x28);
     len = *(f32*)((char*)arg0 + 0x0);
     if (!((f64)len < *(f64*)((char*)&D_00000000 + 0x20C8))) {
-        pv = arg0 + 4;
-        qv = arg0 + 0x28;
         *(f32*)((char*)arg0 + 0x4) = *(f32*)((char*)arg0 + 0x4) / len;
         *(f32*)((char*)arg0 + 0x8) = *(f32*)((char*)arg0 + 0x8) / len;
         *(f32*)((char*)arg0 + 0xC) = *(f32*)((char*)arg0 + 0xC) / len;
-        *(f32*)&d.z = *(f32*)((char*)pv + 0x8) - *(f32*)((char*)qv + 0x8);
-        *(f32*)&d.y = *(f32*)((char*)pv + 0x4) - *(f32*)((char*)qv + 0x4);
-        *(f32*)&d.x = *(f32*)((char*)pv + 0x0) - *(f32*)((char*)qv + 0x0);
+        if (1) {
+        bx = pv->x - qv->x;
+        by = pv->y - qv->y;
+        bz = pv->z - qv->z;
+        d.z = bz;
+        d.y = by;
+        d.x = bx;
+        }
         t = d;
         e = t;
-        g[2] = *(f32*)&e.z;
-        g[1] = *(f32*)&e.y;
-        g[0] = *(f32*)&e.x;
+        g[2] = e.z;
+        g[1] = e.y;
+        g[0] = e.x;
         c0 = *(f32*)((char*)arg0 + 0x1C);
         c1 = *(f32*)((char*)arg0 + 0x20);
         c2 = *(f32*)((char*)arg0 + 0x24);
-        pn = arg0 + 0x1C;
         spd = (gl_func_00000000_sq64388((c0 * c0) + (c1 * c1) + (c2 * c2)) / *(f32*)((char*)&D_00000000 + 0x20D0)) * arg3;
-        gl_func_00000000_n64388(pn);
-        gl_func_00000000_p64388(arg1, pn, spd);
-        pw = arg0 + 0x10;
+        gl_func_00000000_n64388(arg0 + 0x1C);
+        gl_func_00000000_p64388(arg1, arg0 + 0x1C, spd);
         if (1) { one = 1.0f; } else { one = arg3; }
-        *(f32*)&h.x = *(f32*)((char*)pw + 0x0) * one;
-        *(f32*)&h.y = *(f32*)((char*)pw + 0x4) * one;
-        *(f32*)&h.z = *(f32*)((char*)pw + 0x8) * one;
+        qv = (Vec3 *)(arg0 + 0x10);
+        if (1) {
+        ax = qv->x * one;
+        ay = qv->y * one;
+        az = qv->z * one;
+        h.x = ax;
+        h.y = ay;
+        h.z = az;
+        }
         t = h;
         m = t;
-        *(f32*)((char*)arg2 + 0x0) = *(f32*)((char*)arg2 + 0x0) + *(f32*)&m.x;
-        *(f32*)((char*)arg2 + 0x4) = *(f32*)((char*)arg2 + 0x4) + *(f32*)&m.y;
-        *(f32*)((char*)arg2 + 0x8) = *(f32*)((char*)arg2 + 0x8) + *(f32*)&m.z;
+        arg2->x = arg2->x + m.x;
+        arg2->y = arg2->y + m.y;
+        arg2->z = arg2->z + m.z;
     }
 }
 #else
