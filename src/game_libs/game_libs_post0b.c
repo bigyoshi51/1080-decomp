@@ -1614,30 +1614,24 @@ int gl_func_00035894(int *a0) {
     return 0;
 }
 
-/* gl_func_000358DC: kind-dispatch (vtable slot 0x58). NM 20->19 diffs.
- * KEY LOGIC FIX: both call sites take a0 as an IMPLICIT 2nd arg (target's
- * hoisted `or a1,a0,0` carrier) — the vtable call is f(a0->0x20, a0) and
- * the case-0 call is gl_func(&D, a0). if/else-if form gives the matching
- * `or a1,a0,0` + 2-arg shape. RESIDUAL CAP: target uses forward `beq v0,k`
- * dispatch with each case's `&D` lui HOISTED into the branch delay slots;
- * IDO won't reproduce that delay-fill from C (best 19 via if/else-if;
- * switch=21, goto=18-but-+1-word). Scheduler/delay-fill cap. */
-#ifdef NON_MATCHING
+/* gl_func_000358DC: kind-dispatch (vtable slot 0x58).
+ * 2026-10-14 EXACT (agent-c): the forward `beq v0,1,L1 / beqz v0,L0 / b end`
+ * dispatch (each case's lui in the branch delay) is NOT a switch (IDO sorts
+ * switch tests 0-first) nor if/else-if (bne fallthrough): it is
+ * `if (k == 1) goto L1; if (k != 0) return; goto L0;` with the two case blocks
+ * laid out L1, L0. Both calls pass a0 as their 2nd arg (the hoisted
+ * `or a1,a0,zero`); the vtable call is written as one expression (t6/t9). */
 void gl_func_000358DC(char *a0) {
-    char *g;
-    void (*f)(int, char *);
     int k = *(int *)(a0 + 4);
-    if (k == 1) {
-        g = *(char **)((char *)&D_00000000 + 0);
-        f = *(void (**)(int, char *))(g + 0x58);
-        f(*(int *)(a0 + 0x20), a0);
-    } else if (k == 0) {
-        gl_func_00000000(&D_00000000, a0);
-    }
+    if (k == 1) goto L1;
+    if (k != 0) return;
+    goto L0;
+L1:
+    (*(void (**)())(*(char **)&D_00000000 + 0x58))(*(int *)(a0 + 0x20), a0);
+    return;
+L0:
+    gl_func_00000000(&D_00000000, a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000358DC);
-#endif
 
 // gl_func_0003593C — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
 // (0x88 / 34 words, no episode). Raw-.word USO form (game_libs).
