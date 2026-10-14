@@ -10086,26 +10086,30 @@ void gl_func_0003ED8C(int *a0) {
     gl_func_00000000();
 }
 
-/* gl_func_0003EDBC: 24-insn local-flag + 3-call wrapper. 13-insn
- * INSN_PATCH closes the local-slot offset (sp+0x1C → sp+0x28), the
- * ((char *)&D_00000000 + 0x0001F398) reloc-vs-literal split, jr-ra delay-slot fill
- * (`li v0, 1` moved into delay slot), and v0/v1 register choice. */
-#ifdef NON_MATCHING
+/* gl_func_0003EDBC (0x60, 24 insns): posts a 0xA0-byte stack message record
+ * (type field zeroed) twice; if the returned type is not 1, reports it via
+ * the D+0x1F398 format string; then sets bit 0 of *a0 and returns 1. The old
+ * INSN_PATCH notes (slot sp+0x1C vs 0x28, v0/v1 swap, li v0 placement) were
+ * three shape errors: (1) the local is the head of the same 0xA0 record as
+ * 3FA54, pinned to the frame top (0x28..0xC8); (2) the 16 bytes at 0x18..0x28
+ * are an unused 16-byte local declared after it; (3) the `lw v0,0xC8(sp)`
+ * base + late `li v0,1` (instead of v1 base + early li) = `return 1` in its
+ * own basic block -- an empty `if (1) {}` after the |= store (BB lever). */
+typedef struct { int type; char p[0xA0 - 4]; } GlMsg3EDBC;
 int gl_func_0003EDBC(int *a0) {
-    char buf[168];
-    int local = 0;
-    (void)buf;
-    func_00000000(&local);
-    func_00000000(&local);
-    if (local != 1) {
-        func_00000000((char*)&D_00000000 + 0x1F398, local);
+    GlMsg3EDBC s;
+    char pad[16];
+    s.type = 0;
+    gl_func_00000000(&s);
+    gl_func_00000000(&s);
+    if (s.type != 1) {
+        gl_func_00000000((char *)&D_00000000 + 0x1F398, s.type);
     }
     *a0 |= 1;
+    if (1) {
+    }
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EDBC);
-#endif
 
 extern int gl_func_00000000();
 
