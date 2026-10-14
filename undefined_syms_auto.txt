@@ -3583,3 +3583,4 @@ D_D0D0_D684 = 0x0000D684;  /* gl_func_0000D0D0 NM body: int at D+0xD684 (D_00000
 D_D0D0_D688 = 0x0000D688;  /* gl_func_0000D0D0 NM body: int at D+0xD688 (D_00000000 = 0) copied into a 4-byte struct passed by value */
 D_345c0_1CC98 = 0x00000000;  /* game_libs_func_0001CC98 typed alias of D_00000000_345c0 (bootup.uso sym1255 @0x345C0, addend 0; count +0x2070, recs +0x2CFC stride 0xD0, elems +0x14) */
 gl_ref_0003A2C0 = 0x0003A2C0;  /* gl_func_000260B4 baked USO jal (0x0C00E8B0) */
+D_197a4_29494 = 0x00000000;  /* gl_func_00029494 typed alias of bootup.uso Data sym1243 @0x197A4 (addend 0; 0x20-byte template element) */

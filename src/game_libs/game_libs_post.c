@@ -74,14 +74,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CA10);
  * the typed global (`&G.recs[i].e`) gives the target's SR-cursor-first `addu a0,a1,t6`. */
 typedef struct { unsigned flag:1, live:1, rest:30; char p4[2]; unsigned char b6; char p7; int w[6]; } gl_1CC98_Elem;
 typedef struct {
-    char p0[0x30];
+    char p0[0x1C];
+    int w1C;
+    char p20[0x30 - 0x20];
     unsigned char b30;
-    char p31[2];
+    unsigned char b31;
+    char p32[1];
     unsigned char b33;
     unsigned char b34;
-    char p35[0x44 - 0x35];
+    unsigned char b35;
+    short h36;
+    char p38[0x40 - 0x38];
+    int w40;
     gl_1CC98_Elem *elem;
-    char p48[0xB0 - 0x48];
+    int w48;
+    char p4C[0x58 - 0x4C];
+    float f58;
+    char p5C[0x60 - 0x5C];
+    unsigned char b60;
+    char p61[0x82 - 0x61];
+    short h82;
+    short h84;
+    char p86[0xA0 - 0x86];
+    unsigned char bA0;
+    char pA1[0xB0 - 0xA1];
     gl_1CC98_Elem e;
 } gl_1CC98_Rec;
 typedef struct { short active; short key; char p4[8]; } gl_260B4_Ent;
@@ -93,7 +109,9 @@ typedef struct {
     gl_260B4_Reg *regs;
     char p1b[0x2070 - 0x2034];
     int count;
-    char p2[0x2534 - 0x2074];
+    char p2[0x2198 - 0x2074];
+    char tbl2198[4];
+    char p2c[0x2534 - 0x219C];
     int nents;
     char p2b[0x2540 - 0x2538];
     gl_260B4_Ent ents[(0x2CFC - 0x2540) / 0xC];
@@ -11633,86 +11651,39 @@ char *gl_func_000291C0(char *obj) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000291C0);
 #endif
 
-// gl_func_00029494 — STRUCTURAL PASS (0x2F8 / 190 words, no episode).
-// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
-// (named fn + 1 trailing helper) — deferred USO re-split. The named
-// leading fn is a bulk per-record matrix-load pass over the sprite
-// table.
-//
-//   void gl_func_00029494(void) {
-//     S *g = &D_0;
-//     int n = g->w_2070;                                // record count
-//     if (n <= 0) return;
-//     S *src = &D_xxxx;                                   // source rows
-//     for (int i = 0, off = 0; i < n; i++, off += STRIDE) {
-//       R *rec = (char*)*(R**)(&D_0 + 0x2CFC) + off;
-//       rec->w_B0 = src->w_0;                              // copy the
-//       rec->w_B4 = src->w_4;                              //  +0xB0
-//       rec->w_B8 = src->w_8;                              //  Vec4 /
-//       rec->w_BC = src->w_C;                              //  matrix
-//       ... rec->0xC0+ = src->0x10+ ...                     //  block
-//     }
-//   }
-//
-// Struct-typing reference: iterates the SAME primary sprite record
-//   table as gl_func_0001E134 / gl_func_00027E24 / gl_func_00028A68 —
-//   live count word &D_0+0x2070, record-table pointer &D_0+0x2CFC —
-//   copying a Vec4/matrix-row block from a source into each record's
-//   +0xB0..0xBC+ block (the exact field block gl_func_00027804 /
-//   gl_func_00027D00 / gl_func_00028E94 individually write). &D_2198
-//   is a fixed descriptor passed per record; a1 const 0x1C0 / f20=0.0
-//   are the blit/transform params. This is the heavyweight per-frame
-//   "load every sprite record's transform" pass of that subsystem.
-// Caps (DEFERRED): raw-word USO + per-record matrix copy loop with
-//   FP/jal-0 USO-reloc — byte-match needs USO mnemonic disasm. STALE
-//   2-jr-bundle comment: grep -c 03E00008 = 1 (.s now single fn).
-//   Real-C STRUCTURAL body below per the analysis (placeholder calls
-//   / fields). Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-extern int gl_func_0001CA10();
-extern int D_00000000;
-extern int D_00029000;
+/* gl_func_00029494: reset every record of the sym1255 record table (shared typed alias
+ * D_345c0_1CC98; count +0x2070, recs +0x2CFC stride 0xD0): copy the 0x20-byte template
+ * element (bootup.uso Data sym1243 @0x197A4 -> own zero alias D_197a4_29494) into rec->e,
+ * clear the state bytes/halves, set the three handles to -1, f58 = 0.0f, then
+ * rec->w1C = sym1276(&G.tbl2198, 0x1C0) through the gl_func_00000000 blank.
+ * Oracle: section 0x3DB00 exported (sym1301, TextReloc ref @0x35F48). BYTE-EXACT 74/74.
+ * The old NM (71.3) hand-wrote `off += 0xD0`, 8 FW() word copies and a hoisted zero.
+ * The -1 into the +0x44 pointer slot goes through an int lvalue: a pointer-typed
+ * `(Elem *)-1` is a separate constant web (two s-regs, frame +8). */
+extern int gl_func_00000000();
+extern gl_1CC98_Elem D_197a4_29494;
 void gl_func_00029494(void) {
     int i;
-    int off;
-    char *src;
-    char *desc;
-    float zero;
-    if (GL_COUNT_2070 <= 0) return;
-    src = (char *)&D_00029000;             // 8-word source block (s5)
-    desc = (char *)&D_00000000 + 0x2198;   // per-record descriptor (s6)
-    zero = 0.0f;
-    off = 0;
-    for (i = 0; i < GL_COUNT_2070; i++) {
-        char *rec = *(char **)((char *)&D_00000000 + 0x2CFC) + off;
-        *(int *)(rec + 0xB0) = *(int *)(src + 0x0);
-        *(int *)(rec + 0xB4) = *(int *)(src + 0x4);
-        *(int *)(rec + 0xB8) = *(int *)(src + 0x8);
-        *(int *)(rec + 0xBC) = *(int *)(src + 0xC);
-        *(int *)(rec + 0xC0) = *(int *)(src + 0x10);
-        *(int *)(rec + 0xC4) = *(int *)(src + 0x14);
-        *(int *)(rec + 0xC8) = *(int *)(src + 0x18);
-        *(char *)(rec + 0x30) = 0;
-        *(char *)(rec + 0x34) = 0;
-        *(int *)(rec + 0x44) = -1;
-        *(int *)(rec + 0x48) = -1;
-        *(int *)(rec + 0x40) = -1;
-        *(char *)(rec + 0x31) = 0;
-        *(float *)(rec + 0x58) = zero;
-        *(short *)(rec + 0x36) = 0;
-        *(char *)(rec + 0x60) = 0;
-        *(char *)(rec + 0xA0) = 0;
-        *(short *)(rec + 0x82) = 0;
-        *(short *)(rec + 0x84) = 0;
-        *(char *)(rec + 0x35) = 0;
-        *(int *)(rec + 0x1C) = gl_func_0001CA10(desc, 0x1C0);
-        *(int *)(rec + 0xCC) = *(int *)(src + 0x1C);
-        off += 0xD0;
+    gl_1CC98_Rec *r;
+    for (i = 0; i < D_345c0_1CC98.count; i++) {
+        r = &D_345c0_1CC98.recs[i];
+        r->e = D_197a4_29494;
+        r->b30 = 0;
+        r->b34 = 0;
+        *(int *)&r->elem = -1;
+        r->w48 = -1;
+        r->w40 = -1;
+        r->b31 = 0;
+        r->f58 = 0.0f;
+        r->h36 = 0;
+        r->b60 = 0;
+        r->bA0 = 0;
+        r->h82 = 0;
+        r->h84 = 0;
+        r->b35 = 0;
+        r->w1C = gl_func_00000000(D_345c0_1CC98.tbl2198, 0x1C0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029494);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
