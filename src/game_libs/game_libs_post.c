@@ -9056,36 +9056,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026B40);
 
 /* game_libs_func_00026BD8: ring-buffer push. head=u8 D[0x53B8],
  * cap=u8 D[0x53B9], 8-byte entries at D+0x5430+head*8 = {a0, *a1}.
- * Advance head; if buffer would be full (cap == (u8)(head+1)) roll
- * head back by 1 (reject the advance).
- *
- * 81.53% — logic fully decoded, 19/19 insns, 17 diffs ALL pure
- * register-rename (same opcodes/offsets/structure). Target pins the &D
- * base in $a2 and reuses it for every access incl. the conditional
- * wrap-back store; IDO C-emit splits &D across $t0 + a fresh `lui $at`
- * for the if-branch store. No C structure tested (single base var,
- * typed-offset, struct-array) shifts the base-reg choice. This is a
- * whole-function register-allocation cap — permuter-class, NOT
- * INSN_PATCH (17/19 register-only patches = the documented
- * faking-the-function tautology trap, cf. func_800047B0). NM kept;
- * INCLUDE_ASM is the build path. */
-#ifdef NON_MATCHING
+ * Advance head; if it caught up with cap, roll it back (reject the push).
+ * Levers (all load-bearing, the old note called this a whole-function
+ * regalloc cap): (1) &D spelled INLINE at every site (macro), never a named
+ * base local -- the inline address constant is uopt's held base (a2 across
+ * the if-join); a named local is dropped at the join and the conditional
+ * store re-forms `lui at`; (2) `head++` / `head--` on the byte itself, not a
+ * u8 local -- the sb stores the untruncated sum, the compare/decrement use
+ * the andi'd forwarded value; (3) `& 0xFF` on the byte index = one burned
+ * ring temp (target's ring starts at t7); (4) the entry pointer built in TWO
+ * statements (`e = ring base; e += idx;`) puts &D first in the addu (one-
+ * expression spellings give `addu v0,idx,base`) and the first store folds
+ * +0x5430 while the second sees the materialized `addiu v0,v0,0x5430`. */
+typedef struct { int a; int b; } Ring26BD8;
+#define B26BD8 ((unsigned char *)&D_00000000)
 void game_libs_func_00026BD8(int a0, int *a1) {
-    char *base = (char*)&D_00000000;
-    int head = *(unsigned char*)(base + 0x53B8);
-    *(int*)(base + head * 8 + 0x5430) = a0;
-    *(int*)(base + head * 8 + 0x5430 + 4) = *a1;
-    {
-        int h1 = *(unsigned char*)(base + 0x53B8) + 1;
-        *(unsigned char*)(base + 0x53B8) = (unsigned char)h1;
-        if (*(unsigned char*)(base + 0x53B9) == (unsigned char)h1) {
-            *(unsigned char*)(base + 0x53B8) = (unsigned char)h1 - 1;
-        }
+    Ring26BD8 *e;
+    e = (Ring26BD8 *)(B26BD8 + 0x5430);
+    e += B26BD8[0x53B8] & 0xFF;
+    e->a = a0;
+    e->b = *a1;
+    B26BD8[0x53B8]++;
+    if (B26BD8[0x53B9] == B26BD8[0x53B8]) {
+        B26BD8[0x53B8]--;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026BD8);
-#endif
 
 extern int gl_ref_0003B244();
 void gl_func_00026C24(int a0, int a1) {
