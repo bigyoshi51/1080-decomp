@@ -7572,114 +7572,65 @@ void gl_func_00024D90(char *obj, int a1) {
 void game_libs_func_00024E14(int a0, int a1, int a2, int a3) {
 }
 
-#ifdef NON_MATCHING
 /* game_libs_func_00024E28 (0x108, 66 insns): bounds-checked registry-record
- * creator. Registry base = bootup.uso Data sym1255 @0x345C0 (addend 0 -> own
- * zero extern D_00000000_345c0), held in t0 across the whole function
- * (re-materialised after the two calls): limit u16 @+0x202C, block count
- * @+0x1578, 0x64-stride blocks with the record @+0x157C and its ctl word
- * @+0x1590 (= record+0x14). Callees are baked text jals: 0x38174 (poll
- * (0, idx)) and 0x38204 (base (0)) = gl_ref_00038174 / gl_ref_00038204.
- *
- * bootup.uso Sym exports section 0x39494 = splat 0x24E28 (ROM 0xE09F00 -
- * 0xDD0A6C; jal'd from TextReloc @0x4156C); 0x394A0 = 0x24E34 is NOT
- * exported. The 3-word orphan `lui t0; addiu t0; lhu t6,0x202C(t0)` was the
- * hoisted first statement (the limit read off the held base), not a splat
- * mis-split needing a USO re-extraction; merged 2026-09-06 (agent-c), the
- * gl_func_00024E34 wrap (76.2 on its 63-word symbol) retired. This body
- * scores objdiff 78.68 on the merged symbol.
- *
- * Levers probed (docs/IDO_CODEGEN.md#chow-span-dowhile0-param-spill-to-home-24e28):
- * param-direct `idx = poll(0, idx)` + four `do { } while (0)` blocks around
- * record stores reproduce the target prologue EXACTLY (frame 0x18, a1/a2
- * homed 0x1C/0x20, j spilled to a0's home 0x18, `or a3,a0` copy) and the head,
- * calls, n*0x64 chain and tail RMW word-for-word (the alternate body under
- * #if 0 below), but objdiff scores that layout 72.8 (bnel tail-dup around the
- * ctl store + renames), so the sequence-friendlier body ships. RESIDUAL of
- * the alternate: the then-arm `rec->w14 = 0` store always folds to
- * `sw zero,0x1590(block)` with rec's addiu tail-duplicated into a bnel delay,
- * where the target computes rec in place (`addiu v1,v1,0x157C`) before a
- * plain bne, materialises `li a2,1` there and fills the delay with
- * `sll t4,a3,4`; downstream src/tmp/c renames follow from that. */
+ * creator over the same D+0x157C record pair as gl_func_0002495C (registry
+ * base = bootup.uso Data sym1255 @0x345C0, own zero extern D_00000000_345c0;
+ * limit u16 @+0x202C). Callees are baked text jals 0x38174 (poll(0, idx)) and
+ * 0x38204 (bank(0)) = gl_ref_00038174 / gl_ref_00038204. The 3-word orphan
+ * head was merged 2026-09-06 (agent-c, 76.2 -> 78.68).
+ * BYTE-EXACT 2026-10-14 (agent-c), 78.68 -> 100, with the 2495C levers:
+ *   - rec = &GS.recs[GS.cnt] through the gl_2495C_GS view (base-first addu,
+ *     state load at +0x1590 before the +0x157C addiu);
+ *   - idx reassigned from the poll (its result spilled to a0's home 0x18);
+ *   - the bank entry is a typed struct `&base->e[idx]` (entries at +0x10,
+ *     16-byte stride) -> `addu a1,v0,t4` base-first, fields folded into
+ *     the offsets 0x10/0x14/0x18;
+ *   - size via `tmp = src->w1;` read right after `rec->out = a2`, then
+ *     `tmp += 15; tmp &= ~15;` after the state/xC stores (store/load order
+ *     found by a 240-way permutation of the store block);
+ *   - `rec->tag = src->b8;` BEFORE `rec->id = idx;` (target: sw x8, lb, sb id). */
 extern int D_00000000_345c0;
 extern int gl_ref_00038174();
 extern int gl_ref_00038204();
-#define REG_24E28 ((char *)&D_00000000_345c0)
+typedef struct { int w0; int w1; signed char b8; char p9[7]; } gl_24E28_Ent;
+typedef struct { short h0; short h2; char p4[12]; gl_24E28_Ent e[1]; } gl_24E28_Bank;
+#define GS_24E28 (*(gl_2495C_GS *)&D_00000000_345c0)
 int game_libs_func_00024E28(int idx, int a1, char *a2) {
-    char *g;
-    int j;
-    char *base;
-    char *src;
-    char *block;
-    char *rec;
-    int n;
-    int t6;
-    if (idx >= *(unsigned short *)(REG_24E28 + 0x202C)) {
-        *a2 = 0;
-        return -1;
-    }
-    j = gl_ref_00038174(0, idx);
-    base = (char *)gl_ref_00038204(0);
-    g = REG_24E28;
-    n = *(int *)(g + 0x1578);
-    block = g + n * 0x64;
-    rec = block + 0x157C;
-    src = base + j * 0x10;
-    if (*(int *)(block + 0x1590) == 3) {
-        *(int *)(rec + 0x14) = 0;
-    }
-    *(int *)(rec + 0x24) = 0;
-    *(int *)(rec + 0x1C) = (int)a2;
-    *(int *)(rec + 0x14) = 1;
-    *(int *)(rec + 0xC) = a1;
-    *(int *)(rec + 0x18) = (*(int *)(src + 0x14) + 0xF) & ~0xF;
-    *(int *)(rec + 0x10) = a1;
-    *(int *)(rec + 0x8) = *(int *)(src + 0x10);
-    *(char *)(rec + 1) = (char)j;
-    t6 = *(signed char *)(src + 0x18);
-    *(char *)(rec + 0) = t6;
-    if ((t6 & 0xFF) == 1) {
-        *(int *)(rec + 4) = *(short *)(base + 2);
-    }
-    n = *(int *)(g + 0x1578);
-    *(int *)(g + 0x1578) = n ^ 1;
-    return 0;
-}
-#if 0
-/* Prologue-exact alternate (objdiff 72.8): see the comment above. */
-int game_libs_func_00024E28(int idx, int a1, char *a2) {
-    char *base; char *src; int tmp; signed char c; char *rec; int ctl;
-    if (idx >= *(unsigned short *)(REG_24E28 + 0x202C)) {
+    gl_24E28_Bank *base;
+    gl_24E28_Ent *src;
+    gl_2495C_Rec *rec;
+    int tmp;
+
+    if (idx >= *(unsigned short *)((char *)&D_00000000_345c0 + 0x202C)) {
         *a2 = 0;
         return -1;
     }
     idx = gl_ref_00038174(0, idx);
-    base = (char *)gl_ref_00038204(0);
-    rec = *(int *)(REG_24E28 + 0x1578) * 0x64 + REG_24E28;
-    ctl = *(int *)(rec + 0x1590);
-    rec += 0x157C;
-    if (ctl == 3) *(int *)(rec + 0x14) = 0;
-    src = (char *)((int (*)[4])base + idx);
-    do { *(int *)(rec + 0x24) = 0; } while (0);
-    do { *(int *)(rec + 0x1C) = (int)a2; } while (0);
-    *(int *)(rec + 0x14) = 1;
-    do { *(int *)(rec + 0xC) = a1; } while (0);
-    tmp = *(int *)(src + 0x14); tmp += 0xF; tmp &= ~0xF;
-    *(int *)(rec + 0x18) = tmp;
-    do { *(int *)(rec + 0x10) = a1; } while (0);
-    *(int *)(rec + 8) = *(int *)(src + 0x10);
-    *(char *)(rec + 1) = idx;
-    c = *(signed char *)(src + 0x18);
-    *(char *)(rec + 0) = c;
-    if ((unsigned char)c == 1) *(int *)(rec + 4) = *(short *)(base + 2);
-    *(int *)(REG_24E28 + 0x1578) ^= 1;
+    base = (gl_24E28_Bank *)gl_ref_00038204(0);
+    rec = &GS_24E28.recs[GS_24E28.cnt];
+    if (rec->state == 3) {
+        rec->state = 0;
+    }
+    src = &base->e[idx];
+    rec->hdr.w1 = 0;
+    rec->out = a2;
+    tmp = src->w1;
+    rec->state = 1;
+    rec->xC = a1;
+    tmp += 15;
+    tmp &= ~15;
+    rec->size = tmp;
+    rec->x10 = a1;
+    rec->x8 = src->w0;
+    rec->tag = src->b8;
+    rec->id = idx;
+    if (rec->tag == 1) {
+        rec->x4 = base->h2;
+    }
+    GS_24E28.cnt ^= 1;
     return 0;
 }
-#endif
-#undef REG_24E28
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00024E28);
-#endif
+#undef GS_24E28
 
 // gl_func_00024F30 — STRUCTURAL PASS (0x114 / 69 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
