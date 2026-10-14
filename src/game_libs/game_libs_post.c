@@ -4926,58 +4926,60 @@ void gl_func_00022464(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022464);
 #endif
 
-#ifdef NON_MATCHING
-/* Two-pass countdown/timer processor over the global record array (base
- * D[0x1E08], stride 0x10, ONE contiguous array): pass 1 covers records
- * [0, D[0x1E10]), pass 2 continues [D[0x1E10], D[0x1E0C)) (0x1E0C is a TOTAL,
- * not a second count). Per record: rec[14] countdown byte decremented on EVERY
- * nonzero tick (the sb sits in the bne delay slot, both paths); on reaching 0,
- * rec[13] = queue tail, queue[tail] = index, tail++ (pass 1: tail D[0x201A],
- * queue D[0x1E18]; pass 2: D[0x201B]/D[0x1F18]). Finally D[0x1E14] = 0.
- * BYTE-EXACT vs the 59 real body words (the .s's 2 leading nop words are
- * inter-function padding, not emitted body) — stays an NM wrap because
- * gl_d_0002266C is a base-0 PLACEHOLDER extern (real symbol unknown; USO
- * reloc-blind). Levers: array extern referenced DIRECTLY = single a2 base
- * materialization; `unsigned int cd` (NOT u8) kills the shared ucvt widening
- * web that stole $a2 from the base (uoptlist-diagnosed); store-forward reload
- * test `if (rec[14] == 0)` keeps the decrement in temps t7/t8 (non-destructive
- * vs a1); `rec = (u8*)(i*16); rec += base;` mutation form flips the addu to
- * offset-first (008e1821). Counts reloaded per iteration (char-store alias). */
-extern u8 gl_d_0002266C[];
-void game_libs_func_0002266C(void) {
+/* game_libs_func_0002266C: 2-word all-zero inter-object ROM pad (0x2266C/0x22670;
+ * the predecessor gl_func_00022464 ends at 0x2266C). bootup.uso Sym 1322 exports
+ * section 0x36CE0 = splat 0x22674, NOT 0x2266C -- the body below starts there. */
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002266C);
+
+/* game_libs_func_00022674 (bootup.uso Sym 1322, jal'd from TextReloc @0x3AAFC; the
+ * HI16/LO16 pair @0x36CE0/0x36CE4 = Data sym1255 @0x345C0, addend 0 -> the existing
+ * own zero extern D_00000000_345c0, the registry base of the 24E28 block).
+ * Two-pass countdown/timer processor over the global record array (base
+ * REG[0x1E08], stride 0x10, ONE contiguous array): pass 1 covers records
+ * [0, REG[0x1E10]), pass 2 continues [REG[0x1E10], REG[0x1E0C)) (0x1E0C is a
+ * TOTAL). Per record: rec[14] countdown byte decremented on every nonzero tick;
+ * on reaching 0, rec[13] = queue tail, queue[tail] = index, tail++ (pass 1: tail
+ * REG[0x201A], queue REG[0x1E18]; pass 2: REG[0x201B]/REG[0x1F18]). Finally
+ * REG[0x1E14] = 0. Levers: base referenced DIRECTLY through a macro (single a2
+ * base materialization); `unsigned int cd` (NOT u8) kills the shared ucvt
+ * widening web that stole $a2 from the base; store-forward reload test
+ * `if (rec[14] == 0)` keeps the decrement in temps; `rec = (u8*)(i*16); rec +=
+ * base;` mutation form gives the offset-first addu (008e1821). Counts reloaded
+ * per iteration (char-store alias). */
+extern int D_00000000_345c0;
+#define R_22674 ((u8 *)&D_00000000_345c0)
+void game_libs_func_00022674(void) {
     unsigned int i;
     unsigned int cd;
     unsigned char *rec;
 
-    for (i = 0; i < *(unsigned int *)(gl_d_0002266C + 0x1E10); i++) {
-        rec = (unsigned char *)(i * 16); rec += *(unsigned int *)(gl_d_0002266C + 0x1E08);
+    for (i = 0; i < *(unsigned int *)(R_22674 + 0x1E10); i++) {
+        rec = (unsigned char *)(i * 16); rec += *(unsigned int *)(R_22674 + 0x1E08);
         cd = rec[14];
         if (cd != 0) {
             rec[14] = cd - 1;
             if (rec[14] == 0) {
-                rec[13] = gl_d_0002266C[0x201A];
-                gl_d_0002266C[0x1E18 + gl_d_0002266C[0x201A]] = i;
-                gl_d_0002266C[0x201A] += 1;
+                rec[13] = R_22674[0x201A];
+                R_22674[0x1E18 + R_22674[0x201A]] = i;
+                R_22674[0x201A] += 1;
             }
         }
     }
-    for (i = *(unsigned int *)(gl_d_0002266C + 0x1E10); i < *(unsigned int *)(gl_d_0002266C + 0x1E0C); i++) {
-        rec = (unsigned char *)(i * 16); rec += *(unsigned int *)(gl_d_0002266C + 0x1E08);
+    for (i = *(unsigned int *)(R_22674 + 0x1E10); i < *(unsigned int *)(R_22674 + 0x1E0C); i++) {
+        rec = (unsigned char *)(i * 16); rec += *(unsigned int *)(R_22674 + 0x1E08);
         cd = rec[14];
         if (cd != 0) {
             rec[14] = cd - 1;
             if (rec[14] == 0) {
-                rec[13] = gl_d_0002266C[0x201B];
-                gl_d_0002266C[0x1F18 + gl_d_0002266C[0x201B]] = i;
-                gl_d_0002266C[0x201B] += 1;
+                rec[13] = R_22674[0x201B];
+                R_22674[0x1F18 + R_22674[0x201B]] = i;
+                R_22674[0x201B] += 1;
             }
         }
     }
-    *(int *)(gl_d_0002266C + 0x1E14) = 0;
+    *(int *)(R_22674 + 0x1E14) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002266C);
-#endif
+#undef R_22674
 
 // gl_func_00022760 — STRUCTURAL PASS (0x33C / 207 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
