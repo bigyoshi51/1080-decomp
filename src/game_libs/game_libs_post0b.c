@@ -17029,76 +17029,51 @@ int gl_func_0004880C(int a0, int a1) {
 // are exact. Caps: Obj/Tbl struct + cb signature untyped; bundle re-split
 // deferred. Full body INCLUDE_ASM-preserved.
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_000488A0)();
-void gl_func_000488A0(char *arg0, char *arg1) {
-    char *sp20;
-    s32 temp_a1;
-    s32 temp_a2_2;
-    s32 temp_a2_3;
-    s32 temp_v1;
-    s32 temp_v1_2;
-    s32 temp_v1_3;
-    s32 var_t1;
-    char *temp_a0;
-    char *temp_a0_2;
-    char *temp_a0_3;
-    char *temp_a2;
-    char *temp_a3;
-    char *temp_a3_2;
-    char *temp_a3_3;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *var_a1;
-    char *var_t0;
-
-    var_a1 = arg1;
-    if (FW(arg0, 0x4) != 0) {
-        temp_a0 = FW(arg0, 0x0);
-        temp_v0 = FW(temp_a0, 0xC);
-        temp_v1 = FW(temp_v0, 0x4);
-        FW(temp_v0, 0x4) = (s32) (temp_v1 + 1);
-        temp_a1 = FW(arg0, 0x4);
-        temp_a3 = FW(FW(temp_a0, 0xC), 0x0) + (temp_v1 * 8);
-        FW(temp_a3, 0x0) = (s32) ((((temp_a1 << 0xA) | ((temp_a1 * 0x10) - 1)) & 0xFFFF) | 0x04000000);
-        temp_a2 = FW(arg0, 0x0);
-        sp20 = temp_a3;
-        var_t1 = 0;
-        var_t0 = arg0;
-        FW(temp_a3, 0x4) = gl_func_00034458(*(int*)(FW(temp_a2, 0x1C)) + (FW(arg0, 0xC) * 0x10), temp_a1, temp_a2, temp_a3);
-        var_a1 = arg0;
-        FW(arg0, 0x58C) = (s32) (FW(arg0, 0x58C) + FW(arg0, 0x4));
-        if (FW(arg0, 0x8) > 0) {
-            do {
-                if (FW(var_t0, 0x59C) != 1) {
-                    temp_a0_2 = FW(arg0, 0x0);
-                    temp_v0_2 = FW(temp_a0_2, 0xC);
-                    temp_v1_2 = FW(temp_v0_2, 0x4);
-                    FW(temp_v0_2, 0x4) = (s32) (temp_v1_2 + 1);
-                    temp_a3_2 = FW(FW(temp_a0_2, 0xC), 0x0) + (temp_v1_2 * 8);
-                    FW(temp_a3_2, 0x0) = 0xB5000000;
-                    temp_a2_2 = FW(arg0, 0xC);
-                    FW(temp_a3_2, 0x4) = (s32) (((((FW(var_a1, 0x14) - temp_a2_2) * 2) & 0xFF) << 0x10) | ((((FW(var_a1, 0x16) - temp_a2_2) * 2) & 0xFF) << 8) | (FW(var_t0, 0x59C) & 0xFF));
-                } else {
-                    temp_a0_3 = FW(arg0, 0x0);
-                    temp_v0_3 = FW(temp_a0_3, 0xC);
-                    temp_v1_3 = FW(temp_v0_3, 0x4);
-                    FW(temp_v0_3, 0x4) = (s32) (temp_v1_3 + 1);
-                    temp_a3_3 = FW(FW(temp_a0_3, 0xC), 0x0) + (temp_v1_3 * 8);
-                    FW(temp_a3_3, 0x0) = 0xB5000000;
-                    temp_a2_3 = FW(arg0, 0xC);
-                    FW(temp_a3_3, 0x4) = (s32) (((((FW(var_a1, 0x14) - temp_a2_3) * 2) & 0xFF) << 0x10) | ((((FW(var_a1, 0x16) - temp_a2_3) * 2) & 0xFF) << 8));
-                }
-                var_t1 += 1;
-                var_t0 += 2;
-                var_a1 += 6;
-            } while (var_t1 < FW(arg0, 0x8));
+/* F3DEX re-decode (agent-c 2026-10-14; same decode as gl_func_000483BC, see
+ * docs/IDO_CODEGEN.md#f3dex-dl-cursor-483bc): gSPVertex into the
+ * {Gfx *base; int count} DL cursor at ctx+0xC, then per line i a G_LINE3D
+ * (0xB5) packet: gSPLineW3D(pkt, ln[i][0]-vbase, ln[i][1]-vbase, wd[i], 0)
+ * when the short width wd[i] (obj+0x59C, stride 2) != 1, else
+ * gSPLine3D(pkt, ..., 0) (no width byte). The separate `n = ctx->dl->count++;`
+ * statement gives the count-store-before-base-reload order; the dead c2 and
+ * the spilled packet g first in the declarations give the 0x28 frame with the
+ * spill at 0x20; one packet variable shared by both regions (the target holds
+ * both in a3). Control flow, frame, schedule and instruction count (112)
+ * match. RESIDUAL = register colouring only: the target reads obj through s0
+ * immediately (a0 dies at the first load and is reused for ctx: a0 = ctx,
+ * v0 = dl, v1 = n, a1 = nv / line walker, a2 = c2 / vbase, a3 = packet,
+ * t0 = width walker, t1 = i), while this keeps obj live in a0 (ctx -> v0,
+ * dl -> v1, n -> a1, walker -> a0, i -> t2). An obj copy local (any
+ * placement), an extra param, a named dl, and the if-arm swap are all worse
+ * or no better. */
+typedef struct { unsigned int w0, w1; } Gfx488A0;
+typedef struct { short ob[3]; unsigned short flag; short tc[2]; unsigned char cn[4]; } Vtx488A0;
+typedef struct { Gfx488A0 *base; int count; } DLBuf488A0;
+typedef struct { char pad[0xC]; DLBuf488A0 *dl; char pad2[0xC]; Vtx488A0 **vtx; } Ctx488A0;
+typedef struct { Ctx488A0 *ctx; int nv; int nline; int vbase; int pad; short ln[236][3]; short wd[1]; } Obj488A0;
+void gl_func_000488A0(Obj488A0 *obj) {
+    Ctx488A0 *c2; Gfx488A0 *g; int i; Ctx488A0 *ctx; int n;
+    if (obj->nv != 0) {
+        ctx = obj->ctx; n = ctx->dl->count++;
+        g = &ctx->dl->base[n];
+        g->w0 = 0x04000000 | (((obj->nv << 10) | ((obj->nv << 4) - 1)) & 0xFFFF);
+        g->w1 = gl_func_00000000(*(c2 = obj->ctx)->vtx + obj->vbase);
+        *(int *)((char *)obj + 0x58C) += obj->nv;
+        for (i = 0; i < obj->nline; i++) {
+            if (obj->wd[i] != 1) {
+                ctx = obj->ctx; n = ctx->dl->count++;
+                g = &ctx->dl->base[n];
+                g->w0 = 0xB5000000;
+                g->w1 = ((((obj->ln[i][0] - obj->vbase) * 2) & 0xFF) << 16) | ((((obj->ln[i][1] - obj->vbase) * 2) & 0xFF) << 8) | (obj->wd[i] & 0xFF);
+            } else {
+                ctx = obj->ctx; n = ctx->dl->count++;
+                g = &ctx->dl->base[n];
+                g->w0 = 0xB5000000;
+                g->w1 = ((((obj->ln[i][0] - obj->vbase) * 2) & 0xFF) << 16) | ((((obj->ln[i][1] - obj->vbase) * 2) & 0xFF) << 8);
+            }
         }
     }
-    gl_func_00034458(arg0, (s32) var_a1);
+    gl_func_00000000(obj);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000488A0);
