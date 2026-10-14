@@ -27132,32 +27132,35 @@ void gl_func_00055B10(char *a0) {
  * The historical 32-word INSN_PATCH that bridged the cascade was REMOVED
  * 2026-05-23 as match-faking. Permuter-class cap. */
 extern int gl_data_00000000;
-#ifdef NON_MATCHING
+/* gl_func_00055B44: 60-insn nested-loop hex-dump style row x 16-col emit.
+ * 2026-10-14 EXACT (agent-c). The documented "IDO strength-reduction cap"
+ * (docs/IDO_CODEGEN.md#feedback-ido-o2-loop-array-strength-reduction) is
+ * C-controllable: an explicit copy `v = byte_idx; byte_idx = v + 1;` before
+ * the `byte_array[v]` read keeps the per-iter `or v0,s1; addu; lbu` form with
+ * byte_array in s4, and the three statements must share ONE source line
+ * (split lines schedule `addiu s1` above the lbu). Nested-if + for loops give
+ * the target's single-epilogue beqz/blez guards (early returns -> beqzl).
+ * The pre-function pad word is an all-zero SUFFIX_BYTES_FORCE on
+ * gl_func_00055B10 (Makefile). */
 void gl_func_00055B44(int arg0, unsigned char *byte_array, int outer_count) {
     int row;
     int col;
     int byte_idx;
+    int v;
 
     gl_func_00000000((char*)&gl_data_00000000 + 0x215B8, arg0, byte_array);
-    if (byte_array == 0) return;
-    byte_idx = 0;
-    if (outer_count <= 0) return;
-    row = 0;
-    do {
-        gl_func_00000000((char*)&gl_data_00000000 + 0x215D8, byte_idx);
-        col = 0;
-        do {
-            gl_func_00000000((char*)&gl_data_00000000 + 0x215E0, byte_array[byte_idx]);
-            byte_idx++;
-            col++;
-        } while (col != 0x10);
-        gl_func_00000000((char*)&gl_data_00000000 + 0x215E8);
-        row++;
-    } while (row != outer_count);
+    if (byte_array != 0) {
+        byte_idx = 0;
+        for (row = 0; row < outer_count; row++) {
+            gl_func_00000000((char*)&gl_data_00000000 + 0x215D8, byte_idx);
+            for (col = 0; col < 0x10; col++) {
+                v = byte_idx; byte_idx = v + 1; gl_func_00000000((char*)&gl_data_00000000 + 0x215E0, byte_array[v]);
+            }
+            gl_func_00000000((char*)&gl_data_00000000 + 0x215E8);
+        }
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055B44);
-#endif
+
 
 #ifdef NON_MATCHING
 #ifndef FW
