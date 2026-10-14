@@ -3434,26 +3434,16 @@ void gl_func_0000E2A4(int *o) {
     if (o[0x98 / 4]) gl_func_00000000(o[0x98 / 4]);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0000E368: 42-insn gated flag toggle. Returns early unless bit 16 of
- * (a0->0x50)->0x4F0 is set, a0->0x48 == 2, and the (collapsed) callback succeeds;
- * then toggles a0->0xB0 between 0/1 and correspondingly clears/sets bit 2 of
- * a0->0x44->0x60->0x18.
- * 2026-05-28: 95.2% → 98.45%. LEVER: the RMW on v->0x18 byte-matches the target's
- * `lw 24(v); addiu v,24; sw 0(v)` (advance-then-store-at-0) form ONLY when the base
- * pointer is explicitly REASSIGNED (`int t = v[0x18]; v = (char*)v+0x18; *v = t|4;`),
- * not via the natural `v->0x18 |= 4` (which folds to sw 24(v)). This REFINES
- * feedback_rmw_pointer_local_folds_to_offset_addressing: a *field*-pointer folds,
- * but reassigning the *base* pointer does force addiu+sw-0.
- * RESIDUAL (~1.5%, register-renumber): the read temp lands in $v1 (mine) vs $t2
- * (target), cascading t3/t4/t5 renames — permuter-resistant regalloc cap. NM.
- * 2026-06-10: checked against the 15F0 inline-deref crack -- NOT the same
- * class: the contested t-read does not cross a call (both arms are
- * call-free), so there is no shared call-spanning lr to split; the v
- * reassignment is load-bearing (advance-then-store shape). The v1 pick
- * here is the plain constrained-pool preference on a short lr;
- * uoptlist confirms no splittable constraint. Stays capped.
- * Uses the file-scope extern int D_00000000 / gl_func_00000000. */
+ * (a0->0x50)->0x4F0 is set, a0->0x48 == 2, and the callback succeeds; then
+ * toggles a0->0xB0 between 0/1 and clears/sets bit 2 of a0->0x44->0x60->0x18.
+ * EXACT 42/42 (2026-10-14, agent-g). The old 98.45 wrap's "v1 vs t2 read temp
+ * renumber cap" was the pointer spelling: the target's `lw t2,24(v0); addiu
+ * v0,v0,24; sw 0(v0)` is a field POINTER (v = base + 0x18) with a plain
+ * compound `*v &= ~4` -- the read is then an unnamed ring temp (t2/t5) instead
+ * of the named `t` candidate (v1). The old "reassign the base" spelling
+ * (int t = v[6]; v += 6; *v = t | 4) only reproduced the advance shape.
+ * docs/IDO_CODEGEN.md#e368-field-pointer-compound-rmw-ring-temp */
 void gl_func_0000E368(int a0) {
     if ((*(int *)(*(int *)((char *)a0 + 0x50) + 0x4F0) & 0x10000) == 0) {
         return;
@@ -3465,22 +3455,15 @@ void gl_func_0000E368(int a0) {
         return;
     }
     if (*(int *)((char *)a0 + 0xB0) != 0) {
-        int *v = (int *)(*(int *)(*(int *)((char *)a0 + 0x44) + 0x60));
-        int t = *(int *)((char *)v + 0x18);
-        v = (int *)((char *)v + 0x18);
-        *v = t & ~4;
+        int *v = (int *)(*(int *)(*(int *)((char *)a0 + 0x44) + 0x60) + 0x18);
+        *v &= ~4;
         *(int *)((char *)a0 + 0xB0) = 0;
     } else {
-        int *v = (int *)(*(int *)(*(int *)((char *)a0 + 0x44) + 0x60));
-        int t = *(int *)((char *)v + 0x18);
-        v = (int *)((char *)v + 0x18);
-        *v = t | 4;
+        int *v = (int *)(*(int *)(*(int *)((char *)a0 + 0x44) + 0x60) + 0x18);
+        *v |= 4;
         *(int *)((char *)a0 + 0xB0) = 1;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E368);
-#endif
 
 /* game_libs_func_0000E410..E490: CONTIGUOUS lower-opt (-O1/-g) family. Each is
  * `int *p=(int*)(a0+0x18); *p OP= BIT; return p;` (E410 |=4|=8, E42C &=~4&=~8,
