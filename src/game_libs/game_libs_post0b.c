@@ -27621,7 +27621,6 @@ void gl_func_00056864(char *a0) {
     gl_func_00000000(((char *)&D_00000000 + 0x00021908), *(int*)(a0 + 0x70));
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00056898: 14-arg varargs log/format dispatch. First two args
    are fmt (&D_00000000+0x21934) and self->0x70; then six sub-objects at
    self offsets 0xC,0x1C,0x2C,0x3C,0x4C,0x5C each contribute a (->0x4,
@@ -27639,15 +27638,18 @@ void gl_func_00056864(char *a0) {
  * home spacing (named-local dead-home rule); sub-object pointers re-derived
  * inline per use (a cached `int *pXX` hoists all six lw early). RESIDUAL: the
  * `lw v1,28(a0)` / `lw v0,12(a0)` pair is swapped (scheduler tie; decl-order
- * swap of the a/b pairs flips the regs with it). */
+ * swap of the a/b pairs flips the regs with it).
+ * 2026-10-14 agent-c: BYTE-EXACT 56/56 -- the lw pair swap is the as1
+ * same-line tie-break: the a and b pair declarations (the first three are
+ * load-bearing) MUST share ONE source line, so the 0x1C load issues before
+ * the 0xC load. Do not reformat. The callee (gl_func_00034458, varargs
+ * emit) is a baked 0C000000 jal in the ROM, so it goes through the
+ * gl_func_00000000 blank (a direct call resolves the jal to 0x34458). */
 extern int gl_func_00000000();
 extern int D_00000000;
 #define SUB_56898(o) (*(int **)((self) + (o)))
 void gl_func_00056898(char *self) {
-    int a0_ = SUB_56898(0xC)[1]; volatile int x0;
-    int a1_ = SUB_56898(0xC)[2]; volatile int x1;
-    int b0 = SUB_56898(0x1C)[1]; volatile int x2;
-    int b1 = SUB_56898(0x1C)[2]; volatile int x3;
+    int a0_ = SUB_56898(0xC)[1]; volatile int x0; int a1_ = SUB_56898(0xC)[2]; volatile int x1; int b0 = SUB_56898(0x1C)[1]; volatile int x2; int b1 = SUB_56898(0x1C)[2]; volatile int x3;
     int c0 = SUB_56898(0x2C)[1]; volatile int x4;
     int c1 = SUB_56898(0x2C)[2]; volatile int x5;
     int d0 = SUB_56898(0x3C)[1]; volatile int x6;
@@ -27656,12 +27658,9 @@ void gl_func_00056898(char *self) {
     int e1 = SUB_56898(0x4C)[2]; volatile int x9;
     int f0 = SUB_56898(0x5C)[1]; volatile int x10;
     int f1 = SUB_56898(0x5C)[2]; volatile int x11;
-    gl_func_00034458((char *)&D_00000000 + 0x21934, *(int *)(self + 0x70),
+    gl_func_00000000((char *)&D_00000000 + 0x21934, *(int *)(self + 0x70),
                      a0_, a1_, b0, b1, c0, c1, d0, d1, e0, e1, f0, f1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056898);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
