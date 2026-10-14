@@ -13747,11 +13747,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AA30);
 //   probed spelling reproduces (named s/b locals steal v0; void-alias
 //   dead-$v0, <<0 shift-chain phantom, dead st=call() capture all
 //   byte-inert). Placeholder jal-0 callees — stays NM wrap regardless.
-#ifdef NON_MATCHING
+// 2026-10-14 agent-c: BYTE-EXACT 35/35. The two "skipped ring slots" were
+//   two 1-BIT BITFIELDS in the flag word at o->0: the `sll 3; bltzl` test is
+//   `!o->b3` (bitfield extract burns t7) and the final `lbu; ori 1; sb` is the
+//   bitfield store `o->b7 = 1` (burns t0). Recipe: docs/IDO_CODEGEN.md
+//   #call-result-named-plus-nested-same-line-42144 (bitfield transfer).
+typedef struct {
+    unsigned int b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1;
+    unsigned int rest : 24;
+} ObjFlags2AB34;
 extern int gl_func_00000000();
 void gl_func_0002AB34(char *o) {
     int st;
-    if ((*(int *)o << 3) >= 0) {
+    if (!((ObjFlags2AB34 *)o)->b3) {
         gl_func_00000000();
     } else {
         char *p = (char *)*(int *)(o + 0x2C);
@@ -13763,11 +13771,8 @@ void gl_func_0002AB34(char *o) {
     if (st == 1 || st == 2) {
         *(unsigned char *)(o + 0x20) = 0;
     }
-    *(unsigned char *)o = *(unsigned char *)o | 0x01;
+    ((ObjFlags2AB34 *)o)->b7 = 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AB34);
-#endif
 
 // gl_func_0002ABC0 — STRUCTURAL PASS (0x15C / 87 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
