@@ -5430,9 +5430,11 @@ int gl_func_00022D68(int a0) {
 //   analysis. Byte-match deferred — placeholder jal-0 poll needs USO
 //   reloc infra. Name pre-checked: no extern reuse (collision-safe).
 //   gl_func_00000000 = canonical never-defined USO placeholder.
-#ifdef NON_MATCHING
-extern int gl_func_00000000();
+// 2026-10-14 EXACT (agent-c): same recipe as gl_func_00022D68 -- the entry
+//   `or a1,a0,zero` is the poll's REAL second argument (38174(0, a0)), and
+//   the final test is `>= 2 -> 1; return 0`.
 extern int D_00000000;
+extern int gl_ref_00038174();
 int gl_func_00022DE0(int a0) {
     char *st = (char *)&D_00000000 + 0x2C70;
     int r;
@@ -5442,15 +5444,12 @@ int gl_func_00022DE0(int a0) {
     if (*(unsigned char *)(st + a0) >= 2) {
         return 1;
     }
-    r = gl_func_00000000(0);
-    if (*(unsigned char *)(st + r) < 2) {
-        return 0;
+    r = gl_ref_00038174(0, a0);
+    if (*(unsigned char *)(st + r) >= 2) {
+        return 1;
     }
-    return 1;
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022DE0);
-#endif
 
 // gl_func_00022E58 — STRUCTURAL PASS (0x168 / 90 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 5-jr USO bundle
