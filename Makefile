@@ -515,7 +515,9 @@ build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x565c
 # old 23w NM body; EBC8 NM offset 0x5534 -> 0x552c, clip = offset + 0x30.
 # tail clip 0x5570 -> 0x557c (2026-10-14 agent-g): gl_func_0000D6E8 real def is 52w vs its
 # old NM body (3 words shorter in-tree); EBC8 NM offset 0x5540 -> 0x554c, clip = offset + 0x30.
-build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x557c gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
+# tail clip 0x557c -> 0x5578 (2026-10-14 agent-g): gl_func_0000D548 real def is 86w vs its
+# old NM body (1 word longer in-tree); EBC8 NM offset 0x554c -> 0x5548, clip = offset + 0x30.
+build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5578 gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
 # tail clip 0x5550 -> 0x5554 (2026-09-11 agent-g): gl_func_0000A670 real def is 62w vs its
 # old 61w NM body; EBC8 NM offset 0x5520 -> 0x5524, clip = offset + 0x30.
 # 0x17a38 -> 0x17a48 (2026-09-05 agent-g): game_libs_func_000343F4 absorbed the

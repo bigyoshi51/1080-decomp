@@ -2741,55 +2741,55 @@ void gl_func_0000D418(int *arg0) {
  *    leaves e's last use at the a0-slot -> a2 forbidden -> e lands a3 (+4 words).
  * Callees left as the standard gl_func_00000000 placeholder (jal 0). */
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0000D548)();
-void gl_func_0000D548(char *arg0, int arg1) {
-    char *sp3C;
-    f32 d255 = 255.0f;
-    f32 sp2C;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    s32 temp_t1;
-    s32 var_a1;
-    char *temp_v0;
-    char *temp_v0_2;
-
-    if ((FW(arg0, 0x6C) != 0) && (FW(arg0, 0xB4) & 4)) {
-        gl_func_0000959C(0x2C);
-        var_a1 = FW(arg0, 0xA4);
-        FW(arg0, 0xA0) = (s32) (FW(arg0, 0xA0) + 0x7D0);
-        if (var_a1 < 0x1F4) {
-            temp_t1 = var_a1 + 0x64;
-            FW(arg0, 0xA4) = temp_t1;
-            var_a1 = temp_t1;
-        }
-        temp_v0 = gl_func_0000959C(FW(arg0, 0x6C), (char *) var_a1, 0, 1);
-        temp_f0 = 235.0f / d255;
-        *(f32*)((char*)temp_v0 + 0x64) = (f32) (100.0f / d255);
-        *(f32*)((char*)temp_v0 + 0x68) = temp_f0;
-        *(f32*)((char*)temp_v0 + 0x6C) = (f32) (250.0f / d255);
-        *(f32*)((char*)temp_v0 + 0x70) = (f32) (255.0f / d255);
-        *(f32*)((char*)temp_v0 + 0xAC) = 0.0f;
-        FW(temp_v0, 0xA0) = (s32) (FW(arg0, 0x6C) + 0x150);
-        sp2C = temp_f0;
-        sp3C = temp_v0;
-        gl_func_0000959C(0x3F800000, temp_v0, 0x64, 0x86, 0x3F800000, 1.0f);
-        *(f32*)((char*)sp3C + 0xA8) = 0.0f;
-        *(f32*)((char*)sp3C + 0xA4) = 0.0f;
-        temp_v0_2 = gl_func_0000959C(FW(arg0, 0x6C), (char *)2, 0, 1);
-        temp_f0_2 = 80.0f / d255;
-        *(f32*)((char*)temp_v0_2 + 0x64) = sp2C;
-        *(f32*)((char*)temp_v0_2 + 0x68) = temp_f0_2;
-        *(f32*)((char*)temp_v0_2 + 0x6C) = temp_f0_2;
-        *(f32*)((char*)temp_v0_2 + 0x70) = (f32) (0.0f / d255);
+/* gl_func_0000D548: sub-object spawn pair (sibling of D6E8 / D9E4). EXACT 86/86
+ * (2026-10-14 agent-g). Levers:
+ * - The a4 bump is written on the FIELD with the call arg re-read from it:
+ *   `if (o->a4 < 500) o->a4 += 100; g(o->6c, o->a4, 0, 1)`. uopt forwards the
+ *   field into a1 on both paths, so the then-path value lands in a ring temp
+ *   (addiu t1; sw t1; or a1,t1). Every local-variable spelling (n += 100 /
+ *   a1 = o->a4 = n + 100 / temp copy) either drops the move or colours the sum v0.
+ * - FP: three named numerators r/g/b const-propagated (runtime div.s per D6E8);
+ *   b is REUSED for the 255.0 DOUBLE-literal numerator and the trailing 0.0,
+ *   r for 80. g/255 is NOT named: the second object's 0x64 store re-divides
+ *   g, which uopt CSEs across the call into the 0x2C spill temp. Four named
+ *   locals = the target frame 0x40 (a fifth name, or a named quotient, adds
+ *   8 bytes and moves the spill homes).
+ * - The 0xAC zero store goes AFTER the 0xA0 store (the scheduler then places
+ *   it between the lw and addiu, as the target does).
+ * - The h() call needs a prototyped (int*, int, int, float, float) blank
+ *   alias: a3 = mfc1 1.0f, 5th arg swc1 at 0x10(sp). */
+extern void gl_func_00000000_d548f(int *, int, int, float, float);
+void gl_func_0000D548(int *o, int a1) {
+    int *obj;
+    float r, g, b;
+    if (o[0x6C / 4] == 0 || (o[0xB4 / 4] & 4) == 0) return;
+    gl_func_00000000(0x2C);
+    o[0xA0 / 4] += 2000;
+    if (o[0xA4 / 4] < 500) {
+        o[0xA4 / 4] += 100;
     }
+    obj = (int *)gl_func_00000000(o[0x6C / 4], o[0xA4 / 4], 0, 1);
+    r = 100.0f;
+    g = 235.0f;
+    b = 250.0f;
+    *(float *)((char *)obj + 0x64) = r / 255.0f;
+    *(float *)((char *)obj + 0x68) = g / 255.0f;
+    *(float *)((char *)obj + 0x6C) = b / 255.0f;
+    b = 255.0;
+    *(float *)((char *)obj + 0x70) = b / 255.0f;
+    *(int *)((char *)obj + 0xA0) = o[0x6C / 4] + 0x150;
+    *(float *)((char *)obj + 0xAC) = 0.0f;
+    gl_func_00000000_d548f(obj, 100, 0x86, 1.0f, 1.0f);
+    *(float *)((char *)obj + 0xA8) = 0.0f;
+    *(float *)((char *)obj + 0xA4) = 0.0f;
+    obj = (int *)gl_func_00000000(o[0x6C / 4], 2, 0, 1);
+    r = 80.0f;
+    b = 0.0f;
+    *(float *)((char *)obj + 0x64) = g / 255.0f;
+    *(float *)((char *)obj + 0x68) = r / 255.0f;
+    *(float *)((char *)obj + 0x6C) = r / 255.0f;
+    *(float *)((char *)obj + 0x70) = b / 255.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D548);
-#endif
 
 extern int gl_func_00000000();
 
