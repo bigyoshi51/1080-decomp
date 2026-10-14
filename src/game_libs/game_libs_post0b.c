@@ -14983,9 +14983,23 @@ void gl_func_000453A8(int a0, float b, float c) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000453A8);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000453D8);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00045418);
+/* game_libs_func_000453D8 (+ splat's game_libs_func_00045418 merged: the
+ * bc1fl lands one word into 45418 with that word in the likely slot; oracle
+ * exports 453D8 only). 131072 / (a + b) clamped to [1, 0xFFFF] as a u16;
+ * the (unsigned) double conversion is IDO's cfc1/ctc1 round-to-zero
+ * sequence. The u16 local keeps the compare and the assignment as two
+ * separate andi's; the int return of `r & 0xFFFF` gives the final andi. */
+int game_libs_func_000453D8(int a0, float a, float b) {
+    double d = a + b;
+    unsigned short r;
+    if (d <= 2.0) {
+        r = 0xFFFF;
+    } else {
+        r = 131072.0 / d;
+        if (r <= 0) r = 1;
+    }
+    return r & 0xFFFF;
+}
 
 // gl_func_000454C4 — STRUCTURAL PASS (0x7E8 / 507 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function (very large). Single prologue
