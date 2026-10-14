@@ -3570,3 +3570,4 @@ gl_ref_00039B70 = 0x00039B70;  /* gl_func_00023838 baked USO jal (0x0C00E6DC) */
 gl_func_00062F64_6612c = 0x00000000;  /* gl_func_00062F64 called from the in-unit gl_func_0006612C: blank USO jal (a direct in-unit call would bake the address) */
 gl_func_00000000_635d8_v = 0x00000000;  /* void-typed alias (frees v0 from the dead return def so the a3 home reload colours v0) in gl_func_000635D8 */
 D_00000000_688f8 = 0x00000000;  /* gl_func_000688F8: 2nd base-0 vtable symbol (derived store), busts lui/addiu CSE with the base store */
+gl_func_00062F64f = 0x00000000;  /* prototyped (float 6th arg) alias of the blank gl_func_00062F64 callee in gl_func_0006337C: blank USO jal */

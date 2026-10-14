@@ -171,7 +171,6 @@ void gl_func_00062F8C(char *arg0) {
     }
 }
 
-#ifdef NON_MATCHING
 /* STRUCTURAL first-pass 2026-05-31 (raw-.word USO decode). 64-insn list-walk
  * constructor. Guards: return if self->0xA0 != 0, or self->0x74 == 0. Allocs
  * via base = self->0x58 + 0x40 (shared a0 for both calls): self->0x44 =
@@ -196,16 +195,28 @@ void gl_func_00062F8C(char *arg0) {
  * loop-BB temp is renumbered (t9,t3,t1,t2,t0 vs t2,t6,t4,t5,t3). Probes inert:
  * register n, function-scope n, chained assigns, (n == 0) inverted ternary,
  * if/else arm, non-volatile struct (27-35 of 64), CSE'd self[0x30/4] (fixes the
- * loop ring but re-reads the list head after the volatile stores). */
+ * loop ring but re-reads the list head after the volatile stores).
+ * 2026-10-14 (agent-g, 97.81 -> EXACT 64/64): the iterator is NOT a volatile
+ * struct but two ADDRESS-TAKEN locals (`if (1) { bar = &cur; bar = &next; }`,
+ * next declared first = sp+48, cur = sp+44): stores/loads stay in memory but
+ * uopt may forward `cur = next` from the just-stored self->0x30 load, so the
+ * pre-loop list pointer is the load ring temp t8 (a named n is a candidate
+ * and colours v1). In the loop tail the advance reads `next[1]` through
+ * NEXT, not cur (`cur = next; val = cur ? (next = next[1], cur[0]) : 0`):
+ * that keeps the reloaded next in ring t7 instead of the v1 candidate.
+ * docs/IDO_CODEGEN.md#address-taken-iterator-locals-forwarded-ring-6337c */
 extern int gl_func_00000000();
 extern int gl_func_00062F64f(int a0, int a1, int a2, int a3, int a4, float a5);
 void gl_func_0006337C(int *self) {
     int val;
-    volatile struct {
-        int *cur;
-        int *next;
-    } it;
+    int *next;
+    int *cur;
+    int **bar;
 
+    if (1) {
+        bar = &cur;
+        bar = &next;
+    }
     if (self[0xA0 / 4] != 0) {
         return;
     }
@@ -217,29 +228,20 @@ void gl_func_0006337C(int *self) {
         self[0x44 / 4] = gl_func_00000000(base, self[0x34 / 4]);
         self[0x48 / 4] = gl_func_00000000(base, self[0x38 / 4]);
     }
-    {
-        int *n = (int *) self[0x30 / 4];
-        it.next = n;
-        it.cur = n;
-        val = n ? (it.next = (int *) n[1], n[0]) : 0;
-    }
+    next = (int *) self[0x30 / 4];
+    cur = next;
+    val = cur ? (next = (int *) cur[1], cur[0]) : 0;
     while (val != 0) {
-        int *obj = (int *) it.cur[0];
+        int *obj = (int *) cur[0];
         int off = obj[0x10C / 4] * 14;
         gl_func_00062F64f((int) obj, self[0x44 / 4] + off, self[0x48 / 4] + off,
                           self[0x54 / 4], self[0xAC / 4],
                           *(float *)&self[0xA8 / 4]);
-        {
-            int *n = it.next;
-            it.cur = n;
-            val = n ? (it.next = (int *) n[1], n[0]) : 0;
-        }
+        cur = next;
+        val = cur ? (next = (int *) next[1], cur[0]) : 0;
     }
     self[0xA0 / 4] = self[0xA4 / 4];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006337C);
-#endif
 
 void game_libs_func_0006347C(int *a0, int a1) {
     if (a1 != *(int*)((char*)a0 + 0xA4)) {
