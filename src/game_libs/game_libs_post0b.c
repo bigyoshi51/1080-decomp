@@ -9749,24 +9749,24 @@ void gl_func_0003E904(int *a0, int *a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E904);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0003E968: 22-insn indirect-dispatch + follow-up. Reads
- * { *p, fn, arg3 } struct via a1, calls (*fn)(*p), then
- * gl_func(a0, fn_ret, a1->arg3); returns fn_ret.
- *
- * Cap: target spills a0 to sp+0 (outgoing-arg slot) before jalr — IDO
- * defensive spill for variadic. Neither prototyped fn nor variadic fn
- * nor K&R fn variant produces this spill. Frame -0x28 vs built's
- * -0x20. Permuter-territory. */
-int gl_func_0003E968(int a0, int **a1) {
-    int (*fn)(int, ...) = (int(*)(int, ...))((int*)a1)[1];
-    int v = fn(**a1);
-    gl_func_00000000(a0, v, ((int*)a1)[2]);
+/* gl_func_0003E968: call rec->fn(*rec->p) (a 4-byte struct passed by value),
+ * then gl_func(a0, ret, rec->arg); return ret. The struct arg is a comma
+ * expression `(s.w = ..., s)`: it reserves the extra 8-byte frame block and
+ * stores s directly at sp+0x20 (a separate `s.w = ...;` statement gives frame
+ * 0x20 with s at sp+0x18; `s = *p` goes through `addiu v0,sp,..`). */
+typedef struct { int w; } Word3E968;
+typedef struct {
+    Word3E968 *p;
+    int (*fn)(Word3E968);
+    int arg;
+} Rec3E968;
+int gl_func_0003E968(int a0, Rec3E968 *a1) {
+    int v;
+    Word3E968 s;
+    v = a1->fn((s.w = a1->p->w, s));
+    gl_func_00000000(a0, v, a1->arg);
     return v;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E968);
-#endif
 
 /* Split off from gl_func_0003E968 bundle 2026-05-08: 2-insn no-frame setter.
  * Stores a1 to a0->field_30. */
