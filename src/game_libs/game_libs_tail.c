@@ -2528,75 +2528,76 @@ int gl_func_0000CDDC(int *a0, int *a1) {
     return gl_func_00000000(a0, a1);
 }
 
-#ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0000CE38)();
-void gl_func_0000CE38(char *arg0, s32 arg1, s32 arg2) {
-    s32 *temp_v0;
-    s32 temp_v0_2;
-    s32 temp_v0_3;
-    s32 temp_v0_4;
-    s32 var_a0;
-    s32 var_a3;
-    s32 var_s1;
-    s32 var_s4;
-    char *temp_v1;
-    char *temp_v1_2;
-    char *temp_v1_3;
+/* gl_func_0000CE38: per-entry refresh over self->0x44 (count self->0x48,
+ * stride 0x60). For each entry whose flags (+0x04) bit 0 is set, with the
+ * manager m = self->0x4C non-NULL and its mode m->0x14:
+ *   bit0 (entry +0x34 set): e->0x38 = f(m->0 + D.0x64*0x30, self->0x30),
+ *        g(..., e->0x38, self->0x30, D.0x68 - 1)
+ *   bit1 (entry +0x34 set): e->0x3C = f(m->0 + D.0x64*0x30, e->0x14), g(...)
+ *   bit2: e->0x40 = f(m->4, e->0x14), g(m->4, e->0x40, e->0x14, a1, a2)
+ * and each stage bumps D.0x7C to (value + 1) when value < 3.
+ * Matching notes:
+ * - the count is a local re-read only after the call groups (skip paths keep
+ *   it in a3, `bnel`/`beqzl` delays increment i);
+ * - `D.0x64 * 0x30 + base` order (product first) fixes the t-ring;
+ * - the entry pointer is NEVER a named local (inline everywhere; a named
+ *   cursor swaps v1/a0 at the loop head or t6/t8 in the bit2 call);
+ * - the second call of each group returns nothing used: through the void
+ *   alias gl_func_00000000_ce38_v (kills the dead $v0 def, docs
+ *   IDO_CODEGEN #e5d0-void-alias-frees-v0-spilltemp-cap);
+ * - `if (n) {}` (emission-free dead-if) lifts the constant-1 LR over the
+ *   two pass-through params: s5 = 1, s6 = a1, s7 = a2 (without it 1 -> s7). */
+extern void gl_func_00000000_ce38_v();
+#define CE38_E(i) ((char *)FW(self, 0x44) + (i) * 0x60)
+#define CE38_D(o) FW(&D_00000000, o)
+void gl_func_0000CE38(char *self, s32 a1, s32 a2) {
+    s32 i;
+    char *m;
+    s32 fl;
+    s32 v;
+    s32 n;
 
-    var_a3 = FW(arg0, 0x48);
-    var_s4 = 0;
-    if (var_a3 > 0) {
-        var_s1 = 0;
-        do {
-            temp_v1 = FW(arg0, 0x44) + var_s1;
-            if ((FW(temp_v1, 0x4) & 1) == 1) {
-                temp_v0 = FW(arg0, 0x4C);
-                if (temp_v0 != 0) {
-                    var_a0 = FW(temp_v0, 0x14);
-                    if (FW(temp_v1, 0x34) != 0) {
-                        if (var_a0 & 1) {
-                            FW((FW(arg0, 0x44) + var_s1), 0x38) = gl_func_0000959C(FW(temp_v0, 0x0) + (*(s32 *)0x64 * 0x30), FW(arg0, 0x30));
-                            gl_func_0000959C(FW(FW(arg0, 0x4C), 0x0) + (*(s32 *)0x64 * 0x30), FW((FW(arg0, 0x44) + var_s1), 0x38), FW(arg0, 0x30), *(s32 *)0x68 - 1);
-                            temp_v0_2 = FW((FW(arg0, 0x44) + var_s1), 0x38);
-                            if (temp_v0_2 < 3) {
-                                *(s32 *)0x7C = temp_v0_2 + 1;
-                            }
-                            var_a0 = FW(FW(arg0, 0x4C), 0x14);
-                        }
-                        if (var_a0 & 2) {
-                            FW((FW(arg0, 0x44) + var_s1), 0x3C) = gl_func_0000959C(FW(FW(arg0, 0x4C), 0x0) + (*(s32 *)0x64 * 0x30), FW((FW(arg0, 0x44) + var_s1), 0x14));
-                            temp_v1_2 = FW(arg0, 0x44) + var_s1;
-                            gl_func_0000959C(FW(FW(arg0, 0x4C), 0x0) + (*(s32 *)0x64 * 0x30), FW(temp_v1_2, 0x3C), FW(temp_v1_2, 0x14));
-                            temp_v0_3 = FW((FW(arg0, 0x44) + var_s1), 0x3C);
-                            if (temp_v0_3 < 3) {
-                                *(s32 *)0x7C = temp_v0_3 + 1;
-                            }
-                            var_a0 = FW(FW(arg0, 0x4C), 0x14);
-                        }
+    n = FW(self, 0x48);
+    if (n) {}
+    for (i = 0; i < n; i++) {
+        if ((FW(CE38_E(i), 0x4) & 1) == 1) {
+            m = (char *)FW(self, 0x4C);
+            if (m != 0) {
+                fl = FW(m, 0x14);
+                if (FW(CE38_E(i), 0x34) != 0) {
+                    if (fl & 1) {
+                        FW(CE38_E(i), 0x38) = gl_func_00000000(CE38_D(0x64) * 0x30 + FW(m, 0x0), FW(self, 0x30));
+                        gl_func_00000000_ce38_v(CE38_D(0x64) * 0x30 + FW(FW(self, 0x4C), 0x0), FW(CE38_E(i), 0x38), FW(self, 0x30), CE38_D(0x68) - 1);
+                        v = FW(CE38_E(i), 0x38);
+                        if (v < 3) CE38_D(0x7C) = v + 1;
+                        m = (char *)FW(self, 0x4C);
+                        fl = FW(m, 0x14);
                     }
-                    if (var_a0 & 4) {
-                        FW((FW(arg0, 0x44) + var_s1), 0x40) = gl_func_0000959C(FW(FW(arg0, 0x4C), 0x4), FW((FW(arg0, 0x44) + var_s1), 0x14));
-                        temp_v1_3 = FW(arg0, 0x44) + var_s1;
-                        gl_func_0000959C(FW(FW(arg0, 0x4C), 0x4), FW(temp_v1_3, 0x40), FW(temp_v1_3, 0x14), arg1, arg2);
-                        temp_v0_4 = FW((FW(arg0, 0x44) + var_s1), 0x40);
-                        if (temp_v0_4 < 3) {
-                            *(s32 *)0x7C = temp_v0_4 + 1;
-                        }
+                    if (fl & 2) {
+                        FW(CE38_E(i), 0x3C) = gl_func_00000000(CE38_D(0x64) * 0x30 + FW(m, 0x0), FW(CE38_E(i), 0x14));
+                        gl_func_00000000_ce38_v(CE38_D(0x64) * 0x30 + FW(FW(self, 0x4C), 0x0), FW(CE38_E(i), 0x3C), FW(CE38_E(i), 0x14));
+                        v = FW(CE38_E(i), 0x3C);
+                        if (v < 3) CE38_D(0x7C) = v + 1;
+                        m = (char *)FW(self, 0x4C);
+                        fl = FW(m, 0x14);
                     }
-                    var_a3 = FW(arg0, 0x48);
                 }
+                if (fl & 4) {
+                    FW(CE38_E(i), 0x40) = gl_func_00000000(FW(m, 0x4), FW(CE38_E(i), 0x14));
+                    gl_func_00000000_ce38_v(FW(FW(self, 0x4C), 0x4), FW(CE38_E(i), 0x40), FW(CE38_E(i), 0x14), a1, a2);
+                    v = FW(CE38_E(i), 0x40);
+                    if (v < 3) CE38_D(0x7C) = v + 1;
+                }
+                n = FW(self, 0x48);
             }
-            var_s4 += 1;
-            var_s1 += 0x60;
-        } while (var_s4 < var_a3);
+        }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CE38);
-#endif
+#undef CE38_E
+#undef CE38_D
 
 void game_libs_func_0000D090(int *a0) {
     if (*(int *)(*(int *)((char *)a0 + 0x44) + 0x34) != 0) {
