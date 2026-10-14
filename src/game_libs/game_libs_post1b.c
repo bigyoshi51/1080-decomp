@@ -1586,7 +1586,6 @@ mid:
     gl_func_00062F64_blank(arg0);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00065148: 66-insn 3D affine-transform helper (size 0x108, frame 0x50).
  *
  * Performs:
@@ -1621,7 +1620,7 @@ mid:
  *    node's local Vec3 at +0x1F8 gets transformed by the cached world matrix
  *    at +0x70..0xA8 and stored to a "transformed-position" slot at +0x324.
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ *    feedback_doc_marker_is_bail.md. (EXACT since 2026-10-14 run 57, see below.)
  */
 // Per-node world-transform. Runs two cbs (obj+0x294/obj+0x2C8, both with
 // obj+0xDC), copies the local Vec3 at obj->0x1F8..0x200 into obj->0x324..0x32C,
@@ -1652,6 +1651,11 @@ mid:
 //     pad_b dropped. RESIDUAL 6 words: the accumulators rotate (build r0 f16,
 //     r1 f18, r2 f14; target f14/f16/f18) -- every store placement / decl order /
 //     block-scoped r spelling keeps the rotation.
+// 2026-10-14 agent-g run 57: EXACT 66/66. (6) the three late stores wrapped
+//     in `if (1) { ... }` turn the accumulator rotation into the target's
+//     r0 f14 / r1 f16 / r2 f18 (same if(1)-block FP-colouring lever as
+//     docs/IDO_CODEGEN.md #decl-order-frame-map-carrier-copy-64388; wrapping
+//     the row DEFS instead, or defs+stores, makes it worse).
 void gl_func_00065148(char *obj) {
     int pad_a[4];
     Tri3i tmp;
@@ -1668,13 +1672,12 @@ void gl_func_00065148(char *obj) {
     r0 = *(float *)(obj + 0xA0) + (*(float *)(obj + 0x90) * *(float *)(obj + 0x32C) + (*(float *)(obj + 0x80) * y + *(float *)(obj + 0x70) * x));
     r1 = *(float *)(obj + 0xA4) + (*(float *)(obj + 0x94) * *(float *)(obj + 0x32C) + (*(float *)(obj + 0x84) * y + *(float *)(obj + 0x74) * x));
     r2 = *(float *)(obj + 0xA8) + (*(float *)(obj + 0x98) * *(float *)(obj + 0x32C) + (*(float *)(obj + 0x88) * y + *(float *)(obj + 0x78) * x));
-    *(float *)(obj + 0x324) = r0;
-    *(float *)(obj + 0x328) = r1;
-    *(float *)(obj + 0x32C) = r2;
+    if (1) {
+        *(float *)(obj + 0x324) = r0;
+        *(float *)(obj + 0x328) = r1;
+        *(float *)(obj + 0x32C) = r2;
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065148);
-#endif
 
 /* gl_func_00065250 — verified structural decode (Vec3-diff + double
  * struct-copy + call, 33 insns; FPU-load-order + struct-copy sp-slot
