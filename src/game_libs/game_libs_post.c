@@ -5376,9 +5376,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022A9C);
 //   reloc infra + branch schedule. Name pre-checked: no extern reuse
 //   (collision-safe). gl_func_00000000 = canonical never-defined
 //   USO placeholder for the poll.
-#ifdef NON_MATCHING
-extern int gl_func_00000000();
+// 2026-10-14 EXACT (agent-c): the "USO reloc infra" residual was decode
+//   shape. The entry `or a1,a0,zero` is the poll's REAL second argument
+//   (38174(1, a0), baked jal pinned gl_ref_00038174), and the final test
+//   is `>= 2 -> 1; return 0` (the `< 2 -> 0` order inverts the bnez).
 extern int D_00000000;
+extern int gl_ref_00038174();
 int gl_func_00022D68(int a0) {
     char *st = (char *)&D_00000000 + 0x2C40;
     int r;
@@ -5388,15 +5391,12 @@ int gl_func_00022D68(int a0) {
     if (*(unsigned char *)(st + a0) >= 2) {
         return 1;
     }
-    r = gl_func_00000000(1);
-    if (*(unsigned char *)(st + r) < 2) {
-        return 0;
+    r = gl_ref_00038174(1, a0);
+    if (*(unsigned char *)(st + r) >= 2) {
+        return 1;
     }
-    return 1;
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022D68);
-#endif
 
 // gl_func_00022DE0 — STRUCTURAL PASS (0x78 / 30 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
