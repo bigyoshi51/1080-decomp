@@ -5160,60 +5160,75 @@ void gl_func_00068D18(int *self) {
     }
 }
 
+/* gl_func_00068DD4: script-op handler (85 words). NM 96.82 (2026-10-14
+ * agent-g, was 87.24). Re-decoded: two stream reads through the cursor
+ * idiom of the handler above (`pp = *self; q = *pp; *pp = q + 1;
+ * v = *q; self[1] = v;`), the first indexing the &D table
+ * (`(&D_00000000)[v]` = lui/sll/addu/lw), the second feeding the factory;
+ * the 0x30 flag word is cleared twice (~0x400 via the fresh result,
+ * ~0x800 via a re-read of self->0x28 through a field pointer = the
+ * advance-then-store form, docs/IDO_CODEGEN.md
+ * #e368-field-pointer-compound-rmw-ring-temp). Frame 0x38 with
+ * sp30/sp2C/sp24 at 0x30/0x2C/0x24 = declaration-rank homing (p, sp30,
+ * sp2C, o, sp24). Reusing ONE pp/q/v for both reads keeps them
+ * candidates (separate names turn them into ring temps, 48 diffs).
+ * Residual (1 word + colours): the first clear folds to `lw t4,48(v0)`
+ * where the target materialises `addiu v1,v0,48; lw t4,0(v1)` (pointer
+ * before / between / after the two self stores, `*p = *p & ~`, `o += 0x30`,
+ * IXA `&((int *)o)[12]`, bitfields all fold or go byte-wide), and the
+ * candidate colours differ: x t1/target t0, first read pp/q/v
+ * v1/t0/a2 vs v0/t1/v1, second q t0 vs v0, the second clear's base and the
+ * vtable object v1 vs t0. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00068DD4)();
+typedef int (*GP_00068DD4)();
 void gl_func_00068DD4(char *arg0) {
+    int *p;
     s32 sp30;
     char *sp2C;
+    char *o;
     char *sp24;
-    s32 **temp_v0;
-    s32 **temp_v1_2;
-    s32 *temp_t1;
-    s32 *temp_v0_2;
-    s32 temp_a2;
-    s32 temp_v1;
-    char *temp_t0;
-    char *temp_t0_2;
-    char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v0_5;
-    char *temp_v0_6;
+    char *t;
+    char *b;
+    int **pp;
+    int *q;
+    int v;
+    char *x;
 
-    gl_func_00062F64();
-    FW(FW(FW(arg0, 0x3C), 0xC), 0xB0) = 8;
-    temp_v0 = FW(arg0, 0x0);
-    temp_t1 = *(int*)temp_v0;
-    *temp_v0 = temp_t1 + 1;
-    temp_v1 = *(int*)temp_t1;
-    FW(arg0, 0x4) = temp_v1;
-    sp30 = *(int*)(temp_v1 * 4);
-    temp_v1_2 = FW(arg0, 0x0);
-    temp_v0_2 = *(int*)temp_v1_2;
-    *temp_v1_2 = temp_v0_2 + 1;
-    temp_a2 = *(int*)temp_v0_2;
-    FW(arg0, 0x4) = temp_a2;
-    temp_v0_3 = gl_func_00062F64(0, (char *)&D_00000000 + 0x2C568, temp_a2, 0);
-    sp2C = temp_v0_3;
-    gl_func_00062F64(FW(temp_v0_3, 0x44) * 8);
-    temp_v0_4 = gl_func_00062F64(0, (char *)&D_00000000 + 0x2C574, 0, sp2C);
-    FW(arg0, 0x28) = temp_v0_4;
-    FW(arg0, 0x10) = temp_v0_4;
-    FW(temp_v0_4, 0x30) = (s32) (FW(temp_v0_4, 0x30) & ~0x400);
-    temp_t0 = FW(arg0, 0x28);
-    FW(temp_t0, 0x30) = (s32) (FW(temp_t0, 0x30) & ~0x800);
+    gl_func_00000000();
+    x = (char *)FW(FW(arg0, 0x3C), 0xC);
+    FW(x, 0xB0) = 8;
+    pp = *(int ***)arg0;
+    q = *pp;
+    *pp = q + 1;
+    v = *q;
+    FW(arg0, 4) = v;
+    sp30 = (&D_00000000)[v];
+    pp = *(int ***)arg0;
+    q = *pp;
+    *pp = q + 1;
+    v = *q;
+    FW(arg0, 4) = v;
+    sp2C = (char *)gl_func_00000000(0, (char *)&D_00000000 + 0x2C568, v, 0);
+    gl_func_00000000(FW(sp2C, 0x44) * 8);
+    o = (char *)gl_func_00000000(0, (char *)&D_00000000 + 0x2C574, 0, sp2C);
+    FW(arg0, 0x28) = (int)o;
+    FW(arg0, 0x10) = (int)o;
+    p = (int *)(o + 0x30);
+    *p &= ~0x400;
+    p = (int *)(FW(arg0, 0x28) + 0x30);
+    *p &= ~0x800;
     if (sp30 == 0) {
-        gl_func_00062F64((char *)&D_00000000 + 0x2C580);
+        gl_func_00000000((char *)&D_00000000 + 0x2C580);
     }
-    temp_v0_5 = FW(FW(FW(arg0, 0x3C), 0x3C), 0xC);
-    temp_t0_2 = FW(temp_v0_5, 0x28);
-    ((GP_00068DD4)FW(temp_t0_2, 0x14))(*(s16*)((char*)temp_t0_2 + 0x10) + temp_v0_5);
-    temp_v0_6 = gl_func_00062F64(sp30, FW(FW(arg0, 0x3C), 0xC), (s32) FW(arg0, 0x28));
-    sp24 = temp_v0_6;
-    gl_func_00062F64((s32) FW(FW(arg0, 0x3C), 0xC), temp_v0_6);
-    gl_func_00062F64((s32) sp24);
+    b = (char *)FW(FW(FW(arg0, 0x3C), 0x3C), 0xC);
+    t = (char *)FW(b, 0x28);
+    ((GP_00068DD4)FW(t, 0x14))(*(s16 *)(t + 0x10) + b);
+    sp24 = (char *)gl_func_00000000(sp30, FW(FW(arg0, 0x3C), 0xC), FW(arg0, 0x28));
+    gl_func_00000000(FW(FW(arg0, 0x3C), 0xC), sp24);
+    gl_func_00000000(sp24);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068DD4);
