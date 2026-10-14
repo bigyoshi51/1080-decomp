@@ -10852,83 +10852,52 @@ int gl_func_00028358(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028358);
 #endif
 
-// gl_func_0002842C — STRUCTURAL PASS (0xE4 / 57 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). Near-identical SIBLING of gl_func_00028358 — same handle-
-// resolve into the &D_0+0x2158 selection slot, different sub-count
-// field and lookup arg.
-//
-//   int gl_func_0002842C(int a0, int a1) {
-//     if (a0 == 0xFF) return 0;                          // none sentinel
-//     int r = (*lookup)(a0, a1);                          // jal 0 USO
-//     if (r != 0) { *(int*)(&D_0 + 0x2158) = r; return …; }
-//     R *rec = *(R**)(&D_0 + 0x2030) + a0*0x14;            // registry
-//     byte cap = rec->b_1;                                  // sub count
-//     int packed = (a0 << 8) | a1;
-//     if (a1 < cap) packed += 1;
-//     *(int*)(&D_0 + 0x2158) = packed;
-//   }
-//
-// Struct-typing reference: structurally identical to gl_func_00028358
-//   (see its comment) — maps an (a0,a1) handle to the global
-//   selection word &D_0+0x2158 via a USO-relocated lookup then a
-//   fallback into the &D_0+0x2030 / 0x14-stride registry table. The
-//   ONLY differences: this variant range-checks a1 against the
-//   record's byte +1 (vs gl_func_00028358's byte +0) — i.e. a
-//   different sub-count field of the same record — and forwards the
-//   arg via $a2. The two are the per-sub-field-class select/resolve
-//   entries for the registry current-item state.
-// 2026-05-31: 56.05% -> 88.25% by COMPLETING the logic (prior sketch was
-//   semantically WRONG — it did `if(r!=0) {store r; return r;}` then a bogus
-//   packed+1 path). Real flow (from expected asm): a0==0xFF -> ret 0; else
-//   r=lookup(a0,a1); if r==0 -> store a0+0x10000000, ret 0; else
-//   rec=*(&D+0x2030)+a0*0x14; if a1>=rec->b1 (cap) -> store (a0<<8)+a1+0x4000000,
-//   ret 0; else v1=rec->0xC; if (u32)v1<0x80000000 -> ret 0; else
-//   val=*(v1+a1*4); if val!=0 ret val; else store (a0<<8)+a1+0x5000000, ret 0.
-//   The three lui-flags (0x1000/0x400/0x500 <<16) are state-class bits OR'd in.
-//   REMAINING (~88%): IDO emits the a0==0xFF check BEFORE the ra-save (target
-//   saves ra first / routes the early return through the shared epilogue) +
-//   register allocation; goto-shared-ret0 and result-var forms both scored LOWER
-//   (64.7% / frame-grew) — early-returns is the best C form. Apply this complete
-//   flow to the siblings gl_func_00028358 / gl_func_00028510 (same shape).
-//   Name pre-checked: no extern reuse (collision-safe).
-#ifdef NON_MATCHING
+// gl_func_0002842C -- registry handle resolve, byte-+1 sub-count variant
+// (0xE4 / 57 words). BYTE-EXACT 2026-10-14 (88.25 -> 100). Sibling of
+// gl_func_00028510 (same recipe, see
+// docs/IDO_CODEGEN.md#one-arg-lookup-a2-param-copy-28510): a0 == 0xFF -> 0;
+// lookup(a0) miss -> selection word &D+0x2158 = a0 + 0x10000000; a1 >= rec->b1
+// -> 0x4000000 class; rec->tbl not a KSEG0 pointer -> 0; else return
+// rec->tbl[a1], storing the 0x5000000 class first when it is zero.
+// The old 88.25 draft's "ra-save ordering + regalloc" residual was the
+// lookup being called with (a0, a1): it takes ONLY a0 (a1 param -> a2).
+typedef struct {
+    unsigned char b0;
+    unsigned char b1;  /* +0x1 sub-count */
+    unsigned short h2;
+    int x4;
+    int x8;
+    int *tbl;  /* +0xC */
+    int x10;
+} gl_2842C_Rec;
 extern int gl_func_00000000();
 extern int D_00000000;
 int gl_func_0002842C(int a0, int a1) {
     int r;
-    int *rec;
-    int v1;
-    int *p;
-    int val;
+    gl_2842C_Rec *rec;
+    int v;
     if (a0 == 0xFF) {
         return 0;
     }
-    r = gl_func_00000000(a0, a1);
+    r = gl_func_00000000(a0);
     if (r == 0) {
         *(int *)((char *)&D_00000000 + 0x2158) = a0 + 0x10000000;
         return 0;
     }
-    rec = (int *)(*(int *)((char *)&D_00000000 + 0x2030) + a0 * 0x14);
-    if (a1 >= *(unsigned char *)((char *)rec + 1)) {
+    rec = (gl_2842C_Rec *)(*(int *)((char *)&D_00000000 + 0x2030) + a0 * 0x14);
+    if (a1 >= rec->b1) {
         *(int *)((char *)&D_00000000 + 0x2158) = (a0 << 8) + a1 + 0x4000000;
         return 0;
     }
-    v1 = *(int *)((char *)rec + 0xC);
-    if ((unsigned int)v1 < 0x80000000U) {
+    if ((unsigned int)rec->tbl < 0x80000000U) {
         return 0;
     }
-    p = (int *)(v1 + a1 * 4);
-    val = *p;
-    if (val != 0) {
-        return val;
+    v = rec->tbl[a1];
+    if (v == 0) {
+        *(int *)((char *)&D_00000000 + 0x2158) = (a0 << 8) + a1 + 0x5000000;
     }
-    *(int *)((char *)&D_00000000 + 0x2158) = (a0 << 8) + a1 + 0x5000000;
-    return 0;
+    return v;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002842C);
-#endif
 
 // gl_func_00028510 -- registry handle resolve, halfword sub-count variant
 // (0xF4 / 61 words). BYTE-EXACT 2026-10-14 (89.75 -> 100). Third sibling of
