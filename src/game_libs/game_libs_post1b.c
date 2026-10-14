@@ -4646,157 +4646,35 @@ end:
     return a0;
 }
 
-/* gl_func_000688F8: 26-insn (0x68) double-alloc constructor with redundant
- * post-test on alloc result. NATURAL CEILING: 80.46% NM. Was previously
- * documented (2026-05-14) as promoted to byte-exact via 22-entry
- * INSN_PATCH + SUFFIX_BYTES_FORCE (+1 nop) to grow built 24->25 insns +
- * 1 trailing nop — INSN_PATCH and instruction-appending SUFFIX_BYTES
- * REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM.
- *
- * Old decode comments below — kept for reference. */
-/* gl_func_000688F8 (original wrap):
- * post-test on alloc result. Sibling of gl_func_00068884 (single-alloc form).
- *
- * Asm structure decoded:
- *   v = alloc(0x30)
- *   if (v == 0) return 0           ; beqz v0, +0xF — early exit
- *   a1 = v                          ; delay
- *   if (v != 0) goto store_D       ; bnez v0, +7  — ALWAYS taken in
- *                                                    practice (v != 0
- *                                                    here), making the
- *                                                    fallback below dead
- *   v1 = v                          ; delay
- *   /-- dead code begins --/
- *   p = alloc(0x20)
- *   *(sp+0x18) = p
- *   a1 = *(sp+0x18)                 ; reloads p into a1 (overwrites first
- *                                     alloc!)
- *   if (p == 0) goto store_a1
- *   v1 = p                          ; delay
- *   /-- dead code ends --/
- *   store_D:
- *   v1->[0x1C] = &D                 ; via v1 register
- *   store_a1:
- *   a1->[0x1C] = &D                 ; via a1 register
- *   return a1
- *
- * The redundant `bnez v0` after `beqz v0, ret` is a compiler artifact —
- * IDO didn't fold the second test, leaving the alloc(0x20) fallback as
- * unreachable but emitted code. Possible C origin:
- *
- *   int *p = alloc(0x30);
- *   if (p == 0) return 0;
- *   if (p == 0) {                          // tautological at runtime, but
- *       p = alloc(0x20);                    // gets emitted anyway
- *       if (p == 0) goto skip;
- *   }
- *   p[7] = &D;
- * skip:
- *   p[7] = &D;
- *   return p;
- *
- * — i.e. paranoid double-check of the alloc result with a fallback to a
- * smaller size that IDO emits but never reaches. Multi-tick byte-match
- * deferred; structural decode here for grep + permuter seed.
- *
- * 2026-05-08 cap measurements (objdiff 27/27 insns, 80.46% fuzzy):
- *   - Frame: built -0x18 (24), expected -0x20 (32). 8-byte gap.
- *   - Reg-alloc: built collapses q/p to single $v1, expected uses $a1 + $v1
- *     for the SAME value with explicit spill+reload (`sw v0, 24(sp);
- *     lw a1, 24(sp)`).
- *   - Tried `char pad[8] + (void)pad`: 0pp (DCE'd, frame stays -0x18 — per
- *     `feedback-ido-pad-array-dce` already documented).
- *   - Tried intermediate `int *spill = alloc(0x20); p = spill; ...`:
- *     -5pp (forced spill but wrong shape). Reverted.
- *
- * 2026-05-08 (later): tried `volatile int *pp = (volatile int*)&a0` to
- * force a0's caller-slot spill via the new
- * `feedback-ido-arg-addr-via-volatile-ptr-forces-caller-spill` trick.
- * This DOES emit `sw a0, 0x18(sp)` but at the wrong byte offset (sp+0x18
- * with frame 0x18) — target's `sw a0, 0x20(sp)` requires frame 0x20.
- * Without growing the frame independently, the spill insn doesn't byte-
- * match. Combining the volatile-arg trick with `*(volatile int*)&q_alloc
- * = q_alloc` (force a stack slot for the second alloc result) grows
- * frame to 0x28 — overshoots by 8 bytes and adds extra spills (-pp).
- *
- * Cap class: needs simultaneous (a) frame=0x20 AND (b) sw v0, 0x18 mid-
- * function spill of dead-code alloc result. The volatile-arg trick alone
- * doesn't grow frame; forcing a stack-resident local for q_alloc grows
- * frame too much (extra address-take overhead). Likely permuter
- * territory or needs a fresh-shape rewrite that lands at frame=0x20 by
- * IDO's natural reservations rather than via volatile coercion.
- *
- * 2026-05-08 (later): tried `volatile int *spill = (volatile int*)alloc(0x20);
- * p = (int*)spill;` — pointer-cast variant of the value-spill trick. IDO
- * optimizes the pointer-load away (volatile is on the POINTEE int, not on
- * the local pointer var, so reading `p = (int*)spill` doesn't force a stack
- * round-trip). Result: identical 24-insn frame-0x18 emit, 0pp. The actual
- * mid-function spill needs a `volatile int slot;` (stack-resident, not
- * pointer) where the value is *written* and *read* through the volatile
- * lvalue — but per the prior `*(volatile int*)&q_alloc = q_alloc` attempt
- * that overshoots frame to 0x28. The narrow 0x20 frame target appears
- * unreachable with `volatile` levers.
- *
- * 2026-05-08 (later still): retried with the new declaration-order sub-rule
- * (docs/IDO_CODEGEN.md#feedback-ido-arg-addr-via-volatile-ptr-forces-caller-spill).
- * Variants tested:
- *   (a) `volatile int spill; volatile int *vparg = &a0;` — frame=0x20, spill
- *       slot at sp+0x1C, sw v0 at 0x1C(sp). Off by 4 from target's 0x18.
- *   (b) `volatile int *vparg = &a0; volatile int spill;` — frame=0x30 (worse).
- *       Volatile-arg + volatile-int-slot interaction makes IDO over-allocate.
- *   (c) volatile-arg alone (no spill): frame=0x18, sw a0 at sp+0x18 (caller-
- *       slot for THIS frame, but target wants frame=0x20 + sw a0 at sp+0x20).
- * Conclusion: declaration-order sub-rule works for forcing slot offsets but
- * the COMBINATION volatile-arg + volatile-int-spill cannot land at frame=0x20
- * with spill at sp+0x18. The volatile-arg recipe relies on frame growing
- * naturally (other locals); if the only lever to grow frame is the spill
- * itself, the slot offset can't simultaneously be 0x18. Cap class confirmed:
- * needs a NON-volatile mechanism to grow frame to 0x20 (e.g. a permuter find,
- * an unused-arg sentinel that IDO honors, or compiler upgrade). */
-extern int gl_func_00000000();
-
-#ifdef NON_MATCHING
+/* gl_func_000688F8: 26-insn (0x68) inlined derived/base constructor pair
+ * (cfront-style `new Derived`): p = alloc(0x30); if p == 0 return p; then the
+ * inlined base ctor tests its own `this` (b = p, tautologically non-null, but
+ * IDO does not fold the copy) with a dead alloc(0x20) fallback; base vtable
+ * store via b (v1), derived vtable store via p (a1, spilled across the dead
+ * call at sp+0x18). EXACT keys: forward gotos (each null test stays in-line,
+ * the fallback test lands right after the second jal), two DISTINCT base-0
+ * symbols for the two vtable stores (one shared symbol CSEs the lui/addiu
+ * into v0 and adds a branch), and `b` declared BEFORE `p` (p first puts the
+ * spill slot at sp+0x1C; b first gives the target sp+0x18). The unused a0
+ * param supplies the home store sw a0,0x20(sp).
+ * docs/IDO_CODEGEN.md#inlined-ctor-pair-decl-order-spill-slot-688f8 */
+extern int D_00000000_688f8;
 int *gl_func_000688F8(int a0) {
+    int *b;
     int *p;
-    int *q;
     p = (int *)gl_func_00000000(0x30);
     if (p == 0) goto end;
-    q = p;
-    if (p != 0) goto store_D;          /* tautological — keeps fallback live */
-    p = (int *)gl_func_00000000(0x20);
-    if (p == 0) goto store_first;
-    q = p;
-store_D:
-    q[7] = (int)&D_00000000;           /* via v1 register */
-store_first:
-    p[7] = (int)&D_00000000;           /* via a1 register */
+    b = p;
+    if (b != 0) goto store;
+    b = (int *)gl_func_00000000(0x20);
+    if (b == 0) goto skip;
+store:
+    b[7] = (int)&D_00000000;
+skip:
+    p[7] = (int)&D_00000000_688f8;
 end:
     return p;
 }
-#else
-#ifdef NON_MATCHING
-/* gl_func_000688F8: 26-insn allocate-and-init. p = alloc(0x30); if p==0 return 0;
- * set p->0x1C to a global pointer; return p. (The target also carries a
- * compiler-dead alloc(0x20) branch -- unreachable once p!=0 is established -- and
- * a redundant pre-write of p->0x1C to a first global that the second write
- * overwrites; both collapse to D_00000000 here.) NM (reference decode): collapsed
- * call + collapsed D refs (raw-.word game_libs reloc depression). */
-extern int gl_func_00000000();
-extern int D_00000000;
-int gl_func_000688F8(int a0) {
-    int p = gl_func_00000000(0x30);
-    if (p == 0) {
-        return 0;
-    }
-    *(int *)((char *)p + 0x1C) = (int)&D_00000000;
-    return p;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000688F8);
-#endif
-#endif
 
 extern int gl_func_00000000();
 void gl_func_00068960(char *a0) {
