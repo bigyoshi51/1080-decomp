@@ -10802,35 +10802,29 @@ unsigned game_libs_func_0003F9BC(int a0, int a1, unsigned a2) {
     return a2;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0003FA54: 21-insn 2-call helper. Initializes buf[0]=0x33,
- * sets result to 0 or 1 based on a1, calls gl_func twice, returns result.
- *
- * 2026-05-14 cap: built is 1 insn (4 bytes) SHORTER than target. Target
- * has `sw a2, 0x64(sp)` in delay slot of first jal — a "dead spill" of
- * caller a2 to a local slot. IDO won't emit this without making a2
- * "live" past the call. Tried 4-arg sig — regressed to 20 diffs (too
- * many regalloc shifts). Structural cap from "spill caller arg in delay
- * slot when no other useful insn available" — unreachable from C. */
+/* gl_func_0003FA54 (0x54, 21 insns): fills a 0xA0-byte message record on the
+ * stack (type 0x33 at +0, a2 at +0x4C, result flag at +0x50 set only for
+ * a1 == 0 / a1 == 1), posts it twice and returns the flag re-read from the
+ * record. The old "dead spill of a2 in the first jal delay slot" cap was a
+ * decode error: `sw a2,0x64(sp)` is the record store msg.arg = a2 (sp+0x18
+ * + 0x4C), scheduled into the delay slot; the result also lives in the
+ * record (lw v0,0x68(sp) after the calls), not in a register local. a0 is
+ * homed by IDO even though unused. */
+typedef struct { int type; char p1[72]; int arg; int res; char p2[0xA0 - 84]; } GlMsg3FA54;
 int gl_func_0003FA54(int a0, int a1, int a2) {
-    char pad[76];
-    int result;
-    int buf[20];
-    (void)pad; (void)a0;
-    buf[0] = 0x33;
+    GlMsg3FA54 s;
+    s.type = 0x33;
     if (a1 == 0) {
-        result = 0;
+        s.res = 0;
     }
     if (a1 == 1) {
-        result = 1;
+        s.res = 1;
     }
-    gl_func_00000000(buf, a1, a2);
-    gl_func_00000000(buf);
-    return result;
+    s.arg = a2;
+    gl_func_00000000(&s);
+    gl_func_00000000(&s);
+    return s.res;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FA54);
-#endif
 
 extern int gl_func_00000000();
 
