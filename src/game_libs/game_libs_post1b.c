@@ -4909,25 +4909,25 @@ void gl_func_00068D18(int *self) {
     }
 }
 
-/* gl_func_00068DD4: script-op handler (85 words). NM 96.82 (2026-10-14
- * agent-g, was 87.24). Re-decoded: two stream reads through the cursor
- * idiom of the handler above (`pp = *self; q = *pp; *pp = q + 1;
- * v = *q; self[1] = v;`), the first indexing the &D table
- * (`(&D_00000000)[v]` = lui/sll/addu/lw), the second feeding the factory;
- * the 0x30 flag word is cleared twice (~0x400 via the fresh result,
- * ~0x800 via a re-read of self->0x28 through a field pointer = the
- * advance-then-store form, docs/IDO_CODEGEN.md
- * #e368-field-pointer-compound-rmw-ring-temp). Frame 0x38 with
- * sp30/sp2C/sp24 at 0x30/0x2C/0x24 = declaration-rank homing (p, sp30,
- * sp2C, o, sp24). Reusing ONE pp/q/v for both reads keeps them
- * candidates (separate names turn them into ring temps, 48 diffs).
- * Residual (1 word + colours): the first clear folds to `lw t4,48(v0)`
- * where the target materialises `addiu v1,v0,48; lw t4,0(v1)` (pointer
- * before / between / after the two self stores, `*p = *p & ~`, `o += 0x30`,
- * IXA `&((int *)o)[12]`, bitfields all fold or go byte-wide), and the
- * candidate colours differ: x t1/target t0, first read pp/q/v
- * v1/t0/a2 vs v0/t1/v1, second q t0 vs v0, the second clear's base and the
- * vtable object v1 vs t0. */
+/* gl_func_00068DD4: script-op handler (85 words). NM 97.39 -> 98.71
+ * (2026-10-14 agent-g, was 87.24 -> 97.39). Two stream reads through the
+ * cursor idiom (`pp = *self; q = *pp; *pp = q + 1; v = *q; self[1] = v;`),
+ * the first indexing the &D table (`(&D_00000000)[v]`), the second feeding
+ * the factory. Second pass: (1) the first 0x30 flag clear needs the
+ * goto-mid anti-fold (docs/IDO_CODEGEN.md #goto-mid-pointer-antifold-65060)
+ * to materialise `addiu v1,v0,48; lw t4,0(v1)` -- size now exact (85=85);
+ * (2) the 0xC object `x`, the second clear's base and the vtable object
+ * are ONE reused local (all colour t0 in the target): the second clear is
+ * `x = self->0x28 + 0x30; *(int *)x &= ~0x800;` (base-reassign
+ * advance-then-store), which also lets the `lui a0` of the if-arm hoist
+ * into the clear block as in the target. Residual 19 words = colours only:
+ * x t1 / target t0 and the read candidates -- build read1 pp/q/v =
+ * v1/t0/a2, read2 v1/t0/a2; target read1 v0/t1/v1, read2 v1/v0/a2 (the
+ * shared v coalesces with the a2 call arg across both reads). Probed and
+ * worse: every split of pp/q/v into per-read names (32-57 diffs; split q
+ * fixes x=t0/q1=t1 but turns q2 into a ring temp), `*(*pp)++`, v-first
+ * order, store-then-reload, no-v assignment-expression args (same 19),
+ * reusing p/o as read2 cursors, decl reorder (no effect). */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
@@ -4939,7 +4939,6 @@ void gl_func_00068DD4(char *arg0) {
     char *sp2C;
     char *o;
     char *sp24;
-    char *t;
     char *b;
     int **pp;
     int *q;
@@ -4966,15 +4965,17 @@ void gl_func_00068DD4(char *arg0) {
     FW(arg0, 0x28) = (int)o;
     FW(arg0, 0x10) = (int)o;
     p = (int *)(o + 0x30);
+    goto mid;
+mid:
     *p &= ~0x400;
-    p = (int *)(FW(arg0, 0x28) + 0x30);
-    *p &= ~0x800;
+    x = (char *)FW(arg0, 0x28) + 0x30;
+    *(int *)x &= ~0x800;
     if (sp30 == 0) {
         gl_func_00000000((char *)&D_00000000 + 0x2C580);
     }
     b = (char *)FW(FW(FW(arg0, 0x3C), 0x3C), 0xC);
-    t = (char *)FW(b, 0x28);
-    ((GP_00068DD4)FW(t, 0x14))(*(s16 *)(t + 0x10) + b);
+    x = (char *)FW(b, 0x28);
+    ((GP_00068DD4)FW(x, 0x14))(*(s16 *)(x + 0x10) + b);
     sp24 = (char *)gl_func_00000000(sp30, FW(FW(arg0, 0x3C), 0xC), FW(arg0, 0x28));
     gl_func_00000000(FW(FW(arg0, 0x3C), 0xC), sp24);
     gl_func_00000000(sp24);
