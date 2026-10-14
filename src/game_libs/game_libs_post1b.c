@@ -5502,7 +5502,6 @@ void gl_func_000697C4(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000697C4);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_00069B94: 41-insn linked-list walk + per-node dispatch (0xA4, frame 0x28).
  *
  *   if (self->0x38 == 0) gl_func_00000000(&D + 0x2C5F0);   // bnel-guarded init cb
@@ -5536,7 +5535,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000697C4);
  * key type (unsigned, int pointer, void pointer), key block-scope / pre-init / dead-if after
  * the loop, `!= 0` dropped, arm order swapped (+2 words), arm-internal
  * key-first comma (15), volatile 2-field iterator struct (18).
+ * 2026-10-14 (agent-g, 98.66 -> EXACT 41/41): the 6337C shape. NOT the
+ * rotated single-copy while: an explicit pre-loop advance plus a loop-tail
+ * advance, with the tail reading the successor through NEXT
+ * (`node = next; key = node ? (next = next[1], node[0]) : 0`). The
+ * pre-loop `node = next` forwards the stored self->0x48 load (ring t7) and
+ * the tail reload stays ring t2; key colours v0. Blank callee via the
+ * pinned alias gl_func_00062F64_69b94 (a direct in-unit call would bake
+ * the address). docs/IDO_CODEGEN.md#address-taken-iterator-locals-forwarded-ring-6337c
  */
+extern int gl_func_00062F64_69b94();
 void gl_func_00069B94(int *self) {
     extern int D_00000000;
     int *next;
@@ -5549,17 +5557,17 @@ void gl_func_00069B94(int *self) {
         bar = &next;
     }
     if (self[0x38 / 4] == 0) {
-        gl_func_00062F64((int)((char *)&D_00000000 + 0x2C5F0));
+        gl_func_00062F64_69b94((int)((char *)&D_00000000 + 0x2C5F0));
     }
     next = (int *)self[0x48 / 4];
-    while (node = next,
-           (node != 0 ? (next = (int *)node[1], key = node[0]) : (key = 0)) != 0) {
-        gl_func_00062F64(node[0], self, self[0x3C / 4]);
+    node = next;
+    key = node ? (next = (int *)node[1], node[0]) : 0;
+    while (key != 0) {
+        gl_func_00062F64_69b94(node[0], self, self[0x3C / 4]);
+        node = next;
+        key = node ? (next = (int *)next[1], node[0]) : 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069B94);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_00069C38(char *a0) {
