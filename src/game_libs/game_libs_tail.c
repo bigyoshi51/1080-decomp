@@ -1971,26 +1971,26 @@ void gl_func_0000C46C(int a0) {
     gl_func_00000000(a0, &scratch);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0000C49C: 21-insn 3-call wrapper. SEMANTIC FIX 2026-05-06:
- * target reads from RETURN VALUE as pointer (r[0], r[2]), NOT from a0.
- * Prior wrap incorrectly used `a0[1] = a0[0]`. Asm clearly shows
- * `lw $t8, 0($v0)` (= r[0]) and `lw $t9, 0x8($v0)` (= r[2]).
- *   r = (int*)gl_func(a0);              // returns pointer
- *   a0[1] = r[0];                        // copy r[0] into a0[1]
- *   if (r[2] != 0) gl_func(r[2], r);
- *   gl_func(r, r); */
-void gl_func_0000C49C(int *a0) {
-    int *r = (int*)gl_func_00000000(a0);
-    a0[1] = r[0];
-    if (r[2] != 0) {
-        gl_func_00000000(r[2], r);
+/* gl_func_0000C49C: 21-insn 3-call wrapper. r = g(self); self->1 = r->0;
+ * if (r->2) g(r->2, r); g(r). EXACT 21/21 (2026-10-14, agent-g). Two levers
+ * over the 82.29 wrap: (1) the last call takes ONE argument -- the target
+ * never writes a1 after the `or a1,v0` at the top, so r colours a1 for the
+ * whole function (docs/IDO_CODEGEN.md#c8b8-param-in-a1-means-single-arg-call;
+ * g(r, r) colours r a2 + copies, 23 words); (2) the copy self->1 = r->0 is a
+ * 4-byte STRUCT assignment: its `lw t8,0(v0)` skips t7 (eval_mov pops a data
+ * pair and uses pop #2), which a plain int copy (t6/t7) cannot reproduce.
+ * docs/IDO_CODEGEN.md#c49c-one-word-struct-move-skips-ring-slot */
+typedef struct { int x; } C49C_W;
+typedef struct { int pad0; C49C_W f4; } C49C_Self;
+typedef struct { C49C_W f0; int pad4; int f8; } C49C_Rec;
+void gl_func_0000C49C(C49C_Self *a0) {
+    C49C_Rec *r = (C49C_Rec *)gl_func_00000000(a0);
+    a0->f4 = r->f0;
+    if (r->f8 != 0) {
+        gl_func_00000000(r->f8, r);
     }
-    gl_func_00000000(r, r);
+    gl_func_00000000(r);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C49C);
-#endif
 
 extern int gl_ref_0001DCE0();
 extern int gl_ref_0001DD1C();
