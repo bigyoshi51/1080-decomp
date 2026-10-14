@@ -5752,6 +5752,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000697C4);
  * temp colors v0 (blocking the loop's else-hoist -> or v0,zero stays in an
  * else block); target keeps it in t2. Probed named-temp/copy/statement-order
  * respellings — coalescing wins every time; coloring-preference residual.
+ * 2026-10-14 (agent-g) 94.39 -> 98.66: the loop is ONE source copy of the
+ * advance, rotated by IDO: `while (node = next, (node != 0 ? (next = node[1],
+ * key = node[0]) : (key = 0)) != 0)` (the pre-loop copy forwards the just-
+ * stored self->0x48 into node). This hoists `or vX,zero,zero` above the
+ * bottom beqz and lands the b-offset/branch layout exactly: 41/41 words, every
+ * opcode and immediate equal. Needs the DEAD `key =` arm assignments (no-key
+ * ternary, a named `key = ternary`, or a trailing `, key != 0` all fall back
+ * to the old else-block layout). RESIDUAL (10 words, registers only): the
+ * unnamed ternary value colours $v1 (target $v0) and the bottom `next` reload
+ * colours $v0 (target ring $t2). Probed: void alias on either/both calls,
+ * key type (unsigned, int pointer, void pointer), key block-scope / pre-init / dead-if after
+ * the loop, `!= 0` dropped, arm order swapped (+2 words), arm-internal
+ * key-first comma (15), volatile 2-field iterator struct (18).
  */
 void gl_func_00069B94(int *self) {
     extern int D_00000000;
@@ -5768,22 +5781,9 @@ void gl_func_00069B94(int *self) {
         gl_func_00062F64((int)((char *)&D_00000000 + 0x2C5F0));
     }
     next = (int *)self[0x48 / 4];
-    node = next;
-    if (node != 0) {
-        next = (int *)node[1];
-        key = node[0];
-    } else {
-        key = 0;
-    }
-    while (key != 0) {
+    while (node = next,
+           (node != 0 ? (next = (int *)node[1], key = node[0]) : (key = 0)) != 0) {
         gl_func_00062F64(node[0], self, self[0x3C / 4]);
-        node = next;
-        if (node != 0) {
-            next = (int *)node[1];
-            key = node[0];
-        } else {
-            key = 0;
-        }
     }
 }
 #else
