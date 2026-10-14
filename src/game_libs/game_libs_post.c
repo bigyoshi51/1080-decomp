@@ -10930,78 +10930,62 @@ int gl_func_0002842C(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002842C);
 #endif
 
-// gl_func_00028510 — STRUCTURAL PASS (0xF4 / 61 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). Third SIBLING of gl_func_00028358 / gl_func_0002842C —
-// same handle-resolve into the &D_0+0x2158 selection slot, with a
-// halfword sub-count field.
-//
-//   int gl_func_00028510(int a0, int a1) {
-//     if (a0 == 0xFF) return 0;                          // none sentinel
-//     int r = (*lookup)(a0, a1);                          // jal 0 USO
-//     if (r != 0) { *(int*)(&D_0 + 0x2158) = r; return …; }
-//     R *rec = *(R**)(&D_0 + 0x2030) + a0*0x14;            // registry
-//     short cap = rec->h_4;                                 // sub count
-//     int packed = (a0 << 8) | a1;
-//     if (a1 < cap) packed += 1;
-//     *(int*)(&D_0 + 0x2158) = packed;
-//   }
-//
-// Struct-typing reference: identical to gl_func_00028358 /
-//   gl_func_0002842C (see their comments) — (a0,a1) -> &D_0+0x2158
-//   via USO-relocated lookup then a &D_0+0x2030 / 0x14-stride registry
-//   fallback. The ONLY difference vs the other two: this variant
-//   range-checks a1 against the record's HALFWORD at +0x4 (94590004
-//   lhu) rather than a byte at +0 / +1 — i.e. it consults a 16-bit
-//   sub-count field of the same record. The three together cover the
-//   byte-+0 / byte-+1 / halfword-+4 sub-count variants of the
-//   registry select/resolve entry.
-// 2026-05-31: 53.11% -> 89.75% via the gl_func_0002842C complete-flow (prior
-//   sketch was semantically WRONG). This variant: cap = rec->halfword_4, sub-
-//   table base = rec->0x10, sub-stride a1*8 (not *4), v1 bounds-check >=0x80000000,
-//   flags 0x400/0x500. Degenerate tail: when v1!=0, t7=*v1; v0=v1; return v1 iff
-//   t7!=0 else 0 (the v1==0 branch stores packed+0x5000000 then loads *v1=*(0) —
-//   harmless, v0 already 0). Remaining ~10% = prologue ra-save ordering + regalloc.
-//   Name pre-checked: no extern reuse (collision-safe).
-#ifdef NON_MATCHING
+// gl_func_00028510 -- registry handle resolve, halfword sub-count variant
+// (0xF4 / 61 words). BYTE-EXACT 2026-10-14 (89.75 -> 100). Third sibling of
+// gl_func_00028358 / gl_func_0002842C: a0 == 0xFF -> 0; lookup(a0) miss ->
+// selection word &D+0x2158 = a0 + 0x10000000; a1 >= rec->h4 -> 0x4000000
+// class; rec->tbl not a KSEG0 pointer -> 0; else the 8-byte entry &tbl[a1]
+// is returned if its first word is non-zero (NULL entry -> 0x5000000 class).
+// Two levers (see docs/IDO_CODEGEN.md#one-arg-lookup-a2-param-copy-28510):
+//  - the jal-0 lookup takes ONLY a0. With (a0, a1) the a1 param stays in a1;
+//    with one arg uopt colours it to a2 (`or a2,a1,zero` in the 0xFF-check
+//    bne delay, so `sw ra` moves up to word 2, and the home spill/reload is
+//    `sw/lw a2,0x1C(sp)`).
+//  - `&rec->tbl[a1]` through a typed record view gives the base-first
+//    `addu v1,a1,t3`; flat `base + a1 * 8`, `a1 * 8 + base`, `<< 3`,
+//    char*/int*/E8* locals all give `addu v1,t3,a1`.
+// Tail: `if (*e == 0) return 0; return e;` = `or v0,v1; bnez t7; b; li v0,0`.
+typedef struct {
+    unsigned char b0;
+    unsigned char b1;
+    unsigned short h2;
+    unsigned short h4;  /* +0x4 sub-count */
+    unsigned short h6;
+    int x8;
+    int xC;
+    struct { int w0; int w1; } *tbl;  /* +0x10 */
+} gl_28510_Rec;
 extern int gl_func_00000000();
 extern int D_00000000;
 int gl_func_00028510(int a0, int a1) {
     int r;
-    int *rec;
-    int base;
-    int *v1;
-    int t7;
+    gl_28510_Rec *rec;
+    int *e;
     if (a0 == 0xFF) {
         return 0;
     }
-    r = gl_func_00000000(a0, a1);
+    r = gl_func_00000000(a0);
     if (r == 0) {
         *(int *)((char *)&D_00000000 + 0x2158) = a0 + 0x10000000;
         return 0;
     }
-    rec = (int *)(*(int *)((char *)&D_00000000 + 0x2030) + a0 * 0x14);
-    if (a1 >= *(unsigned short *)((char *)rec + 4)) {
+    rec = (gl_28510_Rec *)(*(int *)((char *)&D_00000000 + 0x2030) + a0 * 0x14);
+    if (a1 >= rec->h4) {
         *(int *)((char *)&D_00000000 + 0x2158) = (a0 << 8) + a1 + 0x4000000;
         return 0;
     }
-    base = *(int *)((char *)rec + 0x10);
-    if ((unsigned int)base < 0x80000000U) {
+    if ((unsigned int)rec->tbl < 0x80000000U) {
         return 0;
     }
-    v1 = (int *)(base + a1 * 8);
-    if (v1 == 0) {
+    e = (int *)&rec->tbl[a1];
+    if (e == 0) {
         *(int *)((char *)&D_00000000 + 0x2158) = (a0 << 8) + a1 + 0x5000000;
     }
-    t7 = *v1;
-    if (t7 != 0) {
-        return (int)v1;
+    if (*e == 0) {
+        return 0;
     }
-    return 0;
+    return (int)e;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028510);
-#endif
 
 // gl_func_00028604 — STRUCTURAL PASS (0x268 / 154 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
