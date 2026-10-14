@@ -10255,244 +10255,252 @@ void game_libs_func_00027DC0(char *a0) {
     *(float *)(a0 + 0x70) = 0.0f;
 }
 
-// gl_func_00027E24 — STRUCTURAL PASS (0x534 / 333 words ≈ 1.3KB, no
-// episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO
-// bundle (named fn + 3 trailing helpers) — deferred USO re-split.
-// The named leading fn is a big per-record processing pass over the
-// main sprite record table. Large -0x98 frame.
-//
-//   void gl_func_00027E24(void) {
-//     S *g = &D_0;
-//     int n = g->w_2070;                                // record count
-//     if (n <= 0) return;
-//     for (int i = 0; i < n; i++) {                       // all records
-//       R *rec = *(R**)(&D_0 + 0x2CFC) + i;                // record tbl
-//       T *sub = rec->w_44;                                // sub-struct
-//       byte k = (&rec->_30)->b_4;
-//       int  v = rec->w_14;
-//       if ((unsigned)v < 0x7FFFFFFF) { ... clamp / use v ... }
-//       ... accumulate into a stack buffer at sp+0x67 ...
-//     }
-//   }
-//
-// Struct-typing reference: iterates the SAME primary sprite record
-//   table as gl_func_0001E134 / gl_func_0001FAE8 / gl_func_0002119c —
-//   live count word &D_0+0x2070, record-table pointer &D_0+0x2CFC.
-//   Per record: word +0x44 a linked sub-struct pointer, embedded
-//   sub-block at +0x30 (byte +4), word +0x14 a value clamped against
-//   0x7FFFFFFF (INT_MAX saturation). Results accumulate into a stack
-//   scratch buffer at sp+0x67. This is one of the heavyweight
-//   per-frame "process every sprite record" passes of that subsystem
-//   (sibling to gl_func_0001E134's builder / gl_func_0001FAE8's
-//   reactivate sweep).
-// DECODE PROGRESS 2026-06-22: 54.5% -> 73.5% fuzzy; size gap 56w -> ~0
-//   (262w -> 317w vs target 318w). Two structural decode fixes:
-//   (1) func_3be70 arg buffer sp+0x64..0x7A was modelled as separate
-//       scalar locals -> IDO DCE'd every store but &sp64 (only one read
-//       by address). Replaced with a single contiguous `struct buf64`
-//       passed as &buf; all stores now survive (+~50 insns recovered).
-//       Layout: u8 b0..b3, f32 f4/f8, gap[4], s32 w10, u8 b14, pad, u16 h16.
-//       Field types corrected from mnemonics (lbu=u8, lwc1=f32, lhu=u16).
-//   (2) base &D_0 was rematerialised (8x lui/lo16) instead of held in a
-//       saved reg like the target (s6). `g = &D_0 + (s32)&D_0` forces the
-//       address into a saved reg (1 reload) without a volatile spill.
-//   FP mul.s chain + buf.f4-stored-twice pattern now matches structurally.
-// Caps (RESIDUAL, regalloc-class): remaining ~26% is pure register-
-//   renumber + frame-layout cascade — base reg (mine s3 vs target s6),
-//   *13 as li/multu vs target shift-add strength-reduction, 0x20000000
-//   held-const vs target inline sll-2/bgez bit-test, frame 168 vs 152.
-//   Correct logic, divergent coloring: the documented per-function-RE-only
-//   cap class. jal-0 USO-reloc calls (gl_func_0001CA10/func_3be70/3d414)
-//   credited via placeholder convention. Byte-match deferred.
-//   STALE bundle-note: grep -c 03E00008 = 1 (.s is single fn now).
-//   Name pre-checked: no extern reuse (collision-safe).
+/* gl_func_00027E24 (0x4F8): per-record attach/detach + sound-param pass over
+ * the bootup.uso sym1255 record table (count +0x2070, recs +0x2CFC stride 0xD0), through
+ * its own typed alias D_345c0_27E24 (pinned 0; +0x204C/+0x2050 float scales). Each
+ * record has a sub-block at +0x30 (s, held s0: b0 active, b4 mode, +0x14 obj, +0x18
+ * pending obj, +0x1C 0x14-byte sound params, +0x30 state bits) and a flag word at +0xB0
+ * (e, held s2: bit29, 2-bit mode at bits 20..19). Baked in-unit jals: gl_ref_0003D414,
+ * gl_ref_0003BE70 (the param sink, given &buf); the float-returning cross-module call is
+ * the gl_func_00000000_27E24f blank. NM 73.1 -> 96.8 (2026-10-14 agent-c run 63): the old
+ * m2c graft (`g = &D + (s32)&D`, hand-written off += 0xD0) was rewritten as a plain
+ * indexed loop over the typed global. Levers that each closed a block: held `s = &r->s`
+ * / `e = &r->e` locals (s0/s2 bases); nested if/else so the call paths share the bottom
+ * count reload and only the call-free exits `continue`; the joined active test as an
+ * explicit `act` var assigned in each predecessor (path 1 forwards the stored 1 as
+ * `andi v0,s5,0xff`); path-1 stores in order on, f3C, b0, b4 (24-way permutation probe);
+ * `o->def` spelled per use (not a `d` local) so `o` colours a0; the bits/0x40 test as
+ * `if (!A || !B) { act = s->b0; goto chk; } goto detach;` (bgez/bnez + nop + `b` shape);
+ * `q = &s->snd` assigned BEFORE the ==1/==2 test (stays materialised `addiu v0,s0,28`);
+ * `act = s->b4` for the >0 test (v0); the decl order with two unused trailing ints for
+ * the 0x98 frame (buf at sp+0x64, v at sp+0x63, f at sp+0x5C).
+ * Residual (~3.2%): the target holds &buf.b3 in s7 (`addiu s7,sp,103` in the preheader,
+ * 3 stores `sb tN,0(s7)`, one more saved reg, t-reg ids shift by one) -- every C
+ * spelling folds the address back to sp+103 (plain `pb = &buf.b3`, register, if(1)
+ * barrier, ternary store); a guarded non-dominating def `if (count > 0) pb = ...` does
+ * produce s7 but adds a spill + a second blez (93.6). Also: release blocks give `beq
+ * a0,s3` (target `beq s3,a0`; comparing s->obj instead flips the reg to v0), and the
+ * else arm keeps obj in a0 with o->b1 CSE'd (target v1 + a re-load in the bnezl slot). */
 #ifdef NON_MATCHING
-extern int func_3be70();
-extern int func_3d414();
-extern int gl_func_0001CA10();
-struct buf64 {
-    u8  b0;        /* +0x00 (sp+0x64) */
-    u8  b1;        /* +0x01 (sp+0x65) */
-    u8  b2;        /* +0x02 (sp+0x66) */
-    u8  b3;        /* +0x03 (sp+0x67) */
-    f32 f4;        /* +0x04 (sp+0x68) */
-    f32 f8;        /* +0x08 (sp+0x6C) */
-    u8  pad0C[4];  /* +0x0C (sp+0x70) */
-    s32 w10;       /* +0x10 (sp+0x74) */
-    u8  b14;       /* +0x14 (sp+0x78) */
-    u8  pad15;     /* +0x15 (sp+0x79) */
-    u16 h16;       /* +0x16 (sp+0x7A) */
-};
+typedef struct { unsigned flag:1, live:1, b29:1, p3:8, mode:2, rest:19; } gl_27E24_Bits;
+typedef struct {
+    char p0[3];
+    unsigned char b3;
+    unsigned char b4;
+    char p5[4];
+    unsigned char b9;
+    char pA[2];
+    unsigned char bC;
+    char pD[2];
+    unsigned char bF;
+    char p10[0x10];
+    unsigned short h20;
+    char p22[0x4C - 0x22];
+    gl_27E24_Bits *bits;
+    char p50[0xDC - 0x50];
+    int wDC;
+    unsigned char bE0;
+} gl_27E24_Def;
+typedef struct {
+    union { gl_27E24_Bits bf; unsigned char b[4]; } u;
+    char p4[2];
+    unsigned char b6;
+    char p7[0x2C - 7];
+    void *owner;
+    char p30[0x40 - 0x30];
+    float f40;
+    float f44;
+    char p48[8];
+    gl_27E24_Def *def;
+} gl_27E24_Obj;
+typedef struct { unsigned char b0, b1, b2, b3, b4; char p5; unsigned short h6; float f8, fC; int w10; } gl_27E24_Snd;
+typedef struct { unsigned x:3, on:1, nib:4, rest:24; } gl_27E24_St;
+typedef struct {
+    unsigned char b0;
+    char p1[3];
+    unsigned char b4;
+    char p5[3];
+    float f8;
+    float fC;
+    char p10[4];
+    int obj;
+    int w18;
+    gl_27E24_Snd snd;
+    gl_27E24_St st;
+    char p34[8];
+    float f3C;
+} gl_27E24_Sub;
+typedef struct {
+    char p0[0xC];
+    char *c;
+    char p10[0x30 - 0x10];
+    gl_27E24_Sub s;
+    char p70[0xB0 - 0x70];
+    gl_27E24_Bits e;
+    char pB4[0xD0 - 0xB4];
+} gl_27E24_Rec;
+typedef struct {
+    char p0[0x204C];
+    float f204C;
+    float f2050;
+    char p2054[0x2070 - 0x2054];
+    int count;
+    char p2074[0x2CFC - 0x2074];
+    gl_27E24_Rec *recs;
+} gl_27E24_GS;
+typedef struct {
+    unsigned char b0, b1, b2, b3;
+    float f4;
+    float f8;
+    char pC[4];
+    int w10;
+    unsigned char b14;
+    char p15;
+    unsigned short h16;
+} gl_27E24_Buf;
+extern gl_27E24_GS D_345c0_27E24;
+extern float gl_func_00000000_27E24f();
+extern void gl_ref_0003BE70();
+extern void gl_ref_0003D414();
 
 void gl_func_00027E24(void) {
-    char *g = (char *)&D_00000000 + (s32)&D_00000000;
-    struct buf64 buf;
-    u8 sp63;
-    f32 sp5C;
-    f32 temp_f18;
-    s32 *temp_v0;
-    s32 var_s4;
-    s32 var_v0;
-    u32 temp_a0;
-    u8 *var_s0;
-    u8 temp_v0_2;
-    u8 var_v0_2;
-    u8 var_v1;
-    s32 temp_a0_2;
-    s32 temp_a0_3;
-    char *temp_a1;
-    char *temp_a1_2;
-    s32 temp_s1;
-    char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v1;
-    char *var_s2;
+    gl_27E24_Rec *r;
+    gl_27E24_Sub *s;
+    gl_27E24_Bits *e;
+    gl_27E24_Obj *o;
+    gl_27E24_Def *d;
+    gl_27E24_Obj *w;
+    gl_27E24_Snd *q;
+    gl_27E24_Buf buf;
+    unsigned char v;
+    float f;
+    unsigned char *pb;
+    int i;
+    unsigned char act;
+    int pad0;
+    int pad1;
 
-    if (*(s32 *)(g + 0x2070) > 0) {
-        var_s4 = 0;
-        do {
-            temp_s1 = var_s4 + *(s32 *)(g + 0x2CFC);
-            var_s0 = temp_s1 + 0x30;
-            if ((*(s32 *)(temp_s1 + 0x44)) != -1) {
-                var_s0 = temp_s1 + 0x30;
-                temp_a0 = (*(s32 *)(var_s0 + 0x14));
-                if (temp_a0 < 0x7FFFFFFFU) {
-                    var_v0 = *(s32 *)(g + 0x2070) * 0xD;
-                } else {
-                    if ((temp_s1 != (*(s32 *)(temp_a0 + 0x2C))) && ((*(u8 *)(var_s0 + 0x4)) == 0)) {
-                        var_v0_2 = 1 & 0xFF;
-                        (*(u8 *)(var_s0 + 0x30)) = (u8) ((*(u8 *)(var_s0 + 0x30)) | 0x10);
-                        (*(s32 *)(temp_s1 + 0x30)) = 1U;
-                        (*(u8 *)(var_s0 + 0x4)) = 2U;
-                        (*(s32 *)(var_s0 + 0x3C)) = (s32) *(f32 *)(g + 0x2050);
-                        goto block_21;
-                    }
-                    if ((((u32) (*(s32 *)(temp_a0 + 0x0)) >> 0x1F) != 0) || ((*(u8 *)(var_s0 + 0x4)) != 0) || ((s32) (*(s32 *)(temp_s1 + 0x30)) <= 0)) {
-                        temp_a1 = (*(s32 *)(temp_a0 + 0x50));
-                        temp_v0 = (*(s32 *)(temp_a1 + 0x4C));
-                        if (temp_v0 == NULL) {
-                            gl_func_0001CA10(temp_a1, temp_a1);
-                            (*(s32 *)(temp_s1 + 0x30)) = 1U;
-                            (*(u8 *)(var_s0 + 0x4)) = 1U;
-                            var_v0 = *(s32 *)(g + 0x2070) * 0xD;
-                        } else {
-                            if (!(*temp_v0 & 0x20000000) || !((*(s32 *)(temp_a1 + 0x3)) & 0x40)) {
-
-                            } else {
-                                goto block_16;
-                            }
-                            goto block_20;
-                        }
-                    } else {
-block_16:
-                        gl_func_0001CA10((void *) temp_a0);
-                        gl_func_0001CA10(temp_s1);
-                        func_3d414((*(s32 *)(temp_s1 + 0xC)) + 0x10, temp_s1);
-                        (*(s32 *)(temp_s1 + 0x30)) = 1U;
-                        (*(u8 *)(var_s0 + 0x4)) = 2U;
-                        goto block_20;
-                    }
+    pb = &buf.b3;
+    for (i = 0; i < D_345c0_27E24.count; i++) {
+        r = &D_345c0_27E24.recs[i];
+        s = &r->s;
+        if (s->obj != -1) {
+            o = (gl_27E24_Obj *)s->obj;
+            if ((unsigned)o < 0x7FFFFFFF) continue;
+            if (o->owner != r && s->b4 == 0) {
+                s->st.on = 1;
+                s->f3C = D_345c0_27E24.f2050;
+                s->b0 = 1;
+                s->b4 = 2;
+                act = s->b0;
+                goto chk;
+            } else if (o->u.bf.flag || s->b4 != 0 || s->b0 <= 0) {
+                if (o->def->bits == NULL) {
+                    gl_func_00000000(o->def);
+                    s->b0 = 1;
+                    s->b4 = 1;
+                    continue;
                 }
-            } else if (((*(u8 *)(var_s0 + 0x4)) == 0) && ((s32) (*(s32 *)(temp_s1 + 0x30)) > 0)) {
-                var_v0 = *(s32 *)(g + 0x2070) * 0xD;
+                if (!o->def->bits->b29 || !(o->def->b3 & 0x40)) {
+                    act = s->b0;
+                    goto chk;
+                }
+                goto detach;
             } else {
-block_20:
-                var_v0_2 = *var_s0;
-block_21:
-                if (var_v0_2 != 0) {
-                    var_s2 = temp_s1 + 0xB0;
-                    if (((s32) (*(u8 *)(var_s0 + 0x4)) > 0) || ((*(s32 *)(temp_s1 + 0xB0)) & 0x20000000)) {
-                        var_s2 = temp_s1 + 0xB0;
-                        if (!((*(u8 *)(var_s0 + 0x30)) & 0xF) || ((*(s32 *)(temp_s1 + 0xB0)) & 0x20000000)) {
-                            if ((*(s32 *)(var_s0 + 0x18)) != -1) {
-                                gl_func_0001CA10(temp_s1);
-                                temp_a1_2 = (*(s32 *)(var_s0 + 0x18));
-                                if ((*(s32 *)(temp_a1_2 + 0x50)) != 0) {
-                                    var_s2 = temp_s1 + 0xB0;
-                                    gl_func_0001CA10(temp_s1, temp_a1_2);
-                                    gl_func_0001CA10(temp_s1);
-                                    gl_func_0001CA10(temp_s1);
-                                    gl_func_0001CA10(temp_s1);
-                                    gl_func_0001CA10((*(s32 *)(temp_s1 + 0xC)) + 0x30, temp_s1);
-                                    (*(s32 *)(var_s0 + 0x18)) = -1;
-                                    goto block_37;
-                                }
-                                gl_func_0001CA10(temp_s1, temp_a1_2);
-                                gl_func_0001CA10(temp_s1);
-                                gl_func_0001CA10((*(s32 *)(temp_s1 + 0xC)), temp_s1);
-                                (*(s32 *)(var_s0 + 0x18)) = -1;
-                            } else {
-                                temp_a0_2 = (*(s32 *)(var_s0 + 0x14));
-                                if (temp_a0_2 != -1) {
-                                    (*(u8 *)(temp_a0_2 + 0x0)) = (u8) ((*(u8 *)(temp_a0_2 + 0x0)) | 2);
-                                }
-                                gl_func_0001CA10(temp_s1);
-                                gl_func_0001CA10(temp_s1);
-                                gl_func_0001CA10((*(s32 *)(temp_s1 + 0xC)), temp_s1);
-                            }
-                        } else {
-                            goto block_37;
+            detach:
+                gl_func_00000000(o);
+                gl_func_00000000(r);
+                gl_ref_0003D414(r->c + 0x10, r);
+                s->b0 = 1;
+                s->b4 = 2;
+            }
+        } else if (s->b4 == 0 && s->b0 > 0) {
+            continue;
+        }
+        act = s->b0;
+    chk:
+        if (act != 0) {
+            e = &r->e;
+            act = s->b4;
+            if (act > 0 || e->b29) {
+                if (s->st.nib == 0 || e->b29) {
+                    if (s->w18 != -1) {
+                        gl_func_00000000(r);
+                        w = (gl_27E24_Obj *)s->w18;
+                        if (w->def != NULL) {
+                            gl_func_00000000(r, w);
+                            gl_func_00000000(r);
+                            gl_func_00000000(r);
+                            gl_func_00000000(r);
+                            gl_func_00000000(r->c + 0x30, r);
+                            s->w18 = -1;
+                            goto proc;
                         }
-                    } else if (!((*(u8 *)(var_s0 + 0x30)) & 0xF)) {
-                        temp_a0_3 = (*(s32 *)(var_s0 + 0x14));
-                        if (temp_a0_3 != -1) {
-                            (*(u8 *)(temp_a0_3 + 0x0)) = (u8) ((*(u8 *)(temp_a0_3 + 0x0)) | 2);
-                        }
-                        gl_func_0001CA10(temp_s1);
-                        gl_func_0001CA10(temp_s1);
-                        gl_func_0001CA10((*(s32 *)(temp_s1 + 0xC)), temp_s1);
+                        gl_func_00000000(r, w);
+                        gl_func_00000000(r);
+                        gl_func_00000000(r->c, r);
+                        s->w18 = -1;
                     } else {
-block_37:
-                        sp5C = gl_func_0001CA10(var_s0 + 0x30);
-                        gl_func_0001CA10(temp_s1);
-                        temp_v0_2 = (*(u8 *)(var_s0 + 0x4));
-                        if ((temp_v0_2 == 1) || (temp_v0_2 == 2)) {
-                            temp_v0_3 = var_s0 + 0x1C;
-                            buf.f4 = (*(f32 *)(temp_v0_3 + 0x8));
-                            buf.f8 = (*(f32 *)(temp_v0_3 + 0xC));
-                            buf.b2 = (*(u8 *)(temp_v0_3 + 0x2));
-                            buf.b0 = (*(u8 *)(temp_v0_3 + 0x0));
-                            buf.b3 = (*(u8 *)(temp_v0_3 + 0x3));
-                            buf.b1 = (*(u8 *)(temp_v0_3 + 0x1));
-                            buf.w10 = (*(s32 *)(temp_v0_3 + 0x10));
-                            buf.b14 = (*(u8 *)(temp_v0_3 + 0x4));
-                            buf.h16 = (*(u16 *)(temp_v0_3 + 0x6));
-                            var_v1 = ((u32) ((*(s32 *)(var_s2 + 0x0)) << 0xB) >> 0x1E) & 0xFF;
-                        } else {
-                            temp_v1 = (*(s32 *)(var_s0 + 0x14));
-                            temp_v0_4 = (*(s32 *)(temp_v1 + 0x50));
-                            buf.f4 = (*(f32 *)(temp_v1 + 0x44));
-                            buf.f8 = (*(f32 *)(temp_v1 + 0x40));
-                            buf.b2 = (*(u8 *)(temp_v1 + 0x6));
-                            if ((*(u8 *)(temp_v1 + 0x1)) == 0) {
-                                buf.b3 = (*(u8 *)(temp_v0_4 + 0xE0));
-                            } else {
-                                buf.b3 = (*(u8 *)(temp_v1 + 0x1));
-                            }
-                            buf.b0 = (*(u8 *)(temp_v0_4 + 0x4));
-                            buf.b1 = (*(u8 *)(temp_v0_4 + 0xC));
-                            buf.w10 = (*(s32 *)(temp_v0_4 + 0xDC));
-                            buf.b14 = (*(u8 *)(temp_v0_4 + 0xF));
-                            buf.h16 = (*(u16 *)(temp_v0_4 + 0x20));
-                            var_v1 = (*(u8 *)(temp_v0_4 + 0x9)) & 7 & 0xFF;
-                            if ((*(s32 *)(*(s32 *)(temp_v0_4 + 0x4C)) & 0x20000000) && ((*(s32 *)(temp_v0_4 + 0x3)) & 8)) {
-                                buf.f4 = 0.0f;
-                                buf.f8 = 0.0f;
-                            }
-                        }
-                        sp63 = var_v1;
-                        temp_f18 = buf.f4 * (*(f32 *)(var_s0 + 0xC) * *(f32 *)(var_s0 + 0x8));
-                        buf.f4 = temp_f18;
-                        buf.f4 = temp_f18 * *(f32 *)(g + 0x204C);
-                        buf.f8 *= sp5C;
-                        func_3be70(temp_s1, &buf);
-                        (*(u8 *)(var_s2 + 0x1)) = (u8) (((sp63 * 8) & 0x18) | ((*(u8 *)(var_s2 + 0x1)) & 0xFFE7));
+                        o = (gl_27E24_Obj *)s->obj;
+                        if ((int)o != -1) o->u.b[0] |= 2;
+                        gl_func_00000000(r);
+                        gl_func_00000000(r);
+                        gl_func_00000000(r->c, r);
+                    }
+                } else {
+                    goto proc;
+                }
+            } else if (s->st.nib == 0) {
+                o = (gl_27E24_Obj *)s->obj;
+                if ((int)o != -1) o->u.b[0] |= 2;
+                gl_func_00000000(r);
+                gl_func_00000000(r);
+                gl_func_00000000(r->c, r);
+            } else {
+            proc:
+                f = gl_func_00000000_27E24f(&s->st);
+                gl_func_00000000(r);
+                q = &s->snd;
+                if (s->b4 == 1 || s->b4 == 2) {
+                    buf.f4 = q->f8;
+                    buf.f8 = q->fC;
+                    buf.b2 = q->b2;
+                    buf.b0 = q->b0;
+                    *pb = q->b3;
+                    buf.b1 = q->b1;
+                    buf.w10 = q->w10;
+                    buf.b14 = q->b4;
+                    buf.h16 = q->h6;
+                    v = e->mode;
+                } else {
+                    o = (gl_27E24_Obj *)s->obj;
+                    d = o->def;
+                    buf.f4 = o->f44;
+                    buf.f8 = o->f40;
+                    buf.b2 = o->b6;
+                    if (o->u.b[1] == 0) {
+                        *pb = d->bE0;
+                    } else {
+                        *pb = o->u.b[1];
+                    }
+                    buf.b0 = d->b4;
+                    buf.b1 = d->bC;
+                    buf.w10 = d->wDC;
+                    buf.b14 = d->bF;
+                    buf.h16 = d->h20;
+                    v = d->b9 & 7;
+                    if (d->bits->b29 && (d->b3 & 8)) {
+                        buf.f4 = 0.0f;
+                        buf.f8 = 0.0f;
                     }
                 }
-                var_v0 = *(s32 *)(g + 0x2070) * 0xD;
+                buf.f4 *= s->fC * s->f8;
+                buf.f4 *= D_345c0_27E24.f204C;
+                buf.f8 *= f;
+                gl_ref_0003BE70(r, &buf);
+                e->mode = v;
             }
-            var_s4 += 0xD0;
-        } while (var_s4 < (var_v0 * 0x10));
+        }
     }
 }
 #else
