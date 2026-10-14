@@ -292,27 +292,32 @@ float gl_func_00063568(int *a0, int a1, int a2) {
  *   Body: log → fields → FUNC2(self,a1,a2) → -1000 + a4/a5 fields → tail call.
  * 9-insn INSN_PATCH closes a v0/v1 register rename for a3 and a 6-insn
  * cvt/swc1-vs-v1-store reorder. */
-#ifdef NON_MATCHING
+/* gl_func_000635D8: init with two blank calls (EXACT 37/37).
+ * - The first call goes through the void-typed alias gl_func_00000000_635d8_v
+ *   (pinned = 0): with an int-returning callee the dead v0 def keeps the
+ *   post-call a3 home reload out of v0 (build `lw v1,44(sp)`, 3 words); the
+ *   void alias frees v0 for it (docs/IDO_CODEGEN.md#void-alias-frees-v0-for-reload-635d8).
+ * - Tail store SOURCE order float, 0x6C, 0x64, 0x68, 0x70 (sweep of 60 orders):
+ *   gives the target's unscheduled cvt.s.w -> swc1 pair ahead of the -1000 stores. */
+extern int gl_func_00000000();
+extern void gl_func_00000000_635d8_v();
 void gl_func_000635D8(int *self, int a1, int a2, int a3, int a4, int a5) {
     int r;
-    func_00000000((char*)&D_00000000 + 0x221A8);
+    gl_func_00000000_635d8_v((char*)&D_00000000 + 0x221A8);
     self[0x88/4] = a3;
     self[0x80/4] = a3;
     self[0x74/4] = a1;
     self[0x7C/4] = a2;
     self[0x84/4] = a2;
-    r = func_00000000(self, a1, a2);
+    r = gl_func_00000000(self, a1, a2);
     *(float*)&self[0x78/4] = (float)r;
+    self[0x6C/4] = a5;
     self[0x64/4] = -1000;
     self[0x68/4] = -1000;
     self[0x70/4] = 0;
-    self[0x6C/4] = a5;
     self[0x98/4] = a4;
-    func_00000000();
+    gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000635D8);
-#endif
 
 /* gl_func_0006366C: too-big-N-function-bundle (declared size 0xA0, 40 words).
  * Splat grouped 3 distinct functions under one symbol — 3 jr $ra terminators.
