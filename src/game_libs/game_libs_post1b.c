@@ -5325,18 +5325,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000690A8);
 #endif
 /* gl_func_000693A4: skin-vertex rigid transform: v = R(node+0x70) * src[i] + (node.T - parent.T);
  * out[idx] = v (mode 100) or out[idx] += v * mode * 0.01f.  NM (2026-10-14 agent-g):
- * every row sum is spelled REVERSED + right-associated `m20*v2 + (m10*v1 + m0*v0)` (the
- * #reversed-right-assoc-sum-load-last-phantom-slots-4f0c8 rule; natural left-linear puts the
- * third product FIRST in its mul.s/add.s), and the parent pointer is assigned before the node
- * pointer (pb then pa) so the head sub.s loads land f10/f8 like the target.  LCS 51 -> 93/148.
- * Residual: (1) ugen temp-ring PAIR SWAP: target uses t9/t8/t5/t4/t7/t6 and f10/f8 f4/f6 where
- * this builds t8/t9/t4/t5/t6/t7 and f8/f10 f6/f4 (adjacent ring pairs exchanged, not a phase
- * shift) -- probes inert: neg/comma/reversed e-block, Vec3 / float[4][4] / float-index views,
- * pointer decl order, while(0) pointer anchors, array-index Ent/S3 loop, (unsigned char) burn
- * (moves the loop head to t9 but then t4..), IDO 5.3; (2) v0/v1 pointer colours swapped vs the
- * sub.s operand order (pa-first fixes colours, breaks the f-ring); (3) mode==100 arm ends
- * nop + sh + `b; lw t0` where target puts the sh in the b delay; (4) else-arm third lh scheduled
- * early. */
+ * every row sum is spelled REVERSED + right-associated `m20*v2 + (m10*v1 + v0*m0)` (the
+ * #reversed-right-assoc-sum-load-last-phantom-slots-4f0c8 rule) with the INNERMOST product
+ * written v-first (`v[0]*M(0)`; M-first puts v0 in fs and pair-swaps the f-ring through the
+ * whole rotate), and the two head pointer loads are on ONE source line `pa = ..; pb = ..;`
+ * (separate lines pair-swap f8/f10 in the head sub.s).  The whole FP block (head subs,
+ * converts, 3x3 rotate, translate, stores) now matches; LCS 93 -> 114/148.
+ * Residual (int only): (1) ugen int temp-ring PAIR SWAP in the loop: target t9 | t8/t5/t4/t7/t6,
+ * build t8 | t9/t4/t5/t6/t7 (and the same in both arms) -- probed inert: idx/src/out statement
+ * order, entry/src inlining, IV step order, v-load same-line joins, if-arm inversion; earlier:
+ * Ent/S3 array views, (unsigned char) burn, IDO 5.3; (2) mode==100 arm ends nop + sh + `b; lw t0`
+ * where target puts the sh in the b delay; (3) else-arm third lh scheduled early. */
 void gl_func_000693A4(char *arg0, char *arg1, s32 arg2) {
     f32 kscale;
     f32 v[7];
@@ -5359,8 +5358,7 @@ void gl_func_000693A4(char *arg0, char *arg1, s32 arg2) {
     {
         char *pb;
         char *pa;
-        pb = (char*)FW(arg1,0x38);
-        pa = (char*)FW(arg0,0x18);
+        pa = (char*)FW(arg0,0x18); pb = (char*)FW(arg1,0x38);
         ex = *(f32*)(pa+0xA0) - *(f32*)(pb+0xA0);
         ey = *(f32*)(pa+0xA4) - *(f32*)(pb+0xA4);
         ez = *(f32*)(pa+0xA8) - *(f32*)(pb+0xA8);
@@ -5383,9 +5381,9 @@ void gl_func_000693A4(char *arg0, char *arg1, s32 arg2) {
                 v[1] = (f32)S693(src, 2);
                 v[2] = (f32)S693(src, 4);
                 mtx = FW(arg0, 0x18) + 0x70;
-                o0 = M693(0x20)*v[2] + (M693(0x10)*v[1] + M693(0)*v[0]);
-                o1 = M693(0x24)*v[2] + (M693(0x14)*v[1] + M693(4)*v[0]);
-                o2 = M693(0x28)*v[2] + (M693(0x18)*v[1] + M693(8)*v[0]);
+                o0 = M693(0x20)*v[2] + (M693(0x10)*v[1] + v[0]*M693(0));
+                o1 = M693(0x24)*v[2] + (M693(0x14)*v[1] + v[0]*M693(4));
+                o2 = M693(0x28)*v[2] + (M693(0x18)*v[1] + v[0]*M693(8));
                 v[0] = o0 + ex; v[1] = o1 + ey; v[2] = o2 + ez;
                 out = (int)arg2 + (idx * 6);
                 if (mode == 0x64) {
