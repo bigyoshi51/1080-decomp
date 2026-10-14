@@ -1,4 +1,4 @@
-nonmatching game_libs_func_0003DA14, 0x128
+nonmatching game_libs_func_0003DA14, 0x124
 
 glabel game_libs_func_0003DA14
     /* E22AEC 0003DA14 8C8E0010 */  .word 0x8C8E0010
@@ -74,5 +74,4 @@ glabel game_libs_func_0003DA14
     /* E22C04 0003DB2C 00601025 */  .word 0x00601025
     /* E22C08 0003DB30 03E00008 */  .word 0x03E00008
     /* E22C0C 0003DB34 27BD0010 */  .word 0x27BD0010
-    /* E22C10 0003DB38 10A00003 */  .word 0x10A00003
 endlabel game_libs_func_0003DA14

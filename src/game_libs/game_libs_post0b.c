@@ -8548,7 +8548,7 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DA14);
 
 
-// gl_func_0003DB3C — STRUCTURAL PASS (0xB0 / 44 words, no episode).
+// game_libs_func_0003DB38 (ex gl_func_0003DB3C) — STRUCTURAL PASS (0xB4 / 45 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
 // prologue). A list min/max-search-by-FP-field — sibling of
 // game_libs_func_0003DA14 (spatial-search FP-pool family).
@@ -8587,22 +8587,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DA14);
 //   (&D_0+0x1AC4/0x1AC8 unsymbolized). Real-C STRUCTURAL body below.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-/* Whole-body decode 2026-06-01; 2026-09-04 agent-g: same pointer-form memory-homed
- * iterator {cur@4(sp), next@8(sp)} as 3DF5C (step macro: nx = p->next; p->cur = nx;
- * if (nx) { p->next = p->next->next (re-read -> reload after the cur store);
- * node = nx->data; } else node = 0). ref = a1->0x38 with a DEAD else-arm
- * (D+0x1AC4) branched over by beq zero,zero in the target; lim = D+0x1AC8.
- * Picks the node with the smallest 0x38 value in (ref, lim). Residuals: the
- * target's dead else-arm (every constant-true form folds) and a loop-var copy
- * `or v0,a0` (target: node in a0, body copy in v0, plain bne; build coalesces
- * into beql/bnel rotation). */
+/* game_libs_func_0003DB38 (ex gl_func_0003DB3C; 2026-10-14 agent-c boundary
+ * merge). The last word of game_libs_func_0003DA14 (0x3DB38 `beqz a1,+3`, after
+ * 3DA14's jr ra) is this function's first instruction: the bootup.uso Sym
+ * oracle exports 0x3DB38 (section 0x521A4), not 0x3DB3C. With the head back,
+ * the "dead else-arm branched over by beq zero,zero" residual is a real
+ * `ref = a1 != 0 ? a1->0x38 : D+0x1AC4` with the prologue in the beqz delay;
+ * the first 18 words (head through the iterator prime) are now exact.
+ * Same pointer-form memory-homed iterator {cur@4(sp), next@8(sp)} as 3DF5C.
+ * Picks the node with the smallest 0x38 value in (ref, lim).
+ * Residual (loop only, 32/45 words standalone): the target keeps the
+ * iterator temp and the produced node in ONE register (a0: `lw a0,8(sp)`
+ * ... `lw a0,0(a0)`) and the body's node in v0 via a copy in the beqz /
+ * bnez delays (`or v0,a0`, plain non-likely bnez); the build coalesces the
+ * node with the body copy (a0), keeps the temp in v0, and rotates the loop
+ * (beqzl/bnezl + lwc1 in the likely slot). Tried: single-variable step
+ * macro (CSEs p->next->next), ternary step expression, for/while/do-while,
+ * scoped/int-typed copy, step-before-compare -- none split it. */
 typedef struct Link3DB3C { char *data; struct Link3DB3C *next; } Link3DB3C;
 typedef struct { Link3DB3C *cur; Link3DB3C *next; } Iter3DB3C;
-extern f32 D_3DB3C_1AC4[], D_3DB3C_1AC8[];
 #define ITER3DB3C_STEP(p, nx, node) \
     nx = (p)->next; (p)->cur = nx; \
     if (nx != 0) { (p)->next = (p)->next->next; (node) = nx->data; } else { (node) = 0; }
-char *gl_func_0003DB3C(char *o, char *a1) {
+char *game_libs_func_0003DB38(char *o, char *a1) {
     char *best;
     Iter3DB3C it;
     Iter3DB3C *p;
@@ -8612,9 +8619,9 @@ char *gl_func_0003DB3C(char *o, char *a1) {
     float ref, lim, v;
 
     p = &it;
-    if (1) { ref = *(float *)(a1 + 0x38); } else { ref = D_3DB3C_1AC4[0x1AC4 / 4]; }
+    if (a1 != 0) { ref = *(float *)(a1 + 0x38); } else { ref = *(float *)((char *)&D_00000000 + 0x1AC4); }
     p->next = *(Link3DB3C **)(o + 0x10);
-    lim = D_3DB3C_1AC8[0x1AC8 / 4];
+    lim = *(float *)((char *)&D_00000000 + 0x1AC8);
     best = 0;
     ITER3DB3C_STEP(p, nx, node);
     while (node != 0) {
@@ -8629,7 +8636,7 @@ char *gl_func_0003DB3C(char *o, char *a1) {
     return best;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DB3C);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DB38);
 #endif
 
 /* game_libs_func_0003DBEC: 41-insn linked-list search + Vec3 copy via
