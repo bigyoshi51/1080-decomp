@@ -18524,44 +18524,17 @@ void gl_func_0004ACD4(int *self) {
 }
 
 
-#ifdef NON_MATCHING
-/* gl_func_0004ADB4: 35-insn bounds-checked short[] index-store (0x8C, frame 0x18).
- *
- * Decoded structure (raw-word disasm):
- *   cap  = self->[0x40];                              // capacity (count)
- *   base = (short)self->[0xD4];                       // base index
- *   limit = cap * 10;                                 // via shifts: cap<<2 + cap → cap*5, then <<1
- *   offset = idx - base;
- *   if ((unsigned)offset >= (unsigned)limit) {
- *       assert(&D_BASE + 0xBC, &D_BASE + 0xE0, 0xAAF, self);  // bounds-check assert
- *   }
- *   // (reload v0=base after assert in case it returns)
- *   short *target = (short*)((char*)self->[0xD0] + (idx - base) * 2);
- *   *target = (short)val;
- *
- * The `cap * 10` multiplier suggests each element in self->[0xD0] is 10
- * bytes total (1 short = 2 bytes × 10 = 20-byte stride per logical entry?)
- * — but the actual store is 2 bytes (short), with offset multiplied by 2.
- * So the array layout is: 10 shorts per logical entry; this fn writes the
- * first short of the (idx - base)-th logical entry.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- *
- * D_BASE→&D_00000000 fix APPLIED 2026-05-19 (offsets folded to
- * +0x200BC / +0x200E0; assert is 4-arg str,str,0xAAF,self).
- * 2026-07-15 (agent-f): 83.43 -> 87.86 (35/35 words, 4-diff residual).
- * Levers: DE-NAME cap (inline `self[0x40/4]*10` in the compare keeps
- * cap a ring temp t8/t9 chain like target; naming it stole v0 and
- * cascaded); tail store address DISTRIBUTED as
- * `(char*)arr + idx*2 + (base*2)*-1` (35 words — separate scale ops).
- * RESIDUAL: target `sll t5,base,1; negu t6,t5` (two ring-numbered uopt
- * ops, scale-then-negate) vs our mul-by(-2) single op that as1 expands
- * `negu at; sll` (neg-first, $at). Every add-of-negative spelling
- * (`+-(base*2)`, `0-(base*2)`, `-(base<<1)`, ptr-sub, [-base] index)
- * VN-folds to subu (34 words). The unfolded scale-then-negate pair is
- * not reachable from expression C; likely original spelled the value
- * through a shape lost to us. Neg-canonicalization cap. */
+/* gl_func_0004ADB4: bounds-checked short[] index store (0x8C, frame 0x18):
+ * if ((unsigned)(idx - base) >= cap * 10) assert(file, msg, 0xAAF, self);
+ * arr[idx - base] = val, with base = (short)self->0xD4 re-read after the
+ * assert (cap = self->0x40, arr = self->0xD0, assert = blank jal-0, strings
+ * at Data +0x200BC / +0x200E0). BYTE-EXACT 35/35 (2026-10-14 agent-c): the
+ * 2026-07-15 "neg-canonicalization cap" (target `sll t5,base,1; negu t6,t5`,
+ * scale-then-negate) is just the PLAIN array subscript
+ * `((short *)self[0xD0 / 4])[idx - base] = val;` -- uopt reassociates the
+ * subscript into arr + idx*2 + -(base*2) itself. Every hand-distributed
+ * spelling (`+ idx * 2 + ((base * 2) * -1)`, `- base * 2`, ptr-sub) is what
+ * produced the neg-first or folded-subu forms. */
 void gl_func_0004ADB4(int *self, int val, int idx) {
     extern int D_00000000;
     short base;
@@ -18571,13 +18544,10 @@ void gl_func_0004ADB4(int *self, int val, int idx) {
                           (char*)&D_00000000 + 0x200E0,
                           0xAAF,
                           self);
-        base = *(short*)((char*)self + 0xD4);  // reload after assert
+        base = *(short*)((char*)self + 0xD4);  /* reload after assert */
     }
-    *(short*)((char*)self[0xD0 / 4] + idx * 2 + ((base * 2) * -1)) = (short)val;
+    ((short *)self[0xD0 / 4])[idx - base] = val;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ADB4);
-#endif
 
 // gl_func_0004AE40 — STRUCTURAL PASS (0x170 / 93 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x30
