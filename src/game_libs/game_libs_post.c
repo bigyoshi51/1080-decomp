@@ -9122,23 +9122,17 @@ void gl_func_00026C48(int a0, int a1) {
     gl_ref_0003B244(a0, &a1);
 }
 
-#ifdef NON_MATCHING
-/* NON_MATCHING: 91% — target has `or a2, a1, zero` + sll from a2 that IDO C won't emit.
- * 2026-05-27 retest: `int copy = a1; local = copy << 24;` (named copy of a1)
- * regressed 90% → 8% — lost the a1 home-spill that mine relies on. The
- * `int *dummy = &a1` trick spills a1 to caller's outgoing arg slot,
- * matching the target's frame layout. */
+/* 2026-10-14 EXACT (agent-c): the entry `or a2,a1,zero` + `sw a1,0x24(sp)`
+ * home is a `char` PARAMETER (IDO homes a narrow param and uses a copy of it);
+ * the old int-param + `int *dummy = &a1` draft reached 90.4 only. The
+ * standalone cc harness schedules this body differently (sll hoisted above
+ * `sw ra`, `sw t6` in the jal delay) -- verify in-tree. */
 extern int gl_ref_0003B244();
-void gl_func_00026C6C(int a0, int a1) {
+void gl_func_00026C6C(int a0, char a1) {
     int local;
-    int *dummy = &a1;
     local = a1 << 24;
     gl_ref_0003B244(a0, &local);
-    (void)dummy;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026C6C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00026C9C: 12-insn (0x30) helper — packs a1 into a stack-local
