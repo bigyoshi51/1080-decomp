@@ -7309,89 +7309,72 @@ void game_libs_func_00024948(void) {
     *(int*)((char*)&D_00000000 + 0x15F4) = 0;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0002495C: 115-insn (0x1CC) record/slot manager. Sibling of
- * recently-matched gl_func_00024B94 (both call func_00039194, the alt-entry
- * lookup at 0x39194 inside gl_func_00039094). FULL DECODE 2026-05-31:
- * 2.85% (TODO stub) -> 84.91%.
- *
- * obj = func_00039194(a0); if (!obj) { *s0 = 0; return -1; }
- * tag2 = (obj[0]<<4)>>30 (bits 26-27);  if (tag2==0) { *s0 = 2; return 0; }
- * rec = &D + D[0x1578]*100 + 0x157C;     // 100-byte record indexed by D[0x1578]
- * if (rec[0x14]==3) rec[0x14]=0;
- * rec[0x20]=obj[0]; rec[0x24]=obj[1]; rec[0x1C]=(int)s0; rec[0x2C]=obj[3];
- * r = gl_func_00000000(obj[0]&0xFFFFFF, (int)a0, obj[1], (s8)tag2);
- * if (r==0) { rec[0xC]=0;  if (tag2==1 || obj[0]>>28==2) *s0=0; else *s0=3; return -1; }
- * rec[0x14]=1; rec[0x18]=((obj[0]&0xFFFFFF)+15)&~15; rec[0x10]=rec[0xC];
- * rec[8]=obj[1]; rec[0]=(s8)tag2; rec[1]=(s8)a0; rec[2]=(s8)a1;
- * if (tag2==1) rec[4] = *(s16*)(D[0x2024]+2);
- * D[0x1578] ^= 1; return 0;
- *
- * Residual <100 = register-renumber (the &D base lands in t2 vs target's t1,
- * cascading) + the a1-low-byte read (target lbu sp+47 vs our lw+sb) + frame
- * 0x40 vs 0x28 (named locals counter/callret/tag give the best % at 0x40;
- * inlining them shrinks the frame to 0x28 but regresses regalloc to 79%).
- * Deferred-pool &D offsets (0x1578/0x157C/0x1590/0x2024) keep it sub-100.
- * INCLUDE_ASM stays the build path. */
+/* gl_func_0002495C: 115-insn (0x1CC) record/slot manager (D+0x157C ping-pong
+ * pair of 100-byte records, counter at D+0x1578). BYTE-EXACT 2026-10-14
+ * (agent-c), 84.91 -> 100. Levers: (1) a1 is a prototyped `unsigned char`
+ * (the `lbu a1,0x2F(sp)` reload in the first jal delay) and it IS the
+ * lookup's second arg; (2) the obj[0..3] -> rec+0x20..0x2C copy is ONE
+ * 16-byte struct assignment (the old body missed the +0x28 word); (3) no
+ * named locals beyond obj/rec/r -> frame 0x28 (obj/rec spill to 0x24/0x20
+ * across the blank call); (4) `rec->xC = r` before the test (the
+ * unconditional sw in the bnez delay); (5) `rec->tag == 1` re-reads the
+ * stored u8 (the `andi 0xFF` vs the held li 1); (6) the record address is
+ * `&GD.recs[GD.cnt]` through a struct-typed view of D -- every flat
+ * `(char *)&D + cnt * 100 + 0x157C` spelling emits `addu v1,t3,t1`
+ * (index first), only the struct member array gives `addu v1,t1,t3`. */
 extern int gl_func_00000000();
 extern int func_00039194();  /* K&R unspec to allow both 1-arg and 2-arg call sites */
-int gl_func_0002495C(void *a0, int a1, char *s0) {
-    int *t0;
-    int counter;
-    char *rec;
-    int callret;
-    int tag;
+typedef struct { unsigned int w0; int w1; int w2; int w3; } gl_2495C_Hdr;
+typedef struct {
+    unsigned char tag; unsigned char id; unsigned char sub; unsigned char pad3;
+    int x4; int x8; int xC; int x10; int state; int size; char *out;
+    gl_2495C_Hdr hdr;
+    char pad[100 - 0x30];
+} gl_2495C_Rec;
+typedef struct { char p0[0x1578]; int cnt; gl_2495C_Rec recs[2]; } gl_2495C_GS;
+int gl_func_0002495C(int a0, unsigned char a1, char *s0) {
+    gl_2495C_Hdr *obj;
+    gl_2495C_Rec *rec;
+    int r;
 
-    t0 = (int *)func_00039194(a0);
-    if (t0 == 0) {
+    obj = (gl_2495C_Hdr *)func_00039194(a0, a1);
+    if (obj == 0) {
         *s0 = 0;
         return -1;
     }
-    if ((((unsigned int)(t0[0] << 4)) >> 30) == 0) {
+    if (((obj->w0 << 4) >> 30) == 0) {
         *s0 = 2;
         return 0;
     }
-    counter = *(int *)((char *)&D_00000000 + 0x1578);
-    rec = (char *)&D_00000000 + counter * 100 + 0x157C;
-    if (*(int *)(rec + 0x14) == 3) {
-        *(int *)(rec + 0x14) = 0;
+    rec = &(*(gl_2495C_GS *)&D_00000000).recs[(*(gl_2495C_GS *)&D_00000000).cnt];
+    if (rec->state == 3) {
+        rec->state = 0;
     }
-    *(int *)(rec + 0x20) = t0[0];
-    *(int *)(rec + 0x24) = t0[1];
-    *(int *)(rec + 0x1C) = (int)s0;
-    *(int *)(rec + 0x2C) = t0[3];
-    callret = gl_func_00000000(t0[0] & 0xFFFFFF, (int)a0, t0[1],
-                               (signed char)(((unsigned int)(t0[0] << 4)) >> 30));
-    if (callret == 0) {
-        *(int *)(rec + 0xC) = 0;
-        if ((((unsigned int)(t0[0] << 4)) >> 30) == 1) {
+    rec->hdr = *obj;
+    rec->out = s0;
+    r = gl_func_00000000(obj->w0 & 0xFFFFFF, a0, obj->w1, (signed char)((obj->w0 << 4) >> 30));
+    rec->xC = r;
+    if (r == 0) {
+        if (((obj->w0 << 4) >> 30) == 1 || (obj->w0 >> 28) == 2) {
             *s0 = 0;
-            return -1;
+        } else {
+            *s0 = 3;
         }
-        if (((unsigned int)t0[0] >> 28) == 2) {
-            *s0 = 0;
-            return -1;
-        }
-        *s0 = 3;
         return -1;
     }
-    *(int *)(rec + 0x14) = 1;
-    *(int *)(rec + 0x18) = ((t0[0] & 0xFFFFFF) + 15) & ~15;
-    *(int *)(rec + 0x10) = *(int *)(rec + 0xC);
-    *(int *)(rec + 0x8) = t0[1];
-    tag = (int)(((unsigned int)(t0[0] << 4)) >> 30);
-    *(char *)(rec + 0) = (char)tag;
-    *(char *)(rec + 1) = (char)(int)a0;
-    *(char *)(rec + 2) = (char)a1;
-    if ((tag & 0xFF) == 1) {
-        *(int *)(rec + 4) = *(short *)((char *)*(int *)((char *)&D_00000000 + 0x2024) + 2);
+    rec->state = 1;
+    rec->size = ((obj->w0 & 0xFFFFFF) + 15) & ~15;
+    rec->x10 = rec->xC;
+    rec->x8 = obj->w1;
+    rec->tag = (obj->w0 << 4) >> 30;
+    rec->id = a0;
+    rec->sub = a1;
+    if (rec->tag == 1) {
+        rec->x4 = *(short *)(*(char **)((char *)&D_00000000 + 0x2024) + 2);
     }
     *(int *)((char *)&D_00000000 + 0x1578) ^= 1;
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002495C);
-#endif
 
 int gl_func_00024B28(int a0, int a1) {
     int v0;
