@@ -7442,97 +7442,80 @@ void gl_func_00024B94(int *a0) {
     *(char*)v0 &= ~0x0C;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_00024C08: 98-insn two-slot state pump. Sibling of the recently
- * matched 24B28/24B94 lookup helpers and continues the same D+0x157C record
- * family.
- *
- * Decoded structure:
- *   for two 0x64-byte records at D+0x157C and D+0x15E0:
- *     state = record[0x14] via D+0x1590/0x15F4
- *     state 2 optionally primes record+0x30, unless caller arg forces state 3
- *     state 1/2 then drains record[0x18] in 0x400-byte chunks through
- *     alt-entry helpers inside gl_func_00039094/gl_func_000393B8
- *
- * Cap remaining at 84.4 % (current; expected baseline shifted slightly
- * after gl_func_00028FCC land — was 89% pre-shift):
- * 1. **Frame -64 vs target -56 (+8 bytes, +1 \$s save).** Mine spills $s0-$s8
- *    (9 saved regs); target spills $s0-$s7 (8). Extra reg is \$s8/$fp.
- * 2. **Constant `1` placement diverges.** Target puts `1` in \$s3 (early in
- *    chain, alongside other heavily-used values). Mine puts it in \$s8
- *    (the 9th save slot, last available \$s-reg). Both emit `li sN, 1` at
- *    prologue and use it for `sb sN, 0(t7)` byte store later — but the
- *    register number difference cascades because target's \$s3..\$s5 also
- *    hold `2` and `3` whereas mine doesn't promote those literals at all.
- * 3. **Tried 2026-05-08 (negative):** `int one/two/three` named-literal
- *    locals + decl reorder (record before slot, etc) — both no-op. IDO
- *    -O2 folds named-literal locals back to immediate; decl-source-order
- *    is decoupled from pseudo-allocno-number ordering per
- *    feedback-ido-sreg-order-not-decl-driven.
- * 4. **Inlining \`end\` (loop bound `slot != &D + 0xC8`)** into the for(...)
- *    expression — no emit change. Loop-invariant address is hoisted either
- *    way.
- *
- * Permuter-territory cap. The +1 \$s pressure (\$s8 holding `1`) likely
- * needs a refactor that increases the ref count of `1`/`2`/`3` enough to
- * make them outweigh other locals' \$s priority — or a refactor that
- * removes one of mine's locals (slot/record/remaining/state) so \$s3..\$s5
- * become available for the constants. Pure C-source levers exhausted in
- * this tick's grind; next pass: try permuter random-mode (3-5 min). */
-extern int func_00039200();
-extern int func_000393FC();
-extern int func_00039480();
+/* gl_func_00024C08: 98-insn two-slot state pump over the D+0x157C record
+ * pair (same gl_2495C_Rec / gl_2495C_GS view as gl_func_0002495C above).
+ * BYTE-EXACT 2026-10-14 (agent-c), 84.68 -> 100. The old "+1 s-reg, frame
+ * 0x40 vs 0x38" cap was decode shape, not colouring:
+ *   - `for (i = 0; i != 2; i++)` over GS.recs[i]: IDO strength-reduces the
+ *     index to a D+i*100 IV (s2) and LFTRs the test to a SEPARATELY
+ *     materialised end pointer D+200 (s7 = lui/addiu 200); a hand-walked
+ *     slot pointer keeps one &D and recomputes +200 every iteration.
+ *   - rec = &recs[i] BEFORE the state tests, nested `if (state != 1) { if
+ *     (state != 2) continue; ... }`: gives beql/bne with the rec address in
+ *     both delays (a switch or if/else-if on state lays out worse).
+ *   - `*rec->out = one` with `int one = 1` hoisted above the loop: a char
+ *     store of the literal 1 gets its own char-typed constant register (an
+ *     extra s-reg = the old frame 0x40); the copy-propagated int `one`
+ *     shares s3 with the compares and the blank call's a2.
+ *   - remaining lives in s1 (`or a2,s1` / `or a1,s1` before the calls):
+ *     the empty `if (remaining) {}` after the 0x400 chunk's `rec->size -=`
+ *     extends its range across the call (reload of rec->size stays).
+ * The three callees are baked absolute jals into gl_func_00039094 (0x39200)
+ * and gl_func_000393B8 (0x393FC / 0x39480): gl_ref_* in
+ * undefined_syms_auto.txt. */
+extern int gl_ref_00039200();
+extern int gl_ref_000393FC();
+extern int gl_ref_00039480();
 void gl_func_00024C08(int arg0) {
-    char *slot;
-    char *record;
+    gl_2495C_Rec *rec;
     int remaining;
+    int i;
     int state;
+    int one;
 
-    for (slot = (char*)&D_00000000; slot != (char*)&D_00000000 + 0xC8; slot += 0x64) {
-        state = *(int*)(slot + 0x1590);
-        if (state == 1) {
-            record = slot + 0x157C;
-        } else if (state == 2) {
-            record = slot + 0x157C;
-            if (((unsigned char*)record)[0] != 1) {
-                gl_func_00000000(record + 0x30, 0, 1);
-            }
-            if (arg0 != 0) {
-                *(int*)(record + 0x14) = 3;
+    one = 1;
+    for (i = 0; i != 2; i++) {
+        state = (*(gl_2495C_GS *)&D_00000000).recs[i].state;
+        rec = &(*(gl_2495C_GS *)&D_00000000).recs[i];
+        if (state != 1) {
+            if (state != 2) {
                 continue;
             }
-        } else {
-            continue;
+            if (rec->tag != 1) {
+                gl_func_00000000(rec->pad, 0, 1);
+            }
+            if (arg0 != 0) {
+                rec->state = 3;
+                continue;
+            }
         }
-
-        remaining = *(int*)(record + 0x18);
-        *(int*)(record + 0x14) = 2;
+        remaining = rec->size;
+        rec->state = 2;
         if (remaining == 0) {
-            func_00039200(record);
-            *(int*)(record + 0x14) = 3;
-            *(char*)(*(int*)(record + 0x1C)) = 1;
+            gl_ref_00039200(rec);
+            rec->state = 3;
+            *rec->out = one;
         } else if (remaining < 0x400) {
-            if (((unsigned char*)record)[0] == 1) {
-                func_00039480(*(int*)(record + 8), *(int*)(record + 0xC), remaining, *(int*)(record + 4));
+            if (rec->tag == 1) {
+                gl_ref_00039480(rec->x8, rec->xC, remaining, rec->x4);
             } else {
-                func_000393FC(record, remaining);
+                gl_ref_000393FC(rec, remaining);
             }
-            *(int*)(record + 0x18) = 0;
+            rec->size = 0;
         } else {
-            if (((unsigned char*)record)[0] == 1) {
-                func_00039480(*(int*)(record + 8), *(int*)(record + 0xC), 0x400, *(int*)(record + 4));
+            if (rec->tag == 1) {
+                gl_ref_00039480(rec->x8, rec->xC, 0x400, rec->x4);
             } else {
-                func_000393FC(record, 0x400);
+                gl_ref_000393FC(rec, 0x400);
             }
-            *(int*)(record + 0x18) = remaining - 0x400;
-            *(int*)(record + 0xC) += 0x400;
-            *(int*)(record + 8) += 0x400;
+            rec->size -= 0x400;
+            if (remaining) {
+            }
+            rec->xC += 0x400;
+            rec->x8 += 0x400;
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024C08);
-#endif
 
 // gl_func_00024D90 — STRUCTURAL PASS (0x84 / 33 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
