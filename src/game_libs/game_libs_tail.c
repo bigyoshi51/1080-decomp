@@ -989,45 +989,34 @@ void gl_func_0000AB70(char *a0) {
     }
 }
 
-#ifdef NON_MATCHING
+/* gl_func_0000ABBC: 3-slot notify loop with flag-history update, BYTE-EXACT
+ * 64/64 (2026-10-14 agent-g; the 83.2% wrap hand-carried i / one / limit /
+ * cursor locals). For each 0x20-byte slot whose probe returns non-zero: call
+ * the second handler with (slot, a1, a2, a3), then shift the history byte
+ * by slot (i == 0: keep bits 0-1 shifted up; i == 1: move bit 1 to bit 2)
+ * and set bit i. Match keys: the `beqzl s0 / beql s0,s6 / b` ladder with
+ * the case blocks laid out after it is a SWITCH (if/else-if gives bnez +
+ * fallthrough); the s6 = 1 / s7 = 3 registers are IDO's hoisted loop
+ * constants, not locals; the case-1 value puts the shifted term FIRST,
+ * `((*f & 2) << 1) | (*f & 1)` (andi-1 then takes t9 with the and-2/sll
+ * pair in t0/t1 -- the written-second-is-allocated-first order). */
 void gl_func_0000ABBC(char *a0, int a1, unsigned char a2, unsigned char a3, unsigned char *arg4) {
     int i;
-    unsigned char *flagp;
-    char *p;
-    int saved_a1;
-    int arg2_trunc;
-    int arg3_trunc;
-    int one;
-    int limit;
-
-    saved_a1 = a1;
-    arg2_trunc = a2;
-    arg3_trunc = a3;
-    i = 0;
-    flagp = arg4;
-    p = a0;
-    one = 1;
-    limit = 3;
-    for (; i != limit; i++) {
-        if (gl_func_00000000(p) != 0) {
-            unsigned char flags;
-
-            gl_func_00000000(p, saved_a1, arg2_trunc, arg3_trunc);
-            if (i == 0) {
-                *flagp = (*flagp & 3) << 1;
-            } else if (i == one) {
-                flags = *flagp;
-                *flagp = (flags & 1) | ((flags & 2) << 1);
+    for (i = 0; i < 3; i++) {
+        if (gl_func_00000000(a0 + i * 0x20) != 0) {
+            gl_func_00000000(a0 + i * 0x20, a1, a2, a3);
+            switch (i) {
+            case 0:
+                *arg4 = (*arg4 & 3) << 1;
+                break;
+            case 1:
+                *arg4 = ((*arg4 & 2) << 1) | (*arg4 & 1);
+                break;
             }
-            flags = *flagp;
-            *flagp = flags | (one << i);
+            *arg4 |= 1 << i;
         }
-        p += 0x20;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000ABBC);
-#endif
 
 /* gl_func_0000ACBC: 25-insn 3-iter loop, sibling of gl_func_0000A0CC.
  * Calls func_00000000 (NOTE: not gl_-prefixed — target's reloc references
