@@ -5876,68 +5876,40 @@ void gl_func_00023284(int a0, int a1, int a2, int a3) {
     }
 }
 
-// gl_func_000232E8 — STRUCTURAL PASS (0xFC / 63 words, no episode).
-// Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
-// (named fn + 2 trailing helpers) — deferred USO re-split. The named
-// leading fn is a SIBLING of gl_func_00022FC0: same &D_0+0x2028
-// buffer-run walk, different per-element processing.
-//
-//   void gl_func_000232E8(int idx, int a1, int a2) {
-//     short *buf = *(short**)(&D_0 + 0x2028);            // record buf
-//     int    cur = buf[idx];                              // run start
-//     byte   cnt = *((char*)buf + cur);                   // run length
-//     do {
-//       cur++;
-//       byte e = *((char*)buf + cur);                      // element
-//       jal 0x38174(e);                                    // 0x0C00E05D
-//       jal 0x381xx(1, …, a1, a2);                         // 0x0C00E1C3
-//       cnt--;
-//     } while (cnt != 0);
-//     ... write back / finalize buf[idx] ...
-//   }
-//
-// Struct-typing reference: walks the SAME per-slot record buffer as
-//   gl_func_00022FC0 — word &D_0+0x2028 base, halfword-strided by idx
-//   (idx<<1), each slot a cursor into the byte stream; a run length is
-//   read from the stream head. This variant invokes TWO fixed
-//   USO-relocated routines per element: 0x0C00E05D (≈0x38174, the
-//   same poll/advance used by the gl_func_00022D68 readiness family)
-//   and 0x0C00E1C3 (a per-element action taking the caller args
-//   a1/a2). The double-callback run consumer paired with the
-//   single-callback gl_func_00022FC0.
-// Caps (DEFERRED): single jr $ra (the "3-jr bundle" note is STALE;
-//   .s is 0xFC/46 words, ONE function). Sibling of gl_func_00022FC0
-//   — double-callback per-slot run consumer over the same
-//   &D_0+0x2028 record buffer. Real-C STRUCTURAL body below per the
-//   analysis (buf halfword-strided by idx; run length from stream
-//   head; per element invoke two fixed USO-reloc routines 0x38174
-//   and 0x381C3(1,a1,a2)). Byte-match deferred — placeholder jal-0
-//   per-element calls need USO reloc infra + loop schedule. Name
-//   pre-checked: no extern reuse (collision-safe). gl_func_00000000
-//   = canonical never-defined USO placeholder.
-#ifdef NON_MATCHING
-extern int gl_func_00000000();
-extern int D_00000000;
+/* gl_func_000232E8 (0xB8, 46 insns): run-list consumer over the halfword-indexed
+ * byte stream at *(D+0x2028), sibling of gl_func_000233E4 / gl_func_00022FC0.
+ * cur = buf16[idx]; cnt = buf[cur++]; per element
+ * act(1, poll(1, buf[cur++]), a1, a2, a3) -- both callees baked text jals:
+ * 0x38174 = gl_ref_00038174, 0x3870C = gl_ref_0003870C.
+ * BYTE-EXACT 2026-10-14 (agent-c), 86.72 -> 100, rewritten from the target words:
+ *   - struct view of D (`GS.buf` at +0x2028) keeps &D in s5 and re-reads the
+ *     buffer pointer per element (`lw t9,0x2028(s5)` in the bgtzl delay). It
+ *     must be a struct-TYPED extern alias (gl_d_232E8, undefined_syms = 0): the
+ *     cast view `(*(GS *)&D_00000000).buf` flips the run-length `addu` to
+ *     base-first;
+ *   - `*(cur + buf)` (index first) for the run-length read = `addu t8,s0,v0`;
+ *   - a top-tested `while (cnt > 0)` with `cnt--` AFTER the call
+ *     (blezl/bgtzl pair); the poll nested inside the act call's arg list.
+ * The old body passed the poll result through a named local and decremented
+ * at the bottom of a guarded do-while. */
+extern int gl_ref_00038174();
+extern int gl_ref_0003870C();
+typedef struct { char p0[0x2028]; unsigned char *buf; } gl_232E8_GS;
+extern gl_232E8_GS gl_d_232E8;
+#define GS_232E8 gl_d_232E8
 void gl_func_000232E8(int idx, int a1, int a2, int a3) {
-    char *g = (char *)&D_00000000;
-    short *buf = *(short **)(g + 0x2028);
-    int cur = *(unsigned short *)((char *)buf + idx * 2);
-    int count = *(unsigned char *)((char *)buf + cur);
+    int cur;
+    int cnt;
+
+    cur = ((unsigned short *)GS_232E8.buf)[idx];
+    cnt = *(cur + GS_232E8.buf);
     cur++;
-    if (count > 0) {
-        do {
-            int e = *(unsigned char *)(*(char **)(g + 0x2028) + cur);
-            int r;
-            cur++;
-            r = gl_func_00000000(1, e);
-            gl_func_00000000(1, r, a1, a2, a3);
-            count--;
-        } while (count > 0);
+    while (cnt > 0) {
+        gl_ref_0003870C(1, gl_ref_00038174(1, GS_232E8.buf[cur++]), a1, a2, a3);
+        cnt--;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000232E8);
-#endif
+#undef GS_232E8
 
 /* game_libs_func_000233A0: string-table cursor advance, EXACT MATCH (17/17
  * words, 2026-07-08 agent-e; retracts the "IDO folds the &D base" NM
@@ -5976,9 +5948,10 @@ int game_libs_func_000233A0(int a0, int *a1) {
  * handler(p, 0) (jal-0 USO slot).
  * 2026-10-14 (agent-c) rewrite from the target words: the old body had the
  * conditional inverted (handler only on a hit) and the poll/lookup args crossed.
- * `*(cur + buf)` for the run-length read gives the index-first `addu t8,s1,v0`;
- * the struct view of D keeps &D in s3 across the loop (`lw t9,0x2028(s3)` per
- * element). RESIDUAL (1 insn class): target skips the deregister with a plain
+ * `*(cur + buf)` for the run-length read gives the index-first `addu t8,s1,v0`
+ * (only through the struct-typed alias gl_d_232E8 shared with gl_func_000232E8;
+ * the cast view of D_00000000 flips it); the struct view keeps &D in s3 across
+ * the loop (`lw t9,0x2028(s3)` per element). 97.27. RESIDUAL (1 insn class): target skips the deregister with a plain
  * `bnez v0; nop` onto the merge block's `or a0,s0`; IDO here fills that slot
  * branch-likely (`bnezl v0,merge+4; or a0,s0`) -- every other word identical.
  * Probed without effect: if/else both-arms, goto skip, empty else, `!r`, named r,
@@ -5986,10 +5959,8 @@ int game_libs_func_000233A0(int a0, int *a1) {
  * `if (1) {}` after the if (see docs/IDO_CODEGEN.md
  * #branch-likely-emission-cap-no-flag). */
 #ifdef NON_MATCHING
-extern int gl_ref_00038174();
 extern int gl_ref_00037B00();
-typedef struct { char p0[0x2028]; unsigned char *buf; } gl_233E4_GS;
-#define GS_233E4 (*(gl_233E4_GS *)&D_00000000)
+#define GS_233E4 gl_d_232E8
 void gl_func_000233E4(int idx) {
     int cur;
     int cnt;

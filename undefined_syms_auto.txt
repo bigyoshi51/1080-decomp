@@ -1281,6 +1281,7 @@ gl_d_30598_v0 = 0x0;
 gl_d_21d2c_tbl = 0x00000000;  /* game_libs_func_00021D2C: distinct base-0 alias of D_00000000 -- busts lui CSE between the n-load (folded lui;lw) and the held cursor base (lui;addiu) */
 gl_d_21d2c_n = 0x00000000;    /* game_libs_func_00021D2C: see above */
 gl_d_233A0 = 0x00000000;      /* game_libs_func_000233A0: base-0 ARRAY alias of D_00000000 -- direct array refs materialize the base once (lui;addiu $a2) instead of per-use scalar fold */
+gl_d_232E8 = 0x00000000;      /* gl_func_000232E8 / gl_func_000233E4: struct-typed alias of D_00000000 (buf ptr at +0x2028) -- a typed extern keeps the index-first run-length addu that the cast view flips */
 gl_d_275F4 = 0x00000000;      /* game_libs_func_000275F4: base-0 ARRAY alias of D_00000000 for rec = D + a0*0x160 */
 gl_d_x = 0x00000000;          /* gl_func_00006AAC: 3 distinct base-0 aliases -- each zeroed float global gets its own lui;swc1 (no CSE) matching target */
 gl_d_y = 0x00000000;          /* gl_func_00006AAC */
