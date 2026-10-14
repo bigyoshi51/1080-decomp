@@ -31824,43 +31824,26 @@ void gl_func_0005E0B4(float *a, float *b, int a2) {
     gl_func_00000000(buf, a2);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0005E138: 22-insn 4x4 float matrix transpose + dispatch.
- *   for i in 0..3: dst[i*4 + j] = src[i + j*4] for j in 0..3;
- *   gl_func_0001CA10(&dst[0]);
- *
- * 2026-05-27: goto-loop + char-cast-end + register-keyword on src
- * BREAKS IDO's full-unroll and gives the target's exact rolled loop.
- * Frame matches (-0x68) via single `volatile int pad`. Register
- * allocation matches target: src→v1, end→a0 (reuses input arg reg),
- * p→v0. 1-insn diff remains: extra `addiu a1,sp,0x28` to share
- * dst-base across {p init, jal arg-pass}, where target recomputes
- * `addiu a0,sp,0x28` in the jal delay slot. The hoist is cost-model
- * IDO-internal and not flippable from C. Tight near-miss; was 80.95%
- * cap pre-2026-05-27. */
-extern int func_00000000();
-void gl_func_0005E138(float *src_arg) {
-    float dst[16];
-    volatile int pad;
-    register float *src;
-    float *p;
-    char *end;
-    p = dst;
-    end = (char*)dst + 64;
-    src = src_arg;
-loop:
-    p[0] = src[0];
-    p[1] = src[4];
-    p[2] = src[8];
-    p[3] = src[12];
-    p += 4;
-    src += 1;
-    if ((char*)p != end) goto loop;
-    func_00000000(dst);
+/* gl_func_0005E138 (0x58, 22 insns): 4x4 float matrix transpose into a stack
+ * matrix, then hand it to a blank cross-module callee. The old NM (goto loop
+ * + char-cast end + register src + volatile pad, 1 insn off: dst base shared
+ * in a1 across the loop init and the jal arg) was a shape error: the plain
+ * NESTED index loop is the target. IDO fully unrolls the inner j loop and
+ * strength-reduces the outer i loop (dst row ptr v0 += 16, src column ptr
+ * v1 += 4, end = sp+0x68 rematerialised from sp in a0, the jal's
+ * `addiu a0,sp,0x28` recomputed in the delay slot); the 8-byte frame hole
+ * comes for free (frame 0x68, no pad local). A single pointer for-loop
+ * gives the a1-shared base; a single-level index loop fully unrolls. */
+void gl_func_0005E138(float src[4][4]) {
+    float dst[4][4];
+    int i, j;
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            dst[i][j] = src[j][i];
+        }
+    }
+    gl_func_00000000(dst);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E138);
-#endif
 
 /* gl_func_0005E190: 4x4-matrix normalize-by-scalar with degeneracy
    guard. reloc1() setup; s = reloc2(m) (float scale -- det/norm);
