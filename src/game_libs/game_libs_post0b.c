@@ -25098,35 +25098,35 @@ int gl_func_000531C0(void *arg0, int arg1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000531C0);
 #endif
 
-/* RGB888 palette lookup-copy. idx = a0->0x70 ? *(u16*)(a0->0x70 + a1*6) : a1;
- * pal = a0->0x5C; if pal != 0, copy 3 bytes pal[idx*3 .. +2] to a2[0..2].
- * Logic decoded; NOT byte-exact: both null-checks (table, palette) early-exit
- * via -O1 cross-jumps to a shared epilogue past this fn's end (the beqz delay
- * even pre-loads a 127.0f `lui 0x42FE` for that shared tail) = tail-merge cap.
- * Reloc-free. INCLUDE_ASM is the build path. */
-#ifdef NON_MATCHING
-void game_libs_func_0005323C(int *a0, int a1, unsigned char *a2) {
-    int *tbl;
-    unsigned char *pal;
+/* RGB888 palette lookup-copy (+ splat's game_libs_func_00053294 merged: the
+ * "cross-jump to a shared epilogue past this fn's end" was the else arm,
+ * placed after the then-arm's jr ra; oracle exports 5323C only). idx =
+ * a0->0x70 ? *(u16*)(a0->0x70 + a1*6) : a1; with a palette at a0->0x5C the
+ * 3 bytes are a struct copy (lbu into t-regs off a fresh t9 base -- three
+ * scalar byte copies put the base in a0/v0 instead); without one, the
+ * float triple at a0->0x58 is scaled by 127.0f and truncated (signed int
+ * cast -> trunc.w.s; an unsigned char target alone takes the cfc1/ctc1
+ * unsigned path). */
+typedef struct { unsigned char r, g, b; } RGB5323C;
+void game_libs_func_0005323C(char *a0, int a1, unsigned char *a2) {
+    unsigned short *tbl;
+    RGB5323C *pal;
     int idx;
-    tbl = (int*)a0[0x70 / 4];
-    idx = a1;
+    tbl = *(unsigned short **)(a0 + 0x70);
     if (tbl != 0) {
-        idx = *(unsigned short*)((char*)tbl + a1 * 6);
+        idx = *(unsigned short *)((char *)tbl + a1 * 6);
+    } else {
+        idx = a1;
     }
-    pal = (unsigned char*)a0[0x5C / 4];
-    if (pal == 0) {
-        return;
+    pal = *(RGB5323C **)(a0 + 0x5C);
+    if (pal != 0) {
+        *(RGB5323C *)a2 = pal[idx];
+    } else {
+        a2[0] = (int)((*(float **)(a0 + 0x58))[idx * 3 + 0] * 127.0f);
+        a2[1] = (int)((*(float **)(a0 + 0x58))[idx * 3 + 1] * 127.0f);
+        a2[2] = (int)((*(float **)(a0 + 0x58))[idx * 3 + 2] * 127.0f);
     }
-    a2[0] = pal[idx * 3 + 0];
-    a2[1] = pal[idx * 3 + 1];
-    a2[2] = pal[idx * 3 + 2];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005323C);
-#endif
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00053294);
 
 /* game_libs_func_0005330C: nested table lookup, sibling of _0005313C with an
  * extra column index (boundary merged — 00053348 was splat's beqzl-over-split
