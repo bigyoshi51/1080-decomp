@@ -30084,31 +30084,22 @@ void gl_func_0005B568(int *a0, int a1) {
     } while (next != sentinel);
 }
 
-/* Pack a2 into the top byte of the int at a1[-0x10], keeping the low 24 bits
- * (mask 0x00FFFFFF). First arg unused (homed). Logic-exact; the 5 residual
- * diffs are a CONSISTENT register-renumber (+ a commutative addu swap),
- * op-mismatch=0 and logic-preserving. 2026-05-27 retests (both no-op):
- *   (a) addu operand swap `(*p & 0xFFFFFF) + (a2 << 24)` — IDO canonicalizes;
- *   (b) named-local `int shifted = a2 << 24; *p = (mask) + shifted;` — same
- *       byte output, broader cascade than just the addu pair.
- * INSN_PATCH was the previous lever but REMOVED 2026-05-23 (match-faking,
- * banned). Stays NM. Reloc-free; permuter-class. */
-#ifdef NON_MATCHING
-void game_libs_func_0005B5D8(int a0, int *a1, int a2) {
-    /* 2026-06-10: (void)&a0 recovers the target's `sw a0,0(sp)` arg
-     * home (the 75264 trick; the unused first arg IS address-taken in
-     * the original). Remaining 5 word diffs: pure temp-number cascade
-     * (target skips t6 and creates the sll's pseudo before the load's;
-     * 5 shapes swept -- named/two-step/inline/reversed all hold).
-     * Skipped-temp uoptlist class (C28C family). */
-    int *p;
-    (void)&a0;
-    p = (int *)((char *)a1 - 0x10);
-    *p = (a2 << 24) + (*p & 0xFFFFFF);
+/* game_libs_func_0005B5D8: replace the top byte of the word at a1[-4] with
+ * a2, keeping its low 24-bit field. EXACT 2026-10-14 (agent-c), 96.11 -> 100.
+ * The "skipped-temp ring cap" (lw t8 / sll t7 / and t9 / addu t0, t6 unused)
+ * was two decode errors: (1) the homed-but-unused first param is a `char`
+ * (IDO homes an unused narrow param: `sw a0,0(sp)`, no `&a0` needed); (2) the
+ * kept low 24 bits are read as an unsigned :24 BITFIELD (its extraction lowers
+ * through its own mask temp, which numbers the shift before the load) and the
+ * new byte as `(a2 & 0xFF) << 24` (the eliminated andi burns t6). A plain
+ * `*p & 0xFFFFFF` always numbers the load first (lw t6). */
+typedef struct {
+    unsigned int top : 8;
+    unsigned int low : 24;
+} Bf5B5D8;
+void game_libs_func_0005B5D8(char a0, int *a1, int a2) {
+    a1[-4] = ((a2 & 0xFF) << 24) + ((Bf5B5D8 *)&a1[-4])->low;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005B5D8);
-#endif
 
 /* Circular-list sum: sum += (node->0 & 0xFFFFFF) << 4 over the ring at a0->4.
  * Byte-exact from C (13 insns, no relocs, no patch) — objdiff-verified. */
