@@ -102,12 +102,22 @@ typedef struct {
 } gl_1CC98_Rec;
 typedef struct { short active; short key; char p4[8]; } gl_260B4_Ent;
 typedef struct { char p0[2]; unsigned char sel0; unsigned char sel1; char p4[0x10]; } gl_260B4_Reg;
+typedef struct { char p0; unsigned char b1; unsigned char b2; unsigned char b3; char p4[0x158 - 4]; } gl_1CD64_Slot;
 typedef struct {
-    char p0[0x14];
+    char p0[1];
+    signed char nslots;
+    char p2_[0x10 - 2];
+    int w10;
     gl_1CC98_Elem *elems;
-    char p1[0x2030 - 0x18];
+    gl_1CD64_Slot slots[23];
+    char p1[0x2030 - 0x18 - 23 * 0x158];
     gl_260B4_Reg *regs;
-    char p1b[0x2070 - 0x2034];
+    char p1b[0x2040 - 0x2034];
+    short n2040;
+    short h2042;
+    short h2044;
+    short h2046;
+    char p1c[0x2070 - 0x2048];
     int count;
     char p2[0x2198 - 0x2074];
     char tbl2198[4];
@@ -137,141 +147,77 @@ void game_libs_func_0001CC98(int arg0) {
     }
 }
 
-// gl_func_0001CD64 — STRUCTURAL PASS (0x278 / 158 words, no episode).
-// Raw-.word USO form (game_libs RSP/graphics-library segment).
-// BOUNDARY NOTE: 2-jr USO bundle (named fn + 1 trailing helper) —
-// deferred USO re-split.
-//
-// game_libs display-list batch processor (large ~0x1068 stack
-// command/scratch buffer).
-//
-//   void gl_func_0001CD64(a0, B *a1, C *a2) {
-//     // big stack frame: ~0x1068 bytes = a working command buffer
-//     //   at sp+0x4C..; save s0-s7/fp.
-//     G *g = &D_0;                                         // global tbl
-//     s4 = (s16)g->0x2040;                                 // entry count
-//     if (s4 != 0) {
-//       do {
-//         func_00000000(a0, …);                            // pre-process
-//         s4 = (s16)g->0x2040;                              // re-read
-//       } while (--cnt > 0);                                // drain loop
-//     }
-//     // main pass: for each of (s16)g->0x2040 entries, dispatch the
-//     //   intra-USO processor at 0x310704 (jal 0x0C00C4C1, NOT a
-//     //   placeholder — a real fixed game_libs target) building
-//     //   command words into the stack buffer; flag-gated branches
-//     //   (at==1) select sub-paths; final lh g->0x2040 / store.
-//   }
-//
-// Struct-typing reference:
-//   &D_0 + 0x2040 = global s16 command/entry count (re-read each
-//     iteration — the list can shrink during processing). sp+0x4C..
-//     +0x1068 = a ~4KB stack command/vertex scratch buffer. a0/a1/a2
-//     = list/context args. 0x310704 = a real intra-USO processor
-//     (gl_func, NOT a runtime-patched placeholder); func_00000000 =
-//     the USO placeholder dispatcher (pre-process step).
-// Caps (DEFERRED, documented-hard): single jr $ra (older "2-jr
-//   bundle" note is STALE; .s is 0x204/129 words, one function).
-//   Real-C structural body below per the analysis above; byte-match
-//   deferred — 0x1068 frame + several resolved intra-USO jal helpers
-//   (0xC4C1/0xC414/0xC8C8<<2) + branch-likely (bnel/beql) clip/min-
-//   max scheduling. gl_func_00000000 = canonical never-defined USO
-//   placeholder (safe; per feedback_placeholder_func_name_reuse).
-//   Name pre-checked: 3 file occurrences (not a reused placeholder),
-//   so a typed def is collision-safe. Next pass: resolve the three
-//   internal helper targets and grind the two-loop / branch-likely
-//   schedule against the 0x158-stride record buffer.
-#ifdef NON_MATCHING
+/* gl_func_0001CD64: per-frame batch builder over bootup.uso sym1255 (shared typed alias
+ * D_345c0_1CC98; all three lui/addiu pairs are sym1255 addend 0). Exported (section
+ * 0x313D0 = sym1259, TextReloc ref @0x3ACA4). Points G.elems (+0x14) at a 4 KB stack
+ * buffer; drains n = G.n2040 (+0x2040) calling blank sym1260(n-1) and the TU-local
+ * 1CC98(G.n2040 - n) (baked jal gl_ref_00031304); then for each remaining batch portions
+ * the budget (clamped by +0x2042/+0x2044/+0x2046), calls the baked jal gl_ref_00031050 for
+ * every slot (G.slots +0x18, stride 0x158, count signed byte +1) whose b1 is set, and builds
+ * the batch with gl_ref_00032320 (= 1DCB4) advancing the 8-byte display-list cursor; finally
+ * a b2 countdown / b3 toggle sweep over the slots. *outLen = cursor - gfx (8-byte units).
+ * BYTE-EXACT 129/129. The old NM (61.1) cached `char *g`, a `short` count (sll/sra
+ * re-narrowing) and hand cursors. Levers: plain loops over the typed alias (fresh s0 slot
+ * IVs, count/nslots re-reads), scalars declared BEFORE the 4 KB buf (decl-order frame map:
+ * 7 homes above buf at sp+0x4C), a separate `cur = src` copy after the drain loop (s1 -> s7),
+ * the clamp written `if (v >= lo) lo; else if (v <= hi) hi; else h2042` (branch-likely
+ * layout), and `G.elems = buf;` before `p = gfx;` (or s8,a0 in the blez delay slot). */
+typedef struct { int w0; int w1; } gl_1CD64_Gfx;
 extern int gl_func_00000000();
-extern int D_00000000;
-/* Whole-body decode 2026-07-10 (was 62-insn stub, 14.8% fuzzy). Batch list
- * processor over the &D+0x2040 record count. Phase 1: drain loop counting down
- * the live count, calling a pre-process helper each step. Phase 2: for each
- * record, s6 (a3, a budget) is portioned as s6/count clamped into the
- * [0x2044,0x2046] band (0x2042 = out-of-band fallback), an inner per-slot loop
- * (stride 0x158 over &D, byte flag +25) dispatches a builder, then a finalizer
- * advances the output cursor s8 and decrements the budget by the portion.
- * Phase 3: a decay/toggle sweep over the same 0x158-stride slots (byte +26
- * countdown, byte +27 flip). Returns the cursor, writes ((cursor-a0)>>3) to
- * *a1. Reloc-blind (&D_00000000); div + branch-likely schedule (NM only). */
-int gl_func_0001CD64(int a0, int *a1, int a2, int a3) {
-    char buf[0x101C];
-    char *g = (char *)&D_00000000;
-    short count = *(short *)(g + 0x2040);
-    int s8 = a0;
-    int s6 = a3;
-    int s7;
-    int s1, s2, s3;
+extern void gl_ref_00031304();
+extern void gl_ref_00031050();
+extern gl_1CD64_Gfx *gl_ref_00032320();
+gl_1CD64_Gfx *gl_func_0001CD64(gl_1CD64_Gfx *gfx, int *outLen, int *src, int budget) {
+    gl_1CD64_Gfx *p;
+    int *cur;
+    int n;
+    int i;
+    int total;
+    int portion;
+    int v;
+    gl_1CC98_Elem buf[128];
 
-    *(int *)(g + 0x14) = (int)buf;
-
-    if (count > 0) {
-        int s0;
-        do {
-            s0 = count - 1;
-            gl_func_00000000(s0);
-            gl_func_00000000(*(short *)(g + 0x2040) - count);
-            count = s0;
-        } while (s0 > 0);
+    D_345c0_1CC98.elems = buf;
+    p = gfx;
+    for (n = D_345c0_1CC98.n2040; n > 0; n--) {
+        gl_func_00000000(n - 1);
+        gl_ref_00031304(D_345c0_1CC98.n2040 - n);
     }
-
-    count = *(short *)(g + 0x2040);
-    s7 = a2;
-    if (count > 0) {
-        *(int *)(g + 0x10) = 0;
-        do {
-            s2 = *(short *)(g + 0x2040);
-            if (count == 1) {
-                s3 = s6;
+    cur = src;
+    D_345c0_1CC98.w10 = 0;
+    for (n = D_345c0_1CC98.n2040; n > 0; n--) {
+        total = D_345c0_1CC98.n2040;
+        if (n == 1) {
+            portion = budget;
+        } else {
+            v = budget / n;
+            if (v >= D_345c0_1CC98.h2044) {
+                portion = D_345c0_1CC98.h2044;
+            } else if (v <= D_345c0_1CC98.h2046) {
+                portion = D_345c0_1CC98.h2046;
             } else {
-                int v = s6 / count;
-                short lo = *(short *)(g + 0x2044);
-                if (v >= lo) {
-                    s3 = lo;
-                } else {
-                    short hi = *(short *)(g + 0x2046);
-                    if (hi < v) {
-                        s3 = *(short *)(g + 0x2042);
-                    } else {
-                        s3 = hi;
-                    }
-                }
+                portion = D_345c0_1CC98.h2042;
             }
-            if (*(signed char *)(g + 1) > 0) {
-                char *p = (char *)&D_00000000;
-                for (s1 = 0; s1 < *(signed char *)(g + 1); s1++) {
-                    if (*(unsigned char *)(p + 25) != 0) {
-                        gl_func_00000000(s3, s2 - count, s1);
-                        s2 = *(short *)(g + 0x2040);
-                    }
-                    p += 0x158;
-                }
-            }
-            s8 = gl_func_00000000(s7, s3, s8, s2 - count);
-            count--;
-            s6 -= s3;
-            s7 += s3 << 2;
-        } while (count > 0);
-    }
-
-    if (*(signed char *)(g + 1) > 0) {
-        char *p = (char *)&D_00000000;
-        for (s1 = 0; s1 < *(signed char *)(g + 1); s1++) {
-            unsigned char v = *(unsigned char *)(p + 26);
-            if (v != 0) {
-                *(unsigned char *)(p + 26) = v - 1;
-            }
-            *(unsigned char *)(p + 27) = *(unsigned char *)(p + 27) ^ 1;
-            p += 0x158;
         }
+        for (i = 0; i < D_345c0_1CC98.nslots; i++) {
+            if (D_345c0_1CC98.slots[i].b1) {
+                gl_ref_00031050(portion, total - n, i);
+                total = D_345c0_1CC98.n2040;
+            }
+        }
+        p = gl_ref_00032320(cur, portion, p, total - n);
+        budget -= portion;
+        cur += portion;
     }
-
-    *a1 = (s8 - a0) >> 3;
-    return s8;
+    for (i = 0; i < D_345c0_1CC98.nslots; i++) {
+        if (D_345c0_1CC98.slots[i].b2) {
+            D_345c0_1CC98.slots[i].b2--;
+        }
+        D_345c0_1CC98.slots[i].b3 ^= 1;
+    }
+    *outLen = p - gfx;
+    return p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CD64);
-#endif
 
 /* Clears bit 7 of the byte field of consecutive elements in the 2D global
  * table at &D_00000000 (D+0x14 = base ptr, D+0x2070 = row stride, D+0x2040 =
