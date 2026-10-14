@@ -3377,63 +3377,49 @@ void gl_func_0000DFC4(int *a0, int a1, int a2) {
 void game_libs_func_0000E044(int a0, int a1) { (void)a0; (void)a1; }
 void game_libs_func_0000E050(int a0, int a1) { (void)a0; (void)a1; }
 
-#ifdef NON_MATCHING
 /* gl_func_0000E05C: 47-insn 2-gate + flag-driven dispatch + vtable tail (0xBC, frame 0x28).
  *
- * Decoded structure (raw-word disasm):
- *   v0 = func1(self);                                // lookup
- *   if (v0 == NULL) return;
- *   if ((v0->[0x4] & 1) == 0) return;                 // 2nd gate
+ *   v0 = func1(self); if (v0 == NULL) return; if ((v0->[0x4] & 1) == 0) return;
+ *   a2_var = -1;
+ *   if (self->[0xB4] & 0x10) a2_var = func2(D_sym, a2);
+ *   if (self->[0xB4] & 0x1) { r1 = func3(D_sym, a2); func4(self, r1, a2_var); func5(0x24, a2); }
+ *   vt = self->[0x28]; (vt->[0x6C])((char*)self + (s16)vt->[0x68], a2);
  *
- *   flags = self->[0xB4];
- *   int a2_var = -1;
- *   if (flags & 0x10) {
- *       a2_var = func2(D_sym1);                       // 1st flag-conditional call
- *   }
- *   if (flags & 0x1) {
- *       int r1 = func3(D_sym2, a1);                   // chained 2nd flag-conditional
- *       func4(self, r1, a2_var);                       // 3-arg with prior a2_var
- *   }
- *   func5(0x24, a1);                                  // unconditional middle call
- *
- *   // Vtable tail-dispatch (always):
- *   vt = self->[0x28];
- *   fn = (vtable_fn)vt->[0x6C];
- *   short off = (s16)vt->[0x68];
- *   fn((char*)self + off, a1);
- *
- * Cascading flag-conditional dispatch: bit 0x10 sets up a2_var, bit 0x1
- * runs middle pair, then unconditional tail vtable call. Standard
- * "dispatch matrix on flag bits" idiom for state-machine objects.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+ * BYTE-EXACT 47/47 (2026-09-11 agent-g), from the 96.91% wrap. Three levers:
+ *  1. The old decode had func5(0x24, a2) UNCONDITIONAL; the target's `beqz t9,+0x90`
+ *     skips it, so it is the third call INSIDE the flags&1 block. Fixing this alone
+ *     also removed the "vt in v1 vs v0" residual (control-flow, not colouring).
+ *  2. a1 is an unreferenced param: IDO homes it (`sw a1,0x2C(sp)`, +1 word). The
+ *     emission-free dead `if (a1) {}` (E118 lever) removes the home ONLY when it is
+ *     the first STATEMENT before the lookup call -- with `int *v0 = func1(self);`
+ *     as a declaration initializer the ref comes after the call and the home stays.
+ *     So v0 is assigned as a statement and `a2_var = -1` is set AFTER the call
+ *     (setting it before the call materialises -1 pre-jal and spills it, +1).
+ *  3. Vtable tail in the CDDC form (named `new_a0` pointer local, fn-ptr deref
+ *     inline) gives the ring t9/t0 + `addu a0,t0,s0`; named fn/off locals colour
+ *     a2/a3 and flip the addu. */
 void gl_func_0000E05C(int *self, int a1, int a2) {
-    int *v0 = (int*)gl_func_00000000(self);
-    int a2_var = -1;
+    int *v0;
+    int a2_var;
     int *vt;
-    int (*fn)(int, int);
-    short off;
+    int *new_a0;
+    if (a1) {}
+    v0 = (int*)gl_func_00000000(self);
+    a2_var = -1;
     if (v0 == 0) return;
     if ((v0[1] & 1) == 0) return;
-    /* flags re-read each test (not cached) — matches target's two lw 0xB4(s0). */
     if (self[0xB4 / 4] & 0x10) {
         a2_var = (int)gl_func_00000000(*(int*)&D_00000000, a2);
     }
     if (self[0xB4 / 4] & 0x1) {
         int r1 = (int)gl_func_00000000(*(int*)&D_00000000, a2);
         gl_func_00000000(self, r1, a2_var);
+        gl_func_00000000(0x24, a2);
     }
-    gl_func_00000000(0x24, a2);
     vt = (int*)self[0x28 / 4];
-    fn = (int(*)(int, int))vt[0x6C / 4];
-    off = *(short*)((char*)vt + 0x68);
-    fn((int)((char*)self + off), a2);
+    new_a0 = (int*)((char*)self + *(short*)((char*)vt + 0x68));
+    (*(int(**)(int*, int))((char*)vt + 0x6C))(new_a0, a2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E05C);
-#endif
 
 /* gl_func_0000E118 — 49/49 EXACT (2026-07-03, agent-e w4).
  * Was documented "cap: IDO spuriously homes the UNUSED a1 placeholder param
