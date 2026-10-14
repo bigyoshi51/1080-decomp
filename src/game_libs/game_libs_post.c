@@ -10680,48 +10680,33 @@ block_37:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027E24);
 #endif
 
-/* game_libs_func_0002831C: range-bucket lookup returning a0+8/+16/+24. splat
- * mis-split the two later branch targets into 00028334/00028350; merged here.
- * NM at 2 diffs: target holds a0+24 in $v1 and returns via `move v0,v1`; mine
- * computes a0+24 directly into $v0. Regalloc-class — permuter floored (best 60,
- * no zero in 120s). 2026-07-15 agent-h partial-disproof: a TERNARY return
- * (`return (a0[2]>=a1) ? a0+16 : ret;` with ret=a0+24 hoisted) DOES pin ret
- * to $v1 and emits the exact `addiu v1,a0,24` + `jr; or v0,v1,zero` — but the
- * a0+16 arm then joins the shared return (`beq zero,zero` + `addiu v1,a0,16`)
- * instead of the target's tail-duplicated `jr; addiu v0,a0,16`. Separate-return
- * forms always single-def-coalesce ret into $v0 (hoisted decl, dead-if
- * interference, if(0) second def, self-assign, ret-relative folds all inert —
- * uopt CFG liveness kills cross-arm interference). Residual = need multi-def
- * web AND per-arm jr simultaneously; no C form found.
- * 2026-07-17 agent-h goto-end generalization probe (5 variants): the goto-end
- * respelling (`ret=a0+24; if (a0[2]<a1) goto end; return a0+16; end: return
- * ret;`) reproduces the target CFG EXACTLY (beql head, per-arm jr tail-dup,
- * bnez+nop) — 13/15 words — but ret stays single-def and rule-4-coalesces
- * into $v0 (words 8/15: addiu v0 vs v1, nop vs or v0,v1,zero). Making the
- * web multi-def DOES pin $v1 + emit the move (2-def a0+8-goto and 2-def
- * a0+16-fallthrough variants both show addiu v1,a0,24 + move v0,v1) but
- * collapses the per-arm jr into a shared return (b / bnezl-filled move).
- * Comma-carrier in the condition re-coalesces with the hoist inverted
- * (a0+16 into v0). if(1){} BB-lever inert (identical to goto-end form).
- * Same disjointness as 23B98: multi-def-web XOR per-arm-jr in uopt phase
- * order. Cap stands; body below is the goto-end 13/15 form. */
-#ifdef NON_MATCHING
-char *game_libs_func_0002831C(char *a0, int a1) {
-    char *ret;
-    if (a1 < *(unsigned char*)(a0 + 1)) {
-        return a0 + 8;
+/* game_libs_func_0002831C: range-bucket lookup returning &rec[0]/[1]/[2]
+ * (a0+8/+16/+24). splat mis-split the two later branch targets into
+ * 00028334/00028350; merged here. EXACT 2026-10-14 (agent-c), 95.67 -> 100.
+ * The long-standing "multi-def web XOR per-arm jr" cap (agent-h, 2026-07-15/17:
+ * ternary, goto-end, 2-def, comma-carrier, if(1) probes) dissolves with the
+ * plainest spelling: ONE result local assigned in an if / else-if / else
+ * chain and a single `return r;`. That gives the 3-def web (a0+24 lands in
+ * v1, `jr; or v0,v1,zero`) while uopt still tail-duplicates the jr into the
+ * a0+8 and a0+16 arms (each def is the only use on its path -> v0 direct). */
+typedef struct {
+    char pad0;
+    unsigned char lo;   /* 0x01 */
+    unsigned char hi;   /* 0x02 */
+    char pad3[5];
+    char rec[3][8];     /* 0x08 */
+} Gl2831CRange;
+char *game_libs_func_0002831C(Gl2831CRange *a0, int a1) {
+    char *r;
+    if (a1 < a0->lo) {
+        r = a0->rec[0];
+    } else if (a1 <= a0->hi) {
+        r = a0->rec[1];
+    } else {
+        r = a0->rec[2];
     }
-    ret = a0 + 24;
-    if (*(unsigned char*)(a0 + 2) < a1) {
-        goto end;
-    }
-    return a0 + 16;
-end:
-    return ret;
+    return r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002831C);
-#endif
 
 // gl_func_00028358 -- registry handle resolve, byte-+0 sub-count variant
 // (0xD4 / 53 words). BYTE-EXACT 2026-10-14 (85.47 -> 100). Sibling of
