@@ -498,36 +498,32 @@ unsigned int *gl_func_0001D200(int a0, unsigned int a1, short a2, short a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D200);
 #endif
 
-#ifdef NON_MATCHING
-/* Display-list emitter: index struct &D[a2*0x158]; for each set flag at +0x118 /
- * +0x11C emit two DL words (G_? 0x7020000|a1 + payload, then 0x7000C80/0xE20 |
- * (struct[0x18]<<16) + payload) into a0, advancing. Return advanced a0. Reloc-
- * blind (&D). Structurally exact through the a2*0x158 index; byte-match capped by
- * cursor-vs-offset fold (target keeps separate cursors v1/a2 with two +8 advances,
- * C-emit folds to one +16 with -8/-4 offsets) + $t-renumber. */
-int game_libs_func_0001D3E0(int *a0, int a1, int a2) {
-    char *base = (char *)&D_00000000 + a2 * 0x158;
-    if (*(int *)(base + 0x118) != 0) {
-        a0[0] = (a1 & 0xFFFF) | 0x7020000;
-        a0[1] = *(int *)(base + 0x118);
-        a0 += 2;
-        a0[0] = (*(unsigned char *)(base + 0x18) << 16) | 0x7000C80;
-        a0[1] = *(int *)(base + 0x120);
-        a0 += 2;
+/* game_libs_func_0001D3E0: display-list emitter for registry record a2 (bootup.uso
+ * Data sym1255 @0x345C0 = D_00000000_345c0, stride 0x158). For each nonzero
+ * pointer at rec+0x118 / rec+0x11C emit two 0x07 packets: {0x0702 | (a1 & 0xFFFF),
+ * ptr} then {0x07 | rec[0x18] << 16 | 0x0C80 / 0x0E20, rec+0x120 / rec+0x124};
+ * return the advanced cursor. BYTE-EXACT 52/52 with the gbi-macro packet shape:
+ * `{ G *_g = gfx++; _g->w0 = ...; _g->w1 = ...; }` (the `or v1/a2,a0` copy + the
+ * early `addiu a0,8` are the post-increment) and _SHIFTL-style masked fields (the
+ * zero-emission `& 0xFF` on the lbu byte is the phantom that skips t2). The old NM
+ * wrap (75.3) used `a0[0..1]` + `a0 += 2`, which folds both packets onto one +16
+ * cursor bump. */
+extern int D_00000000_345c0;
+typedef struct { unsigned int w0, w1; } gl_1D3E0_Gfx;
+#define SHL_1D3E0(v, s, w) ((((unsigned int)(v)) & ((1 << (w)) - 1)) << (s))
+gl_1D3E0_Gfx *game_libs_func_0001D3E0(gl_1D3E0_Gfx *gfx, int a1, int a2) {
+    char *rec = (char *)&D_00000000_345c0 + a2 * 0x158;
+    if (*(int *)(rec + 0x118) != 0) {
+        { gl_1D3E0_Gfx *_g = gfx++; _g->w0 = SHL_1D3E0(0x07, 24, 8) | SHL_1D3E0(2, 16, 8) | SHL_1D3E0(a1, 0, 16); _g->w1 = *(int *)(rec + 0x118); }
+        { gl_1D3E0_Gfx *_g = gfx++; _g->w0 = SHL_1D3E0(0x07, 24, 8) | SHL_1D3E0(*(unsigned char *)(rec + 0x18), 16, 8) | SHL_1D3E0(0xC80, 0, 16); _g->w1 = *(int *)(rec + 0x120); }
     }
-    if (*(int *)(base + 0x11C) != 0) {
-        a0[0] = (a1 & 0xFFFF) | 0x7020000;
-        a0[1] = *(int *)(base + 0x11C);
-        a0 += 2;
-        a0[0] = (*(unsigned char *)(base + 0x18) << 16) | 0x7000E20;
-        a0[1] = *(int *)(base + 0x124);
-        a0 += 2;
+    if (*(int *)(rec + 0x11C) != 0) {
+        { gl_1D3E0_Gfx *_g = gfx++; _g->w0 = SHL_1D3E0(0x07, 24, 8) | SHL_1D3E0(2, 16, 8) | SHL_1D3E0(a1, 0, 16); _g->w1 = *(int *)(rec + 0x11C); }
+        { gl_1D3E0_Gfx *_g = gfx++; _g->w0 = SHL_1D3E0(0x07, 24, 8) | SHL_1D3E0(*(unsigned char *)(rec + 0x18), 16, 8) | SHL_1D3E0(0xE20, 0, 16); _g->w1 = *(int *)(rec + 0x124); }
     }
-    return (int)a0;
+    return gfx;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D3E0);
-#endif
+#undef SHL_1D3E0
 
 // game_libs_func_0001D4B0 -- MERGED 2026-09-09 (agent-c): the 4-word orphan
 // `li t0,0x158; multu a1,t0; lui v0; addiu v0` was the hoisted record-index head of
