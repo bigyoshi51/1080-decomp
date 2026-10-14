@@ -505,9 +505,11 @@ build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x565c
 # gl_func_0000C5B0=0x8c: same class — word-exact 35/35 twin-mirror of 88B4 but the
 # compiled NM body carries its own jr-delay nop (0x90); target symbol is 0x8c with
 # the nop as baserom alignment (_pad.s).
+# tail clip 0x555c -> 0x5568 (2026-10-14 agent-g): gl_func_0000DB80 real def is 68w vs its
+# old 65w NM body; EBC8 NM offset 0x552c -> 0x5538, clip = offset + 0x30.
 # tail clip 0x5564 -> 0x555c (2026-10-14 agent-g): gl_func_0000C49C real def is 21w vs its
 # old 23w NM body; EBC8 NM offset 0x5534 -> 0x552c, clip = offset + 0x30.
-build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x555c gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
+build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5568 gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
 # tail clip 0x5550 -> 0x5554 (2026-09-11 agent-g): gl_func_0000A670 real def is 62w vs its
 # old 61w NM body; EBC8 NM offset 0x5520 -> 0x5524, clip = offset + 0x30.
 # 0x17a38 -> 0x17a48 (2026-09-05 agent-g): game_libs_func_000343F4 absorbed the

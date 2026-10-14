@@ -3020,72 +3020,43 @@ void gl_func_0000DB34(int a0, int a1, int a2) {
         *(short*)((char*)v0 + 0x30) + (int)&D_00000000, &local);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0000DB80: 68-insn function-pointer dispatcher with table lookup
- * + 3-way switch on entity state (a2->0x48).
- *
- * Structural decode (2026-05-04 first-pass):
- *   Prologue: spill 1000 (0x3E8) at sp+0x44 to use as a base.
- *   Lookup: t = *(sp+0x44 + a1*96)  — 96-byte stride table at offset
- *           +1000 from some base. (96 = 24 ints = likely a struct).
- *   First call: ((fnptr)t->0x2C)(t->0x28+t, &sp[0x44])  — vtable call,
- *           passes (struct ptr offset by signed half) and pointer to
- *           the spilled-1000 slot (now repurposed as out-arg).
- *
- *   Switch on (a2->0x48 - 2):  // a2 = original a0 saved at sp+0x50
- *     case 2 (a2->0x48 == 2): bnel branches to epilogue (skip body)
- *     case 3 (a2->0x48 == 3): take 0x3E9-stride table:
- *         t = *(sp+0x2C + a1*96 + a0->0x44)  // diff stride table
- *         ((fnptr)t->0x2C)(t->0x28+t, t_lookup)
- *         goto epilogue
- *     default (else):         take 0x3E8-stride table:
- *         t = *(sp+0x20 + a1*96 + a0->0x44)
- *         ((fnptr)t->0x2C)(t->0x28+t, t_lookup_h)  // signed-half load arg
- *
- *   The 3 jal sites all dispatch through `t->0x2C` function pointer with
- *   `t->0x28` (signed half) added to t as the first arg. Different
- *   tables are consulted based on a2->0x48's value.
- *
- * NEXT PASS: identify the global struct at offset +0x3E8/+0x3E9 (likely a
- * "render dispatch" or "AI behavior" table); type the struct's vtable +
- * data layout. Likely a "process entity by type-code" pattern. */
-extern int gl_func_00000000();
-void gl_func_0000DB80(int *a0, int a1) {
-    int local1 = 1000;
-    char *tbl;
-    int *vt;
-    int *sub;
-
-    tbl = *(char **)((char *)a0 + 0x44);
-    vt = *(int **)(tbl + a1 * 96);
-    sub = *(int **)((char *)vt + 0x28);
-    ((void (*)())*(int *)((char *)sub + 0x2C))(
-        (char *)vt + *(short *)((char *)sub + 0x28), &local1);
-
-    if (*(int *)((char *)a0 + 0x48) == 2) {
-        int idx = a1 ^ 1;
-        char *tbl2 = *(char **)((char *)a0 + 0x44);
-        int *vt2;
-        int *sub2;
-        if (*(int *)((char *)&D_00000000 + 0x34) == 3 ||
-            *(int *)((char *)&D_00000000 + 0x34) == 2) {
-            int la = 1001;
-            vt2 = *(int **)(tbl2 + idx * 96);
-            sub2 = *(int **)((char *)vt2 + 0x28);
-            ((void (*)())*(int *)((char *)sub2 + 0x2C))(
-                (char *)vt2 + *(short *)((char *)sub2 + 0x28), &la);
+/* gl_func_0000DB80: paired vtable dispatch with a mode gate, BYTE-EXACT 68/68
+ * (2026-10-14 agent-g). Same entry/method shape as the matched twins DC90 /
+ * DD44 below: entry = self->0x44[idx*0x60]; q = entry->0x28; method q->0x2C
+ * called with ((short)q->0x28 + entry, &msgcode). First the own entry with
+ * msgcode 1000; then, if self->0x48 == 2, the partner entry (idx^1) with
+ * msgcode 1001 when the global mode (&D + 0x34) is 3 or 2, else 1000.
+ * Match keys (the 86.5% wrap had the decode right):
+ *  - frame 0x50 slots l0@0x44 / l1@0x2C / l2@0x20: l0 is function-scope
+ *    between pad_a[2] and pad_b[2]; l1/l2 are BLOCK-scope (each arm), padded
+ *    by pad_c[2] / pad_d[1]; one more block int (pad_m) in the outer if.
+ *  - mode read twice inline, NOT a named local: a named `m` makes the second
+ *    compare `bne v0,v1` (target `bne v1,v0` against the shared 2 constant).
+ *  - the empty `if (v0) {}` after the FIRST arm's q load flips the
+ *    entry/q colouring of all three dispatches to v1/v0 (DC90/DD44 nudge; on
+ *    the else arm or on the first dispatch it is inert or worse). */
+void gl_func_0000DB80(char *self, int idx) {
+    int pad_a[2]; int l0 = 1000; int pad_b[2];
+    char *v1, *v0;
+    v1 = *(char **)(*(char **)(self + 0x44) + idx * 0x60);
+    v0 = *(char **)(v1 + 0x28);
+    (*(void (**)(char *, int *))(v0 + 0x2C))((char *)((int)*(short *)(v0 + 0x28) + (int)v1), &l0);
+    if (*(int *)(self + 0x48) == 2) {
+        int pad_m;
+        if (*(int *)((char *)&D_00000000 + 0x34) == 3 || *(int *)((char *)&D_00000000 + 0x34) == 2) {
+            int l1 = 1001; int pad_c[2];
+            v1 = *(char **)(*(char **)(self + 0x44) + (idx ^ 1) * 0x60);
+            v0 = *(char **)(v1 + 0x28);
+            if (v0) {}
+            (*(void (**)(char *, int *))(v0 + 0x2C))((char *)((int)*(short *)(v0 + 0x28) + (int)v1), &l1);
         } else {
-            int lb = 1000;
-            vt2 = *(int **)(tbl2 + idx * 96);
-            sub2 = *(int **)((char *)vt2 + 0x28);
-            ((void (*)())*(int *)((char *)sub2 + 0x2C))(
-                (char *)vt2 + *(short *)((char *)sub2 + 0x28), &lb);
+            int l2 = 1000; int pad_d[1];
+            v1 = *(char **)(*(char **)(self + 0x44) + (idx ^ 1) * 0x60);
+            v0 = *(char **)(v1 + 0x28);
+            (*(void (**)(char *, int *))(v0 + 0x2C))((char *)((int)*(short *)(v0 + 0x28) + (int)v1), &l2);
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DB80);
-#endif
 
 /* gl_func_0000DC90: vtable-dispatch on indexed 96-byte entry + pair-toggle (0xB4, frame 0x40).
  * MATCHED (2026-07-14, decomp-permuter --stack-diffs): decl order pins the two
