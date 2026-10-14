@@ -3679,76 +3679,37 @@ void gl_func_0000E53C(int *a0) {
     gl_func_00000000(r, -4);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0000E5D0: 39-insn factory + 2-threshold side-effect (0x9C, frame 0x20).
  *
- * Decoded structure (raw-word disasm):
- *   factory = func1(0, &D_A, 0xC0, 0xB, [sp:0x10] 0xC, [sp:0x14] 1);
- *   self->[0x60] = factory;
+ *   factory = func1(0, &D_00000000, 0xC0, 0xB, 0xC, 1); self->[0x60] = factory;
  *   func2(factory, -2);
- *   factory = self->[0x60];                          // reload
- *   first = factory->[0];
- *   if (first >= 0xB) {                              // threshold 1
- *       ((int*)factory->[0x20])->[0xD4] = 8;
- *       first = factory->[0];                         // re-read (likely same)
- *   }
- *   if (first >= 0xC) {                              // threshold 2
- *       ((int*)factory->[0x20])->[0xE8] = 4;
- *   }
+ *   factory = self->[0x60]; if (factory->n >= 0xB) factory->sub[0xD4] = 8;
+ *   factory = self->[0x60]; if (factory->n >= 0xC) factory->sub[0xE8] = 4;
  *
- * Two slti+bnel guards. bnel ANNULS its delay slot when not taken, which
- * means the body runs only when t9/t2 >= threshold. The thresholds 0xB
- * and 0xC are tier breakpoints — sets [0xD4]=8 at tier-1 entry, [0xE8]=4
- * at tier-2 entry.
- *
- * 2026-06-20 (this session): 95.64% -> STRUCTURE BYTE-EXACT, 8 reg diffs.
- * The target re-reads factory->[0] into a FRESH register for the second check
- * (t9 for check1, t2 for check2) and hoists that re-read into the first bnezl's
- * delay slot (the skip-path copy). Plain inline-deref CSEs the value into ONE
- * register (the old NM did, leaving 15 diffs). The fix is two things:
- *   (1) type factory as a struct so n=factory->n / sub=factory->sub deref the
- *       0x0 and 0x20 fields cleanly;
- *   (2) RELOAD factory = self->0x60 UNCONDITIONALLY before the second check
- *       (not inside the first if) -> IDO re-reads factory->n for check2 instead
- *       of reusing the check1 read, reproducing the bnezl-delay re-read plus the
- *       second `lw v0,96(v1); lw t2,0(v0)` pair. Now 39=39 insns and every
- *       opcode/offset matches (verified word-diff vs the .s).
- * RESIDUAL (8 words): a pure 2-register cyclic renumber — target holds self in
- * $v1 / factory in $v0; this build holds self in $a0 / factory in $v1. The
- * -Wo,-zdbug:6 coloring trace assigns factory->reg2($v0) and self->reg3($v1)
- * (the TARGET coloring) yet reemission lands the self spilltemp reload in $a0;
- * decl-order, register kw, named-vs-inline, and stmt-reorder all leave it.
- * Genuine spilltemp-reload coloring cap. Stays NM.
- * 2026-07-15: d418 e-split probe (self=self0; self0=0;) regresses — the copy
- * becomes a REAL local (+second sw a0 home, frame +8, t-ring shift); the
- * target's reload is a spilltemp off the ARG home, so the fresh-candidate
- * route can't reproduce it. Cap reconfirmed.
- * 2026-07-15b: dead `if (factory){}` after the second call (332B4 arg-reg
- * range-extension lever) REGRESSES (13/39): extending a call-clobbered value
- * across a jal is not zero-emission — factory gets a real spill home (+8
- * frame, sw v0 in the jal delay). The dead-if lever is free only when the
- * tested value is already memory-homed/live. Cap stands. */
+ * BYTE-EXACT 39/39 (2026-10-14 agent-g), from the 98.72% wrap. The UNCONDITIONAL
+ * reload before the second check (2026-06-20) gave the structure; the last
+ * 8-word residual (self $a0 / factory $v1 vs target $v1 / $v0) was NOT a
+ * spilltemp-reload colouring cap: the K&R int return of func2 is a dead $v0
+ * def that excludes $v0 from the post-call webs. Calling func2 through the
+ * void-returning alias gl_func_00000000_e5d0_v (=0 in undefined_syms_auto.txt)
+ * frees $v0 -> factory $v0, self reload $v1 (38C0 / 082F8 void-alias lever,
+ * docs/IDO_CODEGEN.md#wave3-round2-38c0-15fc). */
 struct gl_E5D0_factory { int n; char pad[0x1c]; int *sub; };
+extern void gl_func_00000000_e5d0_v();
 void gl_func_0000E5D0(int *self) {
-    extern int D_A;
     struct gl_E5D0_factory *factory =
-        (struct gl_E5D0_factory *)gl_func_00000000(0, &D_A, 0xC0, 0xB, 0xC, 1);
+        (struct gl_E5D0_factory *)gl_func_00000000(0, &D_00000000, 0xC0, 0xB, 0xC, 1);
     self[0x60 / 4] = (int)factory;
-    gl_func_00000000(factory, -2);
+    gl_func_00000000_e5d0_v(factory, -2);
     factory = (struct gl_E5D0_factory *)self[0x60 / 4];
     if (factory->n >= 0xB) {
         factory->sub[0xD4 / 4] = 8;
     }
-    /* unconditional reload defeats CSE -> check2 re-reads factory->n
-     * (matches the target's bnezl-delay re-read). */
     factory = (struct gl_E5D0_factory *)self[0x60 / 4];
     if (factory->n >= 0xC) {
         factory->sub[0xE8 / 4] = 4;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E5D0);
-#endif
 
 /* gl_func_0000E66C: 31-insn lazy-init + 4-arg + linked-set (0x7C, frame 0x28).
  *
