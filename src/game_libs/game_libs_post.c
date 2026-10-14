@@ -6386,56 +6386,36 @@ int gl_func_00023B44(int a0, int a1) {
 
 /* game_libs_func_00023B98: 3-case dispatch returning USO data fields
  * (idx==0 -> D[0x201C], 1 -> D[0x2020], 2 -> D[0x2024], else 0). MERGED
- * 2026-05-26: absorbed shared-tail fragments _00023BC0/_00023BC8/_00023BD0.
- * RISE 2026-07-08 agent-e: 25% -> 15/17 words. The old "beq-to-shared-tail
- * not C-reproducible" verdict is WRONG -- the shape is a SWITCH with the
- * DEFAULT CASE FIRST (default block lays out right after the compare chain
- * = target's inline `jr;move v0,zero`) + per-case named locals off an
- * array-decay base (`v = *(int*)(g+K); return v;` -> base rematerializes
- * as `lui $v1` in each beq delay slot, loads go straight to $v0).
- * RESIDUAL (2 words): target case 2 is `lw v1,0x2024(v1); jr; move v0,v1`
- * (load into the base reg + copy in the jr delay) vs our coalesced
- * `lw v0,0x2024(v1); jr; nop`. Every anti-coalesce lever tried (2-def
- * webs, phi via dead-cond -- adds a branch, |0/^0/+0 identities fold,
- * volatile regresses, decl-order inert, break-then-return, char* local,
- * g-reuse multi-def): the single-def return copy always coalesces into
- * $v0 (docs/IDO_CODEGEN "move v0,v1 in final jr delay" placement-cap
- * family, rule-4 single-def coalescing).
- * 2026-07-15 agent-h wave-3 re-probe (8 variants): the expression-condition
- * carrier `if ((g = *(char**)(g+0x2024)) == 0) return (int)g; return (int)g;`
- * DOES uncoalesce (lw v1,0x2024(v1) = target word appears) but the bnez
- * survives via tail DUPLICATION (+4 words); every same-target form that
- * would let as1 delete the branch (empty-then, break/break, v-capture+break)
- * is folded by uopt BEFORE coloring -> re-coalesces. `char *r = 0;` +
- * case-2-def phi materializes `move v1,zero` at fn top + b-to-shared-tail
- * (no per-arm dup, 3/17). Destructive g-reuse alone re-splits into a
- * single-def web (reaching-def split) and coalesces; dead if(g){} after
- * the def is pruned pre-coloring here (leaf, no arg-reg to extend).
- * Residual needs carrier-interference AND zero-branch simultaneously —
- * confirmed disjoint in uopt phase order. Cap stands.
- * NM wrap; INCLUDE_ASM is the build path. */
-#ifdef NON_MATCHING
+ * 2026-05-26 (absorbed shared-tail fragments _00023BC0/_00023BC8/_00023BD0).
+ * EXACT 2026-10-14 (agent-c), 96.18 -> 100. The documented "single-def return
+ * copy always coalesces into v0" cap (case 2 = `lw v1,0x2024(v1); jr; move
+ * v0,v1`) came from writing per-case `return`s: with ONE result local `r`
+ * assigned in every case (break) and a single `return r;`, IDO tail-duplicates
+ * the jr into cases 0/1 (loads straight into v0) and leaves the last case on
+ * the shared exit with the r web in v1 -- the 2831C single-result-local rule
+ * (docs/IDO_CODEGEN.md#single-result-local-if-chain-2831c). A switch is
+ * required (an if/else-if chain tests with bne + fallthrough); case order
+ * inside the switch is inert. */
 extern char gl_d_23B98[];
 int game_libs_func_00023B98(int idx) {
     char *g = gl_d_23B98;
-    int v;
+    int r;
     switch (idx) {
-    default:
-        return 0;
     case 0:
-        v = *(int *)(g + 0x201C);
-        return v;
+        r = *(int *)(g + 0x201C);
+        break;
     case 1:
-        v = *(int *)(g + 0x2020);
-        return v;
+        r = *(int *)(g + 0x2020);
+        break;
     case 2:
-        v = *(int *)(g + 0x2024);
-        return v;
+        r = *(int *)(g + 0x2024);
+        break;
+    default:
+        r = 0;
+        break;
     }
+    return r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023B98);
-#endif
 
 // gl_func_00023BDC — STRUCTURAL PASS (0x284 / 161 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no

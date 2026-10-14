@@ -3572,3 +3572,4 @@ gl_func_00000000_635d8_v = 0x00000000;  /* void-typed alias (frees v0 from the d
 D_00000000_688f8 = 0x00000000;  /* gl_func_000688F8: 2nd base-0 vtable symbol (derived store), busts lui/addiu CSE with the base store */
 gl_func_00062F64f = 0x00000000;  /* prototyped (float 6th arg) alias of the blank gl_func_00062F64 callee in gl_func_0006337C: blank USO jal */
 gl_func_00062F64_69b94 = 0x00000000;  /* gl_func_00062F64 called from the in-unit gl_func_00069B94: blank USO jal (a direct in-unit call would bake the address) */
+gl_d_23B98 = 0x00000000;   /* game_libs_func_00023B98 USO data base (runtime reloc; offsets 0x201C..0x2024 in the lw immediates) */
