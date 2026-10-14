@@ -7632,107 +7632,64 @@ int game_libs_func_00024E28(int idx, int a1, char *a2) {
 }
 #undef GS_24E28
 
-// gl_func_00024F30 — STRUCTURAL PASS (0x114 / 69 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). A free-slot allocator over the 0x54-stride slot table at
-// &D_0+0x1038.
-//
-//   void *gl_func_00024F30(int a0, int a1, int a2) {
-//     Slot *s   = (Slot*)(&D_0 + 0x1038);
-//     Slot *end = (Slot*)(&D_0 + 0x540 + ...);            // table end
-//     while (s != end) {                                  // linear scan
-//       if (s->b_0 == 0) break;                            // free slot
-//       s = (char*)s + 0x54;                               // stride
-//     }
-//     if (s == end) return 0;                              // table full
-//     s->b_0  = 1;                                          // in-use
-//     s->w_4  = a1;
-//     s->w_8  = ...;
-//     s->w_C  = a1;
-//     s->w_10 = a2;
-//     s->w_14 = ...;
-//     return s;
-//   }
-//
-// Struct-typing reference: a fixed-capacity slot pool — base
-//   &D_0+0x1038, entry stride 0x54, scanned linearly for the first
-//   entry whose byte +0 is 0 (free); the end marker is derived from
-//   the &D_0+0x540 region. On a full table it returns 0. A claimed
-//   slot gets byte +0 set to 1 (in-use flag) and words +4 / +8 / +0xC
-//   / +0x10 / +0x14 initialised from the caller args. A distinct slot
-//   pool from the &D_0+0x157C (gl_func_00024E34) and &D_0+0x2030
-//   (gl_func_000223DC) registry tables — the game_libs subsystem has
-//   several parallel fixed-stride pools.
-// Caps (DEFERRED): CLEAN single jr $ra. Free-slot allocator over a
-//   fixed-capacity slot pool (distinct from the &D_0+0x157C /
-//   &D_0+0x2030 registry tables). Real-C STRUCTURAL body below per
-//   the analysis (base &D_0+0x1038, stride 0x54, 16 slots = scan
-//   limit 0x540; first slot whose byte+0==0 is claimed: byte+0=1,
-//   words +4/+8/+0xC/+0x10/+0x14 from args; full table -> 0).
-//   Byte-match deferred — bnel scan-loop schedule. Name pre-checked:
-//   no extern reuse (collision-safe).
-#ifdef NON_MATCHING
-extern int D_00000000;
-/* Whole-body decode 2026-06-01 (prior init was incomplete + missing 4 args).
- * Find a free 0x54-stride slot in [&D+0x1038, &D+0x1578); if none return 0. Init
- * s+0=1, s+4=a1, s+0xC=a1, s+0x10=a2, s+8=a0; scale s+0x14 = 4096 if a0==0 else
- * (a2/a0+255)&~0xFF floored at 256; s+1=3, s+2=a3, s+0x1C=arg6, s+0x18=arg7;
- * gl(s+0x20, s+0x38, 1); return s.
- * 2026-06-27: CSE-break on the end marker (write `(char*)&D_00000000 + 0x540`
- * inline at both the loop bound and the post-loop full-table test instead of a
- * cached `base + 0x540`). IDO then re-materialises the end address separately
- * for the post-loop compare, matching the expected's extra lui. 66.65 -> 67.74.
- * 2026-07-18: 67.74 -> 79.45. Three levers: (1) signed flag byte — target lb not
- * lbu -> s8 casts throughout; (2) the scale divisor is arg5 NOT a0 (target
- * `lw a0,48(sp)` reloads arg5 into $a0; original a0 homed at 32(sp) and reloaded
- * as t9 for s+8); (3) end-sentinel/slot-ptr DUAL-USE single variable `s` (init
- * to &D+0x540, loop bound v0!=s, reassigned s=v0+0x1038 on break) + inline
- * post-loop respell -> frame 40->32 exact, kills the s=0 init insn. s declared
- * first (top-down slot order). Probed and rejected: separate uninit s + end
- * local (frame 40, all arg homes +8); distinct placeholder externs for the two
- * end sites (uopt loses the non-zero-trip proof -> zero-trip guard beq + loop
- * re-rotation, much worse); do-while spelling with distinct externs (compare
- * algebraically rearranged to addiu -1344). RESIDUAL cap: uopt materialises &D
- * once into t0 and derives the post-test end arithmetically (addiu t7,t0,1344)
- * vs target's three independent lui/addiu %hi/%lo pairs + `lw v1,28(sp)`
- * exhausted-path home fill; downstream t-reg renumber cascade (t1..t5 vs
- * t0..t4) + jal-delay swap all hang off that one web. */
-void *gl_func_00024F30(int a0, int a1, int a2, int a3, int arg5, int arg6, int arg7) {
-    s8 *s = (s8 *)&D_00000000 + 0x540;
-    s8 *v0;
-    for (v0 = (s8 *)&D_00000000; v0 != s; v0 += 0x54) {
-        if (*(s8 *)(v0 + 0x1038) == 0) {
-            s = v0 + 0x1038;
+/* gl_func_00024F30 (0x114, 69 insns): claim the first free slot of the 16-entry
+ * 0x54-stride pool at D+0x1038 (signed flag byte +0 == 0); full table -> 0.
+ * Init flag=1, w4=wC=a1, w10=a2, w8=a0, w14 = 4096 if arg4==0 else
+ * ((a2/arg4)+255)&~0xFF floored at 256, b1=3, b2=a3, w1C=arg5, w18=arg6, then
+ * gl(s->x20, s->x38, 1) and return s.
+ * BYTE-EXACT 2026-10-14 (agent-c), 79.45 -> 100. The old "uopt materialises &D
+ * once" cap was decode shape, same as 24C08:
+ *   - an INDEX loop `for (i = 0; i != 16; i++)` over a struct member array
+ *     (`GS.slots[i]`): IDO strength-reduces to a `D + i*0x54` IV with the flag
+ *     folded as `lb 0x1038(v0)`, LFTRs the exit test to the end pointer D+0x540
+ *     and rematerialises D+0x540 for the post-loop `i == 16` test (the three
+ *     independent lui/addiu pairs);
+ *   - `s = &GS.slots[i]` assigned only on the break path -> uninitialised on the
+ *     exhausted path = the `lw v1,28(sp)` home fill (s lives across the call);
+ *   - store order: w8 = a0 before w4/wC/w10 (lw t9 hoisted ahead of the stores),
+ *     and the tail w1C, b1 = 3, b2, w18 (24-way permutation; any other order
+ *     hoists the char literal 3 above the arg4 test or swaps the jal delay). */
+typedef struct {
+    s8 flag; s8 b1; s8 b2; char p3;
+    int w4; int w8; int wC; int w10; int w14; int w18; int w1C;
+    char x20[0x18]; char x38[0x1C];
+} gl_24F30_Slot;
+typedef struct { char p0[0x1038]; gl_24F30_Slot slots[16]; } gl_24F30_GS;
+#define GS_24F30 (*(gl_24F30_GS *)&D_00000000)
+gl_24F30_Slot *gl_func_00024F30(int a0, int a1, int a2, int a3, int arg4, int arg5, int arg6) {
+    gl_24F30_Slot *s;
+    int i;
+
+    for (i = 0; i != 16; i++) {
+        if (GS_24F30.slots[i].flag == 0) {
+            s = &GS_24F30.slots[i];
             break;
         }
     }
-    if (v0 == (s8 *)&D_00000000 + 0x540) {
+    if (i == 16) {
         return 0;
     }
-    *(s8 *)(s + 0) = 1;
-    *(int *)(s + 4) = a1;
-    *(int *)(s + 0xC) = a1;
-    *(int *)(s + 0x10) = a2;
-    *(int *)(s + 8) = a0;
-    if (arg5 == 0) {
-        *(int *)(s + 0x14) = 4096;
+    s->flag = 1;
+    s->w8 = a0;
+    s->w4 = a1;
+    s->wC = a1;
+    s->w10 = a2;
+    if (arg4 == 0) {
+        s->w14 = 4096;
     } else {
-        int v = ((a2 / arg5) + 255) & ~0xFF;
-        *(int *)(s + 0x14) = v;
-        if ((u32)v < 256U) {
-            *(int *)(s + 0x14) = 256;
+        s->w14 = ((a2 / arg4) + 255) & ~0xFF;
+        if ((u32)s->w14 < 256U) {
+            s->w14 = 256;
         }
     }
-    *(char *)(s + 1) = 3;
-    *(char *)(s + 2) = a3;
-    *(int *)(s + 0x1C) = arg6;
-    *(int *)(s + 0x18) = arg7;
-    gl_func_00000000(s + 0x20, s + 0x38, 1);
+    s->w1C = arg5;
+    s->b1 = 3;
+    s->b2 = a3;
+    s->w18 = arg6;
+    gl_func_00000000(s->x20, s->x38, 1);
     return s;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024F30);
-#endif
+#undef GS_24F30
 
 // gl_func_00025044 — STRUCTURAL PASS (0x84 / 33 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
