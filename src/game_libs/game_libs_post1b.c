@@ -2648,36 +2648,34 @@ void game_libs_func_00066620(List66620 *list, int key) {
     }
 }
 
-#ifdef NON_MATCHING
-/* gl_func_00066674: append node to a singly-linked list.
- *   node = gl_func_00000000(D_X_66674);    // factory (arg = global int by value)
- *   node->next = NULL; node->data = data;  // next stored BEFORE data
- *   cur = *head;
- *   if (cur == NULL) *head = node;          // empty list
- *   else { while (cur->next) cur = cur->next; cur->next = node; }
- * game_libs is baked-reloc (cannot byte-LAND); objdiff-fuzzy only.
- * Residual at 70.75% is a spill-slot/branch-likely coloring cap: target keeps
- * the walk cursor in a register (frame 0x18, bnezl/beqzl) while IDO spills it
- * to 0x1c(sp) here (frame 0x30, bnez+nop) — permuter-immune. */
+/* gl_func_00066674: append node to a singly-linked list. EXACT 2026-10-14
+ * agent-g (was NM 70.75 -- the old "target keeps the cursor in a register"
+ * note had the sides swapped: the TARGET is the 0x30 frame that parks the
+ * last node in 0x1C(sp)). Three keys: (1) the walk is a separate `last`
+ * cursor (`for (; cur; cur = cur->next) last = cur; last->next = node;`),
+ * which IDO keeps in a0 with the loop's bnezl and spills to 0x1C at the exit
+ * (possibly-uninitialised local); (2) data is stored BEFORE next=0 in source
+ * -- the scheduler then emits `lw t6,data; sw zero,4; sw t6,0`; (3) the
+ * frame is 8 bytes larger than the locals need: an unused `volatile int
+ * pad[2]` declared after cur (the documented +8-frame lever). The
+ * factory argument is a global int passed by value (blank &D, offset 0). */
 void gl_func_00066674(int **head, int data) {
-    extern int D_X_66674;
-    int *node = (int*)gl_func_00000000(D_X_66674);
+    int *node = (int*)gl_func_00000000(D_00000000);
     int *cur;
-    node[1] = 0;
+    volatile int pad[2];
+    int *last;
     node[0] = data;
+    node[1] = 0;
     cur = *head;
     if (cur == 0) {
         *head = node;
     } else {
-        while (cur[1] != 0) {
-            cur = (int*)cur[1];
+        for (; cur != 0; cur = (int *)cur[1]) {
+            last = cur;
         }
-        cur[1] = (int)node;
+        last[1] = (int)node;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066674);
-#endif
 
 /* ROM-truth order in this run (base 666E4..6671C): setter, getter,
  * 6-zero pad, then the 666FC addr-return — the addr-return's CODE sits at
