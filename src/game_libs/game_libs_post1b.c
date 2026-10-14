@@ -508,7 +508,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063884);
  * blocks (va.y<0 / vb.y<0 / both) each: scale n by y, chained copy via
  * t, add, chained copy via u->w, component-copy into out; accumulate y
  * into arg1; count==2 averages (0.5f vec / 0.5 double scalar). Final
- * call o->0x108 with &out,&fin(0,-arg1,0). Prior m2c graft 22.62. */
+ * call o->0x108 with &out,&fin(0,-arg1,0). Prior m2c graft 22.62.
+ * 2026-10-14 (agent-g) 72.71 -> 75.91: the target RELOADS va/vb from the
+ * stack for d = va - vb (and va.y/vb.y for the r1/r2 adds) instead of
+ * forwarding the just-stored sums; an `if (1) {}` before each consumer
+ * breaks uopt's store->load forwarding (and the two FP spills at sp+24/28
+ * that made the frame 0x150 vs 0x148). Open: target keeps arg0 in a3
+ * (spilled to its home around calls, `sw a3,328` before call 3) and farg1
+ * register-resident in f16 (`lwc1 f16,332` after call 3, `0 + va.y`
+ * unfolded); the K&R/address-taken spelling reloads arg0 into t6 and keeps
+ * farg1 in memory, while an ANSI `(char *, f32, int, int)` def (all four
+ * still homed) fixes farg1 but scores lower (73.7: arg0 -> s0 colouring). */
 #ifdef NON_MATCHING
 void gl_func_00063964(arg0, arg1, arg2, arg3)
 char *arg0;
@@ -555,6 +565,7 @@ int arg1, arg2, arg3;
     out.x = 0.0f;
     out.y = 0.0f;
     out.z = 0.0f;
+    if (1) {}
     d.x = va.x - vb.x;
     d.y = va.y - vb.y;
     d.z = va.z - vb.z;
@@ -569,6 +580,7 @@ int arg1, arg2, arg3;
         s1.z = n.z * va.y;
         t = s1;
         c1 = t;
+        if (1) {}
         r1.x = va.x + c1.x;
         r1.y = va.y + c1.y;
         r1.z = va.z + c1.z;
@@ -578,6 +590,7 @@ int arg1, arg2, arg3;
         out.y = w.y;
         out.z = w.z;
         count = 1;
+        if (1) {}
         farg1 = 0.0f + va.y;
     }
     if (vb.y < 0.0f) {
@@ -586,6 +599,7 @@ int arg1, arg2, arg3;
         s2.z = n.z * vb.y;
         t = s2;
         c2 = t;
+        if (1) {}
         r2.x = vb.x + c2.x;
         r2.y = vb.y + c2.y;
         r2.z = vb.z + c2.z;
@@ -595,6 +609,7 @@ int arg1, arg2, arg3;
         out.y = w.y;
         out.z = w.z;
         count += 1;
+        if (1) {}
         farg1 += vb.y;
     }
     if (count == 2) {
