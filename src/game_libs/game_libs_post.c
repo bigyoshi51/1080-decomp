@@ -11546,35 +11546,34 @@ void gl_func_00028FCC(int *a0, int a1) {
     (void)vp1;
 }
 
-#ifdef NON_MATCHING
-/* Split off from gl_func_00028FCC bundle 2026-05-08: 11-insn no-frame
- * config setter. Stores a1 to a0->field_48, reads a0->field_50's child
- * field_5 byte to a0->field_30, ORs bit 0x10 into a0->field_60, loads
- * a float from D[0x2050] and stores it to a0->field_6C.
- *
- * 2026-06-22 STRUCTURAL FIX: arg1 is a POINTER, and `sub` is loaded from
- * a1->field_50 (lw t6,80(a1)) — NOT a0->field_50 as the prior decode read.
- * Fixing the base + reordering the tail (field_30 store, float store, then
- * field_60|0x10 store LAST) brought the body to insn-order-exact: only the
- * register coloring differs now (6 words). 25.82% -> the sole residual is
- * REG_ALLOC_ORDER picking $v0/$v1 for the first two loaded temps where the
- * target uses $t6/$t9 (then $t7/$t0). Same insn count + order; no C-level
- * lever forces IDO to skip $v0/$v1 in this 2-arg void leaf (it never calls,
- * so v0/v1 stay in the free pool and get picked first). Genuine coloring
- * cap; INCLUDE_ASM build emits correct bytes. */
-void game_libs_func_00029000(int *a0, int *a1) {
-    int *sub;
-    unsigned char flags;
-    a0[0x48/4] = (int)a1;
-    sub = (int*)a1[0x50/4];
-    flags = *((unsigned char*)a0 + 0x60);
-    *((char*)a0 + 0x30) = *((char*)sub + 0x5);
-    *(float*)((char*)a0 + 0x6C) = *(float*)((char*)&D_00000000 + 0x2050);
-    *((char*)a0 + 0x60) = flags | 0x10;
+/* game_libs_func_00029000: 11-insn no-frame config setter (split off from the
+ * gl_func_00028FCC bundle 2026-05-08). EXACT 2026-10-14 (agent-c), 96.36 -> 100.
+ * The old "REG_ALLOC_ORDER v0/v1 vs t6/t9 colouring cap" was a type decode
+ * error: the `lbu 0x60; ori 0x10; sb 0x60` is a ONE-BIT BITFIELD set (bit 3
+ * from the MSB of the word at 0x60), not a char |= 0x10. The bitfield insert
+ * burns one extra ring temp (t8), so the RMW lands in t9/t0 like the ROM; a
+ * plain `b60 |= 0x10` gives t8/t9. Store order b30, f6c, then the bit. */
+typedef struct { char pad0[5]; unsigned char b5; } Gl29000Sub;
+typedef struct {
+    char pad0[0x30];
+    unsigned char b30;          /* 0x30 */
+    char pad1[0x48 - 0x31];
+    void *w48;                  /* 0x48 */
+    char pad2[0x50 - 0x4C];
+    Gl29000Sub *w50;            /* 0x50 */
+    char pad3[0x60 - 0x54];
+    unsigned int f60_0 : 3;     /* 0x60 */
+    unsigned int f60_3 : 1;     /* 0x60 bit 0x10 of the first byte */
+    unsigned int f60_rest : 28;
+    char pad4[0x6C - 0x64];
+    float f6C;                  /* 0x6C */
+} Gl29000Obj;
+void game_libs_func_00029000(Gl29000Obj *a0, Gl29000Obj *a1) {
+    a0->w48 = a1;
+    a0->b30 = a1->w50->b5;
+    a0->f6C = *(float *)((char *)&D_00000000 + 0x2050);
+    a0->f60_3 = 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029000);
-#endif
 
 int gl_func_0002902C(char *a0, int a1) {
     int r = gl_func_00000000(a0, a1);
