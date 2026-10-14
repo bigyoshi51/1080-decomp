@@ -3558,3 +3558,5 @@ gl_func_00000000_ce38_v = 0x00000000;  /* void-typed alias (kills dead $v0 def o
 gl_ref_00037EA4 = 0x00037EA4;  /* gl_func_00022FC0 baked USO jal (0x0C00DFA9) */
 gl_d_22FC0 = 0x00000000;      /* gl_func_00022FC0: struct-typed alias of D_00000000 (u16 limit at +0x202C, buf ptr at +0x2028) */
 gl_ref_00039734 = 0x00039734;  /* gl_func_00025044 baked USO jal (0x0C00E5CD) */
+gl_ref_00037D98 = 0x00037D98;  /* gl_func_000235E4 baked USO jal (0x0C00DF66) */
+gl_d_235E4 = 0x00000000;      /* gl_func_000235E4: struct-typed alias of D_00000000 (run-list buf +0x2028, limit +0x202C, 0x160-byte records at +0x2D00) */

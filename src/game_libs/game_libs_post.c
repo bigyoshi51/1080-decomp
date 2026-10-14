@@ -6045,98 +6045,97 @@ int game_libs_func_0002358C(int a0, int a1, int a2) {
     return gl_func_00037C50(a0, a1, 0);
 }
 
-// gl_func_000235E4 — STRUCTURAL PASS (0x148 / 82 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). A COMBINED op that ties together the two &D_0 subsystems:
-// the gl_func_0001FBD4 record table AND the gl_func_00022FC0
-// buffer-run stream.
-//
-//   int gl_func_000235E4(int recIdx, int bufIdx, int arg) {
-//     S *g = &D_0;
-//     if (bufIdx >= g->h_202C) return 0;                // range check
-//     int stride = ((recIdx*3) << 2) << 5;               // *0x160-ish
-//     R *rec = (char*)g + 0x2D00 + stride;               // record tbl
-//     (*proc)(rec);                                       // jal 0 USO
-//     short *buf = g->w_2028;                             // run buffer
-//     int    cur = buf[bufIdx];                            // run start
-//     byte   cnt = *((char*)buf + cur);                    // run len
-//     do {
-//       cur++;
-//       ...                                                // per-elem
-//     } while (--cnt > 0);
-//   }
-//
-// Struct-typing reference: indexes the SAME record table as
-//   gl_func_0001FBD4 / gl_func_0002119C (base &D_0+0x2D00, fixed
-//   per-record stride, here from recIdx scaled *3<<2<<5) and the SAME
-//   per-slot run buffer as gl_func_00022FC0 / gl_func_000232E8 (word
-//   &D_0+0x2028 base, idx<<1 stride, cursor + run-length byte stream,
-//   0xFF sentinel), with the shared index limit halfword &D_0+0x202C.
-//   It first runs a USO-relocated processor (`jal 0` slot) on the
-//   selected record, then walks that record's associated buffer run.
-//   The cross-cutting "process record together with its stream"
-//   operation that links the registry/record and buffer-run families.
-// Caps (DEFERRED): CLEAN single jr $ra. Cross-cutting record+stream op.
-//   2026-05-31 FULL DECODE + completion 42.7->76.0%: fixed the stride
-//   (recIdx*0x160 = 352 via shift-sub, NOT 0x180), the limit load (lhu
-//   unsigned, not lh), and added the whole missing TAIL: after the run-loop
-//   (last=buf[cur] per elem; cb37ea4(last)), if(cb37d98(bufIdx)==0) return 0;
-//   proc2(rec); then 8 rec field writes (rec->5=last, rec->0x18=cur,
-//   rec->0|=0x80, rec->0x78=cur, rec->0x90=0, rec->0x10=0, rec->0&=0xBF,
-//   rec->4=bufIdx); proc3(rec); return 16. RESIDUAL (76->100): consistent
-//   saved-reg renumber (&D base s3 vs my v0, last/cur slots) + return-loop
-//   form (IDO folds my do{i+=4}while(i!=16) to `li 16`; target keeps the loop)
-//   + the placeholder jals. Name pre-checked: no extern reuse.
-//   gl_func_00000000 = canonical never-defined USO placeholder.
-#ifdef NON_MATCHING
-extern int gl_func_00000000();
-extern int D_00000000;
-int gl_func_000235E4(int recIdx, int bufIdx, int arg) {
-    char *g = (char *)&D_00000000;
-    char *rec;
+/* gl_func_000235E4 (0x148, 82 insns): record + run-list start. Range-checks
+ * bufIdx against u16 D+0x202C, preps record recIdx (0x160-byte records at
+ * D+0x2D00, jal-0 USO slot), consumes the run at buf16[bufIdx] exactly like
+ * gl_func_00022FC0 (baked jal 0x37EA4 per element, last byte kept, 0xFF if
+ * empty), resolves p = (baked jal 0x37D98 = gl_ref_00037D98)(bufIdx), then
+ * (jal-0) refreshes the record and stores b4 = bufIdx, b5 = last, w18 = w78 = p,
+ * flag bit7 = 1 / bit6 = 0, b90 = h10 = 0, and a final jal-0 on the record.
+ * BYTE-EXACT 2026-10-14 (agent-c), 76.0 -> 100, rewritten from the target words:
+ *   - struct-typed alias gl_d_235E4 + `*(cur + buf)` (232E8 recipe);
+ *   - the tail `li 0; li 16; addiu 4; bnel; addiu 4` is IDO's unrolled empty
+ *     delay loop `for (i = 0; i < 16; i++) {}` (falls off the end, v0 = the
+ *     counter), with `if (1) {}` before it so the counter takes v0 (34180 kit);
+ *   - `rec->b0 |= 0x80; ... &= 0xBF` as two 1-bit BITFIELDS (the target's t-ring
+ *     skips t6/t8 -- the char |=/&= spelling packs t6/t8/t9);
+ *   - `b4 = bufIdx` written FIRST after the refresh call (its home reload
+ *     leads the block; the scheduler still sinks the store into the jal delay);
+ *   - a second `if (1) {}` right after the first record call moves the run
+ *     buffer pointer from v1 to v0.
+ * The old body stored the run cursor where the target stores p and spelled the
+ * tail as a do-while (folded to `li 16`). */
+extern int gl_ref_00037D98();
+typedef struct {
+    unsigned char f7 : 1;
+    unsigned char f6 : 1;
+    unsigned char f0 : 6;
+    char p1[3];
+    unsigned char b4;
+    unsigned char b5;
+    char p6[0x10 - 6];
+    short h10;
+    char p12[0x18 - 0x12];
+    int w18;
+    char p1C[0x78 - 0x1C];
+    int w78;
+    char p7C[0x90 - 0x7C];
+    unsigned char b90;
+    char p91[0x160 - 0x91];
+} gl_235E4_Rec;
+typedef struct {
+    char p0[0x2028];
     unsigned char *buf;
-    int cur, cnt;
-    int last = 255;
+    unsigned short lim;
+    char p202E[0x2D00 - 0x202E];
+    gl_235E4_Rec recs[1];
+} gl_235E4_GS;
+extern gl_235E4_GS gl_d_235E4;
+#define GS_235E4 gl_d_235E4
+int gl_func_000235E4(int recIdx, int bufIdx, int arg) {
+    gl_235E4_Rec *rec;
+    int cur;
+    int cnt;
+    int last;
+    int p;
     int i;
-    if (bufIdx >= *(unsigned short *)(g + 0x202C)) {
+
+    if (bufIdx >= GS_235E4.lim) {
         return 0;
     }
-    rec = g + 0x2D00 + recIdx * 0x160;
+    rec = &GS_235E4.recs[recIdx];
     gl_func_00000000(rec);
-    buf = *(unsigned char **)(g + 0x2028);
-    cur = *(unsigned short *)(buf + bufIdx * 2);
-    cnt = *(unsigned char *)(buf + cur);
+    if (1) {
+    }
+    last = 0xFF;
+    cur = ((unsigned short *)GS_235E4.buf)[bufIdx];
+    cnt = *(cur + GS_235E4.buf);
     cur++;
-    if (cnt > 0) {
-        do {
-            last = *(unsigned char *)(buf + cur);
-            cur++;
-            gl_func_00000000(last);
-            cnt--;
-        } while (cnt > 0);
+    while (cnt > 0) {
+        last = GS_235E4.buf[cur++];
+        gl_ref_00037EA4(last);
+        cnt--;
     }
-    if (gl_func_00000000(bufIdx) == 0) {
+    p = gl_ref_00037D98(bufIdx);
+    if (p == 0) {
         return 0;
     }
     gl_func_00000000(rec);
-    *(unsigned char *)(rec + 5) = (unsigned char)last;
-    *(int *)(rec + 0x18) = cur;
-    *(unsigned char *)(rec + 0) |= 0x80;
-    *(int *)(rec + 0x78) = cur;
-    *(unsigned char *)(rec + 0x90) = 0;
-    *(short *)(rec + 0x10) = 0;
-    *(unsigned char *)(rec + 0) &= 0xBF;
-    *(unsigned char *)(rec + 4) = (unsigned char)bufIdx;
+    rec->b4 = bufIdx;
+    rec->b5 = last;
+    rec->w18 = p;
+    rec->f7 = 1;
+    rec->w78 = p;
+    rec->b90 = 0;
+    rec->h10 = 0;
+    rec->f6 = 0;
     gl_func_00000000(rec);
-    i = 0;
-    do {
-        i += 4;
-    } while (i != 16);
-    return i;
+    if (1) {
+    }
+    for (i = 0; i < 16; i++) {
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000235E4);
-#endif
+#undef GS_235E4
 
 extern int gl_ref_00038174();
 extern int gl_ref_00037F80();
