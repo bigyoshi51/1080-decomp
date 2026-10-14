@@ -187,14 +187,19 @@ void gl_func_00062F8C(char *arg0) {
  * reloads obj from cur[0] each iteration -- reproduced with a volatile 2-field
  * iterator struct (plain struct gets scalarized into s-regs by uopt; volatile
  * pins the slots + exact load/store sequence incl. the bnezl-delay reload).
- * Residual: val allocated s1 here vs v0 in target, cascading 14->s2 (target
- * reuses dead-base s1), frame 64 vs 56, and the b-to-next if-tail shape.
- * val's range crosses no call either way; val=0 placement swap doesn't move
- * it -- caller-saved-vs-s-reg coloring residual. */
+ * 2026-10-14 (agent-g, 87.45 -> 97.81): the b-to-next if-tail is a
+ * TERNARY `val = n ? (it.next = n[1], n[0]) : 0` (0 hoisted into v0 before the
+ * beqz, then-arm ends `b join; lw v0,0(n)`); with it val colours v0, the 14
+ * hoist lands in s1 and the frame is 56. `base` in a BLOCK scope frees its
+ * function-scope home, moving it.cur/it.next to sp+44/48 like the target.
+ * Residual: the n pointer colours v1 (target t8 / t7, ring-like), and every
+ * loop-BB temp is renumbered (t9,t3,t1,t2,t0 vs t2,t6,t4,t5,t3). Probes inert:
+ * register n, function-scope n, chained assigns, (n == 0) inverted ternary,
+ * if/else arm, non-volatile struct (27-35 of 64), CSE'd self[0x30/4] (fixes the
+ * loop ring but re-reads the list head after the volatile stores). */
 extern int gl_func_00000000();
 extern int gl_func_00062F64f(int a0, int a1, int a2, int a3, int a4, float a5);
 void gl_func_0006337C(int *self) {
-    int base;
     int val;
     volatile struct {
         int *cur;
@@ -207,18 +212,16 @@ void gl_func_0006337C(int *self) {
     if (self[0x74 / 4] == 0) {
         return;
     }
-    base = self[0x58 / 4] + 0x40;
-    self[0x44 / 4] = gl_func_00000000(base, self[0x34 / 4]);
-    self[0x48 / 4] = gl_func_00000000(base, self[0x38 / 4]);
     {
-        int *node = (int *) self[0x30 / 4];
-        it.next = node;
-        val = 0;
-        it.cur = node;
-        if (node != 0) {
-            it.next = (int *) node[1];
-            val = node[0];
-        }
+        int base = self[0x58 / 4] + 0x40;
+        self[0x44 / 4] = gl_func_00000000(base, self[0x34 / 4]);
+        self[0x48 / 4] = gl_func_00000000(base, self[0x38 / 4]);
+    }
+    {
+        int *n = (int *) self[0x30 / 4];
+        it.next = n;
+        it.cur = n;
+        val = n ? (it.next = (int *) n[1], n[0]) : 0;
     }
     while (val != 0) {
         int *obj = (int *) it.cur[0];
@@ -227,13 +230,9 @@ void gl_func_0006337C(int *self) {
                           self[0x54 / 4], self[0xAC / 4],
                           *(float *)&self[0xA8 / 4]);
         {
-            int *cur2 = it.next;
-            val = 0;
-            it.cur = cur2;
-            if (cur2 != 0) {
-                it.next = (int *) cur2[1];
-                val = cur2[0];
-            }
+            int *n = it.next;
+            it.cur = n;
+            val = n ? (it.next = (int *) n[1], n[0]) : 0;
         }
     }
     self[0xA0 / 4] = self[0xA4 / 4];
