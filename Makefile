@@ -390,7 +390,7 @@ build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_SUFFIX_BYTES
 # 0x90 36088 NM stub + INCLUDE_ASM head): 62F08 NM offset 0x2e06c + 0x50.
 # Clip re-probed 2026-10-14 agent-c (55B44 exact: 0xF0 C body + all-zero pad SUFFIX on
 # 55B10 in both builds; old NM body was also 0xF0, so +4 = the pad): 62F08 NM offset 0x2e054 + 0x50.
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2e144 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2e164 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
