@@ -33762,58 +33762,45 @@ char *game_libs_func_00061040(char *arg0, s32 arg1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061040);
 #endif
 
-/* game_libs_func_000610F4: leaf-branch-past-end CAP per
- * feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000610F4);
-
-#ifdef NON_MATCHING
-/* itoa: integer a1 -> decimal string at a0, a2 = top place value (power of 10).
- * Emit sign, then for each place a2 (descending, a2/=10 with r4300 div-by-zero/
- * overflow break-traps): digit = count of subtractions of a2 from a1 (0..9);
- * D[0] is the leading-zero-suppression flag (skip '0's until first non-zero).
- * NUL-terminate, return end ptr. Reloc-blind (&D flag). Byte-match multi-run:
- * div break-traps + branch-likely (bgezl/bnel/bgtzl) digit loop + register-alloc. */
-char *game_libs_func_0006110C(char *a0, int a1, int a2) {
+/* itoa: integer a1 -> decimal string at a0, a2 = top place value (power of
+ * 10). a1 == 0 writes "0". Else emit sign, then for each place a2 (descending,
+ * a2 /= 10): digit = count of subtractions of a2 from a1 (0..9); D[0] is the
+ * leading-zero-suppression flag. NUL-terminate, return end ptr. Splat boundary:
+ * the a1 != 0 path (ex game_libs_func_0006110C) is this fn's body. */
+char *game_libs_func_000610F4(char *a0, int a1, int a2) {
+    char *q;
     int v0;
-    if (a1 < 0) {
-        *a0 = '-';
-        a0++;
-        a1 = -a1;
+    if (a1 == 0) {
+        q = a0; a0++; *q = '0';
+        *a0 = 0;
+        return a0;
     }
-    if (a2 > 0) {
-        *(int *)&D_00000000 = 0;
-        do {
-            if (a1 < a2) {
-                if (*(int *)&D_00000000 != 0) {
-                    *a0 = '0';
-                    a0++;
-                }
-            } else {
-                *(int *)&D_00000000 = 1;
-                v0 = 0;
+    if (a1 < 0) {
+        a1 = -a1;
+        q = a0;
+        a0++; if (1) { *q = '-'; }
+    }
+    while (a2 > 0) {
+        if (a1 >= a2) {
+            *(int *)&D_00000000 = 1;
+            v0 = 0;
+            do {
                 a1 -= a2;
-                while (a1 >= 0) {
-                    v0++;
-                    if (v0 == 9) {
-                        break;
-                    }
-                    a1 -= a2;
-                }
                 if (a1 < 0) {
                     a1 += a2;
+                    break;
                 }
-                *a0 = v0 + '0';
-                a0++;
-            }
-            a2 /= 10;
-        } while (a2 > 0);
+                v0++;
+            } while (v0 != 9);
+            q = a0; a0++; if (1) { *q = v0 + '0'; }
+        } else if (*(int *)&D_00000000 != 0) {
+            q = a0; a0++; if (1) { *q = '0'; }
+        }
+        a2 /= 10;
     }
     *a0 = 0;
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006110C);
-#endif
 
 /* pow10-scale: return a0 * 10^(a1-1) (a1<2 returns a0). Reloc-free. The simple
  * loop reproduces IDO's unroll-by-4 + (a1-1)&3 remainder-loop structure EXACTLY
