@@ -3789,37 +3789,28 @@ void game_libs_func_00020FFC(void) {
     }
 }
 
-/* game_libs_func_00021130: zero a 0xB00-byte short array. Logic + STRUCTURE
- * exact; IDO unrolls the `for(a1!=0xB00;a1+=2) *(short*)(reload+a1)=0` loop x4.
- * 2026-06-21 (agent-e): cut 17->6 word renumber via the s32-held-base lever
- * (`int base = (int)&D_00000000;` by-value, NOT char*) + v0-loaded-FIRST
- * (inline `(int)&D_00000000` in the v0 load so v0 colors to $v0/$2). With
- * those, EVERY insn is byte-identical except the single &D base register:
- * build colors base $v1/$3, target $a2/$6 (a clean +3 renumber on ONE live
- * range — all other regs match). char*-typed base reverts to 17; early a1=0
- * or hv-temp reorder also reverts. Irreducible single-reg coloring tie on the
- * long-lived base; not crackable via decl-order / type / init-site levers.
- * Permuter / uoptlist-renumber candidate.
- * 2026-07-15: a0's `base + v0*4` operand order FIXED via array-IXA spelling
- * `(int)((int*)base + v0)` (plain `+` in either textual order emits the mul
- * chain first: addu a0,t9,v1). Residual is now ONLY the uniform base-web
- * renumber (6 words). Re-probed: register kw (regresses), split decl/init
- * (inert), decl-last (inert), textual-swap (canonicalized). No same-name or
- * dead-if handle exists (leaf, no a2-constrained web to inherit). Cap. */
-#ifdef NON_MATCHING
+/* game_libs_func_00021130: copy the current-slot short, then clear the slot's
+ * 0x580-entry short buffer. EXACT 2026-10-14 (agent-c). The old 99.5% wrap's
+ * "irreducible base-web renumber (v1 vs a2)" was an artefact of the flat
+ * byte-offset spelling: the natural typed-struct form (named idx local,
+ * element-index loop `i < 0x580`, ptrs[idx][i]) lets IDO do the strength
+ * reduction / x4 unroll itself and colors the &D base to a2 like the ROM. */
+typedef struct {
+    char pad0[0x203E];
+    short val;            /* 0x203E */
+    char pad1[0x2084 - 0x2040];
+    int idx;              /* 0x2084 */
+    char pad2[0x2140 - 0x2088];
+    short *ptrs[3];       /* 0x2140 */
+    short shorts[4];      /* 0x214C */
+} Gl21130State;
+#define GL21130 (*(Gl21130State *)&D_00000000)
 void game_libs_func_00021130(void) {
-  int v0 = *((int *) ((int) (&D_00000000) + 0x2084));
-  int base = (int) (&D_00000000);
-  int a1;
-  int a0 = (int) ((int *) base + v0);
-  *((short *) ((base + (v0 * 2)) + 0x214C)) = *((short *) (base + 0x203E));
-  for (a1 = 0; a1 != 0xB00; a1 += 2) {
-    *((short *) ((*((int *) (a0 + 0x2140))) + a1)) = 0;
-  }
+  int idx = GL21130.idx;
+  int i;
+  GL21130.shorts[idx] = GL21130.val;
+  for (i = 0; i < 0x580; i++) GL21130.ptrs[idx][i] = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021130);
-#endif
 
 
 // gl_func_0002119C — STRUCTURAL PASS (0x2FC / 191 words, no episode).
