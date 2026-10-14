@@ -615,39 +615,21 @@ int arg1, arg2, arg3;
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063964);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_00063DC4: 48-insn alloc-if-null constructor + Vec3-magnitude.
- *   s0 = a0 ?: alloc(368); if(!s0) return s0;
- *   gl_func_00000000(s0, &D+0x22390, 0.0f, 0.0f, 0.0f);  // a2/a3/sp16=0
- *   s0->[0x28] = &D_00000000;
- *   s0->[0x16C] = a1;
- *   gl_func_00000000(s0, a2, a3, a4);   // a4 = 5th (stack) arg
- *   gl_func_00000000(s0);
- *   s0->[0x164] = gl_func_00000000(a2*a2 + a3*a3 + a4*a4);  // jal#4
- *   return s0;
- *
- * CAP: jal#4 passes a single float (the magnitude squared) to the
- * file-scope K&R `extern int gl_func_00000000()` via DIRECT jal —
- * provably unmatchable per docs/IDO_CODEGEN.md#feedback-ido-knr-float-call
- * (float->double promote / prototype-redecl cfe error / fn-ptr-cast
- * yields jalr). Same cap as gl_func_0005DB58. The early float-zero
- * args (jal#1) ARE matchable (GPR-passed after the ptr) — only jal#4 is
- * the blocker, making the whole function NM. INCLUDE_ASM is the build
- * path (ROM byte-exact).
- * WAVE-3 2026-07-15 (agent-h): word-diff 14 -> 5. LEVER: alloc-fallback
- * spelled as short-circuit `if (s0 != 0 || (s0 = alloc(368)) != 0)` —
- * tests the alloc return in $v0 (beqz v0 with move s0,v0 in the annulled
- * delay) AND keeps the shared epilogue (separate early-return duplicates
- * the tail, +3). RESIDUAL 5 = the 6612C-family prologue cell: target
- * hoists `move s0,a0` to slot 2 and fills the bnez delay with the a3
- * home-store; build sinks the move into the delay (decl split, dead-ifs,
- * register kw, if(1) all inert). */
+/* gl_func_00063DC4: alloc-if-null constructor + Vec3-magnitude (EXACT 48/48).
+ * The alloc-fallback is spelled as short-circuit
+ * `if (s0 != 0 || (s0 = alloc(368)) != 0)` (beqz v0 with or s0,v0 in the
+ * delay, shared epilogue). The prologue `or s0,a0,zero` at slot 2 (bnez
+ * delay = a3 home store) comes from reassigning the PARAMETER itself:
+ * a local copy `void *s0 = a0;` sinks the copy into the bnez delay
+ * (the old 5-word residual). See docs/IDO_CODEGEN.md
+ * #reassigned-param-sreg-prologue-move-63dc4. Cross-module callees go
+ * through prototyped aliases of the 0 blank (pinned in
+ * undefined_syms_auto.txt) so the float args pass in a2/a3/stack. */
 extern int gl_func_00000000();
 extern int aD63DC4_5(void*, void*, float, float, float);
 extern int aD63DC4_4(void*, float, float, float);
 extern float aD63DC4_1(float);
-void *gl_func_00063DC4(void *a0, int a1, float a2, float a3, float a4) {
-    void *s0 = a0;
+void *gl_func_00063DC4(void *s0, int a1, float a2, float a3, float a4) {
     if (s0 != 0 || (s0 = (void*)gl_func_00000000(368)) != 0) {
         aD63DC4_5(s0, (char*)&D_00000000 + 0x22390, 0.0f, 0.0f, 0.0f);
         *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
@@ -659,9 +641,6 @@ void *gl_func_00063DC4(void *a0, int a1, float a2, float a3, float a4) {
     }
     return s0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063DC4);
-#endif
 
 /* gl_func_00063E84: 44-insn config-registration (2 float entries).
  *   gl_func_00000000(&D, &D+0x22398, 0);
