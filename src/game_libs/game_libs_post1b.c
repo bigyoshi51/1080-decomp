@@ -3248,82 +3248,69 @@ void gl_func_00066D54(char *arg0) {
     }
 }
 
+/* gl_func_00066EEC: message-pump loop (102 words). NM 96.23 (2026-10-14
+ * agent-g, was 81.90). osRecvMesg-style (mq @+0x11B0, &msg, 1) then a
+ * source-order goto ladder on the message type 0/5/6/1/4/2. The type is
+ * UNSIGNED: u32 compare constants are separate uopt constant candidates
+ * from the int 1 (call arg / flag) and the int 4 (loop bound in s3), so
+ * only 5U/6U win s7/s8 and 1U/4U/2U rematerialise in at (an int ladder
+ * hoists int 1 to s7 and shares s3 for ==4). Frame 0x60 / msg at 0x54 /
+ * mask byte at 0x4F = locals homed top-down in declaration rank (i, flag,
+ * msg, v) plus the mask in the case-5 block scope.
+ * Residual (3 words): the final `if (v == 2) goto c2; continue;` inverts to
+ * `bnel v1,at,top; b c2; addiu a0` (a0 stolen from c2's jal delay) where
+ * the target keeps `beq v1,at,c2; nop; b top` -- the documented last-beq
+ * inversion of a goto ladder (docs/IDO_CODEGEN.md
+ * #switch-sort-goto-ladder-52144); else-continue, end label, inverted skip
+ * + goto, nested ifs, 1-case switch, while/do-while all keep it. The dead-
+ * epilogue nop before the epilogue is the cc-direct alignment pad. */
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-void gl_func_00066EEC(s32 **arg0) {
-    s32 *sp54;
-    u8 sp4F;
-    s32 var_s0;
-    s32 **temp_s1;
-    s32 **temp_s4;
-    s32 var_s0_2;
-    s16 *var_s1;
-    s32 temp_v1;
-    s32 var_s6;
+void gl_func_00066EEC(char *arg0) {
+    s32 i;
+    s32 flag;
+    u32 *sp54;
+    u32 v;
 
-    var_s6 = 0;
-    temp_s4 = (int)arg0 + 0x11B0;
-    while (1) {
-        gl_func_00062F64(temp_s4, &sp54, 1);
-        temp_v1 = *(int*)sp54;
-        if (temp_v1 == 0) {
-            continue;
-        }
-        if (temp_v1 == 5) {
-            goto case_5;
-        }
-        if (temp_v1 == 6) {
-            continue;
-        }
-        if (temp_v1 == 1) {
-            goto case_1;
-        }
-        if (temp_v1 == 4) {
-            continue;
-        }
-        if (temp_v1 == 2) {
-            goto case_2;
-        }
+    flag = 0;
+    for (;;) {
+        gl_func_00000000(arg0 + 0x11B0, &sp54, 1);
+        v = *sp54;
+        if (v == 0) continue;
+        if (v == 5) goto c5;
+        if (v == 6) continue;
+        if (v == 1) goto c1;
+        if (v == 4) continue;
+        if (v == 2) goto c2;
         continue;
-        {
-        case_5:
-            sp4F = 0;
-            gl_func_00062F64(temp_s4, (s32 **) &sp4F);
-            var_s0 = 0;
-            do {
-                if (sp4F & (1 << var_s0)) {
-                    temp_s1 = (int)arg0 + (var_s0 * 0x68) + 0x1228;
-                    if (gl_func_00062F64(temp_s4, temp_s1, var_s0) == 0) {
-                        gl_func_00062F64(temp_s1);
-                    }
+    c5: {
+        u8 sp4F;
+        sp4F = 0;
+        gl_func_00000000(arg0 + 0x11B0, &sp4F);
+        for (i = 0; i != 4; i++) {
+            if (sp4F & (1 << i)) {
+                if (gl_func_00000000(arg0 + 0x11B0, (int)arg0 + i * 0x68 + 0x1228, i) == 0) {
+                    gl_func_00000000((int)arg0 + i * 0x68 + 0x1228);
                 }
-                var_s0 += 1;
-            } while (var_s0 != 4);
-            var_s6 = 1;
-            continue;
-        case_1:
-            var_s0_2 = 0;
-            if (var_s6 == 0) {
-                var_s1 = (s16 *)arg0;
-                do {
-                    gl_func_00062F64(arg0, var_s0_2, *(s16*)((char*)var_s1 + 0x13E0));
-                    var_s0_2 += 1;
-                    var_s1 += 1;
-                } while (var_s0_2 != 4);
             }
-            gl_func_00062F64(temp_s4);
-            FW(arg0, 0x13E8) = 0;
-            continue;
-        case_2:
-            gl_func_00062F64((int)arg0 + 0x1200);
-            if (var_s6 == 0) {
-                gl_func_00062F64(arg0);
-            }
-            FW(arg0, 0x13E8) = 1;
-            continue;
         }
+        flag = 1;
+        continue;
+        }
+    c1:
+        if (flag == 0) {
+            for (i = 0; i != 4; i++) {
+                gl_func_00000000(arg0, i, *(s16 *)(arg0 + i * 2 + 0x13E0));
+            }
+        }
+        gl_func_00000000(arg0 + 0x11B0);
+        *(int *)(arg0 + 0x13E8) = 0;
+        continue;
+    c2:
+        gl_func_00000000(arg0 + 0x1200);
+        if (flag == 0) {
+            gl_func_00000000(arg0);
+        }
+        *(int *)(arg0 + 0x13E8) = 1;
     }
 }
 #else
