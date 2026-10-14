@@ -15355,44 +15355,36 @@ void gl_func_0002D224(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D224);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0002D2F4: 32-insn (0x88) per-frame reset + 4-iter init loop.
- *
- *   gl_func_0001CA10_alt();                     ; alt-entry helper
- *   for (p = &D_3280; p < &D_5280; p += 0x80) { ; iterate over 64 entries
- *       *(char*)p &= ~0x80;                     ; clear flag bit at +0x0
- *       *(int*)(p + 0x50) = 0;                  ; clear int field at +0x50
- *   }
- *   for (s0 = &D_2D00; s0 != &D_3280; s0 += 0x160) {  ; 4 iters
- *       gl_func_0005EB4C_alt(s0);
- *   }
- *
- * NM 20->18 diffs: first-loop addressing rewritten so cursor walks base+0
- * with fixed +0x3280/+0x3250/+0x3200 derefs (matches target's post-increment
- * store offsets), and base materialized inline (not a shared `base` local) so
- * the prologue + first loop body match exactly. RESIDUAL CAP: target emits
- * TWO independent lui sequences for the first-loop cursor (v0) and limit (v1)
- * — IDO CSEs the common `&D_00000000` base into a saved reg here, which
- * cascades into the second loop reusing it (limit recomputed inside the loop
- * vs target precomputing it). Base-CSE/coloring cap. */
+/* gl_func_0002D2F4: per-frame reset. Call 0x3EF70; for the 64 0x80-byte
+ * records at D+0x3280 clear bit 7 of byte 0 and zero the int at +0x50;
+ * then call 0x41890 on each of the 4 0x160-byte entries at D+0x2D00.
+ * Baked in-unit jals pinned as gl_ref_0003EF70 / gl_ref_00041890.
+ * Levers (the old NM called the shared &D base a CSE/coloring cap):
+ * do-while loops with NAMED limit pointers (one per loop, so the first limit
+ * stays a v1 temp and only the second loop's limit takes s1); the cursor
+ * bumps BEFORE the field writes (offsets 0x3250/0x3200 relative to the
+ * advanced cursor, so the pre-increment lbu schedules first); the bit clear
+ * as an unsigned-char `&= 0xFF7F` with no named byte local (temp t6/t7, not
+ * a v1 variable); and each loop's cursor/limit init JOINED ON ONE LINE
+ * (`s0 = ..; end2 = ..;`) -- on separate lines the second loop's lui/addiu
+ * pairs schedule s0,s1,s0,s1 / s1,s0,s1,s0 instead of the target's s0,s1,s1,s0. */
+extern void gl_ref_0003EF70();
+extern void gl_ref_00041890();
 void gl_func_0002D2F4(void) {
-    char *p, *s0;
-    gl_func_00000000();
-    for (p = (char*)&D_00000000; p < (char*)&D_00000000 + 0x2000;) {
-        char c = *(char*)(p + 0x3280);
+    char *p, *s0, *end, *end2;
+    gl_ref_0003EF70();
+    p = (char*)&D_00000000; end = (char*)&D_00000000 + 0x2000;
+    do {
         p += 0x80;
         *(int*)(p + 0x3250) = 0;
-        *(char*)(p + 0x3200) = c & 0xFF7F;
-    }
-    s0 = (char*)&D_00000000 + 0x2D00;
-    while (s0 != (char*)&D_00000000 + 0x3280) {
-        gl_func_00000000(s0);
+        *(unsigned char*)(p + 0x3200) &= 0xFF7F;
+    } while (p < end);
+    s0 = (char*)&D_00000000 + 0x2D00; end2 = (char*)&D_00000000 + 0x3280;
+    do {
+        gl_ref_00041890(s0);
         s0 += 0x160;
-    }
+    } while (s0 != end2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D2F4);
-#endif
 
 
 /* game_libs_func_0002D36C: 2-word all-zero inter-function ROM pad (0x2D36C/0x2D370).
