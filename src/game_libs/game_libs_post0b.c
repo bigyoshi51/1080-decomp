@@ -27848,60 +27848,36 @@ void gl_func_00057104(int a0, int a1) {
     }
 }
 
-/* GBI display-list command emitter, gated on flag bits in a1->4. If bit 19
- * ((flags<<12)<0) OR bit 23 ((flags<<8)<0) is set, append a 2-word command
- * (0xBA001402, 0x00100000) to the buffer at a0->0xC and bump its entry count
- * (buf->4). entry = (*buf) + count*8. Logic decoded; NOT byte-exact: target
- * uses bltz/bgezl branch-likely for the bit tests and the no-emit path is an
- * -O1 cross-jump to a shared epilogue past this fn's end (tail-merge cap).
- * Reloc-free (the 0xBA00.../0x10.. luis are GBI literals). INCLUDE_ASM path. */
-#ifdef NON_MATCHING
+/* game_libs_func_00057194: GBI SetOtherMode-H emitter (0xBA001402 = G_SETOTHERMODE_H
+ * shift 20 len 3), BYTE-EXACT 2026-10-14 (34 words). If bit 19 ((flags<<12)<0) or
+ * bit 23 ((flags<<8)<0) of a1->4 is set the word-1 value is 0x00100000, else 0.
+ * BOUNDARY: the old "-O1 cross-jump to a shared epilogue past this fn's end
+ * (tail-merge cap)" was the ELSE arm, split off by splat as game_libs_func_000571E4
+ * (NM 84.3, "unfilled jr-delay + renumber" cap): the bgezl lands at 571E8 with
+ * 571E4's first `lw v0,0xC(a0)` in its likely slot. 571E4 (section 0x6B850) is
+ * not in bootup.uso's export list; 57194 (0x6B800) is. Merged (0x50 + 0x38); the
+ * else arm's unfilled `jr ra; nop` is the plain -O2 epilogue after the bgezl
+ * target. Both arms spelled in full; if/else and if-return forms are identical. */
 void game_libs_func_00057194(int *a0, int *a1) {
-    int flags = a1[1];
-    int *buf;
-    int *base;
-    int *entry;
+    int *rec;
     int idx;
-    if (((flags << 12) >= 0) && ((flags << 8) >= 0)) {
+    int *arr;
+    if ((a1[1] << 12) < 0 || (a1[1] << 8) < 0) {
+        rec = (int *)a0[3];
+        idx = rec[1];
+        rec[1] = idx + 1;
+        arr = (int *)(((int *)a0[3])[0] + idx * 8);
+        arr[0] = 0xBA001402;
+        arr[1] = 0x00100000;
         return;
     }
-    buf = (int*)a0[3];
-    idx = buf[1];
-    buf[1] = idx + 1;
-    base = (int*)(*(int*)a0[3]);
-    entry = (int*)((char*)base + idx * 8);
-    entry[0] = 0xBA001402;
-    entry[1] = 0x00100000;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00057194);
-#endif
-
-#ifdef NON_MATCHING
-/* game_libs_func_000571E4: record-append. rec = a0->0xC; idx = rec[1] (count);
- * rec[1]++; arr = rec[0] (base ptr) + idx*8; arr[0] = 0xBA001402; arr[1] = 0.
- * The base read re-reads a0->0xC inline (inline-reload lever reproduces the
- * 2nd lw 0xC(a0)). Logic exact; near-miss on two points: (1) UNFILLED jr-delay
- * — target stores `sw zero,4(a1); jr ra; nop` but IDO -O2 FILLS the delay
- * (jr ra; sw zero), 13 vs 14 insns (same unfilled-delay game_libs pattern as
- * 53348); (2) accompanying register renumber. Reloc-free (the only const is the
- * 0xBA001402 literal). 2026-06-02: const-hoist reorder (`int c=0xBA001402`
- * early) does NOT fix the renumber — IDO still colors const->t0, index->t6+
- * vs target const->t8, index->t4+. So this needs an RA-crack AND the -g3
- * carve for the delay slot (two issues) — deferred vs the clean delay-only
- * carves (70FBC/62F58/34448, all landed). Permuter-class renumber. */
-void game_libs_func_000571E4(int *a0) {
-    int *rec = (int *)((int *)a0)[3];
-    int idx = rec[1];
-    int *arr;
+    rec = (int *)a0[3];
+    idx = rec[1];
     rec[1] = idx + 1;
-    arr = (int *)(((int *)((int *)a0)[3])[0] + idx * 8);
+    arr = (int *)(((int *)a0[3])[0] + idx * 8);
     arr[0] = 0xBA001402;
     arr[1] = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000571E4);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005721C);
 
