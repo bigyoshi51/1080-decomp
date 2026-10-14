@@ -4624,6 +4624,56 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038830);
 //   exclusion did not move the cur-reload web off $v0). Cap reconfirmed.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+/* List walk calling two handler methods per node: {cur,next} iterator homed
+ * at sp+0x28/0x2C (address-taken), t = cur ? (next = cur->next, cur->data) :
+ * NULL; per node h = node->0x28, h->fn2C(node + h->s28, ctx), node re-read,
+ * h->fn34(node + h->s30, ctx). 41/49 words (2026-10-14 agent-c; was 29/49):
+ * a SEPARATE loop-test variable t (the old wrap reused node for the test,
+ * colouring it s0) puts the test value in v0 like the target, and the
+ * while(0) `h = 0;` anchor colours h s0 / node s1 (first-occurrence order).
+ * Residual 8 words = the rotated BOTTOM copy of the advance only: target
+ * keeps the reloaded cur in a ugen temp t4 and speculates `or v0,zero,zero`
+ * above `beqz t4` (no else block); here uopt colours that cur value v0, so
+ * the zero stays as an else arm (the TOP copy is exact in both). Probed and
+ * FAILED (all 8 diffs): if/else and t=NULL;if statement forms, (cur = next)
+ * inside the condition, while-condition / for(;;) break / do-while guard /
+ * goto loops (single-copy forms lose the top hoist too: 42 words), {cur,next}
+ * struct and char *it[2] iterators through a pointer, block-scoped c2 copy,
+ * do-while(0) around the advance, `| 0`, dead if(0) defs, int t, all 720
+ * decl orders (stack slots only).
+ * objdiff scores the 41/49 body 95.31 (the bottom reorder misaligns
+ * mnemonics) vs 97.65 for the old 29/49 register-only body, so the old body
+ * stays ACTIVE and the closer one is kept under `#if 0` as the base for the
+ * next pass (24E28 precedent). */
+#if 0
+int gl_func_00038964_alt41(char *o, void *ctx) {
+    char *next;
+    char *cur;
+    char **pp;
+    char *t;
+    char *node;
+    char *h;
+
+    while (0) {
+        h = 0;
+        pp = &cur;
+        pp = &next;
+    }
+    next = *(char **)(o + 0x10);
+    cur = next;
+    t = (cur != NULL) ? (next = *(char **)(cur + 4), *(char **)cur) : NULL;
+    while (t != NULL) {
+        node = *(char **)cur;
+        h = *(char **)(node + 0x28);
+        (*(void (**)(char *, void *))(h + 0x2C))(node + *(short *)(h + 0x28), ctx);
+        node = *(char **)cur;
+        h = *(char **)(node + 0x28);
+        (*(void (**)(char *, void *))(h + 0x34))(node + *(short *)(h + 0x30), ctx);
+        cur = next;
+        t = (cur != NULL) ? (next = *(char **)(cur + 4), *(char **)cur) : NULL;
+    }
+}
+#endif
 int gl_func_00038964(char *o, void *ctx) {
     char *next;
     char *cur;
