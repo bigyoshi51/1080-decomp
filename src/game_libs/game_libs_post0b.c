@@ -24459,50 +24459,31 @@ void gl_func_000525F0(int *self, int *target) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000525F0);
 #endif
 
-/* game_libs_func_00052674 — verified structural decode (23 insns, no
- * branches/calls = fully deterministic; future gl_ref_ episode candidate).
- *   A->4 = 0;  A->0 = 0;                         // A = abs sym #1
- *   v0 = *(int*)(B + 4);                          // B = abs sym #2 (==A?)
- *   t6 = *(int*)(C + 0);                          // C = abs sym #3
- *   v0 |= 0x2000 | 0x1 | 0x8000 | 0x20000;        // = v0 | 0x2A001
- *   *(int*)(D + 4) = v0;                          // D abs sym #4
- *   *(int*)(E + 0) = t6 | 1;                      // E abs sym #5
- *   *(int*)(F + 0) = 0;                           // F abs sym #6
- *   *(int*)(G + 0) = 0;                           // G abs sym #7
- * A HW/global register init (the 0x2A001 OR-mask = enable bits). Blocker:
- * the 7 lui/sw pairs are USO 0-placeholders with NO reloc symbol info in
- * the .s — cannot tell from the .s whether syms #1..#7 are the same
- * D_00000000 base at different offsets or 7 distinct gl_ref_ data exports.
- * To land: dump the EXPECTED .o relocations
- * (`objdump -r expected/src/game_libs/...o`) to recover the real symbol
- * names/offsets, then apply the documented gl_ref_ recipe
- * (docs/N64_FORENSICS.md#feedback-game-libs-gl-ref-data) with named-local
- * $v0 intermediates. Deterministic body → genuine episode once symbols
- * resolved. Deferred this tick (gl_ref_ multi-symbol resolution is the
- * documented involved game_libs path, not a quick win). INCLUDE_ASM. */
-#ifdef NON_MATCHING
-/* game_libs_func_00052674: 7-global initializer (88% under -O2; the remaining
- * 12% is an -O1 LOWER-OPT cap). Verified 2026-05-24: the target's THREE separate
- * `ori 0x2000; ori 1; ori 0x8000` (then or-at for 0x20000) is produced by -O1
- * (which does less constant folding); -O2 folds them to one `ori 0xA001`. -O1
- * also keeps the value in v0; -O2 uses t8/t9. Full match needs an -O1 OPT_FLAGS
- * file split. (constant-OR-folding is a NEW lower-opt diagnostic alongside
- * surviving-redundant-store / addiu+0(reg).) The 7 D_52674_* externs are
- * distinct (target has 7 separate luis = 7 symbols, no CSE). */
-extern int D_52674_a, D_52674_b, D_52674_c, D_52674_d, D_52674_e, D_52674_f, D_52674_g;
+/* game_libs_func_00052674 (0x5C, 23 insns): 7-global init (USO data refs,
+ * the seven D_52674_* externs are distinct 0-pinned symbols: 7 separate
+ * luis, no CSE). The old NM blamed an "-O1 lower-opt cap" for the three
+ * unfolded `ori 0x2000; ori 1; ori 0x8000` + `or at(0x20000)`: -O2 keeps
+ * them unfolded when each OR is its own statement on a local (`v |= K;`);
+ * only a single-expression chain folds to `ori 0xA001`. The local then owns
+ * v0, pushing the first base (two zero stores) into v1 -- an empty
+ * `if (1) {}` after those stores (BB lever, cf 3EDBC) frees v0 for it. */
+extern int D_52674_a[2], D_52674_b[2], D_52674_c, D_52674_d[2], D_52674_e, D_52674_f, D_52674_g;
 void game_libs_func_00052674(void) {
-    int *p = &D_52674_a;
-    p[1] = 0;
-    p[0] = 0;
-    *(int *)((char *)&D_52674_d + 4) =
-        *(int *)((char *)&D_52674_b + 4) | 0x2000 | 1 | 0x8000 | 0x20000;
+    int v;
+    D_52674_a[1] = 0;
+    D_52674_a[0] = 0;
+    if (1) {
+    }
+    v = D_52674_b[1];
+    v |= 0x2000;
+    v |= 1;
+    v |= 0x8000;
+    v |= 0x20000;
+    D_52674_d[1] = v;
     D_52674_e = D_52674_c | 1;
     D_52674_f = 0;
     D_52674_g = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052674);
-#endif
 
 // gl_func_000526D0 — STRUCTURAL PASS (decl 0x2C4 / 177 words, no
 // episode). Raw-.word USO. realjr=2, regjr=0 → 2-FUNCTION BUNDLE.
