@@ -2314,7 +2314,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CB9C);
  * struct-typed access, while/do-while/`self->n > i` loop spellings,
  * `* (100.0f / range)`. A pure v0/v1 + a3/t0 + FP-ring renumber knot
  * (docs/IDO_CODEGEN.md#feedback-ido-regalloc-renumber-matching-techniques);
- * the -zdbug:6 uoptlist dump needs the ecvt patch on this machine. */
+ * the -zdbug:6 uoptlist dump needs the ecvt patch on this machine.
+ *
+ * 2026-10-14 agent-g: 35 -> 21 words. (1) Name the in-range difference
+ * `d = rec->x - lo` (block-local assignment to a function-scope float): the
+ * FP knot collapses to the target -- lo f12, x-lo f2, quotient f10, 100.0f
+ * f14 -- leaving only range/0.0f as f18/f16; (2) the rotated `i = 0; if (i <
+ * n) do { ... } while (++i < n);` loop (vs `for`) swaps range/0.0f to
+ * f16/f18 AND the held base / stride to a3/t0 (target). RESIDUAL 21 words =
+ * one pure v0<->v1 swap: the target colours the registry chain G (pre-loop
+ * and per-iteration `lw v0,152(..)`) v0 and n / rec v1; ours G v1, n/rec
+ * v0. Inert on top of this shape: void alias on all four handler calls
+ * (E5D0 lever), named g (one web or two), named n, de-named rec (direct
+ * self->recs[i] everywhere), `self->recs + i`, rec re-index before the ==
+ * test, register rec, `if (self->n > 0)` guard, stmt order of i=0 / range,
+ * same-line join, `active != 0`, extra dead decls. A dead `if (rec) {}`
+ * breaks the shape (49). */
 typedef struct {
     /* 0x00 */ char pad0[0xC];
     /* 0x0C */ float x;
@@ -2347,18 +2362,21 @@ typedef struct {
 extern int func_00000000();
 void game_libs_func_0000CBF0(CBF0_Self *self) {
     int i;
-    float range = CBF0_HI - CBF0_LO;
-    for (i = 0; i < self->n; i++) {
+    float range;
+    float d;
+    range = CBF0_HI - CBF0_LO;
+    i = 0;
+    if (i < self->n) do {
         if (self->active) {
             CBF0_Rec *rec = &self->recs[i];
             if (rec->x < CBF0_LO) rec->pct = 0.0f;
             else if (CBF0_HI < rec->x) rec->pct = 100.0f;
-            else rec->pct = (rec->x - CBF0_LO) / range * 100.0f;
+            else { d = rec->x - CBF0_LO; rec->pct = d / range * 100.0f; }
             if (self->recs[i].pct == 100.0f) self->recs[i].hits++;
         } else {
             continue;
         }
-    }
+    } while (++i < self->n);
     if (self->h0) func_00000000(self->h0, (int)*self->p0);
     if (self->h1) func_00000000(self->h1, *self->p1);
     if (self->h2) func_00000000(self->h2, *self->p2);
