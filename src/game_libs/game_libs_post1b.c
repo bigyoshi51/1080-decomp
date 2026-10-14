@@ -5091,84 +5091,63 @@ done:
 }
 
 #ifdef NON_MATCHING
-/* gl_func_000690A8: vertex matrix-transform (reconstructed from m2c). First loop
- * offsets a s16 vertex table by an index list; alloc output via gl_func_00062F64;
- * copy a 0x40-byte matrix; second loop transforms each vert through two matrices
- * and stores the result as packed s16. Two calls are USO imports (jal 0). */
+/* gl_func_000690A8: vertex matrix-transform. Loop 1 applies the (index, delta)
+ * s16 pair list to the s16 table at arg1+0x30; alloc count*sizeof(Vec3s) via
+ * a USO import (jal 0, one arg); copy the 0x40-byte matrix at *(arg0+0x18)+0x70
+ * to arg0+0x68; second import; loop 2 converts arg2[pair.a] to a stack f32[3]
+ * (memory-resident array = the sw/lw round trips), transforms it through the
+ * matrix at *(arg1+0x38)+0x70 and then the one at arg0+0x28 (column-vector,
+ * left-assoc sums), and stores the truncated s16 triple to the output table.
+ * 2026-10-14 (agent-g) re-decode 63.13 -> 85.28: frame 0x30 exact (i
+ * declared before v: its spill/home is sp+44; the loop-1 for(i = 0) leaves t0=0
+ * live across both calls exactly like the target); `count * sizeof(...)`
+ * keeps the alloc size in shift form (a plain `* 6` CSEs with the loop-2 6 and
+ * becomes multu). Residual: the transform FP colouring/schedule (target holds
+ * v[0..2] in f8/f4/f6 and alternates f18/f10 for the matrix temps) and the
+ * addu operand order of &arg2[idx]. */
 typedef struct { int _w[16]; } Mtx690A8;
-#ifndef GF690
-#define GF690(p, o) (*(f32 *)((char *)(p) + (o)))
-#endif
-void gl_func_000690A8(char *arg0, char *arg1, char *arg2) {
-    volatile f32 sp28;
-    volatile f32 sp24;
-    volatile f32 sp20;
-    f32 temp_f10;
-    f32 temp_f14;
-    f32 temp_f18;
-    f32 temp_f2;
-    s16 *temp_v0;
-    s16 temp_t3;
-    s16 temp_t8;
-    s16 temp_t9;
-    s32 var_a0;
-    s32 var_a1;
-    s32 var_t0;
-    s32 var_t1;
-    char *temp_v1;
-    char *temp_v1_2;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_t9_2;
+typedef struct { s16 x, y, z; } V3s690A8;
+typedef struct { s16 a, b; } Pr690A8;
+void gl_func_000690A8(char *arg0, char *arg1, V3s690A8 *arg2) {
+    s32 i;
+    f32 v[3];
+    f32 *m;
+    f32 x, y, z;
+    V3s690A8 *s;
+    s16 *p;
+    Pr690A8 *pr;
 
-    var_t1 = *(s32 *)(arg0 + 0x20);
-    var_t0 = 0;
-    if (var_t1 > 0) {
-        var_a0 = 0;
-        do {
-            var_t0 += 1;
-            temp_v1 = *(char **)(arg0 + 0x1C) + var_a0;
-            temp_t8 = *(s16 *)(temp_v1 + 0x0);
-            temp_t3 = *(s16 *)(temp_v1 + 0x2);
-            var_a0 += 4;
-            temp_v0 = (s16 *)(*(char **)(arg1 + 0x30) + (temp_t8 * 2));
-            *temp_v0 -= temp_t3;
-            var_t1 = *(s32 *)(arg0 + 0x20);
-        } while (var_t0 < var_t1);
+    for (i = 0; i < *(s32 *)(arg0 + 0x20); i++) {
+        pr = &(*(Pr690A8 **)(arg0 + 0x1C))[i];
+        p = &(*(s16 **)(arg1 + 0x30))[pr->a];
+        *p -= pr->b;
     }
-    *(char **)(arg0 + 0x24) = (char *)gl_func_00062F64(var_t1 * 6, arg0);
+    i = 0;
+    *(V3s690A8 **)(arg0 + 0x24) = (V3s690A8 *)gl_func_00000000(*(s32 *)(arg0 + 0x20) * sizeof(V3s690A8));
     *(Mtx690A8 *)(arg0 + 0x68) = *(Mtx690A8 *)(*(char **)(arg0 + 0x18) + 0x70);
-    gl_func_00062F64(*(char **)(arg0 + 0x18) + 0x70, arg0 + 0x28);
-    var_t0 = 0;
-    var_a0 = 0;
-    var_a1 = 0;
-    if (*(s32 *)(arg0 + 0x20) > 0) {
-        do {
-            var_t0 += 1;
-            temp_t9 = *(s16 *)(*(char **)(arg0 + 0x1C) + var_a0);
-            var_a0 += 4;
-            temp_v1_2 = arg2 + (temp_t9 * 6);
-            sp20 = (f32) *(s16 *)(temp_v1_2 + 0x0);
-            sp24 = (f32) *(s16 *)(temp_v1_2 + 0x2);
-            sp28 = (f32) *(s16 *)(temp_v1_2 + 0x4);
-            temp_v0_2 = *(char **)(arg1 + 0x38);
-            temp_v0_3 = temp_v0_2 + 0x70;
-            temp_f14 = (GF690(temp_v0_3, 0x4) * sp20) + (GF690(temp_v0_3, 0x14) * sp24) + (GF690(temp_v0_3, 0x24) * sp28) + GF690(temp_v0_3, 0x34);
-            temp_f10 = (GF690(temp_v0_3, 0x8) * sp20) + (GF690(temp_v0_3, 0x18) * sp24);
-            sp20 = (GF690(temp_v0_2, 0x70) * sp20) + (GF690(temp_v0_2, 0x80) * sp24) + (GF690(temp_v0_3, 0x20) * sp28) + GF690(temp_v0_3, 0x30);
-            sp24 = temp_f14;
-            sp28 = temp_f10 + (GF690(temp_v0_3, 0x28) * sp28) + GF690(temp_v0_3, 0x38);
-            temp_f2 = (GF690(arg0, 0x2C) * sp20) + (GF690(arg0, 0x3C) * sp24) + (GF690(arg0, 0x4C) * sp28) + GF690(arg0, 0x5C);
-            temp_f18 = (GF690(arg0, 0x30) * sp20) + (GF690(arg0, 0x40) * sp24);
-            sp20 = (GF690(arg0, 0x28) * sp20) + (GF690(arg0, 0x38) * sp24) + (GF690(arg0, 0x48) * sp28) + GF690(arg0, 0x58);
-            sp24 = temp_f2;
-            sp28 = temp_f18 + (GF690(arg0, 0x50) * sp28) + GF690(arg0, 0x60);
-            temp_t9_2 = *(char **)(arg0 + 0x24) + var_a1;
-            *(s16 *)(temp_t9_2 + 0x0) = (s16) (s32) sp20;
-            *(s16 *)(temp_t9_2 + 0x2) = (s16) (s32) sp24;
-            var_a1 += 6;
-            *(s16 *)(temp_t9_2 + 0x4) = (s16) (s32) sp28;
-        } while (var_t0 < *(s32 *)(arg0 + 0x20));
+    gl_func_00000000(*(char **)(arg0 + 0x18) + 0x70, arg0 + 0x28);
+    for (i = 0; i < *(s32 *)(arg0 + 0x20); i++) {
+        s = &arg2[(*(Pr690A8 **)(arg0 + 0x1C))[i].a];
+        v[0] = s->x;
+        v[1] = s->y;
+        v[2] = s->z;
+        m = (f32 *)(*(char **)(arg1 + 0x38) + 0x70);
+        x = m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12];
+        y = m[1] * v[0] + m[5] * v[1] + m[9] * v[2] + m[13];
+        z = m[2] * v[0] + m[6] * v[1] + m[10] * v[2] + m[14];
+        v[0] = x;
+        v[1] = y;
+        v[2] = z;
+        m = (f32 *)(arg0 + 0x28);
+        x = m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12];
+        y = m[1] * v[0] + m[5] * v[1] + m[9] * v[2] + m[13];
+        z = m[2] * v[0] + m[6] * v[1] + m[10] * v[2] + m[14];
+        v[0] = x;
+        v[1] = y;
+        v[2] = z;
+        (*(V3s690A8 **)(arg0 + 0x24))[i].x = v[0];
+        (*(V3s690A8 **)(arg0 + 0x24))[i].y = v[1];
+        (*(V3s690A8 **)(arg0 + 0x24))[i].z = v[2];
     }
 }
 #else
