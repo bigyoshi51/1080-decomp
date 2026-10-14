@@ -5359,6 +5359,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000690A8);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
+#ifndef M693
+#define M693(o) (*(f32*)((char*)mtx + (o)))
+#define S693(p, o) (*(s16*)((char*)(p) + (o)))
+#endif
+/* gl_func_000693A4: skin-vertex rigid transform: v = R(node+0x70) * src[i] + (node.T - parent.T);
+ * out[idx] = v (mode 100) or out[idx] += v * mode * 0.01f.  NM (2026-10-14 agent-g):
+ * every row sum is spelled REVERSED + right-associated `m20*v2 + (m10*v1 + m0*v0)` (the
+ * #reversed-right-assoc-sum-load-last-phantom-slots-4f0c8 rule; natural left-linear puts the
+ * third product FIRST in its mul.s/add.s), and the parent pointer is assigned before the node
+ * pointer (pb then pa) so the head sub.s loads land f10/f8 like the target.  LCS 51 -> 93/148.
+ * Residual: (1) ugen temp-ring PAIR SWAP: target uses t9/t8/t5/t4/t7/t6 and f10/f8 f4/f6 where
+ * this builds t8/t9/t4/t5/t6/t7 and f8/f10 f6/f4 (adjacent ring pairs exchanged, not a phase
+ * shift) -- probes inert: neg/comma/reversed e-block, Vec3 / float[4][4] / float-index views,
+ * pointer decl order, while(0) pointer anchors, array-index Ent/S3 loop, (unsigned char) burn
+ * (moves the loop head to t9 but then t4..), IDO 5.3; (2) v0/v1 pointer colours swapped vs the
+ * sub.s operand order (pa-first fixes colours, breaks the f-ring); (3) mode==100 arm ends
+ * nop + sh + `b; lw t0` where target puts the sh in the b delay; (4) else-arm third lh scheduled
+ * early. */
 void gl_func_000693A4(char *arg0, char *arg1, s32 arg2) {
     f32 kscale;
     f32 v[7];
@@ -5378,9 +5396,15 @@ void gl_func_000693A4(char *arg0, char *arg1, s32 arg2) {
     char *mtx;
     char *out;
 
-    ex = (*(f32*)((char*)FW(arg0, 0x18) + 0xA0)) - (*(f32*)((char*)FW(arg1, 0x38) + 0xA0));
-    ey = (*(f32*)((char*)FW(arg0, 0x18) + 0xA4)) - (*(f32*)((char*)FW(arg1, 0x38) + 0xA4));
-    ez = (*(f32*)((char*)FW(arg0, 0x18) + 0xA8)) - (*(f32*)((char*)FW(arg1, 0x38) + 0xA8));
+    {
+        char *pb;
+        char *pa;
+        pb = (char*)FW(arg1,0x38);
+        pa = (char*)FW(arg0,0x18);
+        ex = *(f32*)(pa+0xA0) - *(f32*)(pb+0xA0);
+        ey = *(f32*)(pa+0xA4) - *(f32*)(pb+0xA4);
+        ez = *(f32*)(pa+0xA8) - *(f32*)(pb+0xA8);
+    }
     var_a3 = 0;
     if (FW(arg0, 0x20) > 0) {
         while (0) { mode = 0; }
@@ -5391,30 +5415,28 @@ void gl_func_000693A4(char *arg0, char *arg1, s32 arg2) {
         var_v1 = 0;
         do {
             entry = FW(arg0, 0x1C) + var_v1;
-            mode = *(s16*)((char*)entry + 0x2);
+            mode = S693(entry, 2);
             if (mode > 0) {
-                idx = *(s16*)((char*)entry + 0x0);
+                idx = S693(entry, 0);
                 src = FW(arg0, 0x24) + (var_a3 * 6);
-                v[0] = (f32)*(s16*)((char*)src + 0x0);
-                v[1] = (f32)*(s16*)((char*)src + 0x2);
-                v[2] = (f32)*(s16*)((char*)src + 0x4);
+                v[0] = (f32)S693(src, 0);
+                v[1] = (f32)S693(src, 2);
+                v[2] = (f32)S693(src, 4);
                 mtx = FW(arg0, 0x18) + 0x70;
-                o0 = ((*(f32*)((char*)mtx + 0x0)) * v[0]) + ((*(f32*)((char*)mtx + 0x10)) * v[1]) + ((*(f32*)((char*)mtx + 0x20)) * v[2]);
-                o1 = ((*(f32*)((char*)mtx + 0x4)) * v[0]) + ((*(f32*)((char*)mtx + 0x14)) * v[1]) + ((*(f32*)((char*)mtx + 0x24)) * v[2]);
-                o2 = ((*(f32*)((char*)mtx + 0x8)) * v[0]) + ((*(f32*)((char*)mtx + 0x18)) * v[1]) + ((*(f32*)((char*)mtx + 0x28)) * v[2]);
-                v[0] = o0 + ex;
-                v[1] = o1 + ey;
-                v[2] = o2 + ez;
+                o0 = M693(0x20)*v[2] + (M693(0x10)*v[1] + M693(0)*v[0]);
+                o1 = M693(0x24)*v[2] + (M693(0x14)*v[1] + M693(4)*v[0]);
+                o2 = M693(0x28)*v[2] + (M693(0x18)*v[1] + M693(8)*v[0]);
+                v[0] = o0 + ex; v[1] = o1 + ey; v[2] = o2 + ez;
                 out = (int)arg2 + (idx * 6);
                 if (mode == 0x64) {
-                    (*(s16*)((char*)out + 0x0)) = (s16) (s32) v[0];
-                    (*(s16*)((char*)out + 0x2)) = (s16) (s32) v[1];
-                    (*(s16*)((char*)out + 0x4)) = (s16) (s32) v[2];
+                    S693(out, 0) = (s16) (s32) v[0];
+                    S693(out, 2) = (s16) (s32) v[1];
+                    S693(out, 4) = (s16) (s32) v[2];
                 } else {
                     scale = (f32) mode * kscale;
-                    (*(s16*)((char*)out + 0x0)) = (s16) ((*(s16*)((char*)out + 0x0)) + (s32) (v[0] * scale));
-                    (*(s16*)((char*)out + 0x2)) = (s16) ((*(s16*)((char*)out + 0x2)) + (s32) (v[1] * scale));
-                    (*(s16*)((char*)out + 0x4)) = (s16) ((*(s16*)((char*)out + 0x4)) + (s32) (v[2] * scale));
+                    S693(out, 0) = (s16) (S693(out, 0) + (s32) (v[0] * scale));
+                    S693(out, 2) = (s16) (S693(out, 2) + (s32) (v[1] * scale));
+                    S693(out, 4) = (s16) (S693(out, 4) + (s32) (v[2] * scale));
                 }
             }
             var_a3 += 1;
