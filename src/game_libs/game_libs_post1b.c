@@ -2260,29 +2260,30 @@ void game_libs_func_00065EE4(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00065EE4);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0006612C: magic-value spin-handshake helper (0xAC, frame 0x20).
- * Re-derived 2026-06-20 (agent-b): the prior "caller-set $a2 cap" comment was
- * WRONG — $a2 is set in-function (`lui a2,0x1234; ori a2,2`) before the third
- * call. Callee is gl_func_00062F64 (local 2-arg K&R int fn), called directly.
- * WAVE-3 re-verify 2026-07-15 (agent-h): residual = 5-word PROLOGUE cell only
- * (all 43 insns otherwise exact). Target hoists loop1's first-iteration
- * `lw a1,40(a0)` ABOVE `move s0,a0` (reads the raw param; s-saves ra/s1/s0
- * order); build homes s0 first and reads 40(s0). Probed: first-alias +
- * if/do-while explicit rotation (alias coalesced away; while-in-if re-rotates
- * = +6 insns), dead-if copy-prop blocker, K&R decl style, if(1) BB-wrap,
- * head dead-if(self), volatile param (+1). All inert/worse. uopt places the
- * param->s0 copy before the rotation-hoisted test; not source-reachable. */
-void gl_func_0006612C(int *self) {
-    while (gl_func_00062F64(self, (char *)self[10] + 8) != 0x12340004) {
+/* gl_func_0006612C: magic-value spin-handshake helper (0xAC, frame 0x20,
+ * EXACT 43/43). Callee gl_func_00062F64 (local fn) via the blank alias
+ * gl_func_00062F64_6612c (pinned = 0; the target jals are unrelocated 0C000000).
+ * The target head `sw ra; sw s1; sw s0; lw a1,40(a0); or s0,a0,zero` reads
+ * the RAW param for the first call and copies it into s0 as a BODY move
+ * (not the prologue param->s-reg move): the s0 variable is a separate local
+ * that must not coalesce with the param. A plain `self = a0` copy coalesces
+ * (prologue move, 5-word residual). The dead `a0 = 0;` after the first call
+ * ends the param's live range so the copy survives, and the first call
+ * spelled on the param (outside the rotated while) supplies the a0-based
+ * load. See docs/IDO_CODEGEN.md#dead-param-kill-uncoalesced-local-copy-6612c. */
+extern int gl_func_00062F64_6612c();  /* blank USO jal alias (= 0): in-unit direct call would bake the address */
+void gl_func_0006612C(int *a0) {
+    int *self = a0;
+    int r;
+    r = gl_func_00062F64_6612c(a0, (char *)a0[10] + 8);
+    a0 = 0;
+    while (r != 0x12340004) {
+        r = gl_func_00062F64_6612c(self, (char *)self[10] + 8);
     }
-    gl_func_00062F64(self, (char *)self[10] + 8, 0x12340002);
-    while (gl_func_00062F64(self, (char *)self[10] + 8) != 0x12340003) {
+    gl_func_00062F64_6612c(self, (char *)self[10] + 8, 0x12340002);
+    while (gl_func_00062F64_6612c(self, (char *)self[10] + 8) != 0x12340003) {
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006612C);
-#endif
 
 /* 10-insn 1-arg call wrapper: arg-homes caller's a0, then calls
  * gl_func_00000000(&D + 0x2246C). MATCH: the call arg is a SYMBOL reference
