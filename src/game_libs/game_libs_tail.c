@@ -2500,50 +2500,66 @@ void game_libs_func_0000D090(int *a0) {
 }
 
 #ifdef NON_MATCHING
+/* gl_func_0000D0D0 NM 78.59 -> 89.49 (2026-10-14 agent-g): per child (stride
+ * 0x60) reset +0xC to -6553600.0f, then three lookups f(D, key, owner+0xDC, 0)
+ * whose key is a 4-byte STRUCT PASSED BY VALUE (the `sw a1,4(sp)` before
+ * each jal; docs/IDO_CODEGEN.md#struct-by-value-arg-carrier-7bc): the int at
+ * D+0xD680/D684/D688 is stored into a struct local (sp 104/100/96) and the
+ * by-value arg reloads it through the hoisted &local (s5..s7). Result 0 ->
+ * +0x4C; results 1/2 -> +0x54/+0x58 ordered by (+0x64 - owner->0xE4). The old
+ * body called through a gl_func_0000959C fn-ptr (jalr) without the struct.
+ * RESIDUAL: the target re-materializes each key load per iteration
+ * (`lui t9,1; lw t9,-0x2980(t9)`, destructive) while uopt here promotes the
+ * key addresses (D_D0D0_D680/D684 -> s5/s7, using s8: +1 save, locals +4).
+ * Not fixed by if(1) barriers (around loads, calls, store, step), per-site
+ * pad-struct aliases, whole-struct global copies, volatile, literal
+ * addresses (dli s5,0xd680) or block-scoped locals. */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_0000D0D0)();
+typedef struct { int v; } S4_D0D0;
+extern int D_D0D0_D680;
+extern int D_D0D0_D684;
+extern int D_D0D0_D688;
 void gl_func_0000D0D0(char *arg0) {
-    s32 sp68;
-    s32 sp64;
-    s32 sp60;
-    f32 temp_f0;
-    s32 temp_v1;
-    s32 var_s2;
-    s32 var_s4;
-    char *temp_s1;
-    char *temp_v0;
-    char *temp_v1_2;
+    S4_D0D0 a;
+    S4_D0D0 b;
+    S4_D0D0 c;
+    char *r1;
+    char *r2;
+    char *p;
+    f32 base;
+    s32 off;
+    s32 i;
 
-    var_s2 = 0;
-    var_s4 = 0;
+    off = 0;
+    i = 0;
     if (FW(arg0, 0x48) > 0) {
         do {
-            *(f32*)((char*)(FW(arg0, 0x44) + var_s2) + 0xC) = -6553600.0f;
-            sp68 = (*(s32*)((char*)&D_00000000 + 0xD680));
-            FW(FW(arg0, 0x44), 0x4C) = ((int(*)())gl_func_0000959C)(*(int*)&D_00000000, sp68, FW(FW(arg0, 0x44), 0x0) + 0xDC, 0);
-            sp64 = (*(s32*)((char*)&D_00000000 + 0xD684));
-            temp_s1 = ((int(*)())gl_func_0000959C)(*(int*)&D_00000000, sp64, FW(FW(arg0, 0x44), 0x0) + 0xDC, 0);
-            sp60 = (*(s32*)((char*)&D_00000000 + 0xD688));
-            temp_v0 = ((int(*)())gl_func_0000959C)(*(int*)&D_00000000, sp60, FW(FW(arg0, 0x44), 0x0) + 0xDC, 0);
-            temp_v1 = temp_v0 != 0;
-            if ((temp_s1 == 0) || (temp_v1 == 0)) {
-                FW((FW(arg0, 0x44) + var_s2), 0x54) = 0;
+            *(f32 *)(FW(arg0, 0x44) + off + 0xC) = -6553600.0f;
+            if (1) { a.v = D_D0D0_D680; }
+            FW(FW(arg0, 0x44), 0x4C) = gl_func_00000000(D_00000000, a, FW(FW(arg0, 0x44), 0x0) + 0xDC, 0);
+            if (1) { b.v = D_D0D0_D684; }
+            r1 = (char *)gl_func_00000000(D_00000000, b, FW(FW(arg0, 0x44), 0x0) + 0xDC, 0);
+            if (1) { c.v = D_D0D0_D688; }
+            r2 = (char *)gl_func_00000000(D_00000000, c, FW(FW(arg0, 0x44), 0x0) + 0xDC, 0);
+            if (r1 == 0 || (r2 != 0) == 0) {
+                FW(FW(arg0, 0x44) + off, 0x54) = 0;
             } else {
-                temp_v1_2 = FW(arg0, 0x44);
-                temp_f0 = (*(f32*)((char*)FW(temp_v1_2, 0x0) + 0xE4));
-                if (((*(f32*)((char*)temp_s1 + 0x64)) - temp_f0) < ((*(f32*)((char*)temp_v0 + 0x64)) - temp_f0)) {
-                    FW((temp_v1_2 + var_s2), 0x54) = temp_s1;
-                    FW((FW(arg0, 0x44) + var_s2), 0x58) = temp_v0;
+                p = (char *)FW(arg0, 0x44);
+                base = *(f32 *)((char *)FW(p, 0x0) + 0xE4);
+                if (*(f32 *)(r1 + 0x64) - base < *(f32 *)(r2 + 0x64) - base) {
+                    FW(p + off, 0x54) = (int)r1;
+                    FW(FW(arg0, 0x44) + off, 0x58) = (int)r2;
                 } else {
-                    FW((temp_v1_2 + var_s2), 0x54) = temp_v0;
-                    FW((FW(arg0, 0x44) + var_s2), 0x58) = temp_s1;
+                    FW(p + off, 0x54) = (int)r2;
+                    FW(FW(arg0, 0x44) + off, 0x58) = (int)r1;
                 }
             }
-            var_s4 += 1;
-            var_s2 += 0x60;
-        } while (var_s4 < FW(arg0, 0x48));
+            i += 1;
+            off += 0x60;
+        } while (i < FW(arg0, 0x48));
     }
 }
 #else

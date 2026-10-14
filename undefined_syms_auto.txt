@@ -3578,3 +3578,6 @@ gl_ref_0003EF70 = 0x0003EF70;  /* gl_func_0002D2F4 baked USO jal (0x0C00FBDC) */
 gl_ref_00041890 = 0x00041890;  /* gl_func_0002D2F4 baked USO jal (0x0C010624) */
 D_68044_2210 = 0x00000000;  /* gl_func_00068044 pad-struct alias of D_00000000 (+0x2210 float scale; named-variable operand gives the mul.s f10,f16 order) */
 gl_ref_0007C650 = 0x0007C650;  /* gl_func_00068044 baked USO jal to game_libs_func_00067FE4 (0x0C01F194) */
+D_D0D0_D680 = 0x0000D680;  /* gl_func_0000D0D0 NM body: int at D+0xD680 (D_00000000 = 0) copied into a 4-byte struct passed by value */
+D_D0D0_D684 = 0x0000D684;  /* gl_func_0000D0D0 NM body: int at D+0xD684 (D_00000000 = 0) copied into a 4-byte struct passed by value */
+D_D0D0_D688 = 0x0000D688;  /* gl_func_0000D0D0 NM body: int at D+0xD688 (D_00000000 = 0) copied into a 4-byte struct passed by value */
