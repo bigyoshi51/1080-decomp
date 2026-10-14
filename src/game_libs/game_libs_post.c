@@ -5451,45 +5451,13 @@ int gl_func_00022DE0(int a0) {
     return 0;
 }
 
-// gl_func_00022E58 — STRUCTURAL PASS (0x168 / 90 words, no episode).
-// Raw-.word USO form (game_libs). BOUNDARY NOTE: 5-jr USO bundle
-// (named fn + 4 tiny trailing sibling helpers) — deferred USO
-// re-split. The named leading fn (~30 words, ends at 0x22EC8) is
-// another readiness-predicate sibling of gl_func_00022D68 /
-// gl_func_00022DE0.
-//
-//   int gl_func_00022E58(int idx) {
-//     if (idx != 0xFF) {
-//       byte st = *(byte*)(&D_0 + 0x2C10 + idx);        // state byte
-//       if (st >= 2) return 1;                           // ready
-//       int j = jal 0x38174(2);                          // 0x0C00E05D
-//       byte st2 = *(byte*)(&D_0 + 0x2C10 + j);
-//       if (st2 >= 2) return 1;
-//       return 1;                                         // (default)
-//     }
-//     return 1;                                           // 0xFF sentinel
-//   }
-//
-// Struct-typing reference: structurally identical to gl_func_00022D68
-//   / gl_func_00022DE0 — readiness test "state byte >= 2", 0xFF index
-//   trivially ready, fixed USO-reloc poll 0x0C00E05D (≈0x38174) on
-//   the not-ready path. This third variant queries the state-byte
-//   array at &D_0+0x2C10 and passes 2 to the poll. The 0x2C10 /
-//   0x2C40 / 0x2C70 byte arrays are the per-resource-class slot-state
-//   tables of the same &D_0 sprite/registry subsystem; the 4 trailing
-//   bundled helpers are their tiny companions (one reads &D_0+0x2C40)
-//   left for the deferred USO re-split.
-// Caps (DEFERRED): single jr $ra (the "5-fn unsplit bundle" note is
-//   STALE; .s is 0x78/30 words, ONE function). Triplet sibling of
-//   gl_func_00022D68 / gl_func_00022DE0 — status-query readiness
-//   helper, table &D_0+0x2C10, poll arg 2. Real-C STRUCTURAL body
-//   below per the analysis. Byte-match deferred — placeholder jal-0
-//   poll needs USO reloc infra. Name pre-checked: no extern reuse
-//   (collision-safe). gl_func_00000000 = canonical never-defined
-//   USO placeholder.
-#ifdef NON_MATCHING
-extern int gl_func_00000000();
-extern int D_00000000;
+// gl_func_00022E58 — readiness predicate, 0x78 / 30 words, ONE function
+// (single jr $ra; the old "0x168 / 90-word 5-fn bundle" note was stale).
+// Third twin of gl_func_00022D68 / gl_func_00022DE0: state-byte array
+// &D_0+0x2C10, poll gl_ref_00038174(2, a0).
+// 2026-10-14 EXACT (agent-c): same recipe as gl_func_00022D68 -- the entry
+//   `or a1,a0,zero` is the poll's REAL second argument (38174(2, a0)), and
+//   the final test is `>= 2 -> 1; return 0`.
 int gl_func_00022E58(int a0) {
     char *st = (char *)&D_00000000 + 0x2C10;
     int r;
@@ -5499,15 +5467,12 @@ int gl_func_00022E58(int a0) {
     if (*(unsigned char *)(st + a0) >= 2) {
         return 1;
     }
-    r = gl_func_00000000(2);
-    if (*(unsigned char *)(st + r) < 2) {
-        return 0;
+    r = gl_ref_00038174(2, a0);
+    if (*(unsigned char *)(st + r) >= 2) {
+        return 1;
     }
-    return 1;
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022E58);
-#endif
 
 void game_libs_func_00022ED0(int a0, int a1) {
     if (a0 != 0xFF) {
