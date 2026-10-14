@@ -28109,26 +28109,19 @@ void game_libs_func_0005769C(int *a0, int a1) {
     arr[1] = v;
 }
 
-#ifdef NON_MATCHING
 /* Display-list frame flush: append two DL commands (0xE7000000 = G_RDPPIPESYNC,
  * 0xB8000000 = G_ENDDL) to the a0->0xC record buffer, then for each of six
  * sub-buffers at a0->{0xC,0x1C,0x2C,0x3C,0x4C,0x5C} call the flush helper if
- * sub[2] < sub[1] (count past limit). 100/109 words exact (2026-07-18): the
- * `?1:0` bool-materialization diamonds + ONE int carrier `q` unified across
- * blockA idx / every check's pointer AND flag (coalesces ptr+flag into $v0,
- * pins `move v0,zero` below the sub-buffer loads, reproduces the beql
- * next-p delay-slot preload) + distinct arr1/arr2 + named rec1/rec2 = exact
- * temp rings, schedule, prologue. Residual 9 words = one 3-cycle rotation
- * arr1(a1 vs a2)/rec2(a2 vs v0)/check1-ptr(v0 vs a1). Probed and FAILED:
- * decl orders, if(0) dead-ref ladders (head ladder forces early a0->s0
- * split; mid/end dead BBs spill a0 and kill s0 wholesale), two-def arr1,
- * rec2-as-q (CSE hoists the B800 lui), check1-ptr as trailing K&R call arg
- * (spills p to frame). Coloring-multiset class.
- * Reloc-blind (flush helper is a runtime-patched jal-0 placeholder). */
+ * sub[2] < sub[1] (count past limit). BYTE-EXACT 109/109 (2026-10-14 agent-c):
+ * the 2026-07-18 "3-cycle coloring rotation" (arr1 a1/a2, rec2 a2/v0, check1
+ * ptr v0/a1) was two web assignments -- the SECOND append's record pointer
+ * is the int carrier q (so it shares q's v0 web with idx1 and the check
+ * flags), and the FIRST check reads a0->0xC INLINE twice (uopt CSEs it into
+ * an expression temp coloured a1) instead of loading it into q. Checks 2-6
+ * keep the q-carrier pointer. Flush helper = blank jal-0 placeholder. */
 void gl_func_00057700(int *a0) {
     int *rec1;
     int *arr1;
-    int *rec2;
     int idx2;
     int *arr2;
     int q;
@@ -28140,15 +28133,14 @@ void gl_func_00057700(int *a0) {
     arr1[0] = 0xE7000000;
     arr1[1] = 0;
 
-    rec2 = (int *)((int *)a0)[3];
-    idx2 = rec2[1];
-    rec2[1] = idx2 + 1;
+    q = ((int *)a0)[3];
+    idx2 = ((int *)q)[1];
+    ((int *)q)[1] = idx2 + 1;
     arr2 = (int *)(((int *)((int *)a0)[3])[0] + (idx2 * 8));
     arr2[0] = 0xB8000000;
     arr2[1] = 0;
 
-    q = ((int *)a0)[3];
-    q = ((unsigned int)((int *)q)[2] < (unsigned int)((int *)q)[1]) ? 1 : 0;
+    q = ((unsigned int)((int *)((int *)a0)[3])[2] < (unsigned int)((int *)((int *)a0)[3])[1]) ? 1 : 0;
     if (q != 0) gl_func_00000000(a0);
     q = *(int *)((char *)a0 + 0x1C);
     q = ((unsigned int)((int *)q)[2] < (unsigned int)((int *)q)[1]) ? 1 : 0;
@@ -28166,9 +28158,6 @@ void gl_func_00057700(int *a0) {
     q = ((unsigned int)((int *)q)[2] < (unsigned int)((int *)q)[1]) ? 1 : 0;
     if (q != 0) gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
-#endif
 
 /* gl_func_000578B4 LADDER PASS 1 (2026-06-11, size-weighted strategy):
  * 9676B at 75.0 -- the project's #2 largest near-miss; worth +1.26pp
