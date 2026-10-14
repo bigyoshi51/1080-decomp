@@ -4987,38 +4987,25 @@ void game_libs_func_00038D5C(int *a0, int a1) {
     a0[0x24/4] = a1;
 }
 
-/* gl_func_00038D64: 23-insn flag-bit-set init. */
-#ifdef NON_MATCHING
-int *gl_func_00038D64(int *a0) {
-    gl_func_00000000((char*)a0 + 0x30);
-    gl_func_00000000((char*)a0 + 0x70);
-    a0[0x8/4] = a0[0x8/4] | 0x200;
-    a0[0x2C/4] = 0;
-    a0[0xB0/4] = 0;
-    a0[0x18/4] = a0[0x18/4] | 0x10;
-    return (int*)((char*)a0 + 0x18);
-}
-#else
-#ifdef NON_MATCHING
-/* gl_func_00038D64: 23-insn sub-object initializer. Runs the (collapsed)
- * init callback on two sub-structs at a0+0x30 and a0+0x70, clears fields
- * a0->0x2C and a0->0xB0, then ORs flag bits into a0->0x8 (|0x200) and
- * a0->0x18 (|0x10). a0 reloaded from its home slot across the calls.
- * NM (reference decode): two collapsed-placeholder calls (raw-.word game_libs
- * reloc depression). */
+/* gl_func_00038D64: 23-insn sub-object initializer (two sub-struct init
+ * calls, two zero stores, two flag ORs). 2026-10-14 EXACT (agent-c): self
+ * colours a1 (first call takes one arg, docs/IDO_CODEGEN.md#c8b8-param-in-a1-
+ * means-single-arg-call); the `addiu v0,a1,0x18; lw/ori/sw 0(v0)` unfolded
+ * pointer is the goto-mid anti-fold (docs/IDO_CODEGEN.md#goto-mid-pointer-
+ * antifold-65060) -- same 0x18 |= 0x10 idiom as gl_func_00065060. */
 extern int gl_func_00000000();
-void gl_func_00038D64(int a0) {
+void gl_func_00038D64(char *a0) {
+    int *p;
     gl_func_00000000(a0 + 0x30);
     gl_func_00000000(a0 + 0x70);
-    *(int *)((char *)a0 + 0x2C) = 0;
-    *(int *)((char *)a0 + 0xB0) = 0;
-    *(int *)((char *)a0 + 0x8) |= 0x200;
-    *(int *)((char *)a0 + 0x18) |= 0x10;
+    *(int *)(a0 + 0x2C) = 0;
+    *(int *)(a0 + 0xB0) = 0;
+    *(int *)(a0 + 0x8) |= 0x200;
+    p = (int *)(a0 + 0x18);
+    goto mid;
+mid:
+    *p |= 0x10;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038D64);
-#endif
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00038DC0: 136-insn linked-list iterator that drives a per-node
