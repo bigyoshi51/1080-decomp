@@ -13026,92 +13026,33 @@ int game_libs_func_0002A8C4(void *a0) {
     return *(int*)((char*)v1 + 8);
 }
 
-// gl_func_0002A904 — STRUCTURAL PASS (0x12C / 75 words, no episode).
-// Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO bundle
-// (named fn + 3 trailing helpers) — deferred USO re-split. The named
-// leading fn is the subsystem bring-up / init for the &D_5368 list +
-// &D_52F0 element-array family.
-//
-//   void gl_func_0002A904(void) {
-//     S *g = &D_0;
-//     *(int*)(&D_5368) = &D_5368;                       // list anchors
-//     *(int*)(&D_536C) = &D_5368;                        //  (self-ref
-//     *(int*)(&D_5370) = 0;                              //   empty list)
-//     *(int*)(&D_5374) = 0;
-//     S *e = &D_52F0;  S *t = &D_3280;
-//     for (int i = 0; i < N; i++) {                       // stride 0x80
-//       *(int*)((char*)g + 0x32F8 + i*0x80) = t;          // wire entry
-//       *(int*)((char*)g + 0x32F0 + i*0x80) = 0;
-//       (*initElem)(&D_5368, e);                          // jal 0 USO
-//       e += 0x80;  t += 0x80;
-//     }
-//   }
-//
-// Struct-typing reference: the one-time construction of this
-//   object-pool subsystem. Words &D_5368 / &D_536C are the head/tail
-//   anchors of an intrusive list set to point at themselves (the
-//   empty-list convention); &D_5370 / &D_5374 are zeroed counters.
-//   It then walks a fixed-stride (0x80) element array based at
-//   &D_52F0, binding each element's slot at &D_0+0x32F8 to the
-//   parallel &D_3280 table entry, clearing &D_0+0x32F0, and running
-//   a USO-relocated per-element initializer (`jal 0` slot) with the
-//   &D_5368 list anchor. The init counterpart to the
-//   gl_func_0002A55C constructor / gl_func_0002A6C0 sweep / gl_func_
-//   0002A260 reset family (all over the same &D_52xx/53xx pool).
-// Caps (DEFERRED): raw-word USO + per-element jal-0 USO-reloc init —
-//   byte-match needs USO mnemonic disasm + reloc-pad jal infra.
-//   STALE 4-jr-bundle comment: grep -c 03E00008 = 1 (.s now single
-//   fn). Real-C STRUCTURAL body below per the analysis. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
-// BASE-PIN PROGRESS (agent-b 2026-06-21): held-base-pointer lever applied.
-//   Loop pointers pinned as held char* in saved regs, each incremented +0x80,
-//   call arg passed as held pointer (`or a0,sN,zero`). The s32-INT lever
-//   (see gl_func_0002A6C0) FIXED the anchor coloring: declaring `anchor`
-//   (used only by value — stored + passed, never deref'd) as `s32` instead
-//   of `char *` flips it from s4 to s3, EXACTLY matching target (37->36
-//   diffs, and now anchor=s3/var_s4=s4 like target). RESIDUAL (36 words):
-//   (a) the setup/prologue instruction SCHEDULE order (addiu materializations
-//   land in different positions though the register assignments now match) —
-//   as1 backend tie; (b) target uses a distinct temp v0=&D for the 4 top
-//   stores but IDO merges it with the loop base s0=&D. Both are scheduling/
-//   single-symbol-merge residuals, not coloring or base-pin. gl_func_00000000
-//   = canonical USO placeholder.
-#ifdef NON_MATCHING
-// CSE-BREAK lever (agent-e): the 4 top anchor-stores use a DISTINCT base
-//   register v0=&D (offset stays 0x5368.. on the store), while the loop base
-//   var_s0 is derived from `anchor - 0x5368`. Deriving the loop base from the
-//   held anchor (s3) instead of re-materializing &D defeats IDO's CSE merge of
-//   the two identical &D materializations, so the 4 stores now emit
-//   `sw s3,21352(v0)` exactly like the target (distinct temp base) instead of
-//   folding into s0. 62.6 -> 70.65 fuzzy. RESIDUAL (~10 words): loop base emits
-//   `addiu s0,s3,-21352` (derived from anchor) vs target `lui s0; addiu s0,s0,0`
-//   (fresh &D lui), plus minor prologue addiu/sw schedule order. Both are the
-//   remaining single-symbol-merge / as-backend schedule ties.
-extern int gl_func_00000000();
-extern int D_00000000;
+/* gl_func_0002A904: pool bring-up over the registry block (bootup.uso Data
+ * sym1255 @0x345C0 = D_00000000_345c0; every HI16/LO16 pair in the body is that
+ * symbol with the offset baked as the addend). The list anchor at +0x5368 is
+ * made empty (head = tail = &anchor, +0x5370/+0x5374 = 0), then 64 0x80-byte
+ * elements at +0x32F0 get w8 = &table[i] (+0x3280, stride 0x80), w0 = 0 and are
+ * registered with the anchor through the blank jal (TextReloc sym1268 = text
+ * 0x3EEF0 = splat 0x2A884). BYTE-EXACT 40/40 from the plain INDEXED loop: IDO's
+ * strength reduction makes the s0 store cursor (&REG + i*0x80, a fresh `lui s0;
+ * addiu s0,0` separate from the v0 used by the 4 anchor stores), the s1 element
+ * cursor (the call arg) and the s2 table cursor, and replaces `i < 64` with
+ * `s1 != s4` (s4 = &REG + 0x52F0). The old NM wrap (70.65) spelled the cursors
+ * as hand-held pointers, which is what made IDO merge/derive the bases. */
+typedef struct { int w0; int w4; int w8; char pad[0x74]; } gl_2A904_Elem;
+#define REG_2A904 ((char *)&D_00000000_345c0)
 void gl_func_0002A904(void) {
-    s32 anchor = (s32)((char *)&D_00000000 + 0x5368);
-    char *var_s0 = (char *)anchor - 0x5368;
-    char *var_s1 = (char *)&D_00000000 + 0x32F0;
-    char *var_s2 = (char *)&D_00000000 + 0x3280;
-    char *var_s4 = (char *)&D_00000000 + 0x52F0;
-    char *v0 = (char *)&D_00000000;
-    *(s32 *)(v0 + 0x5368) = anchor;
-    *(s32 *)(v0 + 0x536C) = anchor;
-    *(s32 *)(v0 + 0x5370) = 0;
-    *(s32 *)(v0 + 0x5374) = 0;
-    do {
-        *(s32 *)(var_s0 + 0x32F8) = (s32) var_s2;
-        *(s32 *)(var_s0 + 0x32F0) = 0;
-        gl_func_00000000(anchor, var_s1);
-        var_s1 += 0x80;
-        var_s0 += 0x80;
-        var_s2 += 0x80;
-    } while (var_s1 != var_s4);
+    int i;
+    *(int **)(REG_2A904 + 0x5368) = (int *)(REG_2A904 + 0x5368);
+    *(int **)(REG_2A904 + 0x536C) = (int *)(REG_2A904 + 0x5368);
+    *(int *)(REG_2A904 + 0x5370) = 0;
+    *(int *)(REG_2A904 + 0x5374) = 0;
+    for (i = 0; i < 64; i++) {
+        ((gl_2A904_Elem *)(REG_2A904 + 0x32F0))[i].w8 = (int)(REG_2A904 + 0x3280 + i * 0x80);
+        ((gl_2A904_Elem *)(REG_2A904 + 0x32F0))[i].w0 = 0;
+        gl_func_00000000(REG_2A904 + 0x5368, &((gl_2A904_Elem *)(REG_2A904 + 0x32F0))[i]);
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A904);
-#endif
+#undef REG_2A904
 
 unsigned char game_libs_func_0002A9A4(unsigned char **a0) {
     unsigned char v = **a0;
