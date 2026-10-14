@@ -1611,11 +1611,21 @@ mid:
 // through the 3 row computations. Probed: direct-read rows (CSE fails, +3
 // insns), per-component interleaved write-then-read (inert). Byte-match
 // deferred; NM wrap.
+// 2026-10-14 agent-g (75.76 -> 60/66 words standalone): (3) each row spelled
+//     REVERSED right-assoc `t + (m2*z + (m1*y + m0*x))` (docs #reversed-right-
+//     assoc-sum-load-last-phantom-slots-4f0c8) gives every add.s operand order;
+//     (4) the three row results NAMED (r0..r2) with all three stores AFTER the
+//     last row = the f14/f16/f18 accumulators and the just-in-time M loads;
+//     (5) z left UNNAMED (inline obj->0x32C read, CSE'd to f12) -- five named
+//     floats keep the obj+0xDC spill temp at 0x1C (a sixth moves it to 0x18);
+//     pad_b dropped. RESIDUAL 6 words: the accumulators rotate (build r0 f16,
+//     r1 f18, r2 f14; target f14/f16/f18) -- every store placement / decl order /
+//     block-scoped r spelling keeps the rotation.
 void gl_func_00065148(char *obj) {
     int pad_a[4];
     Tri3i tmp;
-    int pad_b[2];
-    float x, y, z;
+    float x, y;
+    float r0, r1, r2;
     gl_func_00000000(obj + 0x294, obj + 0xDC);
     gl_func_00000000(obj + 0x2C8, obj + 0xDC);
     tmp = *(Tri3i *)(obj + 0x1F8);
@@ -1624,10 +1634,12 @@ void gl_func_00065148(char *obj) {
     *(float *)(obj + 0x32C) = *(float *)&tmp.c;
     x = *(float *)(obj + 0x324);
     y = *(float *)(obj + 0x328);
-    z = *(float *)(obj + 0x32C);
-    *(float *)(obj + 0x324) = *(float *)(obj + 0x70) * x + *(float *)(obj + 0x80) * y + *(float *)(obj + 0x90) * z + *(float *)(obj + 0xA0);
-    *(float *)(obj + 0x328) = *(float *)(obj + 0x74) * x + *(float *)(obj + 0x84) * y + *(float *)(obj + 0x94) * z + *(float *)(obj + 0xA4);
-    *(float *)(obj + 0x32C) = *(float *)(obj + 0x78) * x + *(float *)(obj + 0x88) * y + *(float *)(obj + 0x98) * z + *(float *)(obj + 0xA8);
+    r0 = *(float *)(obj + 0xA0) + (*(float *)(obj + 0x90) * *(float *)(obj + 0x32C) + (*(float *)(obj + 0x80) * y + *(float *)(obj + 0x70) * x));
+    r1 = *(float *)(obj + 0xA4) + (*(float *)(obj + 0x94) * *(float *)(obj + 0x32C) + (*(float *)(obj + 0x84) * y + *(float *)(obj + 0x74) * x));
+    r2 = *(float *)(obj + 0xA8) + (*(float *)(obj + 0x98) * *(float *)(obj + 0x32C) + (*(float *)(obj + 0x88) * y + *(float *)(obj + 0x78) * x));
+    *(float *)(obj + 0x324) = r0;
+    *(float *)(obj + 0x328) = r1;
+    *(float *)(obj + 0x32C) = r2;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065148);
