@@ -6,6 +6,18 @@ on:
   push:
     branches: [main]
 
+# decomp.dev ingests a report from every push run that uploads one. Pushing
+# dozens of commits a day (parallel agents) flooded it; the project was
+# disabled 2026-09/10 (cf. encounter/decomp.dev#58). Build on every push, but
+# publish the report artifact at most once per 24 hours.
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -35,13 +47,31 @@ jobs:
       - name: Build non_matching C objects (with -DNON_MATCHING for fuzzy scoring)
         run: make RUN_CC_CHECK=0 -j$(nproc) non_matching_objects
 
+      - name: Throttle decomp.dev reports (at most one per 24h)
+        id: gate
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          last=$(gh api "repos/${{ github.repository }}/actions/artifacts?name=us_report&per_page=1" --jq '.artifacts[0].created_at // empty')
+          now=$(date -u +%s)
+          if [ -z "$last" ] || [ $(( now - $(date -u -d "$last" +%s) )) -ge 86400 ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "Last report: ${last:-none}; publishing this one."
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Last report $last is under 24h old; build only, no upload."
+          fi
+
       - name: Generate progress report
+        if: github.event_name == 'pull_request' || steps.gate.outputs.publish == 'true'
         run: |
           curl -sL https://github.com/encounter/objdiff/releases/latest/download/objdiff-cli-linux-x86_64 -o objdiff-cli
           chmod +x objdiff-cli
           ./objdiff-cli report generate -p . -o report.json
 
       - name: Upload progress report
+        if: github.event_name == 'pull_request' || steps.gate.outputs.publish == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: us_report
