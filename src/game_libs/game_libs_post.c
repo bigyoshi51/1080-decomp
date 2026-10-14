@@ -7603,76 +7603,37 @@ gl_24F30_Slot *gl_func_00024F30(int a0, int a1, int a2, int a3, int arg4, int ar
 }
 #undef GS_24F30
 
-// gl_func_00025044 — STRUCTURAL PASS (0x84 / 33 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). The teardown SWEEP counterpart to the gl_func_00024F30
-// slot allocator.
-//
-//   void gl_func_00025044(int a0) {
-//     S *g = &D_0;
-//     if (g->w_215C == 1) return;                       // already torn
-//     Slot *s   = (Slot*)(g + 0x1038);
-//     Slot *end = (Slot*)(g + 0x540 + ...);              // table end
-//     while (s != end) {
-//       if (s->b_0 == 1) {                                // in-use
-//         jal 0x39734(&s->..., a0);                        // 0x0C00E5CD
-//       }
-//       s = (char*)s + 0x54;                              // stride
-//     }
-//   }
-//
-// Struct-typing reference: walks the SAME fixed-capacity slot pool
-//   gl_func_00024F30 allocates from — base &D_0+0x1038, entry stride
-//   0x54, byte +0 the in-use flag, end derived from the &D_0+0x540
-//   region — and for every slot marked in-use (byte +0 == 1) invokes
-//   the fixed USO-relocated destructor 0x0C00E5CD (≈0x39734) with the
-//   caller arg. The whole sweep is gated on the subsystem handle
-//   &D_0+0x215C: if it equals 1 (already shut down) the function is a
-//   no-op. The shutdown/free-all counterpart to gl_func_00024F30,
-//   analogous to how gl_func_0002349C tears down the &D_0+0x2030
-//   registry.
-// Caps (DEFERRED): CLEAN single jr $ra. Shutdown/free-all
-//   counterpart to gl_func_00024F30 (analogous to gl_func_0002349C
-//   tearing down the &D_0+0x2030 registry). Real-C STRUCTURAL body
-//   below per the analysis (if &D_0+0x215C == 1 no-op; else for each
-//   of the 16 pool slots &D_0+0x1038 stride 0x54 with byte+0==1 call
-//   the fixed per-slot destructor 0x39734(slot, a0)). Byte-match
-//   deferred — placeholder jal + bnel scan-loop need USO reloc
-//   infra. Name pre-checked: no extern reuse (collision-safe).
-//   gl_func_00000000 = canonical never-defined USO placeholder.
-#ifdef NON_MATCHING
-// gl_func_00025044 — slot-pool teardown SWEEP (game_libs, USO).
-// Gated on &D_0+0x215C (subsystem handle): if == 1 (already shut
-// down) the function is a no-op. Otherwise walks the fixed-capacity
-// slot pool at &D_0+0x1038, stride 0x54, 0x540/0x54 = 16 slots; for
-// every slot whose SIGNED byte+0 in-use flag == 1, invokes the fixed
-// per-slot destructor (USO-relocated 0x39734) with (slot, a0). The
-// shutdown/free-all counterpart to gl_func_00024F30; analogous to
-// gl_func_0002349C tearing down the &D_0+0x2030 registry.
-// Flag read is `lb` (signed char), confirmed against target
-// (0x82181038 = LB, not LBU). Byte-LAND blocked: residual is
-// register-coloring + the extra saved reg holding the literal 1
-// (target 5-reg -0x28 frame vs 6-reg -0x30), a documented game_libs
-// baked-reloc cap. gl_func_00000000 = canonical never-defined USO
-// placeholder.
-extern int gl_func_00000000();
-extern int D_00000000;
+/* gl_func_00025044 (0x84, 33 insns): slot-pool teardown sweep, the free-all
+ * counterpart of gl_func_00024F30 (same 16 x 0x54 Slot table at D+0x1038).
+ * if (D+0x215C == 1) return; for each slot with signed flag == 1 call the
+ * TU-local destructor (baked jal 0x39734 = gl_ref_00039734)(slot, a0).
+ * BYTE-EXACT 2026-10-14 (agent-c), 60.64 -> 100, rewritten from the target words:
+ *   - the 24F30 index loop `for (i = 0; i != 16; i++)` over GS.slots[i]
+ *     (pointer IV in s0, LFTR end D+0x540 in s2);
+ *   - the gate compare uses its OWN `addiu at,1` while the loop's flag test
+ *     holds 1 in s1: declare the gate word `unsigned` and compare `1U` (a
+ *     separate u-code constant, IDO_CODEGEN #unsigned-compare-consts-separate-
+ *     candidates-66eec); an int compare shares one s-reg 1 for both;
+ *   - the gate read is `lui t6; addiu t6,0; lw t7,0x215C(t6)` (held base, not
+ *     the folded `lw %lo`): read it through a `volatile` struct pointer local.
+ * The old body walked a byte offset with a plain char view. */
+extern int gl_ref_00039734();
+typedef struct { char p0[0x1038]; gl_24F30_Slot slots[16]; char p1[0x215C - 0x1578]; unsigned int x215C; } gl_25044_GS;
+#define GS_25044 (*(gl_25044_GS *)&D_00000000)
 void gl_func_00025044(int a0) {
-    char *g = (char *)&D_00000000;
-    char *base = g + 0x1038;
-    int off;
-    if (*(int *)(g + 0x215C) == 1) {
+    int i;
+    volatile gl_25044_GS *g = &GS_25044;
+
+    if (g->x215C == 1U) {
         return;
     }
-    for (off = 0; off != 0x540; off += 0x54) {
-        if (*(signed char *)(base + off) == 1) {
-            gl_func_00000000(base + off, a0);
+    for (i = 0; i != 16; i++) {
+        if (GS_25044.slots[i].flag == 1) {
+            gl_ref_00039734(&GS_25044.slots[i], a0);
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025044);
-#endif
+#undef GS_25044
 
 // gl_func_000250C8 — STRUCTURAL PASS (0x258 / 150 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
