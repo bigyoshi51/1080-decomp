@@ -12684,46 +12684,25 @@ void gl_func_00042338(void) {
     gl_func_00000000_42338(local, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-/* game_libs_func_00042374: 24-insn nested-loop ushort grid fill (0xFFFF).
- * base=*(D+0x240); v0=*(base[0x148]+a0*4+0xF4); for(a1=100;a1!=300;a1+=2){
- * p=v0+a1+0x7D00; v1=50; do{v1+=4; p[0]=p[0x280]=p[0x500]=p[0x780]=0xFFFF;
- * p+=0xA00;}while(v1!=150);}.
- *
- * 2026-05-27: goto-lever + register-keyword applied. Inner loop now ROLLS
- * (was fully unrolled at 43 insns; now 6-insn body, total 25 insns vs
- * target 24). Residual diffs (1-insn off, structural):
- *  - mine const-folds `v0 + a1 + 0x7D00` to `addiu a2, v1, 32100`;
- *    target keeps separate `addu a0, v0, a1; addiu a0, 0x7D00`
- *  - mine emits `bne` for outer test; target uses `bnel` (branch-likely)
- *    with `addu a0, v0, a1` (= next-iter's p_init) in delay-likely slot
- * Both diffs are cost-model IDO-internal — `volatile int a1_init`
- * defeats the const-fold but adds frame + 2 spill insns (net regression).
- * Likely a permuter-only flip at this point. */
-#ifdef NON_MATCHING
+/* game_libs_func_00042374: 25-insn ushort grid fill, BYTE-EXACT 2026-10-14
+ * (was NM 58.32 "const-fold + bnel cost-model cap"). The rolled 4-store inner
+ * loop is IDO's x4 unroll of a plain 100-trip y loop over a 320-wide ushort
+ * grid (0x280 row stride, 0x7D00 = 50 rows); the outer x loop is strength-
+ * reduced to a1 = 2x (100..300) and rotated (bnel + addu in the likely slot).
+ * Registers follow the single-expression grid load (no base local). The
+ * inner `for` header and its body MUST share one source line: with the body
+ * on its own line the scheduler sinks the offset-0 store into the bne delay
+ * (`sh -2560(a0)`) instead of the pointer bump. See docs/IDO_CODEGEN.md
+ * #same-line-inner-unrolled-loop-42374. */
+typedef unsigned short GridRow_42374[320];
 void game_libs_func_00042374(int a0) {
-    int *base = *(int **)((char *)&D_00000000 + 0x240);
-    char *v0 = *(char **)((char *)base[0x148 / 4] + a0 * 4 + 0xF4);
-    int a1 = 100;
-    int v1;
-    register char *p;
-    register int val = 0xFFFF;
-outer:
-    p = v0 + a1 + 0x7D00;
-    v1 = 50;
-inner:
-    v1 += 4;
-    *(short *)(p + 0) = val;
-    *(short *)(p + 0x280) = val;
-    *(short *)(p + 0x500) = val;
-    *(short *)(p + 0x780) = val;
-    p += 0xA00;
-    if (v1 != 150) goto inner;
-    a1 += 2;
-    if (a1 != 300) goto outer;
+    GridRow_42374 *g;
+    int x, y;
+    g = ((GridRow_42374 **)(*(int **)(*(int *)((char *)&D_00000000 + 0x240) + 0x148)))[a0 + 0x3D];
+    for (x = 50; x < 150; x++) {
+        for (y = 50; y < 150; y++) g[y][x] = 0xFFFF;
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042374);
-#endif
 
 void gl_func_000423D8(void) {
     gl_func_00000000(0);
