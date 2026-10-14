@@ -4794,57 +4794,65 @@ void game_libs_func_00068BF4(int *a0) {
  * conditional-log blocks, 3-arg sub-init, child wiring via self->0x3C, func_d, the
  * linked-set finalizer, and the D_global[count1] indexed store. Logic CORRECT.
  *
- * 2026-06-26: `volatile int count1` lever (47.6->80.2% fuzzy). The target SPILLS
- * count1 to stack slot 52(sp) (frame 0x38) rather than promoting it to a saved
- * reg; marking count1 volatile forces the same stack residency, which (a) removes
- * the spurious s1 save/restore + 0x40 frame, and (b) relieves register pressure so
- * IDO schedules the linked-set finalizer as a branch-likely (beqzl, shared
- * obj->0x14=cf store in the taken delay slot) exactly as the target does. RESIDUAL
- * (~20%): volatile reloads count1 on every block-1 read, whereas the target holds
- * it in a2 through the slti and spills only at the bnez delay slot — a scheduling
- * cap volatile can't express without over-spilling. INCLUDE_ASM remains build path.
+ * 2026-06-26: `volatile int count1` lever (47.6->80.2% fuzzy), now superseded.
+ *
+ * 2026-10-14 (agent-g) rewrite, no volatile: 40/65 words exact standalone.
+ * Levers: (1) the pre-call is VOID (void alias frees v0 -> bufstruct v0, p v1,
+ * and the log-1 string args a0/a1 hoist into block 1, = target); (2) func_d
+ * takes obj as its 2nd arg (`or a1,v0` right after the sub call); (3) the
+ * named-local DECL ORDER count1, bufstruct, obj, cf, p, count2 reproduces
+ * every target home (0x34/0x2C/0x28/0x20; all named locals hold a frame
+ * word, spilled ones use their own); (4) `self[1] = p[0]; count1 = self[1];`
+ * drops count1 below the s-reg threshold (the plain `count1 = p[0]; self[1]
+ * = count1;` spelling colours it s1 for the whole body, +2 save/restore).
+ * RESIDUAL: the target COLOURS count1's block-1 split piece ($a2: sw 4(s0),
+ * slti, home store in the bnez delay slot); here block 1 runs on a ring temp
+ * (t7), which shifts the t-ring by one for the rest of the body (t0..t5 vs
+ * t7..t4), plus a post-func_d obj/cf swap (target cf v1 / obj a2, build
+ * cf a2 / obj v1). Tried: block-scope &count1 (fully memory-resident),
+ * if(1)/goto-label BBs, self[1] re-test spellings, inline (*pp)++ reads,
+ * struct-typed self, cfront-style finaliser temps. INCLUDE_ASM stays.
  */
+extern void gl_func_00000000_68c14_v();
 void gl_func_00068C14(int *self) {
     extern int D_00000000;
     extern int D_global_00068C14;
+    int count1;
     int *bufstruct;
-    int *p;
-    volatile int count1;
-    int count2;
     int *obj;
-    int *child;
     int *cf;
+    int *p;
+    int count2;
 
-    gl_func_00000000(self);                         /* pre(self) */
+    gl_func_00000000_68c14_v(self);                 /* pre(self), void */
 
-    /* block 1: advance buffer pos by one int, read count, conditional overflow log */
+    /* block 1: pop one int from the stream, store, overflow assert */
     bufstruct = (int *)self[0];
     p = (int *)bufstruct[0];
     bufstruct[0] = (int)(p + 1);
-    count1 = p[0];
-    self[1] = count1;                               /* self->4 = count1 */
+    self[1] = p[0];
+    count1 = self[1];
     if (count1 >= 4) {
         gl_func_00000000((char *)&D_00000000 + 0x2C4F4, (char *)&D_00000000 + 0x2C508, 221);
     }
 
-    /* block 2: advance again, read count2, conditional log */
+    /* block 2: pop again, store, log on zero */
     bufstruct = (int *)self[0];
     p = (int *)bufstruct[0];
     bufstruct[0] = (int)(p + 1);
     count2 = p[0];
-    self[1] = count2;                               /* self->4 = count2 */
+    self[1] = count2;
     if (count2 == 0) {
         gl_func_00000000((char *)&D_00000000 + 0x2C538, count1);
     }
 
     /* sub-init returning the child object */
     obj = (int *)gl_func_00000000(0, self[0x14 / 4], count2);
-    child = (int *)self[0x3C / 4];
-    child[0x18 / 4] = (int)obj;                     /* (self->0x3C)->0x18 = obj */
+    ((int *)self[0x3C / 4])[0x18 / 4] = (int)obj;   /* (self->0x3C)->0x18 = obj */
     self[0x10 / 4] = (int)obj;
     self[0x18 / 4] = (int)obj;
     cf = (int *)((int *)self[0x3C / 4])[0x10 / 4];  /* (self->0x3C)->0x10 */
-    gl_func_00000000((char *)cf + 0x10);            /* func_d(cf + 0x10) */
+    gl_func_00000000((char *)cf + 0x10, obj);       /* func_d(cf + 0x10, obj) */
 
     /* linked-set finalizer */
     if (obj[0x14 / 4] != 0) {
@@ -4852,7 +4860,7 @@ void gl_func_00068C14(int *self) {
     }
     obj[0x14 / 4] = (int)cf;
 
-    /* D_global indexed store: D_global[count1] = self->0x18 (obj) */
+    /* D_global[count1] = self->0x18 (obj) */
     *(int *)((char *)&D_global_00068C14 + count1 * 4) = self[0x18 / 4];
 }
 #else
