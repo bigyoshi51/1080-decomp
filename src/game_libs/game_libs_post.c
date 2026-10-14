@@ -10783,50 +10783,32 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002831C);
 #endif
 
-// gl_func_00028358 — STRUCTURAL PASS (0xD4 / 53 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). Resolves an (a0,a1) handle into the global selection slot.
-//
-//   int gl_func_00028358(int a0, int a1) {
-//     if (a0 == 0xFF) return 0;                          // none sentinel
-//     int r = (*lookup)(a0, a1);                          // jal 0 USO
-//     if (r != 0) {
-//       *(int*)(&D_0 + 0x2158) = r;                        // hit: store
-//       return ...;
-//     }
-//     R *rec = *(R**)(&D_0 + 0x2030) + a0*0x14;            // registry
-//     byte cap = rec->b_0;                                  // sub count
-//     int packed = (a0 << 8) | a1;
-//     if (a1 < cap) packed += 1;                            // clamp adj
-//     *(int*)(&D_0 + 0x2158) = packed;                      // store sel
-//   }
-//
-// Struct-typing reference: maps a two-part handle (a0 = registry
-//   record index, a1 = sub-entry) to the global "current selection"
-//   word &D_0+0x2158. a0 == 0xFF is the no-selection sentinel
-//   (returns 0). A USO-relocated lookup (`jal 0` slot) is tried
-//   first; its non-zero result is stored directly. On miss it indexes
-//   the primary registry table &D_0+0x2030 (0x14 stride — same table
-//   as gl_func_000221D8 / gl_func_00025AC8 / gl_func_00025C54),
-//   range-checks a1 against the record's byte +0 sub-count, and
-//   stores the packed (a0<<8)|a1 (with a clamp adjustment) into the
-//   selection slot. The "select / resolve handle" entry feeding the
-//   registry subsystem's current-item state.
-// 2026-05-31: 54.9% -> 85.47% via the gl_func_0002842C complete-flow (prior
-//   sketch was semantically WRONG). This variant: cap = rec->byte_0 (not b_1),
-//   sub-table = rec->8 (not 0xC), NO v1 bounds-check, uses a1 directly (no a2
-//   copy), flags 0x300 (cap-exceeded) / 0x100 (final). Remaining ~14%: prologue
-//   ra-save ordering + register alloc (same as 2842C). Sibling 28510 has a more
-//   intricate tail (halfword cap rec->h4, sub-stride a2*8, v1-load epilogue) —
-//   deferred. Name pre-checked: no extern reuse (collision-safe).
-#ifdef NON_MATCHING
+// gl_func_00028358 -- registry handle resolve, byte-+0 sub-count variant
+// (0xD4 / 53 words). BYTE-EXACT 2026-10-14 (85.47 -> 100). Sibling of
+// gl_func_00028510 / gl_func_0002842C (see
+// docs/IDO_CODEGEN.md#one-arg-lookup-a2-param-copy-28510), but here the
+// jal-0 lookup DOES take (a0, a1): the a1 param stays in a1 (no a2 copy,
+// `sw ra` in the 0xFF-check bne delay). a0 == 0xFF -> 0; lookup miss ->
+// selection word &D+0x2158 = a0 + 0x10000000; a1 >= rec->b0 -> 0x3000000
+// class; else v = rec->tbl[a1] (tbl at +0x8, no KSEG0 check), storing the
+// 0x1000000 class when zero. The explicit `return v;` inside the zero arm
+// is load-bearing: it gives the duplicated `or v0,v1,zero` (b-delay + join);
+// a single trailing return shares one `or v0,v1` in the bnez delay.
+typedef struct {
+    unsigned char b0;  /* +0x0 sub-count */
+    unsigned char b1;
+    unsigned short h2;
+    int x4;
+    int *tbl;  /* +0x8 */
+    int xC;
+    int x10;
+} gl_28358_Rec;
 extern int gl_func_00000000();
 extern int D_00000000;
 int gl_func_00028358(int a0, int a1) {
     int r;
-    int *rec;
-    int *p;
-    int v1;
+    gl_28358_Rec *rec;
+    int v;
     if (a0 == 0xFF) {
         return 0;
     }
@@ -10835,22 +10817,18 @@ int gl_func_00028358(int a0, int a1) {
         *(int *)((char *)&D_00000000 + 0x2158) = a0 + 0x10000000;
         return 0;
     }
-    rec = (int *)(*(int *)((char *)&D_00000000 + 0x2030) + a0 * 0x14);
-    if (a1 >= *(unsigned char *)rec) {
+    rec = (gl_28358_Rec *)(*(int *)((char *)&D_00000000 + 0x2030) + a0 * 0x14);
+    if (a1 >= rec->b0) {
         *(int *)((char *)&D_00000000 + 0x2158) = (a0 << 8) + a1 + 0x3000000;
         return 0;
     }
-    p = (int *)(*(int *)((char *)rec + 8) + a1 * 4);
-    v1 = *p;
-    if (v1 != 0) {
-        return v1;
+    v = rec->tbl[a1];
+    if (v == 0) {
+        *(int *)((char *)&D_00000000 + 0x2158) = (a0 << 8) + a1 + 0x1000000;
+        return v;
     }
-    *(int *)((char *)&D_00000000 + 0x2158) = (a0 << 8) + a1 + 0x1000000;
-    return 0;
+    return v;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028358);
-#endif
 
 // gl_func_0002842C -- registry handle resolve, byte-+1 sub-count variant
 // (0xE4 / 57 words). BYTE-EXACT 2026-10-14 (88.25 -> 100). Sibling of
