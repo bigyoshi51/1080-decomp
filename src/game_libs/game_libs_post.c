@@ -84,12 +84,19 @@ typedef struct {
     char p48[0xB0 - 0x48];
     gl_1CC98_Elem e;
 } gl_1CC98_Rec;
+typedef struct { short active; short key; char p4[8]; } gl_260B4_Ent;
+typedef struct { char p0[2]; unsigned char sel0; unsigned char sel1; char p4[0x10]; } gl_260B4_Reg;
 typedef struct {
     char p0[0x14];
     gl_1CC98_Elem *elems;
-    char p1[0x2070 - 0x18];
+    char p1[0x2030 - 0x18];
+    gl_260B4_Reg *regs;
+    char p1b[0x2070 - 0x2034];
     int count;
-    char p2[0x2CFC - 0x2074];
+    char p2[0x2534 - 0x2074];
+    int nents;
+    char p2b[0x2540 - 0x2538];
+    gl_260B4_Ent ents[(0x2CFC - 0x2540) / 0xC];
     gl_1CC98_Rec *recs;
     char p3[0x5378 - 0x2D00];
     char tbl5378[4];
@@ -8440,97 +8447,48 @@ void gl_func_00025C54(s32 arg0, s32 arg1, char *arg2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025C54);
 #endif
 
-// gl_func_000260B4 — STRUCTURAL PASS (0x140 / 80 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). A registry scan-and-resolve sweep.
-//
-//   void gl_func_000260B4(void) {
-//     int r = jal 0x38204(2);                           // 0x0C00E081
-//     S  *g = &D_0;
-//     int n = g->w_2534;                                 // entry count
-//     if (n <= 0) return;
-//     E  *e = (E*)(&D_0 + 0x2540);                        // entry tbl
-//     for (int i = 0; i < n; i++) {                        // 0x14 stride
-//       if (e->h_0 == 1) {                                 // active hw
-//         int j = jal 0x38174(1);                          // 0x0C00E05D
-//         short k = e->h_2;
-//         R *rec = *(R**)(&D_0 + 0x2030) + j*0x14;          // registry
-//         (*proc)(2, k, rec);                               // ...
-//       }
-//       e = (char*)e + 0x14;
-//     }
-//   }
-//
-// Struct-typing reference: walks a fixed-stride entry table at
-//   &D_0+0x2540 (count word &D_0+0x2534, entry stride 0x14, halfword
-//   fields +0 = active flag (==1), +2 = a key). For each active entry
-//   it calls the shared poll routine 0x0C00E05D (≈0x38174) and uses
-//   the result to index the main registry table &D_0+0x2030 (the same
-//   0x14-stride table gl_func_00025AC8 / gl_func_00025C54 walk). The
-//   leading 0x0C00E081 (≈0x38204) resolve primes the sweep. A
-//   secondary registry scan/resolve pass over a parallel index table
-//   (&D_0+0x2540) into the primary registry.
-// Caps (DEFERRED): CLEAN single jr $ra. Secondary registry scan
-//   /resolve pass — walks parallel index table &D_0+0x2540 (count
-//   &D_0+0x2534, stride 0x14) and resolves each active entry into
-//   the primary registry &D_0+0x2030 (the same 0x14 table
-//   gl_func_00025AC8 / gl_func_00025C54 walk). Real-C STRUCTURAL
-//   body below per the analysis (fixed 0x38204(2) prime; for each
-//   entry with hw+0==1, poll 0x38174(1)->j, k=e->2, rec =
-//   *&D_0+0x2030 + j*0x14, proc(2,k,rec)). Byte-match deferred —
-//   placeholder jal-0 resolves need USO reloc infra + bnel scan.
-//   Name pre-checked: no extern reuse (collision-safe).
-//   gl_func_00000000 = canonical never-defined USO placeholder.
-#ifdef NON_MATCHING
-extern int gl_func_00000000();
-extern int D_00000000;
-// Registry resolve sweep. s3 = init(2) [jal 0x38204]; walk the index table
-// at &D_0+0x2540 (count &D_0+0x2534, stride 0xC) and for each active entry
-// (e->0==1): j = poll(1, e->2) [0x38174]; rec = (*&D_0+0x2030) + j*0x14;
-// stash rec->2/rec->3 into a stack frame {b0,b4,b10,b14}; each non-0xFF byte
-// drives a second poll(2,b) [0x38174] whose result indexes s3 + r*0x10 + 0x18
-// (a byte) back into the frame; finally dispatch(j, 0, &frame) [0x3a2c0].
-// The three jals are baked fixed-address targets (cap: field stays 0 vs the
-// extraction's resolved 0x0C00E0xx) — body byte-matches, jals don't.
+/* gl_func_000260B4: registry resolve sweep (TU-local; three baked in-unit jals
+ * pinned gl_ref_00038204 / gl_ref_00038174 / gl_ref_0003A2C0). Base = bootup.uso
+ * sym1255 (D_00000000_345c0) through the shared typed alias D_345c0_1CC98:
+ * tbl = 38204(2); for each of nents (+0x2534) entries (+0x2540, stride 0xC) whose
+ * active halfword == 1: j = 38174(1, key); rec = &regs (+0x2030)[j] (stride 0x14);
+ * frame {b0,b4,..,b10,b14} gets rec's two selector bytes, each non-0xFF one is
+ * re-polled 38174(2, b) and its tbl[b*16+0x18] byte stored; then 3A2C0(j, 0, &frame).
+ * BYTE-EXACT 80/80. The old NM (84.7) used char *g = &D + hand cursors; the plain
+ * indexed loop over the typed alias gives the fresh s0 entry IV + count re-read; tbl as
+ * a typed header+16-byte-element struct gives tbl-first `addu`; the char-arith
+ * `(char *)regs + j * 0x14` gives regs-first `addu v1,t7,t8` (`&regs[j]` puts the
+ * product first); `int pad` is the frame-map slot (0x78, frame struct at sp+0x4C). */
+extern int gl_ref_00038204();
+extern int gl_ref_00038174();
+extern void gl_ref_0003A2C0();
 void gl_func_000260B4(void) {
-    char *g = (char *)&D_00000000;
-    char *s3;
-    char *e;
+    struct { char p0[0x18]; struct { signed char b; char p1[15]; } e[1]; } *tbl;
     int i;
-    int n;
+    int j;
+    gl_260B4_Reg *rec;
+    int pad;
     struct { int b0; int b4; int pad8; int padc; int b10; int b14; } frame;
 
-    s3 = (char *)gl_func_00000000(2);
-    n = *(int *)(g + 0x2534);
-    i = 0;
-    if (n <= 0) {
-        return;
-    }
-    e = g + 0x2540;
-    for (; i < n; i++) {
-        if (*(short *)(e + 0) == 1) {
-            int j = gl_func_00000000(1, *(short *)(e + 2));
-            char *rec = *(char **)(g + 0x2030) + j * 0x14;
-            frame.b0 = *(unsigned char *)(rec + 2);
-            frame.b4 = *(unsigned char *)(rec + 3);
-            if (*(unsigned char *)(rec + 2) != 0xFF) {
-                int r = gl_func_00000000(2, *(unsigned char *)(rec + 2));
-                frame.b0 = r;
-                frame.b10 = *(char *)(s3 + r * 0x10 + 0x18);
+    tbl = (void *)gl_ref_00038204(2);
+    for (i = 0; i < D_345c0_1CC98.nents; i++) {
+        if (D_345c0_1CC98.ents[i].active == 1) {
+            j = gl_ref_00038174(1, D_345c0_1CC98.ents[i].key);
+            rec = (gl_260B4_Reg *)((char *)D_345c0_1CC98.regs + j * 0x14);
+            frame.b0 = rec->sel0;
+            frame.b4 = rec->sel1;
+            if (frame.b0 != 0xFF) {
+                frame.b0 = gl_ref_00038174(2, frame.b0);
+                frame.b10 = tbl->e[frame.b0].b;
             }
             if (frame.b4 != 0xFF) {
-                int r = gl_func_00000000(2, frame.b4);
-                frame.b4 = r;
-                frame.b14 = *(char *)(s3 + r * 0x10 + 0x18);
+                frame.b4 = gl_ref_00038174(2, frame.b4);
+                frame.b14 = tbl->e[frame.b4].b;
             }
-            gl_func_00000000(j, 0, &frame);
+            gl_ref_0003A2C0(j, 0, &frame);
         }
-        e += 0xC;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000260B4);
-#endif
 
 extern int gl_ref_0003A880();
 int gl_func_000261F4() {
