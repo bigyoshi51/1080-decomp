@@ -3256,28 +3256,19 @@ void gl_func_000671E4(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000671E4);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_00067220: 17-insn (0x44) busy-wait loop on a0->[0x13E8].
- *   while (a0->[0x13E8] == 0) gl_func_00000000();
- *
- * 4-word residual (off 0x4..0x10), 88% byte-exact. Body+control-flow now
- * byte-exact via the `while` form (matches bnel + the loop's lw-via-s0).
- * Residual is purely the PROLOGUE-SCHEDULE tie: target emits
- * `sw s0; move s0,a0; sw ra; lw t6,0x13E8(s0)`, build emits
- * `sw ra; sw s0; lw t6,0x13E8(a0); move s0,a0`. The first field load is
- * scheduled via a0 (pre-move) by IDO's as1. Tried while/do-while/for-comma-
- * init, char* held-base, register int*s0, int v named-local — all hold the
- * 4-word prologue tie. Cap class: IDO as1 prologue-schedule choice, not
- * C-controllable here (2026-06-21 agent-i). */
+/* gl_func_00067220: 17-insn (0x44) busy-wait loop on a0->[0x13E8] (a flag
+ * another thread sets). EXACT 2026-10-14 agent-g: the flag read is
+ * VOLATILE. The old 4-word "prologue-schedule tie" (target `sw s0; or
+ * s0,a0,zero; sw ra; lw t6,0x13E8(s0)` vs build `sw ra; sw s0; lw
+ * t6,0x13E8(a0); or s0,a0`) was the non-volatile rotated pre-test being
+ * copy-propagated onto the raw a0; a volatile load is not propagated, so
+ * the param lives in s0 from the prologue (docs/IDO_CODEGEN.md
+ * #volatile-poll-read-pins-param-sreg-67220). */
 void gl_func_00067220(char *a0) {
-    char *s0 = a0;
-    while (*(int *)(s0 + 0x13E8) == 0) {
+    while (*(volatile int *)(a0 + 0x13E8) == 0) {
         gl_func_00000000();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067220);
-#endif
 
 /* gl_func_00067264 — EXACT 61/61 words in-tree (2026-07-03), including raw
  * 0x0C000000 jal words (three gl_func_00000000 placeholder callees).
