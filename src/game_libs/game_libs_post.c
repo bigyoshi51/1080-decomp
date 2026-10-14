@@ -73,7 +73,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CA10);
  * &recs[i].e put the loaded base first (`addu a0,t6,a1`), only member access through
  * the typed global (`&G.recs[i].e`) gives the target's SR-cursor-first `addu a0,a1,t6`. */
 typedef struct { unsigned flag:1, live:1, rest:30; char p4[2]; unsigned char b6; char p7; int w[6]; } gl_1CC98_Elem;
-typedef struct { char p0[0xB0]; gl_1CC98_Elem e; } gl_1CC98_Rec;
+typedef struct {
+    char p0[0x30];
+    unsigned char b30;
+    char p31[2];
+    unsigned char b33;
+    unsigned char b34;
+    char p35[0x44 - 0x35];
+    gl_1CC98_Elem *elem;
+    char p48[0xB0 - 0x48];
+    gl_1CC98_Elem e;
+} gl_1CC98_Rec;
 typedef struct {
     char p0[0x14];
     gl_1CC98_Elem *elems;
@@ -81,6 +91,8 @@ typedef struct {
     int count;
     char p2[0x2CFC - 0x2074];
     gl_1CC98_Rec *recs;
+    char p3[0x5378 - 0x2D00];
+    char tbl5378[4];
 } gl_1CC98_GS;
 extern gl_1CC98_GS D_345c0_1CC98;
 void game_libs_func_0001CC98(int arg0) {
@@ -2399,110 +2411,34 @@ void game_libs_func_0001FA20(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FA20);
 #endif
 
-// gl_func_0001FAE8 — STRUCTURAL PASS (0xEC / 59 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). A record-array sweep / "reactivate active records"
-// routine in the game_libs sprite subsystem. -0x30 frame, full
-// s0-s5/ra save.
-//
-//   void gl_func_0001FAE8(int a0) {
-//     S *g = &D_0;                                // shared global base
-//     int n = g->w_2070;                           // record count
-//     if (n <= 0) return;
-//     R *tbl = ...;                                 // &D_5378 fn/str tbl
-//     for (int i = 0, idx = 0; i < n; i++) {
-//       R *rec = *(R**)(&D_0 + 0x2CFC) + idx;       // record table
-//       if (rec->b_33 != 0) continue;               // flag gates
-//       if (rec->b_34 != 0) continue;
-//       if (rec->b_30 == 0) continue;
-//       byte *p = rec->w_44;                        // status-byte ptr
-//       *p &= ~0x80;                                 // clear bit7
-//       *p |=  0x40;                                 // set   bit6
-//       (*cb1)(a0);                                  // jal 0 USO reloc
-//       (*cb2)(a0);                                  // jal 0 USO reloc
-//       idx += stride;
-//     }
-//   }
-//
-// Struct-typing reference: shares the sprite-subsystem globals with
-//   gl_func_0001DCB4 / gl_func_0001E134 — word &D_0+0x2070 is the
-//   live-record count, pointer &D_0+0x2CFC is the fixed-stride record
-//   table base. Per record R: bytes R->0x30 / 0x33 / 0x34 are the
-//   active/skip gate flags, word R->0x44 points to a shared status
-//   byte whose bit7 is cleared and bit6 set (a "needs-refresh /
-//   activated" toggle). &D_5378 is an auxiliary fn-ptr/string table.
-//   The two `jal 0` words are USO-relocated callback slots (resolved
-//   at load) invoked with the caller-supplied a0.
-// Caps (DEFERRED): CLEAN single jr $ra. Record-array sweep /
-//   "reactivate active records" (shares sprite-subsystem globals
-//   with gl_func_0001DCB4 / gl_func_0001E134). Real-C STRUCTURAL
-//   body below per the analysis (count &D_0+0x2070, fixed-stride
-//   record table &D_0+0x2CFC, skip gates rec->0x33/0x34/0x30,
-//   status byte rec->0x44 clear bit7 / set bit6, two jal-0
-//   USO-reloc callbacks). Byte-match deferred — placeholder jal-0
-//   callbacks need USO reloc infra + s0-s5 loop schedule. Name
-//   pre-checked: no extern reuse (collision-safe). gl_func_00000000
-//   = canonical never-defined USO placeholder for the callbacks.
-// 2026-05-31: 61.39% -> 65.61% via LOGIC CORRECTIONS (prior body was WRONG):
-//   guard is `a0 == rec->b_0x33` (not `==0`); the 3 callbacks pass `rec` not a0
-//   and there are THREE (cb(rec), cb(rec), cb(&D+0x5378, rec)); record stride is
-//   0xD0 (not 0x158); rec->0x44 is RELOADED between the &~0x80 and |0x40 stores.
-//   Capped ~65%: target uses regular bne/beq (not branch-likely) on conds 2/3,
-//   andi 0xff7f (not and-reg ~0x80), and a tighter s-reg allocation — codegen
-//   caps, not missing logic.
-// 2026-07-18: 67.02 -> 81.77. CONTROL-FLOW CORRECTION: conds 2/3 (b34==0 &&
-//   b30!=0) gate ONLY the status-byte toggle — the three callbacks run for
-//   EVERY b33==a0 record (bne/beq jump to the jal block at 0x90, not to the
-//   skip path). Plus: (1) `*p &= 0xFF7F` literal spelling (16-bit andi imm;
-//   `~0x80` = 0xFFFFFF7F promotes -129 to a hoisted s-reg const inside the
-//   loop, 2A260 mask-width rule); (2) count is a CACHED local n, reloaded
-//   ONLY after the calls inside the then-arm — while(i<n) reuses the stale
-//   v0 on the skip path, which kills the then-arm's beq-over-else + dup'd
-//   cond-load (target has NO join branch: then falls into slt, else jumps
-//   via bnel delay). RESIDUAL cap: base &D stays fold-per-use (lui+lw x3)
-//   vs target's s5 promotion; all g-uses are %lo-foldable loads so uopt
-//   remats (tbl gets its s3 pair because its use is a call arg = non-
-//   foldable). while(0) g-multi-def probe inert (fully DCE'd). Target's
-//   independent s3 pair despite live s5 = distinct real symbols conflated
-//   by the placeholder, 24F30-class.
-#ifdef NON_MATCHING
-extern int gl_func_0001CA10();
-extern int D_00000000;
+/* gl_func_0001FAE8: "reactivate records of group a0" sweep (exported, section
+ * 0x34154). Same sym1255 block and 0xD0 record table as game_libs_func_0001CC98
+ * (shared typed alias D_345c0_1CC98 / gl_1CC98_* types): for every record whose
+ * byte +0x33 == a0, if +0x34 == 0 && +0x30 != 0 clear the top flag bit and set
+ * bit 30 of the element it points to (+0x44), then call three in-unit callees
+ * (sym1266 @0x3C42C, sym1267 @0x3D454, sym1268 @0x3EEF0; blank jal relocs) as
+ * (rec), (rec), (&G+0x5378, rec). BYTE-EXACT 57/57 on the first compile. The old
+ * NM (81.8) hand-wrote the idx += 0xD0 cursor, a cached count and the byte masks
+ * off `char *g = &D_00000000`, which kept &D fold-per-use; member access through
+ * the typed global gives the target's s5 base, SR-cursor-first `addu s0,s2,t6`,
+ * the separate s3 = &G.tbl5378 call-arg pair and the post-call bound re-read.
+ * docs/IDO_CODEGEN.md#typed-global-member-sr-cursor-first-addu-1cc98. */
 void gl_func_0001FAE8(int a0) {
-    char *g = (char *)&D_00000000;
-    char *tbl;
-    int i, idx;
-    int n;
-    n = *(int *)(g + 0x2070);
-    if (n <= 0) {
-        return;
-    }
-    i = 0;
-    tbl = g + 0x5378;
-    idx = 0;
-    do {
-        char *rec = *(char **)(g + 0x2CFC) + idx;
-        if (*(unsigned char *)(rec + 0x33) == a0) {
-            if (*(unsigned char *)(rec + 0x34) == 0 &&
-                *(unsigned char *)(rec + 0x30) != 0) {
-                char *p;
-                p = *(char **)(rec + 0x44);
-                *p &= 0xFF7F;
-                p = *(char **)(rec + 0x44);
-                *p |= 0x40;
+    int i;
+    gl_1CC98_Rec *r;
+    for (i = 0; i < D_345c0_1CC98.count; i++) {
+        r = &D_345c0_1CC98.recs[i];
+        if (r->b33 == a0) {
+            if (r->b34 == 0 && r->b30 != 0) {
+                r->elem->flag = 0;
+                r->elem->live = 1;
             }
-            gl_func_0001CA10(rec);
-            gl_func_0001CA10(rec);
-            gl_func_0001CA10(tbl, rec);
-            n = *(int *)(g + 0x2070);
+            gl_func_00000000(r);
+            gl_func_00000000(r);
+            gl_func_00000000(D_345c0_1CC98.tbl5378, r);
         }
-        i++;
-        idx += 0xD0;
-    } while (i < n);
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FAE8);
-#endif
 
 
 // game_libs_func_0001FBCC (MERGED 2026-07-23: orphan 1FBCC 2-insn
