@@ -1751,74 +1751,55 @@ void gl_func_000652D8(int a0, Vec3_f *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000652D8);
 #endif
 
-/* gl_func_00065360 - verified structural decode (58-insn transform/matrix
- * object init; dual-zero-FP-reg + a1-double-copy + 20-store grouping =
- * documented FP-regalloc/sp-scratch divergence -> INCLUDE_ASM build path;
- * HIGH struct-typing value).
- *   Vec3i s = *(Vec3i*)a1;            // a1[0..2] -> sp+36 scratch
- *   *(Vec3f*)((char*)a0+0xDC) = s;    // a0->0xDC/0xE0/0xE4 = a1 vec
- *   s = *(Vec3i*)a1;                  // re-copied (second sp pass)
- *   *(float*)(a0+0xB4) = s.x; *(float*)(a0+0xB8) = s.y;
- *   // zero block (f0/f2 = 0.0): a0-> 0xCC,0xD0,0xD4, 0xF4,0xF8,0xFC,
- *   //   0x2FC,0x300,0x304, 0x30C,0x310,0x314, 0x318,0x31C,0x320 = 0
- *   *(float*)(a0+0x308)=1.0f; *(float*)(a0+0x100)=1.0f;
- *   *(float*)(a0+0xD8)=1.0f;  *(float*)(a0+0xBC)=s.z;
- *   vt=(int*)a0->0x28; (*(fn)vt->0x14)((short)vt->0x10 + a0);  // dispatch
- * Struct-typing (high reuse - this is a transform/orientation object):
- *   a0->0xB4 (Vec3f, =a1) position-ish; a0->0xDC (Vec3f, =a1) duplicate;
- *   a0->0xBC z-component; a 4x3-ish float matrix spanning 0xCC..0xD8 (row
- *   with 0xD8=1), 0xF4..0x100 (0x100=1), 0x2FC..0x308 (0x308=1),
- *   0x30C..0x320 - i.e. THREE basis rows zeroed with their diagonal
- *   element set 1.0f (an identity-rotation init) + translation = a1.
- *   a0->0x28 vtable {fn@0x14, short@0x10} (obj-dispatch idiom, 0x14/0x10
- *   variant). Caps: IDO uses TWO FP zero regs (f0,f2 both mtc1 zero) for
- *   different store groups + copies a1 to sp scratch TWICE; clean C
- *   (one 0.0f, one struct copy) diverges across the 20-store block
- *   (FP-regalloc/sp-scratch class, not INSN_PATCH-able). INCLUDE_ASM
- *   (no episode). */
-#ifdef NON_MATCHING
-/* gl_func_00065360: 58-insn Vec3 transform initializer. Copies the Vec3 at a1
- * into a0's transform fields (0xDC..0xE4 and 0xB4..0xBC), zeros a block of float
- * fields, sets a few to 1.0 defaults, then dispatches a0->0x28's vtable method
- * (ptr +0x14, signed-halfword bias +0x10) with (bias + a0). RELOC-FREE (FP consts
- * + indirect jalr) -> landable with an FP/regalloc grind; the target stages the
- * Vec3 via a stack scratch (omitted here). NM (reference decode). */
-struct V3i_65360 { int a, b, c; };
-void gl_func_00065360(int a0, float *a1) {
+/* gl_func_00065360: transform-object reset (58 words, BYTE-EXACT 2026-10-14 agent-g).
+ * a0->0xDC = *a1 and a0->0xB4 = *a1 (each staged through the same stack Vec3 copy),
+ * three basis rows zeroed with their diagonal set to 1.0f (0xCC..0xD8, 0xF4..0x100,
+ * 0x2FC..0x308) plus 0x30C..0x320 zeroed, then the a0->0x28 vtable method
+ * (fn @+0x14, s16 this-adjust @+0x10).  Levers over the 86.69 wrap:
+ * (1) the two zero groups are DISTINCT constants -- `0.0` (double literal) for the
+ *     0x30C..0x320 group and `0.0f` for the rest (one literal = one shared f-reg, 57 words);
+ * (2) SOURCE store order bx/BC, 0x30C-group, basis zeros, ones, with the vtable load
+ *     right after the second copy: uopt numbers the constants in source order and the
+ *     scheduler then sinks the 0x30C group below the basis zeros (120-permutation block
+ *     sweep: only this order is exact; target-order source swaps f0/f2 and keeps BC late);
+ * (3) frame 0x38 with the copy at sp+36 = `volatile int padA[2]` above and
+ *     `volatile int padB` below the Vec3 (docs/IDO_CODEGEN.md
+ *     #dual-zero-constants-source-order-65360). */
+void gl_func_00065360(char *a0, Vec3_f *a1) {
+    volatile int padA[2];
+    Vec3_f tmp;
+    volatile int padB;
     int v0;
-    struct V3i_65360 tmp;
-    tmp = *(struct V3i_65360 *)a1;
-    *(float *)((char *)a0 + 0xDC) = *(float *)&tmp.a;
-    *(float *)((char *)a0 + 0xE0) = *(float *)&tmp.b;
-    *(float *)((char *)a0 + 0xE4) = *(float *)&tmp.c;
-    v0 = *(int *)((char *)a0 + 0x28);
-    tmp = *(struct V3i_65360 *)a1;
-    *(float *)((char *)a0 + 0xB4) = *(float *)&tmp.a;
-    *(float *)((char *)a0 + 0xB8) = *(float *)&tmp.b;
-    *(float *)((char *)a0 + 0x304) = 0.0f;
-    *(float *)((char *)a0 + 0x300) = 0.0f;
-    *(float *)((char *)a0 + 0x2FC) = 0.0f;
-    *(float *)((char *)a0 + 0xFC) = 0.0f;
-    *(float *)((char *)a0 + 0xF8) = 0.0f;
-    *(float *)((char *)a0 + 0xF4) = 0.0f;
-    *(float *)((char *)a0 + 0xD4) = 0.0f;
-    *(float *)((char *)a0 + 0xD0) = 0.0f;
-    *(float *)((char *)a0 + 0xCC) = 0.0f;
-    *(float *)((char *)a0 + 0x314) = 0.0f;
-    *(float *)((char *)a0 + 0x310) = 0.0f;
-    *(float *)((char *)a0 + 0x30C) = 0.0f;
-    *(float *)((char *)a0 + 0x320) = 0.0f;
-    *(float *)((char *)a0 + 0x31C) = 0.0f;
-    *(float *)((char *)a0 + 0x318) = 0.0f;
-    *(float *)((char *)a0 + 0x308) = 1.0f;
-    *(float *)((char *)a0 + 0x100) = 1.0f;
-    *(float *)((char *)a0 + 0xD8) = 1.0f;
-    *(float *)((char *)a0 + 0xBC) = a1[2];
-    (*(int (**)(int))(v0 + 0x14))(*(short *)(v0 + 0x10) + a0);
+
+    tmp = *a1;
+    *(f32 *)(a0 + 0xDC) = tmp.x;
+    *(f32 *)(a0 + 0xE0) = tmp.y;
+    *(f32 *)(a0 + 0xE4) = tmp.z;
+    tmp = *a1;
+    v0 = *(int *)(a0 + 0x28);
+    *(f32 *)(a0 + 0xB4) = tmp.x;
+    *(f32 *)(a0 + 0xB8) = tmp.y;
+    *(f32 *)(a0 + 0xBC) = tmp.z;
+    *(f32 *)(a0 + 0x314) = 0.0;
+    *(f32 *)(a0 + 0x310) = 0.0;
+    *(f32 *)(a0 + 0x30C) = 0.0;
+    *(f32 *)(a0 + 0x320) = 0.0;
+    *(f32 *)(a0 + 0x31C) = 0.0;
+    *(f32 *)(a0 + 0x318) = 0.0;
+    *(f32 *)(a0 + 0x304) = 0.0f;
+    *(f32 *)(a0 + 0x300) = 0.0f;
+    *(f32 *)(a0 + 0x2FC) = 0.0f;
+    *(f32 *)(a0 + 0xFC) = 0.0f;
+    *(f32 *)(a0 + 0xF8) = 0.0f;
+    *(f32 *)(a0 + 0xF4) = 0.0f;
+    *(f32 *)(a0 + 0xD4) = 0.0f;
+    *(f32 *)(a0 + 0xD0) = 0.0f;
+    *(f32 *)(a0 + 0xCC) = 0.0f;
+    *(f32 *)(a0 + 0x308) = 1.0f;
+    *(f32 *)(a0 + 0x100) = 1.0f;
+    *(f32 *)(a0 + 0xD8) = 1.0f;
+    (*(int (**)(char *))(v0 + 0x14))(*(short *)(v0 + 0x10) + a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065360);
-#endif
 
 extern int gl_func_00000000();
 
