@@ -60,52 +60,45 @@ typedef struct { float x, y, z; } Vec3;
 //   rule). DO-NOT-define-without first renaming the placeholder uses.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CA10);
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-/* Record-copy loop over *(0x2070) entries. srcBase (0x2CFC) and dstBase (0x14)
- * are reloaded inside the loop each iteration (lw t6/t1 at loop top) — model
- * as *(s32*)0xNN derefs, NOT hoisted pointer locals. `src` points at rec+0xB0
- * (the 0x20-byte copy block), so all word copies are FW(src, 0..0x1C). The
- * flag fix-ups at the tail are BYTE ops: lbu/andi/sb on src+0 and dst+0, and a
- * sb zero,6(src). */
-void game_libs_func_0001CC98(s32 arg0) {
-    s32 i;
-    s32 off;
-    char *rec;
-    char *src;
-    char *dst;
-
-    i = 0;
-    off = 0;
-    if (*(s32 *)0x2070 > 0) {
-        do {
-            rec = (char *)(*(s32 *)0x2CFC + off);
-            src = rec + 0xB0;
-            dst = (char *)(*(s32 *)0x14 + (((*(s32 *)0x2070 * arg0) + i) << 5));
-            if (((u32) FW(rec, 0xB0) >> 0x1F) != 0) {
-                FW(dst, 0x0) = FW(src, 0x0);
-                FW(dst, 0x4) = FW(src, 0x4);
-                FW(dst, 0x8) = FW(src, 0x8);
-                FW(dst, 0xC) = FW(src, 0xC);
-                FW(dst, 0x10) = FW(src, 0x10);
-                FW(dst, 0x14) = FW(src, 0x14);
-                FW(dst, 0x18) = FW(src, 0x18);
-                FW(dst, 0x1C) = FW(src, 0x1C);
-                *(s8 *)(src + 0x0) = (s8) (*(u8 *)(src + 0x0) & 0xFFBF);
-            } else {
-                *(s8 *)(dst + 0x0) = (s8) (*(u8 *)(dst + 0x0) & 0xFF7F);
-            }
-            *(s8 *)(src + 0x6) = 0;
-            i += 1;
-            off += 0xD0;
-        } while (i < *(s32 *)0x2070);
+/* game_libs_func_0001CC98: publish the flagged 0x20-byte element of every record
+ * (TU-local, baked jal callee; section 0x31304 not exported). Base = bootup.uso
+ * Data sym1255 @0x345C0 (lui/addiu t0 held), spelled as a TYPED struct through the
+ * per-site alias D_345c0_1CC98 (pinned 0 in undefined_syms_auto.txt; the file's
+ * plain `extern int D_00000000_345c0` can't be retyped in this TU). For each of
+ * count (+0x2070) records (stride 0xD0, element at +0xB0) in recs (+0x2CFC): if the
+ * element's top flag bit is set, struct-copy it into elems (+0x14)[count*arg0 + i]
+ * and clear its bit 30, else clear the destination's top bit; then zero byte +6.
+ * BYTE-EXACT 51/51. The old NM (78.5) hand-wrote the off += 0xD0 cursor, the 8 word
+ * copies and the byte masks; every char-arithmetic / int-cast / compound spelling of
+ * &recs[i].e put the loaded base first (`addu a0,t6,a1`), only member access through
+ * the typed global (`&G.recs[i].e`) gives the target's SR-cursor-first `addu a0,a1,t6`. */
+typedef struct { unsigned flag:1, live:1, rest:30; char p4[2]; unsigned char b6; char p7; int w[6]; } gl_1CC98_Elem;
+typedef struct { char p0[0xB0]; gl_1CC98_Elem e; } gl_1CC98_Rec;
+typedef struct {
+    char p0[0x14];
+    gl_1CC98_Elem *elems;
+    char p1[0x2070 - 0x18];
+    int count;
+    char p2[0x2CFC - 0x2074];
+    gl_1CC98_Rec *recs;
+} gl_1CC98_GS;
+extern gl_1CC98_GS D_345c0_1CC98;
+void game_libs_func_0001CC98(int arg0) {
+    int i;
+    gl_1CC98_Elem *s;
+    gl_1CC98_Elem *d;
+    for (i = 0; i < D_345c0_1CC98.count; i++) {
+        s = &D_345c0_1CC98.recs[i].e;
+        d = &D_345c0_1CC98.elems[D_345c0_1CC98.count * arg0 + i];
+        if (s->flag) {
+            *d = *s;
+            s->live = 0;
+        } else {
+            d->flag = 0;
+        }
+        s->b6 = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001CC98);
-#endif
 
 // gl_func_0001CD64 — STRUCTURAL PASS (0x278 / 158 words, no episode).
 // Raw-.word USO form (game_libs RSP/graphics-library segment).

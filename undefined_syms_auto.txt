@@ -3581,3 +3581,4 @@ gl_ref_0007C650 = 0x0007C650;  /* gl_func_00068044 baked USO jal to game_libs_fu
 D_D0D0_D680 = 0x0000D680;  /* gl_func_0000D0D0 NM body: int at D+0xD680 (D_00000000 = 0) copied into a 4-byte struct passed by value */
 D_D0D0_D684 = 0x0000D684;  /* gl_func_0000D0D0 NM body: int at D+0xD684 (D_00000000 = 0) copied into a 4-byte struct passed by value */
 D_D0D0_D688 = 0x0000D688;  /* gl_func_0000D0D0 NM body: int at D+0xD688 (D_00000000 = 0) copied into a 4-byte struct passed by value */
+D_345c0_1CC98 = 0x00000000;  /* game_libs_func_0001CC98 typed alias of D_00000000_345c0 (bootup.uso sym1255 @0x345C0, addend 0; count +0x2070, recs +0x2CFC stride 0xD0, elems +0x14) */
