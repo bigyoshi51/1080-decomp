@@ -3064,61 +3064,39 @@ void game_libs_func_00066C60(void) {}
 
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00066C30_pad.s")
 
-#ifdef NON_MATCHING
-/* gl_func_00066C74: 56-insn 4-slot struct-array init + 2-call setup (0xE0, frame 0x30).
- *
- * Decoded structure (raw-word disasm):
- *   *(int*)0x000416B0 = 2;                            // global flag
- *   self->[0x13E8] = 0;
- *   func1(self + 0x11B0, self + 0x11C8, 4);           // setup call
- *   func2(5, self + 0x11B0, (char*)0x40000 + 0x16B0); // 2nd setup call
- *   self->[0x13F0] = 0;
- *   self->[0x13C8] = 3; self->[0x13CC] = 3; self->[0x13D0] = 3; self->[0x13D4] = 3;
- *   // Per-slot init (4 slots, structured as int + 4 bytes + 1 short):
- *   for (i = 0; i < 4; i++) {
- *       self->bytes[0x13D8 + i] = 0;                  // slot.[0]
- *       self->bytes[0x13DC + i] = 0;                  // slot.[4]
- *       self->shorts[0x13E0 + i*2] = 0;               // slot.[8]
- *   }
- *   func3(self);                                       // post-init
- *   func4(self + 0x1000, 6, self);                    // 3-arg final call
- *
- * 4-slot struct-array at self->[0x13C8..0x13E7], each slot has int +
- * 4 bytes + 2 shorts (or 1 short padded). The unrolled per-slot init
- * writes byte fields with offsets +0x10/+0x14 and short field +0x18
- * (relative to slot base).
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. 84.1 -> 85.12 (2026-05-31): the 3rd arg of
- * func2 is the ADDRESS `&D_00000000 + 0x416B0`, not the literal `(char*)0x416B0`
- * — the literal emits `ori a2,a2,0x16B0`, the address form `addiu a2,a2,5808`
- * (matching target). NOTE: only the ARG; routing the `*(int*)0x416B0=2` store
- * through &D too CSEs the base and regresses (79.9%) — leave the store a literal.
- * Residual: at-vs-t7 store-base regalloc + ra-save/field-init block scheduling.
- * INCLUDE_ASM remains build path.
- */
+/* gl_func_00066C74: 4-slot pad-state init + 2-call setup (56 words, BYTE-EXACT 2026-10-14 agent-g).
+ *   flag(&D+0x416B0) = 2; self->13E8 = 0; f(self+0x11B0, self+0x11C8, 4); f(5, self+0x11B0, &flag);
+ *   self->13F0 = 0; per slot i<4: int 13C8[i] = 3, u8 13D8[i] = 0, u8 13DC[i] = 0, s16 13E0[i] = 0;
+ *   f(self); f(self+0x1000, 6, &D, self, self+0x1000, 14); f(self+0x1000).
+ * Three levers over the 85.12 wrap: (1) the flag store goes through the symbol, not a literal
+ * `(volatile int *)0x416B0` (the target's `lui at; sw t6,0x16B0(at)` is the sym+off store macro;
+ * the literal colours t7); (2) the per-slot loop is a do-while with the increment as its own
+ * statement (`i++; } while (i < 4);`) -- for(;;) and `while (++i < 4)` unroll with the slot-0
+ * group peeled to the end or the slot-0 sh scheduled below the slot-1..3 sw's; (3) the self->13E8
+ * store is `volatile`: without it uopt reads the first two self uses from a0 and sinks the
+ * `or s0,a0,zero` below the flag store (docs/IDO_CODEGEN.md
+ * #volatile-first-store-pins-param-sreg-copy-66c74). */
 void gl_func_00066C74(char *self) {
-    *(volatile int*)0x000416B0 = 2;
-    *(int*)(self + 0x13E8) = 0;
+    *(int*)((char*)&D_00000000 + 0x416B0) = 2;
+    *(volatile int*)(self + 0x13E8) = 0;
     gl_func_00000000(self + 0x11B0, self + 0x11C8, 4);
     gl_func_00000000(5, self + 0x11B0, (char*)&D_00000000 + 0x416B0);
     *(int*)(self + 0x13F0) = 0;
     {
         int i;
-        for (i = 0; i < 4; i++) {
+        i = 0;
+        do {
             *(int*)(self + 0x13C8 + i*4) = 3;
             self[0x13D8 + i] = 0;
             self[0x13DC + i] = 0;
             *(short*)(self + 0x13E0 + i*2) = 0;
-        }
+            i++;
+        } while (i < 4);
     }
     gl_func_00000000(self);
     gl_func_00000000(self + 0x1000, 6, (char*)&D_00000000, self, self + 0x1000, 14);
     gl_func_00000000(self + 0x1000);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066C74);
-#endif
 
 /* gl_func_00066D54: per-slot (4) controller/message poll loop (102 words,
  * BYTE-EXACT 2026-09-11 agent-g). All four loop-invariant s-register holds
