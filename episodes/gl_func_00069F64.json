@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00069F64",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-10-14T21:55:19.171129+00:00",
+  "end_time": "2026-10-14T21:55:19.171144+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-14T21:55:19.171140+00:00",
+      "assistant_text": "Identified as libultra osRecvMesg (os/recvmesg.c): IDO 5.3 -O1 frame (all three args homed to 0x28/0x2C/0x30(sp), saveMask in s0, mq reloaded from its home before every field access), the queue ring-pop logic, and its position right after osSendMesg (gl_func_00069E04) and osViGetCurrentLine. Wrote recvmesg.c verbatim with OS-API callees collapsed to gl_func_00000000 and __osRunningThread as D_00000000, compiled at IDO 5.3 -O1 as a donor; matched on the first compile.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 78,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* gl_func_00069F64 = libultra osRecvMesg (os/recvmesg.c verbatim), statically\n * linked into the game_libs USO right after osSendMesg (gl_func_00069E04) and\n * osViGetCurrentLine (game_libs_func_00069F54). IDO 5.3 -O1 (the 69E04 recipe),\n * spliced into game_libs_post1b.c.o via REPLACE_FUNC_BODY. Block while the\n * queue is empty (or fail if non-blocking), pop msg[first], advance first\n * modulo msgCount, and if a thread waits on fullqueue, wake it. All OS-API\n * callees (__osDisableInt / __osRestoreInt / __osEnqueueAndYield /\n * __osPopThread / osStartThread) collapse to the address-0 placeholder\n * gl_func_00000000; __osRunningThread maps to D_00000000. */\ntypedef struct {\n    void *mtqueue;\n    void *fullqueue;\n    int validCount;\n    int first;\n    int msgCount;\n    int **msg;\n} OSMesgQueue_69F64;\ntypedef struct { int field0; int pri; int queue; int pad0C; unsigned short state; } Thread_69F64;\n\nextern int gl_func_00000000();\nextern int D_00000000;\n\nint gl_func_00069F64(OSMesgQueue_69F64 *mq, int **msg, int flags) {\n    register int saveMask = gl_func_00000000();\n\n    while (mq->validCount == 0) {\n        if (flags == 0) {\n            gl_func_00000000(saveMask);\n            return -1;\n        }\n        ((Thread_69F64 *)D_00000000)->state = 8;\n        gl_func_00000000((int *)&mq->mtqueue);\n    }\n    if (msg != 0) {\n        *msg = mq->msg[mq->first];\n    }\n    mq->first = (mq->first + 1) % mq->msgCount;\n    mq->validCount--;\n    if (*(void **)mq->fullqueue != 0) {\n        gl_func_00000000(gl_func_00000000((int *)&mq->fullqueue));\n    }\n    gl_func_00000000(saveMask);\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_69F64.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_00069F64.s",
+    "segment": "game_libs",
+    "compiler": "ido5.3",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Donor .text 78/78 words identical to target; spliced into game_libs_post1b.c.o via REPLACE_FUNC_BODY (8 relocs imported); ROM cmp byte-identical; objdiff 100.0."
+  }
+}

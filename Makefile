@@ -1045,6 +1045,8 @@ build/src/game_libs/game_libs_ido53_747F4.c.o build/non_matching/src/game_libs/g
 build/src/game_libs/game_libs_ido53_732C4.c.o build/non_matching/src/game_libs/game_libs_ido53_732C4.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_732C4.c.o build/non_matching/src/game_libs/game_libs_ido53_732C4.c.o: OPT_FLAGS := -O1
 GAMELIBS_69E04_DONOR := build/src/game_libs/game_libs_ido53_69E04.c.o
+# gl_func_00069F64 = libultra osRecvMesg, IDO 5.3 -O1 donor (69E04 recipe).
+GAMELIBS_69F64_DONOR := build/src/game_libs/game_libs_ido53_69F64.c.o
 GAMELIBS_74C04_DONOR := build/src/game_libs/game_libs_ido53_74C04.c.o
 # gl_func_0006AF0C: 14-insn list-unlink leaf; exact only at IDO 7.1 -O1 -g3
 # (post1b is -O2). Reloc-free donor spliced in, like 6BA7C/69E04. Built by an
@@ -1157,13 +1159,13 @@ build/src/game_libs/game_libs_o1_6DA74.c.o build/non_matching/src/game_libs/game
 # gl_func_00068990_rodata and pinned to the USO's table at RoData +0x2220
 # (in-unit compile cannot bake the %lo). Defined ABOVE the := line below.
 GAMELIBS_68990_DONOR := build/src/game_libs/game_libs_o2_68990.c.o
-build/src/game_libs/game_libs_post1b.c.o build/non_matching/src/game_libs/game_libs_post1b.c.o: REPLACE_FUNC_BODY := gl_func_000669B8=$(GAMELIBS_669AC_DONOR) gl_func_0006BA7C=$(GAMELIBS_6BA7C_DONOR) gl_func_00069E04=$(GAMELIBS_69E04_DONOR) gl_func_0006AF0C=$(GAMELIBS_6AF0C_DONOR) gl_func_0006A304=$(GAMELIBS_6A304_DONOR) gl_func_0006AF44=$(GAMELIBS_6AF44_DONOR) gl_func_0006B880=$(GAMELIBS_6B880_DONOR) gl_func_0006B974=$(GAMELIBS_6B974_DONOR) gl_func_0006BAD4=$(GAMELIBS_6BAD4_DONOR) gl_func_0006B7A0=$(GAMELIBS_6B7A0_DONOR) gl_func_0006B0FC=$(GAMELIBS_6B0FC_DONOR) game_libs_func_0006A144=$(GAMELIBS_6A144_DONOR) gl_func_00068990=$(GAMELIBS_68990_DONOR)
 # 44B78 = video-mode selector (9-case jumptable switch), IDO 7.1 -O2 donor:
 # game_libs_o2_44B78.c (73/73 word-exact). Spliced only so the C switch's
 # local .rodata jumptable reloc gets renamed to game_libs_func_00044B78_rodata
 # and pinned to the USO's RoData table at +0x1B3C (the 29CCC recipe).
 GAMELIBS_44B78_DONOR := build/src/game_libs/game_libs_o2_44B78.c.o
 build/src/game_libs/game_libs_post0b.c.o build/non_matching/src/game_libs/game_libs_post0b.c.o: REPLACE_FUNC_BODY := gl_func_000601DC=$(GAMELIBS_601D4_DONOR) game_libs_func_00044B78=$(GAMELIBS_44B78_DONOR)
+build/src/game_libs/game_libs_post1b.c.o build/non_matching/src/game_libs/game_libs_post1b.c.o: REPLACE_FUNC_BODY := gl_func_000669B8=$(GAMELIBS_669AC_DONOR) gl_func_0006BA7C=$(GAMELIBS_6BA7C_DONOR) gl_func_00069E04=$(GAMELIBS_69E04_DONOR) gl_func_00069F64=$(GAMELIBS_69F64_DONOR) gl_func_0006AF0C=$(GAMELIBS_6AF0C_DONOR) gl_func_0006A304=$(GAMELIBS_6A304_DONOR) gl_func_0006AF44=$(GAMELIBS_6AF44_DONOR) gl_func_0006B880=$(GAMELIBS_6B880_DONOR) gl_func_0006B974=$(GAMELIBS_6B974_DONOR) gl_func_0006BAD4=$(GAMELIBS_6BAD4_DONOR) gl_func_0006B7A0=$(GAMELIBS_6B7A0_DONOR) gl_func_0006B0FC=$(GAMELIBS_6B0FC_DONOR) game_libs_func_0006A144=$(GAMELIBS_6A144_DONOR) gl_func_00068990=$(GAMELIBS_68990_DONOR)
 build/src/game_libs/game_libs_post1b2.c.o build/non_matching/src/game_libs/game_libs_post1b2.c.o: REPLACE_FUNC_BODY := gl_func_0006C11C=$(GAMELIBS_6C11C_DONOR) gl_func_0006BF34=$(GAMELIBS_6BF34_DONOR) gl_func_0006C1B8=$(GAMELIBS_6C1B8_DONOR) gl_func_0006C2AC=$(GAMELIBS_6C2A4_DONOR)
 build/src/game_libs/game_libs_post1b2.c.o build/non_matching/src/game_libs/game_libs_post1b2.c.o: REPLACE_FUNC_BODY += gl_func_0006C084=$(GAMELIBS_6C084_DONOR)
 # 65EE4 is still NON_MATCHING. Only the NM comparison object receives this
@@ -1712,5 +1714,7 @@ setup: $(BASEROM)
 # osSendMesg / osStartThread twins, IDO 5.3 -O1 (donor vars defined earlier).
 build/src/game_libs/game_libs_ido53_69E04.c.o build/non_matching/src/game_libs/game_libs_ido53_69E04.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_69E04.c.o build/non_matching/src/game_libs/game_libs_ido53_69E04.c.o: OPT_FLAGS := -O1
+build/src/game_libs/game_libs_ido53_69F64.c.o build/non_matching/src/game_libs/game_libs_ido53_69F64.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_69F64.c.o build/non_matching/src/game_libs/game_libs_ido53_69F64.c.o: OPT_FLAGS := -O1
 build/src/game_libs/game_libs_ido53_74C04.c.o build/non_matching/src/game_libs/game_libs_ido53_74C04.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_74C04.c.o build/non_matching/src/game_libs/game_libs_ido53_74C04.c.o: OPT_FLAGS := -O1

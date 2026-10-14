@@ -5692,43 +5692,39 @@ unsigned int game_libs_func_00069F54(void) {
     return *(volatile unsigned int *)0xA4400010;
 }
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00069F64)();
-s32 gl_func_00069F64(char *arg0, s32 *arg1, s32 arg2) {
-    char *temp_s0;
+/* gl_func_00069F64 = libultra osRecvMesg (os/recvmesg.c verbatim). EXACT
+ * 2026-10-14 as a 78/78-word IDO 5.3 -O1 donor (game_libs_ido53_69F64.c),
+ * spliced via REPLACE_FUNC_BODY exactly like its neighbour osSendMesg
+ * (gl_func_00069E04). The old 61.7% NM wrap was an m2c -O2 transcription
+ * of the same logic; the 5.3 -O1 frame (args homed, saveMask in s0, every
+ * mq field reloaded from 0x28(sp)) is the libultra signature. OS-API
+ * callees -> gl_func_00000000; __osRunningThread -> D_00000000. */
+typedef struct {
+    void *mtqueue; void *fullqueue; int validCount; int first; int msgCount; int **msg;
+} OSMesgQueue_69F64;
+typedef struct { int field0; int pri; int queue; int pad0C; unsigned short state; } Thread_69F64;
+int gl_func_00069F64(OSMesgQueue_69F64 *mq, int **msg, int flags) {
+    register int saveMask = gl_func_00000000();
 
-    temp_s0 = gl_func_00062F64();
-    if (FW(arg0, 0x8) == 0) {
-loop_1:
-        if (arg2 == 0) {
-            gl_func_00062F64(temp_s0);
+    while (mq->validCount == 0) {
+        if (flags == 0) {
+            gl_func_00000000(saveMask);
             return -1;
         }
-        FW((*(int*)0), 0x10) = 8;
-        gl_func_00062F64(arg0);
-        if (FW(arg0, 0x8) != 0) {
-            goto block_4;
-        }
-        goto loop_1;
+        ((Thread_69F64 *)D_00000000)->state = 8;
+        gl_func_00000000((int *)&mq->mtqueue);
     }
-block_4:
-    if (arg1 != 0) {
-        *arg1 = *(int*)(FW(arg0, 0x14) + (FW(arg0, 0xC) * 4));
+    if (msg != 0) {
+        *msg = mq->msg[mq->first];
     }
-    FW(arg0, 0xC) = (s32) ((s32) (FW(arg0, 0xC) + 1) % (s32) FW(arg0, 0x10));
-    FW(arg0, 0x8) = (s32) (FW(arg0, 0x8) - 1);
-    if (*(int*)(FW(arg0, 0x4)) != 0) {
-        gl_func_00062F64(gl_func_00062F64((int)arg0 + 4));
+    mq->first = (mq->first + 1) % mq->msgCount;
+    mq->validCount--;
+    if (*(void **)mq->fullqueue != 0) {
+        gl_func_00000000(gl_func_00000000((int *)&mq->fullqueue));
     }
-    gl_func_00062F64(temp_s0);
+    gl_func_00000000(saveMask);
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069F64);
-#endif
 
 /* game_libs_func_0006A09C: __osSetIntMask-style interrupt-mask updater. ARCHITECTURAL
  * CAP (mfc0/mtc0, not C-emittable): reads CP0 Status $12 (mfc0), rebuilds the SR/RCP
