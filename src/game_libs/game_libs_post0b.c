@@ -10155,48 +10155,36 @@ void gl_func_0003EE50(int a0, int a1, int *a2, int a3, int a4, int a5) {
     gl_func_00000000(&s);
 }
 
-/* gl_func_0003EEC0 - verified structural decode (27-insn br=0 deterministic
- * stack-struct builder; IDO local sp-slot layout = sp-slot divergence class
- * -> INCLUDE_ASM build path; struct-typing reference).
- * void f(int *a0, int a1, float *a2, int a3, float arg4, int arg5){
- *   struct B b;                       // local @ sp+24
- *   gl_func_00000000(&b.sub);         // X1, a0 = &b + 8 (sp+32)
- *   b.f0  = 2;                        // +0  (sp+24)
- *   b.f72 = 2;                        // +72 (sp+96)
- *   b.f76 = a2[0];                    // +76 float
- *   b.f80 = a2;                       // +80 ptr
- *   b.f88 = (float)a3;                // +88 (a3 reinterpreted float)
- *   b.f92 = arg4;                     // +92 (caller sp+16)
- *   b.f96 = arg5;                     // +96 (caller sp+20)
- *   gl_func_00000000(&b);             // X2, a0 = &b (sp+24)
- * }
- * Struct-typing: builds a ~100-byte arg block B on the stack - int @0/72,
- * float @76 (= *a2), ptr @80 (= a2), float @88 (a3-as-float), float @92
- * (arg4), int @96 (arg5); a sub-struct at B+8 is filled by X1 first, then
- * the whole block passed to X2. a1 unused (homed only). Caps: deterministic
- * but IDO assigns the B local sp-slots (sp+24 base, fields +72..+96) by its
- * own frame-layout rules - flat C struct/array does not reproduce the exact
- * offsets/spill order (the documented sp-slot/stack-build divergence class,
- * cf gl_func_00065250 / 372D4). br=0 but not the clean-episode subset.
- * (a3/arg4 are float-in-int-reg per o32; a0/a2/a3 homed, a1 not — IDO homes
- * a1 too, a 1-insn divergence; plus reloc-blind placeholder calls.)
- * INCLUDE_ASM (no episode). */
-#ifdef NON_MATCHING
-void gl_func_0003EEC0(int a0, int a1, float *a2, float a3, float arg4, int arg5) {
-    char buf[0xA0]; /* arg block at sp+0x18 */
-    gl_func_00000000(&buf[8]);     /* X1: fill sub-struct at buf+8 */
-    *(int *)&buf[0] = 2;
-    *(int *)&buf[0x48] = 2;
-    *(float *)&buf[0x4C] = a2[0];
-    *(int *)&buf[0x50] = (int)a2;
-    *(float *)&buf[0x58] = a3;
-    *(float *)&buf[0x5C] = arg4;
-    *(int *)&buf[0x60] = arg5;
-    gl_func_00000000(&buf[0]);      /* X2: pass whole block */
+/* gl_func_0003EEC0 (0x6C, 27 insns): float twin of 3EE50 -- same 0xA0 stack
+ * message record (type 2), float fields at 0x4C (= *a2), 0x58, 0x5C. The old
+ * NM ("sp-slot divergence class", char buf[]) was the untyped record plus
+ * statement order; see docs/IDO_CODEGEN.md#record-store-order-picks-treg-3ee50.
+ * a3/a4 are floats passed in a3 / caller stack (o32 after an int first arg). */
+typedef struct {
+    int type;
+    char p0[4];
+    char sub[0x40];
+    int f48;
+    float f4C;
+    float *f50;
+    int f54;
+    float f58;
+    float f5C;
+    int f60;
+    char p1[0xA0 - 0x64];
+} GlMsg3EEC0;
+void gl_func_0003EEC0(int a0, int a1, float *a2, float a3, float a4, int a5) {
+    GlMsg3EEC0 s;
+    gl_func_00000000(s.sub, a1);
+    s.f60 = a5;
+    s.f58 = a3;
+    s.f5C = a4;
+    s.f48 = 2;
+    s.f4C = *a2;
+    s.type = 2;
+    s.f50 = a2;
+    gl_func_00000000(&s);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EEC0);
-#endif
 
 void gl_func_0003EF2C(int a0, int a1, int a2, int a3, int a4, int a5) {
     char buf[0xA0];
