@@ -3555,3 +3555,5 @@ F_4B2F4_phys = 0; /* Sym[160], osVirtualToPhysical */
 F_4B2F4_list = 0; /* same Sym[160], osVirtualToPhysical */
 gl_func_00000000_e5d0_v = 0x00000000;  /* void-returning alias: kills dead v0 def so factory/self colour v0/v1 in gl_func_0000E5D0 */
 gl_func_00000000_ce38_v = 0x00000000;  /* void-typed alias (kills dead $v0 def of the 2nd call per group) in gl_func_0000CE38 */
+gl_ref_00037EA4 = 0x00037EA4;  /* gl_func_00022FC0 baked USO jal (0x0C00DFA9) */
+gl_d_22FC0 = 0x00000000;      /* gl_func_00022FC0: struct-typed alias of D_00000000 (u16 limit at +0x202C, buf ptr at +0x2028) */

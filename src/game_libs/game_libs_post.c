@@ -5564,77 +5564,44 @@ void game_libs_func_00022F60(short *a0, int a1, unsigned short a2) {
     }
 }
 
-// gl_func_00022FC0 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). A bounds-checked buffer-run processor.
-//
-//   int gl_func_00022FC0(int idx, int arg) {
-//     S *g = &D_0;
-//     if (idx >= g->h_202C) return 0;                   // range check
-//     short *buf = g->w_2028;                            // record buf
-//     int start  = buf[idx];                             // run start
-//     int cur    = start;
-//     do {
-//       byte b = *((char*)buf + cur);                     // element
-//       cur++;
-//       ...
-//       jal 0x37EA4(b);                                   // 0x0C00DFA9
-//       count--;
-//     } while (count != 0);
-//     buf[idx] = cur;                                      // write back
-//     return ...;
-//   }
-//
-// Struct-typing reference: halfword &D_0+0x202C is the valid index
-//   limit; word &D_0+0x2028 is the base of a record/offset buffer
-//   indexed by idx (halfword stride, idx<<1) — each slot holds a
-//   cursor/offset into the same backing store. The loop walks a run
-//   of byte elements from that cursor invoking the fixed USO-relocated
-//   routine 0x0C00DFA9 (≈0x37EA4) per element, then writes the
-//   advanced cursor back into buf[idx]. A per-slot stream/run consumer
-//   in the same &D_0 sprite/registry subsystem (sibling family to the
-//   gl_func_00022D68 readiness queries over the neighbouring 0x2Cxx
-//   arrays).
-// Caps (DEFERRED): CLEAN single jr $ra. Bounds-checked buffer-run
-//   processor in the &D_0 sprite/registry subsystem. Real-C
-//   STRUCTURAL body below per the analysis (idx range-check vs
-//   &D_0+0x202C; buf = &D_0+0x2028 halfword-indexed; walk a run of
-//   byte elements from buf[idx] invoking the fixed USO-reloc routine
-//   0x37EA4 per element, then write the advanced cursor back).
-//   Byte-match deferred — placeholder jal-0 per-element call needs
-//   USO reloc infra + loop schedule. Name pre-checked: no extern
-//   reuse (collision-safe). gl_func_00000000 = canonical
-//   never-defined USO placeholder for the per-element routine.
-#ifdef NON_MATCHING
-extern int gl_func_00000000();
-extern int D_00000000;
+/* gl_func_00022FC0 (0xB0, 44 insns): run-list reader over the halfword-indexed
+ * byte stream at *(D+0x2028), sibling of gl_func_000232E8 / gl_func_000233E4.
+ * if (idx >= u16 D+0x202C) return 0; cur = buf16[idx]; cnt = buf[cur++];
+ * per element last = buf[cur++], ret = f(last) (baked jal 0x37EA4 =
+ * gl_ref_00037EA4); then *out = last (0xFF if the run is empty); return ret
+ * (uninitialised on an empty run = the `lw v0,0x28(sp)` home fill).
+ * BYTE-EXACT 2026-10-14 (agent-c), 71.68 -> 100, rewritten from the target
+ * words with the 232E8 recipe: struct-TYPED extern alias gl_d_22FC0 (base 0,
+ * own type because it also carries the +0x202C limit), `*(cur + buf)`
+ * index-first run-length read, top-tested `while (cnt > 0)` with `cnt--`
+ * after the call. The old body wrote a guarded do-while and initialised the
+ * run length after the first load. */
+extern int gl_ref_00037EA4();
+typedef struct { char p0[0x2028]; unsigned char *buf; unsigned short lim; } gl_22FC0_GS;
+extern gl_22FC0_GS gl_d_22FC0;
+#define GS_22FC0 gl_d_22FC0
 int gl_func_00022FC0(int idx, int *out) {
-    char *g = (char *)&D_00000000;
-    char *base;
-    int cur, count;
-    int last = 0xFF;
+    int cur;
+    int cnt;
+    int last;
     int ret;
-    if (idx >= *(unsigned short *)(g + 0x202C)) {
+
+    if (idx >= GS_22FC0.lim) {
         return 0;
     }
-    base = *(char **)(g + 0x2028);
-    cur = *(unsigned short *)(base + idx * 2);
-    count = *(unsigned char *)(base + cur);
+    last = 0xFF;
+    cur = ((unsigned short *)GS_22FC0.buf)[idx];
+    cnt = *(cur + GS_22FC0.buf);
     cur++;
-    if (count > 0) {
-        do {
-            last = *(unsigned char *)(*(char **)(g + 0x2028) + cur);
-            cur++;
-            ret = gl_func_00000000(last);
-            count--;
-        } while (count > 0);
+    while (cnt > 0) {
+        last = GS_22FC0.buf[cur++];
+        ret = gl_ref_00037EA4(last);
+        cnt--;
     }
     *out = last;
     return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022FC0);
-#endif
+#undef GS_22FC0
 
 
 /* game_libs_func_00023070 — bounds-gated dual-flag dispatch. The orphan
