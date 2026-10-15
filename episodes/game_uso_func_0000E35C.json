@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_0000E35C",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T19:21:45.075397+00:00",
+  "end_time": "2026-10-15T19:21:45.075414+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T19:21:45.075409+00:00",
+      "assistant_text": "Exact match. Source language is C++ (game_uso), compiled with IDO 7.1 NCC (edg front end), not cfe C. Sibling of F6D4; the F6D4 recipe matched on the first compile: no named prev local (the F0 to F4 move goes through the members, the F8 compare and store re-read F4), counter increment first, compare F8 == F4, base-first ceil-div addu from edg, and the D5F8/D5BC pairs passed by value as pointer-to-member values. Returns 1 when self->0xF0 is set, else 0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 130,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 NCC (C++) donor for game_uso_func_0000E35C (0x208 / 130 words).\n *\n * Slot/queue advance, sibling of F6D4 (same body inside `if (self->0xF0)`,\n * no D6E4 pre-flush, 077C44 third arg 0, returns 1 / 0). Built with the\n * F6D4 recipe and exact on the first compile: no named prev local (the\n * F0 -> F4 move goes through the members, and the F8 compare and store\n * re-read F4), counter increment first, `F8 == F4`, base-first ceil-div\n * addu (edg), D5F8 / D5BC pairs are pointers to members by value. The\n * cfe wrap capped at 95.3%.\n * See docs/IDO_CODEGEN.md#ncc-no-named-copy-local-f6d4. Spliced into\n * game_uso.c.o via REPLACE_FUNC_BODY\n * (docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe). Every\n * symbol is extern \"C\". */\nstruct A { char pad[40]; virtual void m(); };\ntypedef void (A::*PM)();\nextern \"C\" {\nextern int *game_uso_D_807FFBC0;\nextern char import_800201D0;\nextern char game_uso_D_807FF4B0;\nextern char game_uso_D_807FF4B8;\nextern char game_uso_D_807FF4C0;\nvoid game_uso_func_0000EE30(void *, int, int);\nvoid import_000B8518(int, void *, int);\nvoid game_uso_func_0000E564(void *);\nvoid game_uso_func_077C44(void *, int, int, int, int, int);\nvoid game_uso_func_0000D5F8(void *, PM, int);\nvoid game_uso_func_0000D5BC(void *, PM);\n}\n#define AT(T,b,o) (*(T *)((char *)(b) + (o)))\n#define I(b,o) AT(int,b,o)\n#define P(b,o) AT(char *,b,o)\nextern \"C\" int game_uso_func_0000E35C(char *s0) {\n    char *f4;\n    if (P(s0, 0xF0) != 0) {\n        game_uso_func_0000EE30(s0, I(P(s0, 0xF0), 0x30), 1);\n        if (I(P(s0, 0xB4), 0xA58) & 0x20) {\n            int base = (int)game_uso_D_807FFBC0;\n            import_000B8518(I(&import_800201D0, 0x138), P(s0, 0xB4),\n                ((base + (I(P(s0, 0xF0), 0x3C) << 6)) - base) / 64);\n        } else {\n            import_000B8518(I(&import_800201D0, 0x138), P(s0, 0xB4),\n                ((int)P(s0, 0xF0) - (int)game_uso_D_807FFBC0) / 64);\n        }\n        I(s0, 0x100) = I(s0, 0x100) + 1;\n        P(s0, 0xF4) = P(s0, 0xF0);\n        P(s0, 0xF0) = 0;\n        if (P(s0, 0xF8) == P(s0, 0xF4)) { I(s0, 0x100) = 0; }\n        P(s0, 0xF8) = P(s0, 0xF4);\n        game_uso_func_0000E564(s0);\n        if ((I(P(s0, 0xB4), 0xA58) & 0x40) && I(P(s0, 0xF4), 0x28) != 0) {\n            I(P(s0, 0xF4), 0x20) = I(P(s0, 0xF4), 0x28);\n        } else {\n            I(P(s0, 0xF4), 0x20) = I(P(s0, 0xF4), 0x24);\n        }\n        f4 = P(s0, 0xF4);\n        if (I(f4, 0x38) & 2) {\n            game_uso_func_077C44(s0, I(f4, 0x20), 0, 2, 1, 1);\n            game_uso_func_0000D5F8(s0, AT(PM, &game_uso_D_807FF4B0, 0xEC0), 2);\n        } else {\n            game_uso_func_077C44(s0, I(f4, 0x20), 0, 3, 1, 1);\n            game_uso_func_0000D5F8(s0, AT(PM, &game_uso_D_807FF4B8, 0xEC8), 3);\n        }\n        game_uso_func_0000D5BC(s0, AT(PM, &game_uso_D_807FF4C0, 0xED0));\n        return 1;\n    }\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso_ncc_E35C.cpp",
+    "asm_path": "asm/nonmatchings/game_uso/game_uso/game_uso_func_0000E35C.s",
+    "segment": "game_uso",
+    "compiler": "IDO 7.1 NCC (C++)",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Wab,-r4300_mul",
+    "verification": "NCC donor 130/130 words identical to expected; spliced into game_uso.c.o via REPLACE_FUNC_BODY; report.json 100.0; ROM byte-identical; verify-blocks OK; 0 exacts lost."
+  }
+}

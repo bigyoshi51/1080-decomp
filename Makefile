@@ -1553,6 +1553,10 @@ build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(
 GAMEUSO_F6D4_DONOR := build/src/game_uso/game_uso_ncc_F6D4.cpp.o
 build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: REPLACE_FUNC_BODY += game_uso_func_0000F6D4=$(GAMEUSO_F6D4_DONOR)
 build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(GAMEUSO_F6D4_DONOR)
+# E35C = F6D4 sibling, same recipe (130/130 words; cfe capped at 95.3%).
+GAMEUSO_E35C_DONOR := build/src/game_uso/game_uso_ncc_E35C.cpp.o
+build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: REPLACE_FUNC_BODY += game_uso_func_0000E35C=$(GAMEUSO_E35C_DONOR)
+build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(GAMEUSO_E35C_DONOR)
 
 # xldtob.c -O3 donor (73904/73E74): direct CC, no asm-processor
 # (asm-processor rejects -O3; the file has no GLOBAL_ASM). Symbol

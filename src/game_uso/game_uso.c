@@ -10218,32 +10218,20 @@ char *a0;
     }
 }
 
-#ifdef NON_MATCHING
-/* game_uso_func_0000E35C: slot/queue advance. If arg0->0xF0 (current) != NULL:
- * cb(cur->0x30,1); compute its array index (vs base *(int*)&D, /64) — two forms
- * by arg0->0xB4->0xA58 bit-5; advance the queue (0x100 counter++, 0xF0=NULL, 0xF4/
- * 0xF8 = prev, reset counter if prev==0xF8); cb(arg0); set prev->0x20 from ->0x28
- * (if 0xB4->0xA58 bit-6 & nonzero) else ->0x24; then by prev->0x38 bit-1 emit a
- * 2-call or 3-call pair using &D+0xEC0/0xEC8/0xED0 tables; cb(arg0, &D+0xED0..).
- * Returns 1; else 0. 75.5% -> 91.6%: the three D-pair calls (EC0/EC4, EC8/ECC,
- * ED0/ED4) pass BY VALUE as *(Pair2*), homing a1,a2 (same lever as EF70,
- * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair). 91.6 ->
- * 95.14 (2026-05-31): the &D+0x138 access used distinct extern `D_00000138`.
- * 2026-06-23 (agent-e): REAL CALLEES/GLOBALS recovered from expected/ relocs.
- * The placeholder gl_func_00000000 fan-out is now the true symbol set, all
- * matching expected's R_MIPS_26 exactly: game_uso_func_0000EE30 (first cb),
- * import_000B8518 (index cb), game_uso_func_0000E564 (advance), 077C44/D5F8
- * (Pair2 tail), D5BC (final). Globals: game_uso_D_807FFBC0 (queue base),
- * import_800201D0+0x138 (cfg), game_uso_D_807FF4B0/B8/C0 (EC0/EC8/ED0 pairs).
- * Verified vs target: ignoring reloc-pairing-form + register renaming, the only
- * structural residual is the prev-write branch-delay `move v0,prev` duplication.
- * REMAINING CAP (shared with sibling F6D4): the target emits UNPAIRED
- * R_MIPS_HI16 (lui %hi; lw <lit>(reg), no LO16) for every D-global, because in
- * the original link those symbols had REAL addresses (e.g. 0x800201D0). In this
- * USO build every such symbol is forced to value 0 (load-resolved), so any
- * `&SYM+off` access IDO emits as a HI16+LO16 PAIR; the unpaired form is
- * unreachable from C here (D_00000138 is unpaired only because its VALUE is
- * 0x138). That + regalloc-renumber are the residual. NON_MATCHING. */
+/* game_uso_func_0000E35C (0x208 / 130 words): slot/queue advance. If
+ * self->0xF0 (current) != NULL: EE30(self, cur->0x30, 1); import_000B8518
+ * index call (ceil-div-by-64 node offset, two forms on obj->0xA58 & 0x20);
+ * counter (0x100)++, F4 = F0, F0 = 0, counter reset when F8 == F4, F8 = F4;
+ * E564(self); cur->0x20 from ->0x28 (0xA58 & 0x40 and nonzero) else ->0x24;
+ * 077C44 + D5F8 (pointer-to-member by value) on cur->0x38 & 2; D5BC;
+ * return 1. Else return 0.
+ * EXACT via REPLACE_FUNC_BODY donor splice: the real body is the IDO 7.1 NCC
+ * (C++) donor src/game_uso/game_uso_ncc_E35C.cpp (130/130 words), built with
+ * the sibling F6D4 recipe (no named prev local; member re-reads give the
+ * expression-temp colouring and the two-copy join). The cfe wrap capped at
+ * 95.3%; its "unpaired HI16" note was a reloc-form difference that objdiff
+ * and the ROM do not see. See docs/IDO_CODEGEN.md#ncc-no-named-copy-local-f6d4.
+ * Body below is a placeholder for the splice. */
 extern int *game_uso_D_807FFBC0;
 extern char game_uso_D_807FF4B0;
 extern char game_uso_D_807FF4B8;
@@ -10253,60 +10241,8 @@ extern void game_uso_func_0000E564(int *);
 extern int import_000B8518();
 extern char import_800201D0;
 int game_uso_func_0000E35C(char *arg0) {
-    char *cur;
-    char *b4;
-    char *prev;
-    char *f4;
-    int v1;
-
-    cur = *(char **)(arg0 + 0xF0);
-    if (cur != 0) {
-        game_uso_func_0000EE30(arg0, *(int *)(cur + 0x30), 1);
-        b4 = *(char **)(arg0 + 0xB4);
-        if (*(int *)(b4 + 0xA58) & 0x20) {
-            int base = *(int *)&game_uso_D_807FFBC0;
-            import_000B8518(*(int *)((char *)&import_800201D0 + 0x138), b4,
-                (int)((base + (*(int *)(*(char **)(arg0 + 0xF0) + 0x3C) << 6)) - base) / 64);
-        } else {
-            import_000B8518(*(int *)((char *)&import_800201D0 + 0x138), b4,
-                (int)((int)*(char **)(arg0 + 0xF0) - *(int *)&game_uso_D_807FFBC0) / 64);
-        }
-        prev = *(char **)(arg0 + 0xF0);
-        *(int *)(arg0 + 0x100) = *(int *)(arg0 + 0x100) + 1;
-        *(char **)(arg0 + 0xF0) = 0;
-        *(char **)(arg0 + 0xF4) = prev;
-        if (prev == *(char **)(arg0 + 0xF8)) {
-            *(int *)(arg0 + 0x100) = 0;
-        }
-        /* F4-slot reload (same lever as sibling F6D4, 2026-07-18): the extra
-         * reload web reproduces the target's downstream temp numbering; the
-         * target's own 2-insn `move v0,prev` dup web is a pure-copy web that
-         * copy-prop folds from every C spelling (see F6D4 comment). */
-        *(char **)(arg0 + 0xF8) = *(char **)(arg0 + 0xF4);
-        game_uso_func_0000E564((int *)arg0);
-        if ((*(int *)(*(char **)(arg0 + 0xB4) + 0xA58) & 0x40) &&
-            (f4 = *(char **)(arg0 + 0xF4), v1 = *(int *)(f4 + 0x28), (v1 != 0))) {
-            *(int *)(f4 + 0x20) = v1;
-        } else {
-            f4 = *(char **)(arg0 + 0xF4);
-            *(int *)(f4 + 0x20) = *(int *)(f4 + 0x24);
-        }
-        f4 = *(char **)(arg0 + 0xF4);
-        if (*(int *)(f4 + 0x38) & 2) {
-            game_uso_func_077C44(arg0, *(int *)(f4 + 0x20), 0, 2, 1, 1);
-            game_uso_func_0000D5F8(arg0, *(Pair2 *)((char *)&game_uso_D_807FF4B0 + 0xEC0), 2);
-        } else {
-            game_uso_func_077C44(arg0, *(int *)(f4 + 0x20), 0, 3, 1, 1);
-            game_uso_func_0000D5F8(arg0, *(Pair2 *)((char *)&game_uso_D_807FF4B8 + 0xEC8), 3);
-        }
-        game_uso_func_0000D5BC(arg0, *(Pair2 *)((char *)&game_uso_D_807FF4C0 + 0xED0));
-        return 1;
-    }
-    return 0;
+    volatile char *ret = arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E35C);
-#endif
 
 void game_uso_func_0000E564(int *a0) {
     int v0 = ((int*)a0[0xF4/4])[0x2C/4];
