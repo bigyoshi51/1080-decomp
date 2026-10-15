@@ -2968,431 +2968,253 @@ void game_libs_func_000200F4(int *obj) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000200F4);
 #endif
 
-/* gl_func_000201B8: 449-insn (0x704) multi-config slot-manager state
- * machine. Sibling-of-0x208BC pick (source-2, adjacent offset, same
- * dispatch family). Frame -0x50. Args: mode (a0/s0), val (a1), op (a2),
- * + stack args at sp+0x30 (tbl seed) / sp+0x4C (cfg seed) / sp+0x54.
- * ra is pinned to the constant 12 (record stride; indexing is
- * `multu idx, 12`). t0=2, t1=1 constants.
- *
- * ENTRY DISPATCH (decoded, real C below): mode selects a (cfg, tbl)
- * pointer pair from fixed &D tables:
- *   mode==0 → cfg=&D+0x21F8, tbl=&D+0x2C70
- *   mode==1 → cfg=&D+0x2308, tbl=&D+0x2C40
- *   mode==2 → cfg=&D+0x2418, tbl=&D+0x2C10
- *   else    → cfg/tbl unset (skip to tail)
- * if (op != 0) → re-entry/update block @0x63C (decoded below).
- * Flag derive: a2c=cfg+212; t3 = (cfg[242]==-1 ? tbl[a2c[30]] : 0-ish);
- *   t4 = tbl[a2c[42]] (each gated by the field != -1).
- *
- * TAIL (mapped, NOT yet C — multi-run): a large t3/t4/t5 + mode dispatch
- * with ~6 near-identical record-scan loops:
- *   - 208-byte-record scan: count=*(int*)(&D+0x2070), rec=&D+0x2CFC,
- *     match rec[51]==a2c[30|42], skip if rec[176]>>31.
- *   - 352-byte-record scan: count=*(s16*)(&D+0x2048), rec=&D+0x2D00,
- *     match rec[11524]==a2c[30], skip if rec[11520]>>31.
- *   Result written to *(int*)op_struct; index math `multu n,12`.
- *   Two fixup blocks @0x4B8/0x57C: sh/sw into a2c[20/24/30/32/42],
- *   call gl_func_00000000 / func@0x34238 (gl_func_00034238). Re-entry
- *   @0x63C: gl_func call, rewrites cfg records by 12-stride, loops to
- *   the entry dispatch (op consumed).
- *
- * First-pass structural NM wrap: entry dispatch + flag derive are real
- * C; deep tail kept as INCLUDE_ASM-equivalent stub return so the body
- * compiles. ~low% expected — multi-run. INCLUDE_ASM is the build path
- * (ROM byte-exact). */
-// gl_func_000201B8 — 4-way state-dispatched record processor (no episode).
-// 44.49% -> 51.12% via reloc-form/field-width reconstruction levers:
-//   (1) per-case bases were integer literals (0x21F8/0x2308/0x2418 +
-//       0x2C70/0x2C40/0x2C10) -> &D_00000000+off pointer values so IDO
-//       emits the target's `lui;addiu` (held in a3/t2 per case) instead
-//       of `addiu zero` int-loads. (+4.2pp; the main lever.)
-//   (2) wrong field widths: `var_a2_2 = var_a3 + 0xD4` was WORD-scaled
-//       -> (char*)+0xD4 BYTE; `FW(var_a3,0xF2)` (word, lwl/lwr) -> *(s16*)
-//       (target `lh 242(a3)`); var_t3/var_t4 table reads int->u8 (target
-//       `lbu 0(tN)`); size deficit 16->-4.
-//   (3) (agent-h 2026-07-23) 10 absolute-literal derefs (*(s32*)0x2070,
-//       *(char**)0x2CFC, *(s16*)0x2048) -> &D_00000000+off reloc forms;
-//       target-verified (`lui a1;lw a1,8304(a1)` / `lw v0,11516(v0)` with
-//       HI16/LO16 relocs). Word-diffs 442->439; size -3 -> +4 (the lui
-//       pairs replace 1-insn li) so fuzzy dips ~0.7pp transiently — the
-//       reloc form is the byte-true one, keep it.
-// RESIDUAL (deferred, regalloc/control-flow): build still spills a0/a1/a3
-//   to a -200 frame (target -80, args reg-resident) and forces the case
-//   bases into a SAVED reg (s1) because the back-edge `goto loop_1` makes
-//   them live across the loop, whereas the target's loop re-enters at the
-//   switch (+0x2c) so a3/t2 are re-derived per iteration in TEMP regs.
-//   Closing it = full prologue/loop reconstruction (arg-in-reg dataflow +
-//   mid-function loop target), not a mechanical graft transform.
+// gl_func_000201B8 -- double-buffered pool allocator (0x704, 449 insns), NM (no episode).
+// mode 0/1/2 picks a Pool (sym1255 +0x21F8 / 0x2308 / 0x2418, stride 0x110) and a u8
+// state table (+0x2C70 / 0x2C40 / 0x2C10). op != 0: allocate from the pool's arena
+// (blank callee on &pool->p4), record {ptr, size, tag} in ent[cur++]; on failure with
+// op == 2 retry with op = 0. op == 0: pick which of the two sub-buffer entries
+// (pool->sub.ent[0/1], tags at +0xF2/+0xFE) to recycle from the tag states (4 = check
+// the 0xD0 recs table at +0x2CFC, 2 = check the 0x160 objs at +0x2D00 / the recs table,
+// 3 = stale), release the old tag (tbl[tag] = 0, mode-0 baked jal 0x34238 / mode-1
+// blank), carve the block from the front (ent 0) or the 16-aligned back (ent 1) of the
+// sub arena and flip sub.cur.
+// Rewrite 2026-10-15 (agent-c run 64): 50.1 -> 94.3 (objdiff). Same levers as 21498: typed view
+// with plain loops; cfg/tbl are maybe-uninitialised (switch with no default) so they are
+// homed (0x4C / 0x30) and reloaded at entry; decl order cfg,k,v,a,r,st0,st1,sub,tbl
+// reproduces every home and spill slot (st0/st1 u8 homes 0x3B/0x3A, sub/r spills
+// 0x28/0x24). The sub-cur join value is per-predecessor (`sub->cur = 0; v = 0;`).
+// RESIDUAL: (1) the st0 read: target tests `lh 242(cfg)` then re-reads `lh 30(sub)` in
+// the taken arm with `addiu a2,a3,212` in both delay slots; this if/else CSEs the second
+// load (t-regs of the first half shift by one). A ternary on sub
+// (`st0 = (sub->ent[0].hA == -1) ? 0 : tbl[...]`) fixes the registers and leaves only an
+// `or t3,zero` / `addiu a2` swap, but objdiff scores it 94.31 vs 94.33, so it is not used.
+// (2) `v = 1` stores/compares reuse the hoisted t1 = 1 web (target materialises
+// `addiu v0,zero,1` and `addiu at,zero,1` for switch(sub->cur) case 1); unsigned v /
+// unsigned cur / 1U did not split it. (3) r (= &cfg->sub.base) colours v1, target v0.
+// (4) tail ent[v] index: target multu by the ra = 12 web, build uses the shift chain.
+// (5) constant-first operand order on the 3/2/1 compares (`bne v0,t5`), not reproduced
+// by `3 == a`. (6) the alloc tail stores hA before w4 with one fewer reload.
 #ifdef NON_MATCHING
-extern int game_libs_func_0003443C();
-extern int gl_func_0001CA10();
+typedef struct { int w0; int w4; short h8; short hA; } gl_201B8_Ent;
+typedef struct { int cur; int base; int end; int size; int p10; gl_201B8_Ent ent[2]; } gl_201B8_Sub;
+typedef struct { int cur; char p4[16]; gl_201B8_Ent ent[16]; gl_201B8_Sub sub; char p100[16]; } gl_201B8_Pool;
+typedef struct { unsigned flag:1, rest:31; unsigned char b4; char p5[0x160 - 5]; } gl_201B8_Obj;
+typedef struct {
+    char p0[0x2048];
+    short n2048;
+    char p204A[0x2070 - 0x204A];
+    int count;
+    char p2074[0x21F8 - 0x2074];
+    gl_201B8_Pool pools[3];
+    char p2528[0x2C10 - 0x2528];
+    unsigned char tbls[3][0x30];
+    char p2CA0[0x2CFC - 0x2CA0];
+    gl_1CC98_Rec *recs;
+    gl_201B8_Obj objs[8];
+} gl_201B8_GS;
+extern gl_201B8_GS D_345c0_201B8;
+#define G D_345c0_201B8
+extern void gl_ref_00034238();
 
+int gl_func_000201B8(int mode, int size, int op, int arg3) {
+    gl_201B8_Pool *cfg;
+    int k;
+    unsigned int v;
+    int a;
+    int *r;
+    unsigned char st0;
+    unsigned char st1;
+    gl_201B8_Sub *sub;
+    unsigned char *tbl;
 
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_000201B8)();
-s32 gl_func_000201B8(s32 arg0, s32 arg1, s32 *arg2, s32 arg3) {
-    s32 *sp4C;
-    u8 sp3B;
-    u8 sp3A;
-    s32 sp30;
-    s32 *sp28;
-    char *sp24;
-    s16 temp_a0;
-    s16 temp_a0_2;
-    s16 temp_a0_3;
-    s16 temp_a0_5;
-    s16 temp_a0_6;
-    s16 temp_v1_2;
-    s32 *var_a2;
-    s32 *var_a2_2;
-    s32 *var_a3;
-    s32 temp_a0_4;
-    s32 temp_a1;
-    s32 temp_a1_2;
-    s32 temp_a1_3;
-    s32 temp_a1_4;
-    s32 temp_v0_3;
-    s32 temp_v1;
-    s32 var_t2;
-    s32 var_v0_3;
-    s32 var_v1;
-    s32 var_v1_2;
-    s32 var_v1_3;
-    s32 var_v1_4;
-    s32 var_v1_5;
-    s32 var_v1_6;
-    s32 var_v1_7;
-    u32 temp_t6;
-    u32 temp_t9;
-    u8 var_t3;
-    u8 var_t4;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *var_v0;
-    char *var_v0_2;
-    char *var_v0_4;
-    char *var_v0_5;
-    char *var_v0_6;
-    char *var_v0_7;
-
-    var_a2 = arg2;
-    var_a3 = sp4C;
-    var_t2 = sp30;
-loop_1:
-    switch (arg0) {                                 /* switch 1; irregular */
-    case 0:                                         /* switch 1 */
-        var_a3 = (s32 *)((char *)&D_00000000 + 0x21F8);
-        var_t2 = (s32) ((char *)&D_00000000 + 0x2C70);
-        break;
-    case 1:                                         /* switch 1 */
-        var_a3 = (s32 *)((char *)&D_00000000 + 0x2308);
-        var_t2 = (s32) ((char *)&D_00000000 + 0x2C40);
-        break;
-    case 2:                                         /* switch 1 */
-        var_a3 = (s32 *)((char *)&D_00000000 + 0x2418);
-        var_t2 = (s32) ((char *)&D_00000000 + 0x2C10);
-        break;
+top:
+    switch (mode) {
+    case 0: tbl = G.tbls[2]; cfg = &G.pools[0]; break;
+    case 1: tbl = G.tbls[1]; cfg = &G.pools[1]; break;
+    case 2: tbl = G.tbls[0]; cfg = &G.pools[2]; break;
     }
-    if (var_a2 == 0) {
-        var_t3 = 0;
-        var_a2_2 = (s32 *)((char *)var_a3 + 0xD4);
-        if (*(s16 *)((char *)var_a3 + 0xF2) == -1) {
-            var_a2_2 = (s32 *)((char *)var_a3 + 0xD4);
+    if (op == 0) {
+        if (cfg->sub.ent[0].hA == -1) {
+            sub = &cfg->sub;
+            st0 = 0;
         } else {
-            var_t3 = *(u8 *)((*(s16 *)((char *)var_a2_2 + 0x1E)) + var_t2);
+            sub = &cfg->sub;
+            st0 = tbl[sub->ent[0].hA];
         }
-        temp_a0 = (*(s16 *)((char *)var_a2_2 + 0x2A));
-        if (temp_a0 == -1) {
-            var_t4 = 0;
+        if (sub->ent[1].hA == -1) {
+            st1 = 0;
         } else {
-            var_t4 = *(u8 *)(temp_a0 + var_t2);
+            st1 = tbl[sub->ent[1].hA];
         }
-        if (arg0 == 1) {
-            if (var_t3 == 4) {
-                temp_a1 = *(s32 *)((char *)&D_00000000 + 0x2070);
-                var_v1_2 = 0;
-                if (temp_a1 > 0) {
-                    var_v0 = *(char **)((char *)&D_00000000 + 0x2CFC);
-loop_19:
-                    if ((*(u8 *)(var_v0 + 0x33) != (*(s16 *)((char *)var_a2_2 + 0x1E))) || (((u32) FW(var_v0, 0xB0) >> 0x1F) == 0)) {
-                        var_v1_2 += 1;
-                        var_v0 += 0xD0;
-                        if (var_v1_2 < temp_a1) {
-                            goto loop_19;
-                        }
-                    }
+        if (mode == 1) {
+            if (st0 == 4) {
+                for (k = 0; k < G.count; k++) {
+                    if (G.recs[k].b33 == sub->ent[0].hA && G.recs[k].e.flag) break;
                 }
-                if (var_v1_2 == temp_a1) {
-                    sp3A = var_t4;
-                    sp30 = var_t2;
-                    sp4C = var_a3;
-                    sp28 = var_a2_2;
-                    gl_func_0001CA10((*(s16 *)((char *)var_a2_2 + 0x1E)), 3, var_a2_2, var_a3);
-                    var_t3 = 3;
+                if (k == G.count) {
+                    gl_func_00000000(sub->ent[0].hA, 3);
+                    st0 = 3;
                 }
             }
-            if (var_t4 == 4) {
-                temp_a1_2 = *(s32 *)((char *)&D_00000000 + 0x2070);
-                var_v1_3 = 0;
-                if (temp_a1_2 > 0) {
-                    var_v0_2 = *(char **)((char *)&D_00000000 + 0x2CFC);
-loop_27:
-                    if ((*(u8 *)(var_v0_2 + 0x33) != (*(s16 *)((char *)var_a2_2 + 0x2A))) || (((u32) FW(var_v0_2, 0xB0) >> 0x1F) == 0)) {
-                        var_v1_3 += 1;
-                        var_v0_2 += 0xD0;
-                        if (var_v1_3 < temp_a1_2) {
-                            goto loop_27;
-                        }
-                    }
+            if (st1 == 4) {
+                for (k = 0; k < G.count; k++) {
+                    if (G.recs[k].b33 == sub->ent[1].hA && G.recs[k].e.flag) break;
                 }
-                if (var_v1_3 == temp_a1_2) {
-                    sp3B = var_t3;
-                    sp30 = var_t2;
-                    sp4C = var_a3;
-                    sp28 = var_a2_2;
-                    gl_func_0001CA10((*(s16 *)((char *)var_a2_2 + 0x2A)), 3, var_a2_2, var_a3);
-                    var_t4 = 3;
+                if (k == G.count) {
+                    gl_func_00000000(sub->ent[1].hA, 3);
+                    st1 = 3;
                 }
             }
         }
-        if (var_t3 == 0) {
-            FW(var_a2_2, 0x0) = 0;
-            var_v0_3 = 0;
-            goto block_83;
+        a = st0;
+        if (a == 0) {
+            sub->cur = 0;
+            v = 0;
+            goto tail;
         }
-        if (var_t4 == 0) {
-            var_v0_3 = 1;
-            FW(var_a2_2, 0x0) = 1;
-            goto block_83;
+        if (st1 == 0) {
+            sub->cur = v = 1;
+            goto tail;
         }
-        if ((var_t3 == 3) && (var_t4 == 3)) {
-            var_v0_3 = FW(var_a2_2, 0x0);
-            goto block_83;
+        if (a == 3 && st1 == 3) {
+            v = sub->cur;
+            goto tail;
         }
-        if (var_t3 == 3) {
-            FW(var_a2_2, 0x0) = 0;
-            var_v0_3 = 0;
-            goto block_83;
+        if (a == 3) {
+            sub->cur = 0;
+            v = 0;
+            goto tail;
         }
-        var_v0_3 = 1;
-        if (var_t4 == 3) {
-            FW(var_a2_2, 0x0) = 1;
-            goto block_83;
+        if (st1 == 3) {
+            sub->cur = v = 1;
+            goto tail;
         }
-        if (arg0 == 0) {
-            if (var_t3 == 2) {
-                temp_a0_2 = *(s16 *)((char *)&D_00000000 + 0x2048);
-                var_v0_4 = 0;
-                var_v1_4 = 0;
-                if (temp_a0_2 > 0) {
-loop_46:
-                    if ((((u32) FW(var_v0_4, 0x2D00) >> 0x1F) == 0) || (*(u8 *)(var_v0_4 + 0x2D04) != (*(s16 *)((char *)var_a2_2 + 0x1E)))) {
-                        var_v1_4 += 1;
-                        var_v0_4 += 0x160;
-                        if (var_v1_4 < temp_a0_2) {
-                            goto loop_46;
-                        }
-                    }
+        if (mode == 0) {
+            if (a == 2) {
+                for (k = 0; k < G.n2048; k++) {
+                    if (G.objs[k].flag && G.objs[k].b4 == sub->ent[0].hA) break;
                 }
-                var_v0_3 = 0;
-                if (var_v1_4 == temp_a0_2) {
-                    FW(var_a2_2, 0x0) = 0;
-                    goto block_83;
+                if (k == G.n2048) {
+                    sub->cur = 0;
+            v = 0;
+                    goto tail;
                 }
-                goto block_51;
             }
-block_51:
-            if (var_t4 == 2) {
-                temp_a0_3 = *(s16 *)((char *)&D_00000000 + 0x2048);
-                var_v0_5 = 0;
-                var_v1_5 = 0;
-                if (temp_a0_3 > 0) {
-loop_53:
-                    if ((((u32) FW(var_v0_5, 0x2D00) >> 0x1F) == 0) || (*(u8 *)(var_v0_5 + 0x2D04) != (*(s16 *)((char *)var_a2_2 + 0x2A)))) {
-                        var_v1_5 += 1;
-                        var_v0_5 += 0x160;
-                        if (var_v1_5 < temp_a0_3) {
-                            goto loop_53;
-                        }
-                    }
+            if (st1 == 2) {
+                for (k = 0; k < G.n2048; k++) {
+                    if (G.objs[k].flag && G.objs[k].b4 == sub->ent[1].hA) break;
                 }
-                var_v0_3 = 1;
-                if (var_v1_5 == temp_a0_3) {
-                    FW(var_a2_2, 0x0) = 1;
-                    goto block_83;
+                if (k == G.n2048) {
+                    sub->cur = v = 1;
+                    goto tail;
                 }
-                goto block_75;
             }
-            goto block_75;
+        } else if (mode == 1) {
+            if (a == 2) {
+                for (k = 0; k < G.count; k++) {
+                    if (G.recs[k].b33 == sub->ent[0].hA && G.recs[k].e.flag) break;
+                }
+                if (k == G.count) {
+                    sub->cur = 0;
+            v = 0;
+                    goto tail;
+                }
+            }
+            if (st1 == 2) {
+                for (k = 0; k < G.count; k++) {
+                    if (G.recs[k].b33 == sub->ent[1].hA && G.recs[k].e.flag) break;
+                }
+                if (k == G.count) {
+                    sub->cur = v = 1;
+                    goto tail;
+                }
+            }
         }
-        if (arg0 == 1) {
-            if (var_t3 == 2) {
-                temp_a1_3 = *(s32 *)((char *)&D_00000000 + 0x2070);
-                var_v1_6 = 0;
-                if (temp_a1_3 > 0) {
-                    var_v0_6 = *(char **)((char *)&D_00000000 + 0x2CFC);
-loop_62:
-                    if ((*(u8 *)(var_v0_6 + 0x33) != (*(s16 *)((char *)var_a2_2 + 0x1E))) || (((u32) FW(var_v0_6, 0xB0) >> 0x1F) == 0)) {
-                        var_v1_6 += 1;
-                        var_v0_6 += 0xD0;
-                        if (var_v1_6 < temp_a1_3) {
-                            goto loop_62;
-                        }
-                    }
-                }
-                var_v0_3 = 0;
-                if (var_v1_6 == temp_a1_3) {
-                    FW(var_a2_2, 0x0) = 0;
-                    goto block_83;
-                }
-                goto block_67;
+        v = sub->cur;
+        if (v == 0) {
+            if (a == 1) {
+                if (st1 == 1) goto ret0;
+                sub->cur = v = 1;
             }
-block_67:
-            if (var_t4 == 2) {
-                temp_a1_4 = *(s32 *)((char *)&D_00000000 + 0x2070);
-                var_v1_7 = 0;
-                if (temp_a1_4 > 0) {
-                    var_v0_7 = *(char **)((char *)&D_00000000 + 0x2CFC);
-loop_70:
-                    if ((*(u8 *)(var_v0_7 + 0x33) != (*(s16 *)((char *)var_a2_2 + 0x2A))) || (((u32) FW(var_v0_7, 0xB0) >> 0x1F) == 0)) {
-                        var_v1_7 += 1;
-                        var_v0_7 += 0xD0;
-                        if (var_v1_7 < temp_a1_4) {
-                            goto loop_70;
-                        }
-                    }
-                }
-                var_v0_3 = 1;
-                if (var_v1_7 == temp_a1_4) {
-                    FW(var_a2_2, 0x0) = 1;
-                    goto block_83;
-                }
-                goto block_75;
-            }
-            goto block_75;
+        } else if (st1 == 1) {
+            if (a == 1) goto ret0;
+            sub->cur = 0;
+            v = 0;
         }
-block_75:
-        var_v0_3 = FW(var_a2_2, 0x0);
-        if (var_v0_3 == 0) {
-            if (var_t3 == 1) {
-                var_v0_3 = 1;
-                if (var_t4 != 1) {
-                    FW(var_a2_2, 0x0) = 1;
-                    goto block_83;
-                }
-                goto block_82;
+        goto tail;
+ret0:
+        return 0;
+tail:
+        if (sub->ent[v].hA != -1) {
+            tbl[sub->ent[v].hA] = 0;
+            if (mode == 1) {
+                gl_func_00000000(sub->ent[sub->cur].hA);
             }
-            goto block_83;
         }
-        if (var_t4 == 1) {
-            var_v0_3 = 0;
-            if (var_t3 != 1) {
-                FW(var_a2_2, 0x0) = 0;
-                goto block_83;
+        r = &cfg->sub.base;
+        switch (sub->cur) {
+        case 0:
+            sub->ent[0].w0 = r[0];
+            sub->ent[0].hA = arg3;
+            sub->ent[0].w4 = size;
+            r[1] = r[0] + size;
+            if (sub->ent[1].hA != -1 && (unsigned)sub->ent[1].w0 < (unsigned)r[1]) {
+                tbl[sub->ent[1].hA] = 0;
+                switch (mode) {
+                case 0:
+                    gl_ref_00034238(sub->ent[1].hA);
+                    break;
+                case 1:
+                    gl_func_00000000(sub->ent[1].hA);
+                    break;
+                }
+                sub->ent[1].hA = -1;
+                sub->ent[1].w0 = r[0] + r[2];
             }
-block_82:
+            k = sub->ent[0].w0;
+            break;
+        case 1:
+            sub->ent[1].w0 = (r[0] + r[2] - size) & ~15;
+            sub->ent[1].hA = arg3;
+            sub->ent[1].w4 = size;
+            if (sub->ent[0].hA != -1 && (unsigned)sub->ent[1].w0 < (unsigned)r[1]) {
+                tbl[sub->ent[0].hA] = 0;
+                switch (mode) {
+                case 0:
+                    gl_ref_00034238(sub->ent[0].hA);
+                    break;
+                case 1:
+                    gl_func_00000000(sub->ent[0].hA);
+                    break;
+                }
+                sub->ent[0].hA = -1;
+                r[1] = r[0];
+            }
+            k = sub->ent[1].w0;
+            break;
+        default:
             return 0;
         }
-block_83:
-        temp_v1_2 = (*(s16 *)((char *)(var_a2_2 + (var_v0_3 * 0xC)) + 0x1E));
-        if (temp_v1_2 != -1) {
-            *(int*)(var_t2 + temp_v1_2) = 0;
-            if (arg0 == 1) {
-                sp30 = var_t2;
-                sp4C = var_a3;
-                sp28 = var_a2_2;
-                gl_func_0001CA10(FW((var_a2_2 + (FW(var_a2_2, 0x0) * 0xC)), 0x1E));
-            }
-        }
-        temp_a0_4 = FW(var_a2_2, 0x0);
-        temp_v0 = var_a3 + 0xD8;
-        if (temp_a0_4 != 0) {
-            temp_v0_2 = var_a3 + 0xD8;
-            if (temp_a0_4 != 1) {
-                return 0;
-            }
-            temp_t9 = ((FW(var_a3, 0xD8) + FW(temp_v0_2, 0x8)) - arg1) & ~0xF;
-            FW(var_a2_2, 0x20) = temp_t9;
-            temp_a0_5 = (*(s16 *)((char *)var_a2_2 + 0x1E));
-            (*(s16 *)((char *)var_a2_2 + 0x2A)) = (s16) arg3;
-            FW(var_a2_2, 0x24) = arg1;
-            if ((temp_a0_5 != -1) && (temp_t9 < (u32) FW(temp_v0_2, 0x4))) {
-                *(int*)(var_t2 + temp_a0_5) = 0;
-                switch (arg0) {                     /* switch 3; irregular */
-                case 0:                             /* switch 3 */
-                    sp28 = var_a2_2;
-                    sp24 = temp_v0_2;
-                    game_libs_func_0003443C((*(s16 *)((char *)var_a2_2 + 0x1E)));
-block_107:
-                    var_a2_2 = sp28;
-                    break;
-                case 1:                             /* switch 3 */
-                    sp28 = var_a2_2;
-                    sp24 = temp_v0_2;
-                    gl_func_0001CA10((*(s16 *)((char *)var_a2_2 + 0x1E)));
-                    goto block_107;
-                }
-                (*(s16 *)((char *)var_a2_2 + 0x1E)) = -1;
-                FW(temp_v0_2, 0x4) = (u32) FW(var_a3, 0xD8);
-            }
-            var_v1 = FW(var_a2_2, 0x20);
-            goto block_99;
-        }
-        FW(var_a2_2, 0x14) = (u32) FW(var_a3, 0xD8);
-        (*(s16 *)((char *)var_a2_2 + 0x1E)) = (s16) arg3;
-        FW(var_a2_2, 0x18) = arg1;
-        temp_t6 = FW(var_a3, 0xD8) + arg1;
-        FW(temp_v0, 0x4) = temp_t6;
-        temp_a0_6 = (*(s16 *)((char *)var_a2_2 + 0x2A));
-        if ((temp_a0_6 != -1) && ((u32) FW(var_a2_2, 0x20) < temp_t6)) {
-            *(int*)(var_t2 + temp_a0_6) = 0;
-            switch (arg0) {                         /* switch 2; irregular */
-            case 0:                                 /* switch 2 */
-                sp28 = var_a2_2;
-                sp24 = temp_v0;
-                game_libs_func_0003443C((*(s16 *)((char *)var_a2_2 + 0x2A)));
-block_96:
-                var_a2_2 = sp28;
-                break;
-            case 1:                                 /* switch 2 */
-                sp28 = var_a2_2;
-                sp24 = temp_v0;
-                gl_func_0001CA10((*(s16 *)((char *)var_a2_2 + 0x2A)));
-                goto block_96;
-            }
-            (*(s16 *)((char *)var_a2_2 + 0x2A)) = -1;
-            FW(var_a2_2, 0x20) = (s32) (FW(var_a3, 0xD8) + FW(temp_v0, 0x8));
-        }
-        var_v1 = FW(var_a2_2, 0x14);
-block_99:
-        *var_a2_2 ^= 1;
-        return var_v1;
+        sub->cur ^= 1;
+        return k;
     }
-    arg2 = var_a2;
-    sp4C = var_a3;
-    sp30 = var_t2;
-    temp_v0_3 = gl_func_0001CA10((s16) (var_a3 + 4), arg1, var_a2, var_a3);
-    FW((var_a3 + (FW(var_a3, 0x0) * 0xC)), 0x14) = temp_v0_3;
-    if (temp_v0_3 == 0) {
-        if ((arg2 != 0) && (arg2 != (s32 *)1)) {
-            if (arg2 == (s32 *)2) {
-                var_a2 = 0;
-                goto loop_1;
+    v = gl_func_00000000(&cfg->p4, size);
+    cfg->ent[cfg->cur].w0 = v;
+    if (v == 0) {
+        if (op != 0 && op != 1) {
+            if (op == 2) {
+                op = 0;
+                goto top;
             }
-            goto block_117;
+        } else {
+            return 0;
         }
-        return 0;
     }
-block_117:
-    FW((var_a3 + (FW(var_a3, 0x0) * 0xC)), 0x1E) = (s16) arg3;
-    FW((var_a3 + (FW(var_a3, 0x0) * 0xC)), 0x18) = arg1;
-    temp_v1 = FW(var_a3, 0x0);
-    FW(var_a3, 0x0) = temp_v1 + 1;
-    return FW((var_a3 + (temp_v1 * 0xC)), 0x14);
+    cfg->ent[cfg->cur].hA = arg3;
+    cfg->ent[cfg->cur].w4 = size;
+    return cfg->ent[cfg->cur++].w0;
 }
+#undef G
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000201B8);
 #endif
