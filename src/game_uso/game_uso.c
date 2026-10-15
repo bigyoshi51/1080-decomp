@@ -9818,26 +9818,23 @@ void game_uso_func_0000D438(char *a0) {
  * functions it calls (D5BC/D5DC/D5F8/D634, defs below; D5BC/D5DC/D634 100%).
  * Boundary defect RESOLVED: this .s is truncated to 0x164 (F1 only, ends at the
  * 0xD5B8 nop) and expected/game_uso.c.o carries D458 at the F1 size — verified.
- * STATUS 2026-06-23: DECODE-ONLY CAP — body is logic-exact (see NM below) but
- * BYTE-MATCH IS IMPOSSIBLE from C. Two unfixable residuals:
- *   (1) RELOC-FORM CAP (HI16-only-unpaired): expected references import_800200CC
- *       and game_uso_D_807FF3A0/A8/B0 with R_MIPS_HI16 and ZERO R_MIPS_LO16
- *       (offsets 0xDB8/0xDB0/0xDC0 baked as literal addiu immediates). IDO from
- *       ANY C extern-symbol form emits a HI16+LO16 PAIR, so the reloc SET cannot
- *       match. Classify: `objdump -r game_uso.c.o | grep 807FF3 | grep -c LO16`
- *       == 0. See docs/N64_FORENSICS HI16-only-unpaired cap.
- *   (2) `subu a1,s0,s0; addiu a1,a1,124` (the 0x7C 2nd arg to 07F6C0): a
- *       self-subtract artifact from IDO's value web; `x-x` folds to li from any
- *       C source (docs/IDO_CODEGEN) — so target's 2-insn form is unreproducible
- *       (= the 90-vs-89-word deficit) and the +8 frame (-0x48 vs the -0x40 C
- *       gives) rides the same phantom slot.
- * Residual otherwise = only those + VRAM-relative branch displacements (==).
+ * EXACT 2026-10-15 (agent-g, 98.61 -> 100; the 2026-06-23 "DECODE-ONLY CAP"
+ * verdict was wrong on both counts):
+ *   (1) the HI16-only D refs are `(char *)&game_uso_D_807FF3xx + 0xDB0/0xDB8/
+ *       0xDC0` -- the offset bakes into the addiu exactly like FC34's pairs; the
+ *       build's extra LO16 relocs are name/reloc-blind in the report and the raw
+ *       .text bytes match;
+ *   (2) `subu a1,s0,s0; addiu a1,a1,124` is a POINTER DIFFERENCE of two
+ *       same-base addresses, `(char *)arg0 + 0x138 - ((char *)arg0 + 0xBC)` --
+ *       IDO folds the +0x7C but not the base - base (an `x - x` or `x * 0`
+ *       does fold to li);
+ *   (3) frame 0x48 = `s32 pad[2]` declared above sp30 (one int is not enough:
+ *       it shifts sp30 down instead).
  * Logic was decode-verified 2026-06-23: var_v0 nested-if shape (beq;li;b;move)
- * and the 16-byte &sp30[4] buffer (048020 size arg 0x10) now match target.
+ * and the 16-byte &sp30[4] buffer (048020 size arg 0x10) match target.
  * DO NOT use split-fragments.py here: it DROPS the symbolic `lui %hi` line at
  * the D5DC boundary (size header says +1 word vs the file's word count),
  * corrupting the .s — see docs/MATCHING_WORKFLOW. */
-#ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -9851,10 +9848,11 @@ extern void game_uso_func_0000D5BC(char *, Pair2);
 extern char import_800200CC;
 extern char game_uso_D_807FF3A0, game_uso_D_807FF3A8, game_uso_D_807FF3B0;
 void game_uso_func_0000D458(s32 arg0) {
+    s32 pad[2];
     s32 sp30[4];
     s32 var_v0;
 
-    game_uso_func_07F6C0((int)arg0 + 0xBC, (arg0 * 0) + 0x7C);
+    game_uso_func_07F6C0((char *)arg0 + 0xBC, (char *)arg0 + 0x138 - ((char *)arg0 + 0xBC));
     FW(arg0, 0x114) = 2;
     FW(arg0, 0xFC) = 0x10000;
     FW(arg0, 0xDC) = 1;
@@ -9865,9 +9863,9 @@ void game_uso_func_0000D458(s32 arg0) {
     game_uso_func_077C44(arg0, FW(arg0, 0xFC) | 8, 0, 0, 1, 1);
     import_0010D420(arg0);
     if (*(int *)((char *)&import_800200CC + 0x34) == 3) {
-        game_uso_func_0000D5BC(arg0, *(Pair2*)&game_uso_D_807FF3A0);
+        game_uso_func_0000D5BC(arg0, *(Pair2*)((char*)&game_uso_D_807FF3A0 + 0xDB0));
     } else {
-        game_uso_func_0000D5BC(arg0, *(Pair2*)&game_uso_D_807FF3A8);
+        game_uso_func_0000D5BC(arg0, *(Pair2*)((char*)&game_uso_D_807FF3A8 + 0xDB8));
     }
     game_uso_func_049280();
     game_uso_func_048020((s32) &sp30, 0xF10, 0x10);
@@ -9879,12 +9877,9 @@ void game_uso_func_0000D458(s32 arg0) {
         var_v0 = 1;
     }
     if (var_v0 == 0) {
-        game_uso_func_0000D5BC(arg0, *(Pair2*)&game_uso_D_807FF3B0);
+        game_uso_func_0000D5BC(arg0, *(Pair2*)((char*)&game_uso_D_807FF3B0 + 0xDC0));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D458);
-#endif
 
 /* game_uso_func_0000D5BC: copies the varargs pair (a1,a2 via &a1) to the
  * adjacent a0->0xC8/0xCC.
