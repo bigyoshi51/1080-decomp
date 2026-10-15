@@ -19908,12 +19908,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000334E8);
 //   (rec+0x18, 0, 0); (3) trailing stores rec->0x34=flags, rec->0x38=c, rec->0x40=1;
 //   (4) templates via &D+0x1E2C0/0x1E2D8 (lui+addiu) not literal (lui+ori).
 //   Remaining ~21% = USO reloc + register alloc. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+// EXACT 2026-10-15 (agent-c; was NM 76.4): the first callback takes flags as
+//   a THIRD arg (target `or a2,s1,zero` in the jal delay; flags then lives in
+//   s1 and is never homed) and the 7-arg call's 4th arg is the otherwise
+//   unused param b (`lw a3,64(sp)`), not c: gl_func(rec, 0, 0, b, flags, c,
+//   rec+0x18). Both fixes are the call-shape scan's missing-arg class.
 void gl_func_000337AC(int id, unsigned flags, int b, int c) {
     char *rec;
-    (void)b;
     if (flags & 7) {
-        gl_func_00000000((char *)&D_00000000 + 0x0001E2C0, id);
+        gl_func_00000000((char *)&D_00000000 + 0x0001E2C0, id, flags);
     }
     if (c & 1) {
         gl_func_00000000((char *)&D_00000000 + 0x0001E2D8, c);
@@ -19921,14 +19924,11 @@ void gl_func_000337AC(int id, unsigned flags, int b, int c) {
     rec = (char *)&D_00000000 + id * 0x44;
     *(int *)(rec + 0x3C) = 1;
     gl_func_00000000(flags, c);
-    gl_func_00000000(rec, 0, 0, c, flags, c, rec + 0x18);
+    gl_func_00000000(rec, 0, 0, b, flags, c, rec + 0x18);
     *(int *)(rec + 0x34) = flags;
     *(int *)(rec + 0x38) = c;
     *(int *)(rec + 0x40) = 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000337AC);
-#endif
 
 // gl_func_00033880 — STRUCTURAL PASS (0xDC / 55 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
