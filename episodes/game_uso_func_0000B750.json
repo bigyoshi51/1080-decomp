@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_0000B750",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T19:02:57.269032+00:00",
+  "end_time": "2026-10-15T19:02:57.269052+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T19:02:57.269047+00:00",
+      "assistant_text": "Exact via IDO 7.1 NCC C++ donor. The scale factor is the stack float param reassigned in place (if (!(flags & 8)) arg4 = 1.0f), which reloads it from its home on each path into one register. The 4-float temporary is a class whose constructor forwards to an inline set(); the nested inline arg temps give frame 88 with the object at sp+64 and the target FP colours. Only two named locals (edg gives each local a stack slot). Final call is the third virtual (vptr at +0x28).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 77,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 NCC (C++) donor for game_uso_func_0000B750 (0x134 / 77 words).\n *\n * Camera/basis update: f0 = src->0x00 (+ k * 400 when flag 4), where k is\n * the stack float argument, replaced by 1.0 unless flag 8. Writes\n * a2 + a3 * f0 to the vec at import_8005C1A8 + 0xD0, copies src->0x18 to\n * obj->0xC0 (short), and if src->0x14 (* k when flag 2) exceeds the double\n * at game_uso_D_807FFA78 + 0x158, stores it to obj->0xB0/0xB4, builds a\n * 4-float temporary (src->0x04, 0x08, 0x0C, src->0x10 * k), passes it to\n * 05B750(&import_8005C108, &q) and calls obj's third virtual (vptr at +0x28).\n *\n * C++ facts this body depends on (cfe capped at 72.8%):\n *  - k IS the parameter (`arg4 = 1.0f`): the param is re-loaded from its\n *    stack home into its own register on each path (two `lwc1 f16,104(sp)`),\n *    and there is one less local slot.\n *  - The temporary is a Q whose constructor forwards to an inline set();\n *    the nested inline argument temps give the target's frame (88, q at\n *    sp+64) and the FP colouring (x f0, y f2, z f12, w f14). A plain\n *    4-arg constructor gives frame 80 and y/z/w in f12/f14/f16.\n *  - `(int)&sym + 0xA0` keeps the `lui/addiu sym+0xA0` base (edg folds a\n *    char * spelling).\n * Spliced into game_uso.c.o via REPLACE_FUNC_BODY\n * (docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe). Every\n * symbol is extern \"C\". */\nstruct V { char pad[40]; virtual void m0(); virtual void m1(); virtual void m2(); };\nstruct Q {\n    float x, y, z, w;\n    void set(float a, float b, float c, float d) { x = a; y = b; z = c; w = d; }\n    Q(float a, float b, float c, float d) { set(a, b, c, d); }\n};\nextern \"C\" {\nextern char import_8005C108;\nextern char import_8005C1A8;\nextern char game_uso_D_807FFA78;\nvoid game_uso_func_05B750(void *, Q *);\n}\n#define AT(T,b,o) (*(T *)((char *)(b) + (o)))\nextern \"C\" void game_uso_func_0000B750(char *a0, char *s0, float *a2, float *a3, float arg4) {\n    float f0 = AT(float, a0, 0x00);\n    float v;\n    if (AT(int, a0, 0x1C) & 4) f0 += arg4 * 400.0f;\n    if (!(AT(int, a0, 0x1C) & 8)) arg4 = 1.0f;\n    AT(float, (int)&import_8005C1A8 + 0xA0, 0x30) = a2[0] + a3[0] * f0;\n    AT(float, (int)&import_8005C1A8 + 0xA0, 0x34) = a2[1] + a3[1] * f0;\n    AT(float, (int)&import_8005C1A8 + 0xA0, 0x38) = a2[2] + a3[2] * f0;\n    AT(short, s0, 0xC0) = AT(int, a0, 0x18);\n    v = AT(float, a0, 0x14);\n    if (AT(int, a0, 0x1C) & 2) v *= arg4;\n    if ((double)v > AT(double, &game_uso_D_807FFA78, 0x158)) {\n        AT(float, s0, 0xB0) = v;\n        AT(float, s0, 0xB4) = v;\n        Q q(AT(float, a0, 0x04), AT(float, a0, 0x08), AT(float, a0, 0x0C), AT(float, a0, 0x10) * arg4);\n        game_uso_func_05B750(&import_8005C108, &q);\n        ((V *)s0)->m2();\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso_ncc_B750.cpp",
+    "asm_path": "asm/nonmatchings/game_uso/game_uso/game_uso_func_0000B750.s",
+    "segment": "game_uso",
+    "compiler": "IDO 7.1 NCC (C++)",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Wab,-r4300_mul",
+    "verification": "NCC donor 77/77 words + 7/7 relocs identical; spliced into game_uso.c.o via REPLACE_FUNC_BODY; report.json 100.0; ROM byte-identical; verify-blocks OK; 0 exacts lost."
+  }
+}

@@ -1534,6 +1534,12 @@ build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(
 GAMEUSO_F13C_DONOR := build/src/game_uso/game_uso_ncc_F13C.cpp.o
 build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: REPLACE_FUNC_BODY += game_uso_func_0000F13C=$(GAMEUSO_F13C_DONOR)
 build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(GAMEUSO_F13C_DONOR)
+# B750 = basis/scale update with a virtual call; k is the float param itself
+# and the 4-float temp is a class whose ctor forwards to an inline set()
+# (77/77 words; cfe capped at 72.8%).
+GAMEUSO_B750_DONOR := build/src/game_uso/game_uso_ncc_B750.cpp.o
+build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: REPLACE_FUNC_BODY += game_uso_func_0000B750=$(GAMEUSO_B750_DONOR)
+build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(GAMEUSO_B750_DONOR)
 
 # xldtob.c -O3 donor (73904/73E74): direct CC, no asm-processor
 # (asm-processor rejects -O3; the file has no GLOBAL_ASM). Symbol
