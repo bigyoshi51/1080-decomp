@@ -13536,30 +13536,15 @@ void gl_func_0002BAAC(char *o, unsigned char op) {
     ((Gl2BAACFlags *)o)->f3 = 1;
 }
 
-/* game_libs_func_0002BB58: 9-insn byte-to-float-scale leaf.
- * `a0[0x2C] = (float)(a1 & 0xFF) / 127.0f`.
- *
- * 2026-05-16: prior wrap said `* 127.0f` (8/9 cap). Funct decode of
- * insn @+0x18 (0x46083283) is 0x03 = div.s, NOT mul.s — corrected to
- * `/ 127.0f`. C-only emit drops to 32 bytes vs target 36; missing
- * `sw a1, 0x4(sp)` at +0x0 (arg-save sentinel that IDO doesn't emit
- * for non-spilling andi of a1). Same class as feedback-ido-arg-shadow-
- * spill-not-emitted (e.g. game_libs_func_0002DD38).
- * 2026-06-10 lever-asymmetry sweep (4 forms): the pointer-var arg-home
- * lever that emits `sw a0,0(sp)` for an a0 arg (2DD38, 0 diffs
- * standalone) does NOT emit `sw a1,4(sp)` for this a1 arg -- plain
- * &-form, (void)p form, and both store-through forms either skip the
- * home or grow to 10 insns with real memory traffic. The arg-home
- * lever appears a0-specific (or blocked by the float-convert liveness
- * here). Honest 76.67 floor. */
-#ifdef NON_MATCHING
-void game_libs_func_0002BB58(int *a0, int a1) {
-    int *p = &a1;
-    *(float*)((char*)a0 + 0x2C) = (float)(*p & 0xFF) / 127.0f;
+/* game_libs_func_0002BB58: 9-insn byte-to-float-scale leaf (EXACT).
+ * `a0[0x2C] = (float)(a1 & 0xFF) / 127.0f` (div.s, not mul.s).
+ * The entry `sw a1,4(sp); andi a1,a1,0xff` is an `unsigned char` param
+ * narrowed in place (#uchar-param-inplace-narrow-ushort-burn-2a014) --
+ * not an arg-home sentinel. `(int)a1` before the convert keeps the plain
+ * cvt.s.w (a bare u8 operand goes through the unsigned bgez/2^32 fixup). */
+void game_libs_func_0002BB58(int *a0, unsigned char a1) {
+    *(float*)((char*)a0 + 0x2C) = (int)a1 / 127.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002BB58);
-#endif
 
 // gl_func_0002BB7C — STRUCTURAL PASS (0xC28 / 778 words ≈ 3.1KB, no
 // episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
