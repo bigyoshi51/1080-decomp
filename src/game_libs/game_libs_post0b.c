@@ -34696,57 +34696,33 @@ void gl_func_0006275C(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006275C);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0006280C: 56-insn double-bounds-check + 2-level lookup + dispatch (0xE0, frame 0x30).
- *
- * Decoded structure (raw-word disasm):
- *   int hi_idx = (u16)(a1 >> 16);
- *   int lo_idx = a1 & 0xFFFF;
- *   if (hi_idx >= self->[0x34]) assert(D+0x220E8, hi_idx);     // outer bounds
- *   entry1 = self->[0x30][hi_idx];                              // first table lookup
- *   if (lo_idx >= entry1->[0x4]) assert(D+0x22100, ...);        // inner bounds
- *   entry2 = entry1->[0] + lo_idx * 4;                          // sub-array index
- *   // ... uses lo_idx*4 as offset into entry1->[0] table
- *   short key = (short)(entry2->[2]);                           // halfword pull
- *   if (... condition ...) {
- *       func_dispatch(self, key);
- *   }
- *   return value;
- *
- * Composite-index lookup with 2 bounds checks: a1 is a 32-bit packed index
- * (high u16 = outer table index, low u16 = inner sub-index). Standard
- * 2D-array dispatch pattern. The two `assert` calls fire on out-of-bounds.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+/* gl_func_0006280C: packed-index 2-level table lookup (0xE0 / 56 insns, EXACT).
+ * a1 = (outer << 16) | inner. Asserts outer < self->0x34, inner <
+ * tbl[outer].count (12-byte entries at self->0x30), then returns
+ * &tbl[outer].recs[inner] (32-byte records), asserting its h2 != 0.
+ * Lever: the old wrap (56.7) had the three webs rotated (hi a2 / lo v1 /
+ * offset a3 vs target a3 / a2 / v1). `sw a2,28(sp)` before the second jal
+ * with nothing setting a2 = inner is a THIRD assert argument; passing it
+ * pins inner to a2 and the rest falls into place. */
+typedef struct E280C { int *recs; int count; int w8; } E280C;
 int gl_func_0006280C(int *self, int a1) {
-    extern int D_00000000;
-    int hi_idx = (unsigned int)a1 >> 16;
-    int lo_idx = a1 & 0xFFFF;
-    int *entry1;
-    int *entry2;
-    short key;
-    int rc;
-    if (hi_idx >= self[0x34 / 4]) {
-        gl_func_00000000((char*)&D_00000000 + 0x220E8, hi_idx);
+    int hi;
+    int lo;
+    char *rec;
+    hi = (a1 >> 16) & 0xFFFF;
+    if (hi >= self[0x34 / 4]) {
+        gl_func_00000000((char*)&D_00000000 + 0x220E8, hi);
     }
-    entry1 = (int*)(self[0x30 / 4] + hi_idx * 8);
-    if (lo_idx >= entry1[1]) {
-        gl_func_00000000((char*)&D_00000000 + 0x22100, lo_idx);
+    lo = a1 & 0xFFFF;
+    if (lo >= ((E280C *)self[0x30 / 4])[hi].count) {
+        gl_func_00000000((char*)&D_00000000 + 0x22100, hi, lo);
     }
-    entry2 = (int*)(entry1[0] + lo_idx * 4);
-    key = *(short*)((char*)entry2 + 2);
-    if (key != 0) {
-        rc = (int)gl_func_00000000(self, key);
-    } else {
-        rc = 0;
+    rec = (char *)((E280C *)self[0x30 / 4])[hi].recs + lo * 32;
+    if (*(short *)(rec + 2) == 0) {
+        gl_func_00000000((char*)&D_00000000 + 0x22114, hi, lo);
     }
-    return rc;
+    return (int)rec;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006280C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000628EC: 5-arg constructor (arg4 stack-passed). Allocs self (0x130)
