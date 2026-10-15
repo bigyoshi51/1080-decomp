@@ -33686,31 +33686,24 @@ void game_libs_func_00060FFC(int *a0, int a1) {
 
 void game_libs_func_00061030(int *a0) { *(int*)((char*)a0 + 0x18) ^= 0x4; }
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00061040)();
-/* Hex formatter: writes the 8 nibbles of arg1 as chars from the hex LUT
- * (&D_00000000), unrolled 4/iter via shift v0 (28->12) + the srav &0x1F
- * wraparound on v0+0x1C/0x18/0x14. Each char = lbu LUT[nibble]; sb to dst. */
+/* Hex formatter: writes the 8 nibbles of arg1 (high first) as chars from the
+ * hex LUT (&D_00000000), NUL-terminates, returns the end ptr. A plain rolled
+ * loop with an exact-trip `!=` bound; IDO self-unrolls it 4x (v0 28 -> -4 step
+ * -0x10, srav &0x1F wraparound gives v0+0x1C/0x18/0x14). The q-copy store form
+ * (`q = arg0; arg0++; *q = ...`) gives the per-char `or v1,a0,zero` copies.
+ * The 5 leading all-zero pad words (0x61040-0x61053) are the predecessor
+ * game_libs_func_00061030's SUFFIX_BYTES_FORCE. */
 char *game_libs_func_00061040(char *arg0, s32 arg1) {
-    s32 var_v0 = 0x1C;
-    char *out = arg0;
-
-    do {
-        *out++ = *(u8 *)((char *)&D_00000000 + ((arg1 >> var_v0) & 0xF));
-        *out++ = *(u8 *)((char *)&D_00000000 + ((arg1 >> (var_v0 + 0x1C)) & 0xF));
-        *out++ = *(u8 *)((char *)&D_00000000 + ((arg1 >> (var_v0 + 0x18)) & 0xF));
-        *out++ = *(u8 *)((char *)&D_00000000 + ((arg1 >> (var_v0 + 0x14)) & 0xF));
-        var_v0 -= 0x10;
-    } while (var_v0 != -4);
-    *out = 0;
-    return out;
+    s32 i;
+    char *q;
+    for (i = 0x1C; i != -4; i -= 4) {
+        q = arg0;
+        arg0++;
+        *q = *(u8 *)((char *)&D_00000000 + ((arg1 >> i) & 0xF));
+    }
+    *arg0 = 0;
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061040);
-#endif
 
 /* itoa: integer a1 -> decimal string at a0, a2 = top place value (power of
  * 10). a1 == 0 writes "0". Else emit sign, then for each place a2 (descending,
