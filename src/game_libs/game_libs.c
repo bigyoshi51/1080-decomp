@@ -61,53 +61,52 @@ void gl_func_00000338(char *a0, int a1) {
     gl_func_00000000(a0 + 0xE4, (char*)&D_00000000 + 0xCB08, mins, secs, ms_part);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_00000400: 93-insn nested-alloc + color-normalize constructor.
- * Alloc-cascade family (cf gl_func_000001CC / gl_func_00000A8C) with THREE
- * nested alloc levels (obj -> sub -> sub2), each defensively initialized, plus
- * the 250/235/100/0 RGBA-over-255 color set. Short-circuit || cascade colors
- * sub=$v1 like the target; fixes the m2c dump bugs: 0xCB18/0xCB20 are
- * (char*)&D_00000000 + off relocs (not integer ori); init(sub2,&ref) is 2-arg
- * (sub2 stays $a2); denom = 255.0f forces the runtime div.s. */
+/* gl_func_00000400: three-level get-or-create constructor (0x13C object ->
+ * 0x10C sub -> 0x10C sub2) + colour normalize (0x174, 93 words). EXACT
+ * in-unit. Same arg0-is-self || fallback as gl_func_000001CC at the outer
+ * level, but the target frame (0x38) has only four slots: the sub/sub2
+ * spill homes and the two CSE'd obj+0x10C/obj+0x124 call-arg temps. A
+ * named f32 d255 divisor costs a fifth (unused) home -> frame 0x40, so the
+ * runtime div.s comes from store-forwarding instead: store the raw colour,
+ * then `/= 255.0f` in place. cfe cannot fold a memory operand; uopt forwards
+ * the 250/235/100/0 constants but never folds a float divide, and the first
+ * stores die. */
 extern int gl_func_00000000();
-int gl_func_00000400(int *a0, int a1) {
-    int *obj;
-    float denom;
-    int *sub;
-    int *sub2;
+char *gl_func_00000400(char *arg0, s32 arg1) {
+    char *sub;
+    char *sub2;
 
-    obj = a0;
-    if ((a0 != 0) || (obj = (int*)gl_func_00000000(0x13C), obj != 0)) {
-        sub = obj;
-        if ((obj != 0) || (sub = (int*)gl_func_00000000(0x10C), sub != 0)) {
+    if ((arg0 != 0) || (arg0 = (char *)gl_func_00000000(0x13C), (arg0 != 0))) {
+        sub = arg0;
+        if ((arg0 != 0) || (sub = (char *)gl_func_00000000(0x10C), (sub != 0))) {
             sub2 = sub;
-            if ((sub != 0) || (sub2 = (int*)gl_func_00000000(0x10C), sub2 != 0)) {
-                gl_func_00000000(sub2, (char*)&D_00000000 + 0xCB18);
-                *(int*)((char*)sub2 + 0x28) = (int)&D_00000000;
-                gl_func_00000000((char*)sub2 + 0x2C);
+            if ((sub != 0) || (sub2 = (char *)gl_func_00000000(0x10C), (sub2 != 0))) {
+                gl_func_00000000(sub2, (char *)&D_00000000 + 0xCB18);
+                *(s32 *)(sub2 + 0x28) = (s32)&D_00000000;
+                gl_func_00000000(sub2 + 0x2C);
             }
-            *(int*)((char*)sub + 0x28) = (int)&D_00000000;
+            *(s32 *)(sub + 0x28) = (s32)&D_00000000;
         }
-        *(int*)((char*)obj + 0xC) = (int)((char*)&D_00000000 + 0xCB20);
-        gl_func_00000000((char*)obj + 0x10C, 0x5001B);
-        gl_func_00000000((char*)obj + 0x124, 0x5001D);
-        gl_func_00000000(obj, (char*)obj + 0x124, (char*)obj + 0x10C);
-        *(int*)((char*)obj + 0xD4) = 0;
-        *(int*)((char*)obj + 0xD8) = 255;
-        *(int*)((char*)obj + 0xDC) = 130;
-        denom = 255.0f;
-        *(float*)((char*)obj + 0xC4) = 250.0f / denom;
-        *(float*)((char*)obj + 0xC8) = 235.0f / denom;
-        *(float*)((char*)obj + 0xCC) = 100.0f / denom;
-        *(float*)((char*)obj + 0xD0) = 0.0f / denom;
-        *(int*)((char*)obj + 0xE0) = a1;
-        gl_func_00000000(obj, -80, -1, -61, 0);
+        *(s32 *)(arg0 + 0xC) = (s32)((char *)&D_00000000 + 0xCB20);
+        gl_func_00000000(arg0 + 0x10C, 0x5001B);
+        gl_func_00000000(arg0 + 0x124, 0x5001D);
+        gl_func_00000000(arg0, arg0 + 0x124, arg0 + 0x10C);
+        *(s32 *)(arg0 + 0xD4) = 0;
+        *(s32 *)(arg0 + 0xD8) = 0xFF;
+        *(s32 *)(arg0 + 0xDC) = 0x82;
+        *(f32 *)(arg0 + 0xC4) = 250.0f;
+        *(f32 *)(arg0 + 0xC8) = 235.0f;
+        *(f32 *)(arg0 + 0xCC) = 100.0f;
+        *(f32 *)(arg0 + 0xD0) = 0.0f;
+        *(f32 *)(arg0 + 0xC4) /= 255.0f;
+        *(f32 *)(arg0 + 0xC8) /= 255.0f;
+        *(f32 *)(arg0 + 0xCC) /= 255.0f;
+        *(f32 *)(arg0 + 0xD0) /= 255.0f;
+        *(s32 *)(arg0 + 0xE0) = arg1;
+        gl_func_00000000(arg0, -80, -1, -61, 0);
     }
-    return (int)obj;
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000400);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_00000574(char *a0) {
