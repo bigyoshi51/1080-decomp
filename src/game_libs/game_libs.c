@@ -614,62 +614,37 @@ int* gl_func_000011A4(int *self) {
 void gl_func_0000127C(char *a0) {
     gl_func_00000000(a0 + 0x110);
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0000127C_pad.s")
 
-#ifdef NON_MATCHING
-/* gl_func_000012B4: 40-insn helper (0xA0, frame 0x68, saves s0/s1/s2/ra).
- *
- * Caller-set float convention ($f4, $f6, $f0): same family as
- * gl_func_00010650 / game_uso_func_00010650 — IDO C-level cannot receive
- * floats in $f4/$f6/$f0 (intra-USO non-O32 call convention,
- * docs/IDO_CODEGEN.md#feedback-ido-no-gcc-register-asm). Real C body
- * sketched below for documentation; INCLUDE_ASM is the build path.
- *
- * Decoded structure:
- *   self = a0; product_int = (int)(f4 * f6);
- *   Quad4 buf = {0,0,0,0};                 // 4× swc1 f0 (=0.0f caller-set)
- *   gl_func_00000000(&D_NNN, product_int, &buf, 0);     // 4-arg call
- *   s2 = self + 0x110;                                 // subobject pointer
- *   gl_func_00000000(s2);                              // unary call
- *   for (i = self->[0x10C] - 1; i >= 0; i--) {
- *       byte_off = i * 4;                              // sll 2
- *       p = (char*)self->[0x44] + byte_off;
- *       q = self->[0x5C] - byte_off;
- *       gl_func_00000000(s2, p, q, 3);                 // a3=3 literal
- *   }
- *
- * Structural-decode note 2026-05-18: was 1-line "Multi-pass decode pending"
- * doc-marker (the bail pattern per feedback_doc_marker_is_bail.md).
- * Replaced with substantive structural decode + caller-set-float-cap class
- * attribution. INCLUDE_ASM path holds. CAP: $f4/$f6/$f0 caller-set float
- * calling convention is unreachable from IDO C; promotion via INSN_PATCH
- * REMOVED 2026-05-23 as match-faking per
- * feedback_no_instruction_forcing_matches_policy — stays NM.
- */
-void gl_func_000012B4(int *self) {
-    /* Real C below documents the body shape. Cannot byte-match due to
-     * intra-USO float-in-fN callee convention; INCLUDE_ASM #else branch is
-     * the build path. */
-    extern int gl_func_00000000();
-    extern int D_00000000;
-    extern float gl_float_f4, gl_float_f6;  /* placeholder caller-set floats */
-    int product_int = (int)(gl_float_f4 * gl_float_f6);
-    int buf[4] = {0, 0, 0, 0};
-    int *s2;
+/* gl_func_000012B4: Quad4(1.0f) colour + (int)(255 * alpha) setup, then a
+ * per-entry loop over self->0x10C (0xB8, 46 words). EXACT in-unit. The
+ * "caller-set $f0/$f4/$f6 float convention cap" was a splat boundary error:
+ * the six words before the old 0x12B4 symbol (`lui/mtc1` 1.0f -> f0, 255.0f
+ * -> f4, `lwc1 f6` of D_00C75C) are this function's own constant hoist that
+ * IDO -O2 schedules ABOVE `addiu sp` (IDO_CODEGEN stolen-prologue FP-const
+ * note). They were folded from gl_func_0000127C_pad.s into this .s (symbol
+ * now at 0x129C; expected/ re-baselined, .text byte-identical). The float is
+ * its own sym (TextReloc sym 858), so a REAL `float` extern
+ * gl_data_00000000_12b4f: through `*(float *)&D_00000000` the load takes f4
+ * and 255.0f f6 (pair swapped). Unreferenced `char pad[0x20]` after buf
+ * gives the 0x68 frame (buf at sp+0x58). */
+extern int gl_func_00000000();
+extern float gl_data_00000000_12b4f;
+void gl_func_000012B4(char *self) {
+    float buf[4];
+    char pad[0x20];
+    char *s2;
     int i;
-    gl_func_00000000(&D_00000000, product_int, &buf, 0);
-    s2 = (int*)((char*)self + 0x110);
+    buf[0] = 1.0f;
+    buf[1] = 1.0f;
+    buf[2] = 1.0f;
+    buf[3] = 1.0f;
+    gl_func_00000000((char*)&D_00000000, (int)(255.0f * gl_data_00000000_12b4f), buf);
+    s2 = self + 0x110;
     gl_func_00000000(s2);
-    for (i = self[0x10C / 4] - 1; i >= 0; i--) {
-        int byte_off = i * 4;
-        int *p = (int*)((char*)self[0x44 / 4] + byte_off);
-        int q = self[0x5C / 4] - byte_off;
-        gl_func_00000000(s2, p, q, 3);
+    for (i = *(int*)(self + 0x10C) - 1; i >= 0; i--) {
+        gl_func_00000000(s2, *(int*)(self + 0x44) + i * 4, *(int*)(self + 0x5C) - i * 4, 3);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000012B4);
-#endif
 
 void game_libs_func_00001354(int *a0, int a1) {
     a0[0x10C/4] = a1;

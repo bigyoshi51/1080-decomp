@@ -3615,3 +3615,4 @@ gl_data_00000000_83cc = 0x00000000;  /* 83CC: call2 a1 = &D_007294+0x70 (bootup 
 gl_data_00000000_70fc = 0x00000000;  /* 70FC: &G (bootup import sym 272) for the success-path and third-dispatch blocks; distinct from D_00000000 (second dispatch) so IDO re-materializes per block instead of CSE-ing into s0 */
 gl_data_00000000_70fc_1 = 0x00000000;  /* 70FC: G->0x138 read on the success path (sym 272); distinct alias busts the exclusive-path hoist with the second dispatch */
 gl_func_00000000_70fcv = 0x00000000;  /* 70FC: void-returning blank-jal alias for func_000188 (5/6,0,0) */
+gl_data_00000000_12b4f = 0x00000000;  /* 12B4: float read (bootup TextReloc sym 858 = D_00C75C); a real float extern keeps 255.0f in f4 and the load in f6 */
