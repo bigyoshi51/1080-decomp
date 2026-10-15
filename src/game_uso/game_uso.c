@@ -11041,86 +11041,29 @@ void game_uso_func_0000F060(int *a0) {
     volatile int *ret = a0;
 }
 
-/* game_uso_func_0000F13C — verified structural decode (EE84-family, 82 insns,
- * 12% LEN-DIFF; branch-likely + double-const abs-threshold + D-pair sp-args =
- * documented sub-80 ceiling → INCLUDE_ASM build path; struct-typing ref).
- *   s0=a0; v1=(int*)s0->0xB4; o=(int*)v1->0x800;
- *   if ((o->0x10 & 0x100) && (o->0x10 & 0x200) && v1->0x938 != 0)
- *       func_00000000(s0);
- *   else {
- *       f0 = *(float*)(v1+0x970);
- *       if ((double)fabs(f0) > *(double*)(&D+0x238))
- *           func_00000000(s0, 0x10028, 0x10029, *(int*)&f0, 0,0,1);
- *       else
- *           func_00000000(s0, 0x10011, 0,0, 6,1);
- *       if (((int*)s0->0xB4)->0x938 == 0) func_00000000(s0);
- *   }
- *   short v0 = *(short*)(s0+0xE6); *(short*)(s0+0xE6) = v0+1;
- *   if (s0->0x184 < v0) func_00000000(s0, D[0xEA8], D[0xEAC]);
- * Struct-typing: s0->0xB4 object (->0x800->0x10 bits 0x100/0x200, ->0x938
- * flag, ->0x970 float), s0->0xE6 short counter, s0->0x184 bound, D double
- * gate @0x238, D-pair @0xEA8/EAC. 65.05% -> 71.35%: the D-pair @0xEA8/EAC now
- * passes BY VALUE as *(Pair2*) (homes a1,a2; same lever as EF70). Residual
- * (78 diffs): the FP-dispatch over-spills the frame (sp-0x40 here vs target
- * sp-0x28, +24) + uncached o->0x10/v1->0x938 reloads + beql/bc1fl branch-likely
- * + neg.s/mov.s abs idiom — documented EE84-family FP ceiling. INCLUDE_ASM. */
-#ifdef NON_MATCHING
-/* game_uso_func_0000F13C — 78.85 -> 99.37% (2026-10-15 agent-g), same block
- * as sibling F060 (docs/IDO_CODEGEN.md#materialized-bool-flag-test-sltu-beqzl-f060):
- * `((p->0x10 & 0x100) != 0) == 0 || ((unsigned int *)p)->0x10 & 0x200` gives
- * the sltu+beqzl bool and the flag reload; p written into an unused 2nd param
- * a1 colours it a1 (the call-shape scan's jal/01 at F360); DB78's 4th arg is a
- * float through a prototyped alias import_0010DB78_f (mfc1 a3,f0, no stack
- * home -> frame 0x28; the K&R `*(int *)&f0` forced a 56-byte frame).
- * RESIDUAL (6 words): v = a0->0xB4 colours v0, target v1 (same residual as F060).
- * import_0010DB78_f is NM-only: pin `import_0010DB78_f = 0;` if this body ever
- * goes on the build path.
- * Earlier notes - RECONSTRUCTION (reloc-aware, EE84/10694-family).
- * Real callees resolved from expected/.o relocs:
- *   f188 jal game_uso_func_0000F360(s0)         [all-bits + flag set]
- *   f208 jal import_0010DB78(s0,0x10028,0x10029,(int)f0,0,1)   [abs > thresh]
- *   f218 jal import_0010DB28(s0,0x10011,0,1,6,1)               [abs <= thresh]
- *   f234 jal game_uso_func_0001001C(s0)         [v1->0x938 == 0]
- *   f26c jal game_uso_func_0000D5BC(s0, *(Pair2*)(&D_807FF498+0xEA8))
- * double threshold = *(double*)(&D_807FFB58 + 0x238). abs.s via neg.s/mov.s.
- * Branch-likely (beqzl/bc1fl) + double-const abs gate + D-pair sp-args. */
-extern int import_0010DB28();
-extern void game_uso_func_0000F360(int *);
+/* game_uso_func_0000F13C (0x144 / 81 words): EE84-family state handler, same
+ * flag block as F060. If the 0xB4 object's 0x800 child has
+ * (!(flags & 0x100) || (flags & 0x200)) and the 0xB4 object's 0x938 is set,
+ * F360(self); else pick DB78(self, 0x10028, 0x10029, f, 0, 1) when
+ * |0xB4->0x970| exceeds the D_807FFB58+0x238 double (else DB28(self,
+ * 0x10011, 0, 1, 6, 1)) and run 1001C(self) when 0xB4->0x938 is clear. Then
+ * ++self->0xE6 and D5BC(self, PMF at D_807FF498+0xEA8) once the old value
+ * passes self->0x184.
+ * EXACT via REPLACE_FUNC_BODY donor splice: the real body is the IDO 7.1 NCC
+ * (C++) donor src/game_uso/game_uso_ncc_F13C.cpp (81/81 words + 9/9 relocs).
+ * The cfe C capped at 99.57% on the same v0-vs-v1 colouring as F060; the
+ * inlined `self->0xB4->child()` member fixes both. The float 4th argument of
+ * DB78 comes from the prototype (no alias needed in the donor). See
+ * docs/IDO_CODEGEN.md#ncc-inline-member-child-v1-f060 and
+ * docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe.
+ * Body below is a placeholder for the splice. */
 extern void game_uso_func_0001001C(int *);
 extern void game_uso_func_0000D5BC(char *, Pair2);
 extern char game_uso_D_807FFB58;
 extern char game_uso_D_807FF498;
-extern int import_0010DB78_f(int *, int, int, float, int, int);
 void game_uso_func_0000F13C(int *a0, int *a1) {
-    int *s0 = a0;
-    int *v1 = (int *)s0[0xB4 / 4];
-    a1 = (int *)v1[0x800 / 4];
-    if ((((a1[0x10 / 4] & 0x100) != 0) == 0 || (((unsigned int *)a1)[0x10 / 4] & 0x200)) && v1[0x938 / 4] != 0) {
-        game_uso_func_0000F360(s0);
-    } else {
-        float f0 = *(float *)((char *)v1 + 0x970);
-        float abs_f0 = (f0 < 0.0f) ? -f0 : f0;
-        if (*(double *)((char *)&game_uso_D_807FFB58 + 0x238) < (double)abs_f0) {
-            import_0010DB78_f(s0, 0x10028, 0x10029, f0, 0, 1);
-        } else {
-            import_0010DB28(s0, 0x10011, 0, 1, 6, 1);
-        }
-        if (((int *)s0[0xB4 / 4])[0x938 / 4] == 0) {
-            game_uso_func_0001001C(s0);
-        }
-    }
-    {
-        short v0 = *(short *)((char *)s0 + 0xE6);
-        *(short *)((char *)s0 + 0xE6) = v0 + 1;
-        if (s0[0x184 / 4] < v0) {
-            game_uso_func_0000D5BC((char *)s0,
-                *(Pair2 *)((char *)&game_uso_D_807FF498 + 0xEA8));
-        }
-    }
+    volatile int *ret = a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F13C);
-#endif
 
 /* game_uso_func_0000F284: 55-insn EE84-family branchy, beql-selected mode+D-pair.
  * The two D-pair calls pass the float-pair BY VALUE as *(Pair2*) (struct-by-value

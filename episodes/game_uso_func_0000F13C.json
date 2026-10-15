@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_0000F13C",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T18:51:47.061122+00:00",
+  "end_time": "2026-10-15T18:51:47.061140+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T18:51:47.061136+00:00",
+      "assistant_text": "Exact via IDO 7.1 NCC (C++) donor, sibling of F060. The cfe C capped at 99.57% on the same v0-vs-v1 colouring of the self->0xB4 pointer; reading the 0x800 child through the inlined member V::child() fixes it (edg inline return temp takes v0). DB78 float 4th arg comes straight from its prototype; PMF passed by value as AT(PM, &sym, 0xEA8). Matched on the first NCC compile.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 82,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 NCC (C++) donor for game_uso_func_0000F13C (0x144 / 81 words).\n *\n * Same opening flag block as F060: if the 0xB4 object's 0x800 child has\n * (!(flags & 0x100) || (flags & 0x200)) and the 0xB4 object's 0x938 is set,\n * F360(self). Otherwise DB78 (float 4th arg = 0xB4->0x970) when |0x970|\n * exceeds the D_807FFB58+0x238 double, else DB28; then 1001C(self) when\n * 0xB4->0x938 is clear. Finally ++self->0xE6 and D5BC(self, PMF by value)\n * once the old counter passes self->0x184.\n *\n * The inlined `V::child()` member puts the 0xB4 pointer in v1 (edg keeps the\n * inline return temp in v0); written inline it colours v0 (cfe 99.57%).\n * Spliced into game_uso.c.o via REPLACE_FUNC_BODY\n * (docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe). Every\n * symbol is extern \"C\". */\nstruct A { char pad[40]; virtual void m(); };\ntypedef void (A::*PM)();\nextern \"C\" {\nextern char game_uso_D_807FFB58;\nextern char game_uso_D_807FF498;\nvoid import_0010DB28(void *, int, int, int, int, int);\nvoid import_0010DB78(void *, int, int, float, int, int);\nvoid game_uso_func_0000F360(void *);\nvoid game_uso_func_0001001C(void *);\nvoid game_uso_func_0000D5BC(void *, PM);\n}\n#define AT(T,b,o) (*(T *)((char *)(b) + (o)))\n#define I(b,o) AT(int,b,o)\nstruct V { int *child() { return AT(int *, this, 0x800); } };\nextern \"C\" void game_uso_func_0000F13C(int *a0, int *a1) {\n    int *s0 = a0;\n    a1 = AT(V *, s0, 0xB4)->child();\n    if ((((a1[0x10 / 4] & 0x100) != 0) == 0 || (((unsigned int *)a1)[0x10 / 4] & 0x200)) && I(AT(V *, s0, 0xB4), 0x938) != 0) {\n        game_uso_func_0000F360(s0);\n    } else {\n        float f0 = AT(float, AT(V *, s0, 0xB4), 0x970);\n        float abs_f0 = (f0 < 0.0f) ? -f0 : f0;\n        if (AT(double, &game_uso_D_807FFB58, 0x238) < (double)abs_f0) {\n            import_0010DB78(s0, 0x10028, 0x10029, f0, 0, 1);\n        } else {\n            import_0010DB28(s0, 0x10011, 0, 1, 6, 1);\n        }\n        if (I(AT(V *, s0, 0xB4), 0x938) == 0) {\n            game_uso_func_0001001C(s0);\n        }\n    }\n    {\n        short v0 = AT(short, s0, 0xE6);\n        AT(short, s0, 0xE6) = v0 + 1;\n        if (s0[0x184 / 4] < v0) {\n            game_uso_func_0000D5BC(s0, AT(PM, &game_uso_D_807FF498, 0xEA8));\n        }\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso_ncc_F13C.cpp",
+    "asm_path": "asm/nonmatchings/game_uso/game_uso/game_uso_func_0000F13C.s",
+    "segment": "game_uso",
+    "compiler": "IDO 7.1 NCC (C++)",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Wab,-r4300_mul",
+    "verification": "NCC donor 81/81 words + 9/9 relocs identical; spliced into game_uso.c.o via REPLACE_FUNC_BODY; report.json 100.0; ROM byte-identical; verify-blocks OK; 0 exacts lost."
+  }
+}
