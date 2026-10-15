@@ -3600,110 +3600,82 @@ void game_libs_func_000070EC(a0) int a0; {}
 
 void game_libs_func_000070F4(int a0) {}
 
-#ifdef NON_MATCHING
-/* gl_func_000070FC: 0x248 = 146 insns. Sibling of gl_func_000070A0.
- * Body proper is 138 insns at 0x70FC..0x7320; the 4 trailing 2-insn
- * `jr ra; sw a0, 0(sp)` alt-entry stubs at offsets 0x228/0x230/0x238/0x240
- * are now tracked as separate symbols (after the 2026-05-23 policy change).
- *
- * The historical SUFFIX_BYTES recipe (absorbing 4 stubs × 2 insns = 8
- * words) was REMOVED 2026-05-23 as instruction-byte match-faking. The
- * `split-fragments.py` warning below also stale — splitting is now the
- * correct path (the alt-entry stubs are separate symbols, not absorbed).
- *
- * ENTRY DECODE (insns 1-15 @ 0x70FC-0x7140):
- *   void f(struct *a0) {
- *       if (a0->field_510 != 0) return;        // bnel-likely early exit
- *       struct *next = a0->field_528;
- *       if (next == 0) return;
- *       int v = func_call_1(next);
- *       if (v == 0) return;
- *       func_call_2(D[0x138], 0);
- *       func_call_3(5, ...);                    // body continues 130+ insns
- *
- * Multi-pass: this iteration decoded ~10% of body; current fuzzy 31% NM
- * via INCLUDE_ASM path. */
-extern int gl_func_00000000();
-/* Full decode 2026-06-05 (was ~10% stub; second/third dispatch trees + epilogue
- * were TODO). Control flow: a0->0x510 guard; then IF (next=a0->0x528) != 0 AND
- * setup-call(next) != 0, run the FIRST setup+dispatch and jump straight to the
- * epilogue. OTHERWISE (next==0 || call==0) fall into the SECOND dispatch
- * (D[0x34] in {6,5} -> D[0x138] sub-tree), then the THIRD dispatch on a0->0x4F8,
- * then epilogue (a0->0x510 = 1). Calls are USO placeholders (gl_func_00000000);
- * several leave $a0 register-leftover so exact arg recovery is partial.
- *
- * NOT LANDABLE — HARD CAP (confirmed 2026-06-23, agent-e):
- *   game_libs.c is the raw-word USO BASE object: `readelf -r
- *   expected/src/game_libs/game_libs.c.o` => "There are no relocations in this
- *   file." Every jal/lui-data target is baked into the ROM as ZERO (relocs are
- *   applied at USO load time, not in the static image). This function has 14+
- *   jal calls + several lui/lw data refs, so compiled C emits R_MIPS_26 /
- *   R_MIPS_HI16/LO16 against gl_func_00000000 / D_00000000 (verified in
- *   build/non_matching/.../game_libs.c.o) which the static linker resolves to
- *   NON-ZERO addresses -> can never match the zeroed ROM words. Only call-free
- *   / data-ref-free LEAF stubs (e.g. game_libs_func_00000B8C) land in this
- *   zero-reloc base. Landing this fn requires the deferred multi-day
- *   spimdisasm-proper USO-reloc migration (project_1080_uso_spimdisasm_migration_todo).
- *   Do not re-attempt as a single-tick land. Residual vs target after the call
- *   words (which display-match as both-zero): the body is also 5 words short and
- *   carries genuine arg-arity (4-arg f(5,5,X,0)) + regalloc decode drift in the
- *   second/third dispatch — decode-quality only, irrelevant to landability. */
+/* gl_func_000070FC: one-shot mode-transition dispatcher (138 insns + 4
+ * trailing alt-entry stub symbols). EXACT in-unit. Old "hard cap" note was
+ * wrong: blank-jal/abs-0 relocs bake the same words. Levers:
+ *  - every lui/addiu &G (bootup import sym 272) is re-materialized per block;
+ *    one symbol CSEs into s0 across calls, so the 0x138 read on the success
+ *    path (_70fc_1), the success/third-dispatch &G (_70fc) and the second
+ *    dispatch (D_00000000) are distinct abs-0 aliases (G1 and G3 share an
+ *    exclusive-path hoist if they are the same symbol).
+ *  - `if (a0->0x510 == 0) { ... a0->0x510 = 1; }` (not an early return):
+ *    the early-return form allocates one extra t-reg (t-ring shifted by one).
+ *  - func_000188 (5/6,0,0) is void (gl_func_00000000_70fcv): an int-returning
+ *    blank keeps v0 busy so the following G->0x34 compare value took v1.
+ *  - G->0x34 is re-read inline in each || test (no `m` local); the redundant
+ *    `== 5` in the third dispatch is in the source. */
+extern void gl_func_00000000_70fcv();
+extern int gl_data_00000000_70fc;
+extern int gl_data_00000000_70fc_1;
+#define G1 ((char*)&gl_data_00000000_70fc_1)
+#define G2 ((char*)&gl_data_00000000_70fc)
+#define G3 ((char*)&D_00000000)
+#define G4 ((char*)&gl_data_00000000_70fc)
+#define G5 ((char*)&gl_data_00000000_70fc)
 void gl_func_000070FC(int *a0) {
     int *next;
-    int m;
     int *obj;
-    if (*(int*)((char*)a0 + 0x510) != 0) return;
-    next = *(int**)((char*)a0 + 0x528);
-    if (next != 0 && gl_func_00000000(next) != 0) {
-        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x138), 0);
-        gl_func_00000000(5, 0, 0);
-        m = *(int*)((char*)&D_00000000 + 0x34);
-        if (m == 5 || m == 4 || m == 6) {
-            if (*(int*)((char*)&D_00000000 + 0x7C) == 1) {
-                gl_func_00000000(5, 2, 0);
+    if (*(int*)((char*)a0 + 0x510) == 0) {
+        next = *(int**)((char*)a0 + 0x528);
+        if (next != 0 && gl_func_00000000(next) != 0) {
+            gl_func_00000000(*(int*)(G1 + 0x138), 0);
+            gl_func_00000000_70fcv(5, 0, 0);
+            if (*(int*)(G2 + 0x34) == 5 || *(int*)(G2 + 0x34) == 4 || *(int*)(G2 + 0x34) == 6) {
+                if (*(int*)(G2 + 0x7C) == 1) {
+                    gl_func_00000000(G2, 5, 2, 0);
+                } else {
+                    gl_func_00000000(G2, 5, 1, 0);
+                }
             } else {
-                gl_func_00000000(5, 1, 0);
+                gl_func_00000000(G2, 5, 1, 0);
             }
         } else {
-            gl_func_00000000(5, 1, 0);
-        }
-        goto epilogue;
-    }
-    /* second dispatch (reached when next==0 || setup-call==0) @ 0x71C8 */
-    m = *(int*)((char*)&D_00000000 + 0x34);
-    if (m == 6 || m == 5) {
-        obj = *(int**)((char*)&D_00000000 + 0x138);
-        if (*(int*)((char*)*(int**)((char*)obj + 0x44) + 0x14) != 0) {
-            gl_func_00000000(obj, 0);
-        } else {
-            gl_func_00000000(obj, 0);
-        }
-    }
-    /* third dispatch on a0->0x4F8 @ 0x7228 */
-    if (*(int*)((char*)a0 + 0x4F8) == 5) {
-        gl_func_00000000(6, 0);
-        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x0), 6, 0, 0);
-    } else {
-        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x0), 0);
-        m = *(int*)((char*)&D_00000000 + 0x34);
-        if (m == 5) {
-            if (*(int*)((char*)&D_00000000 + 0x64) == 4) {
-                gl_func_00000000(5, 1, 0);
+            if (*(int*)(G3 + 0x34) == 6 || *(int*)(G3 + 0x34) == 5) {
+                obj = *(int**)(G3 + 0x138);
+                if (*(int*)((char*)*(int**)((char*)obj + 0x44) + 0x14) == 0) {
+                    gl_func_00000000(obj, 0);
+                } else {
+                    gl_func_00000000(obj, 0);
+                }
             } else {
-                gl_func_00000000(5, 0, 0);
+                gl_func_00000000(*(int*)(G3 + 0x138), 0);
             }
-        } else if (m == 4 || m == 6) {
-            gl_func_00000000(5, 0, 0);
-        } else {
-            gl_func_00000000(5, 1, 0);
+            if (*(int*)((char*)a0 + 0x4F8) == 5) {
+                gl_func_00000000_70fcv(6, 0, 0);
+                gl_func_00000000(G4, 6, 0, 0);
+            } else {
+                gl_func_00000000_70fcv(5, 0, 0);
+                if (*(int*)(G5 + 0x34) == 5) {
+                    if (*(int*)(G5 + 0x64) == 4) {
+                        gl_func_00000000(G5, 5, 0, 0);
+                    } else {
+                        gl_func_00000000(G5, 5, 1, 0);
+                    }
+                } else if (*(int*)(G5 + 0x34) == 4 || *(int*)(G5 + 0x34) == 6 || *(int*)(G5 + 0x34) == 5) {
+                    gl_func_00000000(G5, 5, 0, 0);
+                } else {
+                    gl_func_00000000(G5, 5, 1, 0);
+                }
+            }
         }
+        *(int*)((char*)a0 + 0x510) = 1;
     }
-epilogue:
-    *(int*)((char*)a0 + 0x510) = 1;
+#undef G1
+#undef G2
+#undef G3
+#undef G4
+#undef G5
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000070FC);
-#endif
 
 void game_libs_func_00007324(int a0) {}
 
