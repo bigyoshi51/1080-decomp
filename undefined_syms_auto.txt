@@ -3709,3 +3709,5 @@ gl_ref_0003B8E8 = 0x0003B8E8;  /* gl_func_00035440 baked counter word (config bl
 gl_ref_0001E5AC = 0x0001E5AC;  /* gl_func_00035440 baked lui/addiu message address (kind-2 report) */
 gl_ref_0001E5C8 = 0x0001E5C8;  /* gl_func_00035440 baked lui/addiu message address (a1 & 7 report) */
 gl_ref_0001E5DC = 0x0001E5DC;  /* gl_func_00035440 baked lui/addiu message address (r < 0 report) */
+gl_ref_0002008C = 0x0002008C;  /* gl_func_0004ABD8 baked lui/addiu message address (no-records report) */
+gl_ref_000200AC = 0x000200AC;  /* gl_func_0004ABD8 baked lui/addiu message address (work-path report) */

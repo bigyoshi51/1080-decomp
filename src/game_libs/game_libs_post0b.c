@@ -18091,67 +18091,48 @@ void gl_func_0004AAF0(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AAF0);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0004ABD8: gather-copy of 3-byte records with -1 skip —
- * BYTE-COPY SIBLING of gl_func_0004AAF0 (decoded 2026-05-19).
- * void f(int *self):
- *   if (self->0xC4 == 0) { cb1(&D+0x2008C); cb2(); return; }
- *   d4 = (s16)self->0xD4;
- *   for (i = 0, t0 = 0; i < (s16)self->0xD6 - d4; i++, t0 += 2) {
- *       idx = *(s16*)(self->0xD0 + t0);
+/* gl_func_0004ABD8: EXACT (0xF4 / 61 words). Gather-copy of 3-byte records
+ * with -1 skip, the byte-copy sibling of gl_func_0004AAF0:
+ *   if (self->C4 == 0) { report(0x2008C); return; }
+ *   report(0x200AC);
+ *   for (i = 0, off = 0; i < self->D6 - self->D4; i++, off += 2) {
+ *       idx = *(s16 *)(self->D0 + off);
  *       if (idx != -1) {
- *           g    = *(int*)(&D_00000000 + 0x214);
- *           base = *(int*)((char*)*(int*)((char*)g + 0x1C));
- *           slot = (char*)(base + d4*16 + i*16);
- *           rec  = (char*)(self->0xC4 + idx*4);   // stride 4 here
- *           slot[0xC]=rec[0]; slot[0xD]=rec[1]; slot[0xE]=rec[2];
+ *           slot = base + self->D4 * 16 + i * 16, base = **(g->1C),
+ *           g = *(&D + 0x214); slot[0xC..0xE] = (self->C4 + idx * 4)[0..2];
  *       }
  *   }
- *   self->0xC4 = 0;
- * Differences vs the 0004AAF0 s16 variant: field 0xC4 (not 0xC0),
- * record stride idx*4 (not *6), 3 BYTE copies to slot+0xC/0xD/0xE
- * (not s16 +0/+2/+4). Call structure (corrected 2026-05-31): the
- * t6==0 ERROR path is ONE call cb(&D+0x2008C) then return; the
- * t6!=0 WORK path opens with a leading cb(&D+0x200AC) (the string
- * loaded in the bne's delay slot) before the blit loop. Residual
- * cap: regalloc — the target homes `self` in a1 (spilled around the
- * one work-path call, sw/lw a1,0x18(sp)) whereas the build promotes
- * it to s0 (frame 0x20 vs 0x18), renumbering every downstream reg;
- * plus the loop body reloads self->0xC4+idx*4 per byte (target) vs
- * the cached `rec` here. Same multi-idiom family (bnel/beql-likely,
- * sll idx-scale, resolved-base chain, per-iter count reload). 25%.
- * Real decoded C preserved; INCLUDE_ASM build path. */
-extern int gl_func_00000000();
-extern int D_00000000;
-void gl_func_0004ABD8(int *self) {
+ *   self->C4 = 0;
+ * Matching notes: no `self` / `d4` / `rec` locals. self stays in a1 (spilled
+ * to its a0 home around the one work-path call) and self->D4 / self->C4 are
+ * re-read after the byte stores, as the target does. The named `g` local
+ * takes a2 (the target's lw a2,532(t4)); the slot sum written
+ * `i * 16 + (d4 * 16 + base)` gives the target ring order (base chain t5/t6,
+ * d4*16 t7). Report strings are gl_ref_ pins. */
+extern char gl_ref_0002008C, gl_ref_000200AC;
+void gl_func_0004ABD8(char *self) {
     int i;
     int t0;
-    int d4;
-    if (*(int *)((char *)self + 0xC4) == 0) {
-        gl_func_00000000((char *)&D_00000000 + 0x2008C);
+    short idx;
+    char *slot;
+    char *g;
+    if (*(int *)(self + 0xC4) == 0) {
+        gl_func_00000000(&gl_ref_0002008C);
         return;
     }
-    gl_func_00000000((char *)&D_00000000 + 0x200AC);
-    d4 = *(short *)((char *)self + 0xD4);
-    for (i = 0, t0 = 0;
-         i < *(short *)((char *)self + 0xD6) - d4;
-         i++, t0 += 2) {
-        short idx = *(short *)(*(int *)((char *)self + 0xD0) + t0);
+    gl_func_00000000(&gl_ref_000200AC);
+    for (i = 0, t0 = 0; i < *(short *)(self + 0xD6) - *(short *)(self + 0xD4); i++, t0 += 2) {
+        idx = *(short *)(*(char **)(self + 0xD0) + t0);
         if (idx != -1) {
-            int g = *(int *)((char *)&D_00000000 + 0x214);
-            int base = *(int *)(*(int *)((char *)g + 0x1C));
-            char *slot = (char *)(base + d4 * 16 + i * 16);
-            char *rec = (char *)(*(int *)((char *)self + 0xC4) + idx * 4);
-            slot[0xC] = rec[0];
-            slot[0xD] = rec[1];
-            slot[0xE] = rec[2];
+            g = *(char **)((char *)&D_00000000 + 0x214);
+            slot = (char *)(i * 16 + (*(short *)(self + 0xD4) * 16 + **(int **)(g + 0x1C)));
+            slot[0xC] = *(*(char **)(self + 0xC4) + idx * 4);
+            slot[0xD] = *(*(char **)(self + 0xC4) + idx * 4 + 1);
+            slot[0xE] = *(*(char **)(self + 0xC4) + idx * 4 + 2);
         }
     }
-    *(int *)((char *)self + 0xC4) = 0;
+    *(int *)(self + 0xC4) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ABD8);
-#endif
 
 void game_libs_func_0004ACCC(int a0) {
 }
