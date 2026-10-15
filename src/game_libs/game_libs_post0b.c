@@ -18440,17 +18440,24 @@ int gl_func_0004AE40(char *self, int a1, int a2, int aux, int a4) {
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+/* 2026-10-15 (agent-c): 81.3 -> ~93. The table is an 8-byte-entry array
+ * (a3 indexes it; only the a3<<3 offset is CSE'd and spilled at 0x20 across
+ * the 2nd call, the table base is re-read). No named locals besides r: a
+ * named offset/index local grows the frame 0x28 -> 0x30. The extra a3 in
+ * the old 2nd call (scanner nm=jal/0123) came from the old r-in-a3 shape.
+ * RESIDUAL: the offset temp colours v1 (target v0, loaded from a3's home in
+ * the bnez delay slot), and `lw a0,40(sp)` schedules before `sw v0,36(sp)`.
+ * Tried: early-return / goto / comma-test forms, register/void* r, unsigned
+ * a3, a3 <<= 3 in place, struct-typed a0, if(1){} barriers. */
+typedef struct { int w0; unsigned short h4, h6; } Gl4AFB4Ent;
 int gl_func_0004AFB4(int *a0, int a1, int a2, int a3, int stack_arg) {
     extern short D_S[];
-    int v0 = (int)gl_func_00000000(a0, a1, a2, a3, stack_arg);
-    if (a1 != 0) return v0;
-    {
-        char *entry = (char*)a0[0x6C / 4] + (a3 << 3);
-        gl_func_00000000(a0, *(unsigned short*)(entry + 0x4), D_S[0]);
-        entry = (char*)a0[0x6C / 4] + (a3 << 3);
-        gl_func_00000000(a0, *(unsigned short*)(entry + 0x6), D_S[1]);
+    int r = gl_func_00000000(a0, a1, a2, a3, stack_arg);
+    if (a1 == 0) {
+        gl_func_00000000(a0, ((Gl4AFB4Ent *)a0[0x6C / 4])[a3].h4, D_S[0]);
+        gl_func_00000000(a0, ((Gl4AFB4Ent *)a0[0x6C / 4])[a3].h6, D_S[1]);
     }
-    return v0;
+    return r;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AFB4);
