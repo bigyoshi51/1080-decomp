@@ -517,12 +517,19 @@ build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x565c
 # old NM body (3 words shorter in-tree); EBC8 NM offset 0x5540 -> 0x554c, clip = offset + 0x30.
 # tail clip 0x557c -> 0x5578 (2026-10-14 agent-g): gl_func_0000D548 real def is 86w vs its
 # old NM body (1 word longer in-tree); EBC8 NM offset 0x554c -> 0x5548, clip = offset + 0x30.
-build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5570 gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
 # tail clip 0x5550 -> 0x5554 (2026-09-11 agent-g): gl_func_0000A670 real def is 62w vs its
 # old 61w NM body; EBC8 NM offset 0x5520 -> 0x5524, clip = offset + 0x30.
 # 0x17a38 -> 0x17a48 (2026-09-05 agent-g): game_libs_func_000343F4 absorbed the
 # 0x10-byte g3_34448 carve-out (its own switch default block).
 build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x17a48
+build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5550 gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
+build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x17a38
+# game_libs_func_000295BC: the two all-zero ROM words at 0x295BC-0x295C3 are
+# inter-fn pad (real entry 0x295C4); appended to gl_func_00029494 as an all-zero
+# SUFFIX_BYTES_FORCE. expected/ metadata: 29494 size 0x128->0x130, 295BC value +8
+# size 0x1D0->0x1C8 (scripts/elf-symtab-edit.py; .text + relocs unchanged).
+build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES_FORCE := gl_func_00029494=0x00000000,0x00000000
+build/non_matching/src/game_libs/game_libs_post.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_00029494=0x00000000,0x00000000
 # 70FA4 = the merged full function (head fragment 70FA0 + the old g3_70FBC
 # tail carve); -O1 -g3 is the matching mode. .text ends with 8 bytes of
 # natural zero padding = the 0x70FCC/0x70FD0 pad nops before 70FCC=fcos.

@@ -11301,11 +11301,15 @@ void gl_func_00029494(void) {
     }
 }
 
-#ifdef NON_MATCHING
+/* EXACT 2026-10-15 agent-c (98.15 -> 114/114): the last two t-reg residuals
+ * were ring numbering. The arg0 byte-1 sign test is a signed 1-bit bitfield
+ * read (BF1_000295BC.f80: lb with one slot fewer than (s8)*(u8 *)), and the
+ * bit-22 test is spelled << 8 << 1 (one slot more than << 7 << 1 << 1). */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_000295BC)();
+typedef struct { unsigned b0:8; int f80:1; unsigned rest:23; } BF1_000295BC;
 typedef struct { unsigned p0:2; unsigned b29:1; unsigned rest:29; } BF_000295BC;
 #ifndef FF
 #define FF(p, o) (*(f32 *)((char *)(p) + (o)))
@@ -11343,10 +11347,10 @@ void game_libs_func_000295BC(char *arg0, s32 arg1, s32 arg2) {
                 (*(s8*)(temp_v1 + 0x6)) = (s32) (((*(u8*)(temp_v1 + 0x5)) * (0x80 - (*(u8*)(arg0 + 0xB)))) + FW(arg0, 0x30)) >> 7;
                 *(u8*)temp_v1 = b & 0xFFFE;
             } else {
-                if ((s8) (*(u8*)(arg0 + 0x1)) < 0) {
+                if (((BF1_000295BC *) arg0)->f80) {
                     FF(temp_v1, 0x44) = FF(temp_v1, 0x30) * var_f0_2;
                 }
-                if (((FW(arg0, 0x0) << 7 << 1 << 1) < 0) || (arg1 != 0)) {
+                if (((FW(arg0, 0x0) << 8 << 1) < 0) || (arg1 != 0)) {
                     FF(temp_v1, 0x40) = FF(arg0, 0x34) * FF(temp_v1, 0x38);
                 }
                 if (((FW(arg0, 0x0) << 9 << 1) < 0)) {
@@ -11357,9 +11361,6 @@ void game_libs_func_000295BC(char *arg0, s32 arg1, s32 arg2) {
     }
     (*(u8*)(arg0 + 0x1)) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000295BC);
-#endif
 
 // gl_func_0002978C — STRUCTURAL PASS (0x1EC / 123 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
