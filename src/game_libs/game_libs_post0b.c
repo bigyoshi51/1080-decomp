@@ -8372,46 +8372,18 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D7F8);
 #endif
 
-/* gl_func_0003D8A8: 27-insn — ret=X1(0); v1=a0->0x40; if(v1){ X2(ret+0x10,v1)
- *   [RETURN DISCARDED]; if (v1->0x14 != 0) v1->0x4 = 1; v1->0x14 = ret; }
- *   return ret;  // ret = FIRST call's return, spilled across X2
- * v1->0x14 store is the beql speculative double-emit (delay-likely on
- * v1->0x14==0 taken + at fall-through) per
- * docs/IDO_CODEGEN.md#feedback-ido-beql-speculative-store-double-emit.
- * NM @83.07% (kept as wrap, ≥80%). Residual (LEN-DIFF, build 1 short of
- * 27 — need SAME-LEN before any INSN_PATCH): the v1-null check emits
- * `beql a1,zero` + ra-preload (separate early-return) vs target plain
- * `beq v1,zero,0x58` to the shared epilogue, inflating frame 0x20->0x28;
- * plus regalloc (target ret->a2, v1->v1; build ret->v1, v1->a1). Same
- * branch-likely/regalloc class as gl_func_0003D7F8.
- * PERMUTER-PLATEAUED 2026-05-17 (132k iters) — because the DECODE was
- * wrong: old body recaptured X2's return (`ret = X2(...)`); target
- * spills the FIRST return across X2 (jal-delay sw v0,28(sp)) and both
- * stores AND returns the OLD value. 2026-07-15 (agent-f) decode fix +
- * plain if-block (no goto): 83.07 -> 94.0, 27/27 words, frame 0x20
- * exact, homes exact (v1@0x18/ret@0x1C). RESIDUAL (10 words, one
- * cell): coloring ORDER — target colors v1var FIRST (piece1=$v1, arg
- * copy `or a1,v1` fills the plain-beq delay; ret then takes $a2);
- * build colors ret first ($v1), v1var coalesces to $a1 (empty delay ->
- * beql early-return form). Probes: trailing dead-if, register hint =
- * inert; a2-param destructive reuse gets ret=$a2 but leaks a1/a2 K&R
- * home stores + param-home spill slots (params spill to arg area, not
- * locals — diagnostic for "is it a param?"). Coloring-order cap.
- * 2026-07-15 agent-g cross-pollination pass: struct-by-value param
- * (OneP wrapper) is BYTE-EQUIVALENT here (plain param already spills to
- * its arg-area home across call 1 — the sw a0,0x20/lw t6 pair needs no
- * carrier); decl-order swap moves homes (wrong direction), if(1) after
- * v1 def inert, (int)v1|0 arg VN-folds. The v1->a1 arg coalesce (build)
- * vs split $v1-piece+or-a1-copy-in-delay (target) remains the cell;
- * no interfering web exists to block the coalesce. Cap CONFIRMED. */
-#ifdef NON_MATCHING
+/* gl_func_0003D8A8: ret = X1(0); if (a0->0x40) { v1 = a0->0x40;
+ * X2(ret + 0x10, v1, ret); if (v1->0x14) v1->0x4 = 1; v1->0x14 = ret; }
+ * return ret.  EXACT (2026-10-15 agent-c): the `or a2,v0` copy before X2
+ * is X2's THIRD arg (ret), and the null test reads a0->0x40 directly with
+ * v1 named inside the if (gives the $v1 piece + `or a1,v1` delay copy). */
 int gl_func_0003D8A8(int *a0) {
     int ret;
     int *v1;
-    ret = func_00000000(0);
-    v1 = (int *)a0[0x40 / 4];
-    if (v1 != 0) {
-        func_00000000((char *)ret + 0x10, (int)v1);
+    ret = gl_func_00000000(0);
+    if (a0[0x40 / 4] != 0) {
+        v1 = (int *)a0[0x40 / 4];
+        gl_func_00000000((char *)ret + 0x10, (int)v1, ret);
         if (v1[0x14 / 4] != 0) {
             v1[0x4 / 4] = 1;
         }
@@ -8419,9 +8391,6 @@ int gl_func_0003D8A8(int *a0) {
     }
     return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D8A8);
-#endif
 
 /* gl_func_0003D914: vtable-dispatch list walk. First result -> a0->0x34;
  * each loop result is stored into the PREVIOUS result (s0->0x2C, s0 doubles
