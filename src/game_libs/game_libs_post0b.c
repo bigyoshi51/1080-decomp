@@ -14725,8 +14725,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044DE4);
 // self->0x280 + (&D_0+0x204)*4 index math, the self->0x258 count loop over
 // self->0x25C and the &D_0002FECC key are exact. Caps: self struct, &D_g
 // global and cb signatures untyped. Full body INCLUDE_ASM-preserved.
-#ifdef NON_MATCHING
-/* 2026-07-15 agent-f FULL RE-DECODE (was m2c structural junk). Word-by-word
+/* EXACT 2026-10-15 agent-c: both counter loops index arg0 directly
+ * (arg0[k + 0x97], arg0[k2 + 0x66]) so IDO strength-reduces them into
+ * the target's counter/cursor s-regs; the vtable slot load is written
+ * FIRST (web-order inversion) to colour e=v1 / w=v0; the final free's
+ * arg goes through the named s0 local obj, whose colour leaks into the
+ * lui temp (lui s0; lw a0,28(s0)) even after copy-propagation.
+ * 2026-07-15 agent-f FULL RE-DECODE (was m2c structural junk). Word-by-word
  * from the raw-.word asm: teardown driver — tag stores, string-keyed cb
  * cleanups, two wait-loops on the global 0x218 object's flags, two
  * vtable-dispatch loops (lh s16 disp at +8, fn at +0xC), a spin-until-
@@ -14745,26 +14750,22 @@ extern int D_44EDC_g[];
 void gl_func_00044EDC(char *arg0) {
     s32 k;
     s32 n;
-    char *p;
     char *obj;
     char *r;
     s32 cond;
     s32 k2;
-    char *p2;
     char *w;
     char *e;
 
     *(char **)&D_44EDC_b = (char *)&D_00000000 + 0x1FEC8;
     gl_func_00000000(((s32 *) arg0)[*(s32 *)(&D_44EDC_a + 0x204) + 0xA0]);
     n = FW(arg0, 0x258);
+    k = 0;
     if (n != 0) {
-        k = 0;
-        p = arg0;
         do {
-            gl_func_00000000(FW(p, 0x25C), (k + 1) == n);
+            gl_func_00000000(((s32 *) arg0)[k + 0x97], (k + 1) == n);
             n = FW(arg0, 0x258);
-            if (1) { k++; }
-            p += 4;
+            k++;
         } while ((u32) k < (u32) n);
     }
     gl_func_00000000((char *)&D_00000000 + 0x1FECC);
@@ -14787,13 +14788,11 @@ void gl_func_00044EDC(char *arg0) {
     k2 = 0;
     FW(arg0, 0x254) = FW(arg0, 0x240);
     if (FW(arg0, 0x1C0) > 0) {
-        p2 = arg0;
         do {
-            e = *(char **)(p2 + 0x198);
-            w = *(char **) e;
+            w = *(char **)((char **) arg0)[k2 + 0x66];
+            e = ((char **) arg0)[k2 + 0x66];
             ((VT_44EDC) FW(w, 0xC))(*(s16 *)(w + 8) + e);
             k2++;
-            p2 += 4;
         } while (k2 < FW(arg0, 0x1C0));
     }
     gl_func_00000000((char *)&D_00000000 + 0x1FEF4);
@@ -14807,12 +14806,10 @@ void gl_func_00044EDC(char *arg0) {
     gl_func_00000000((char *)&D_00000000 + 0x1FF18);
     *(char **)&D_44EDC_h = (char *)&D_00000000 + 0x1FF1C;
     gl_func_00000000((char *)&D_00000000 + 0x1FF28);
-    gl_func_00000000(*(char **)(&D_44EDC_i + 0x1C), 0x68, 1);
+    obj = *(char **)(&D_44EDC_i + 0x1C);
+    gl_func_00000000(obj, 0x68, 1);
     gl_func_00000000(arg0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044EDC);
-#endif
 
 // gl_func_00045178 — STRUCTURAL PASS (0x22C / 140 words, no episode). Raw-.word
 // USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends

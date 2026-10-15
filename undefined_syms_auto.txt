@@ -3616,3 +3616,13 @@ gl_data_00000000_70fc = 0x00000000;  /* 70FC: &G (bootup import sym 272) for the
 gl_data_00000000_70fc_1 = 0x00000000;  /* 70FC: G->0x138 read on the success path (sym 272); distinct alias busts the exclusive-path hoist with the second dispatch */
 gl_func_00000000_70fcv = 0x00000000;  /* 70FC: void-returning blank-jal alias for func_000188 (5/6,0,0) */
 gl_data_00000000_12b4f = 0x00000000;  /* 12B4: float read (bootup TextReloc sym 858 = D_00C75C); a real float extern keeps 255.0f in f4 and the load in f6 */
+gl_func_00000000_fret = 0x00000000;  /* f32-returning blank callee (gl_func_00044EDC) */
+D_44EDC_a = 0x00000000;  /* gl_func_00044EDC per-site reloc-blind global aliases */
+D_44EDC_b = 0x00000000;
+D_44EDC_c = 0x00000000;
+D_44EDC_d = 0x00000000;
+D_44EDC_e = 0x00000000;
+D_44EDC_f = 0x00000000;
+D_44EDC_g = 0x00000000;
+D_44EDC_h = 0x00000000;
+D_44EDC_i = 0x00000000;
