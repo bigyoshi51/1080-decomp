@@ -1481,7 +1481,70 @@ void gl_func_00002840(char *arg0, s32 arg1, f32 arg2, f32 arg3, s32 arg4) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00002840);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000029F8);
+/* gl_func_000029F8: list walk -> per-item marker draw (0x19C, 103 words).
+ * scale = (f32)obj[0xEC] - (f32)obj[0x8C]; a by-value 4-byte key read from
+ * D+0xCCCC (lui 1 / lw -0x3334) selects a list via the blank callee; each
+ * item's (+0x30, +0x38) position is mapped through obj+0x1E4/0x1E8 origin
+ * and obj+0x1EC extent into screen x/y and drawn as a 0xF801F801 box.
+ * Match levers: the iterator is a two-pointer ARRAY {cur, next} (a struct
+ * or pointer-walked struct is promoted to registers; the array stays in the
+ * frame at +0xAC/+0xB0), and its advance tests the NEXT slot after the copy
+ * (`(cur = next, next != 0) ? (next = next->next, cur->data) : 0`) -- the
+ * cur-test spelling picks v1 instead of t3 for the loop-bottom node; the
+ * key is a struct whose member is assigned (struct-copy spelling computes
+ * the address and copies through it); the per-axis scale goes as
+ * `q * (t = scale)` (docs/IDO_CODEGEN.md
+ * #feedback-ido-fp-commutative-operand-order-assignment-lever); the x/y draw
+ * args are spelled out twice so the CSE'd sum lands in a1 and is copied to
+ * a3 (a variable lands in a3 and is copied to a1). padA/padB/padC are
+ * unidentified frame locals that place key at +0xD4, it at +0xAC, vec at
+ * +0x98 in the 0xD8 frame. */
+typedef struct GlNode29F8 {
+    char *data;
+    struct GlNode29F8 *next;
+} GlNode29F8;
+typedef struct GlKey29F8 {
+    s32 v;
+} GlKey29F8;
+#define GL29F8_ITER_NEXT(it) \
+    (((it)[0] = (it)[1], (it)[1] != 0) ? ((it)[1] = (it)[1]->next, (it)[0]->data) : 0)
+void gl_func_000029F8(char *arg0) {
+    GlKey29F8 key;
+    char padA[0x20];
+    GlNode29F8 *it[2];
+    char padB[4];
+    f32 vec[4];
+    char padC[0x34];
+    char *list;
+    char *item;
+    f32 scale;
+    f32 t;
+    s32 x;
+    s32 y;
+
+    scale = (f32)*(s32 *)(arg0 + 0xEC) - (f32)*(s32 *)(arg0 + 0x8C);
+    key.v = *(s32 *)((char *)&D_00000000 + 0xCCCC);
+    list = (char *)gl_func_00000000(gl_data_00000000, key);
+    if (list != 0) {
+        it[1] = *(GlNode29F8 **)(list + 0x10);
+        while (GL29F8_ITER_NEXT(it) != 0) {
+            item = it[0]->data;
+            x = (s32)(((*(f32 *)(item + 0x30) - *(f32 *)(arg0 + 0x1E4)) / *(f32 *)(arg0 + 0x1EC)) * (t = scale));
+            y = (s32)(((*(f32 *)(item + 0x38) - *(f32 *)(arg0 + 0x1E8)) / *(f32 *)(arg0 + 0x1EC)) * (t = scale));
+            vec[3] = 0.0f;
+            vec[2] = 0.0f;
+            vec[1] = 0.0f;
+            vec[0] = 0.0f;
+            gl_func_00000000(&D_00000000, 255, vec);
+            gl_func_00000000(&D_00000000,
+                             *(s32 *)(arg0 + 0x74) + *(s32 *)(arg0 + 0x44) + x,
+                             *(s32 *)(arg0 + 0x8C) + *(s32 *)(arg0 + 0x5C) + y,
+                             *(s32 *)(arg0 + 0x74) + *(s32 *)(arg0 + 0x44) + x,
+                             *(s32 *)(arg0 + 0x8C) + *(s32 *)(arg0 + 0x5C) + y,
+                             0xF801F801);
+        }
+    }
+}
 
 /* gl_func_00002B94: HUD gauge draw (0x5A4, 361 words) -- EXACT via the IDO
  * 7.1 -O2 donor src/game_libs/game_libs_o2_2B94.c (REPLACE_FUNC_BODY splice,
