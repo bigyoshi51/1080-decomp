@@ -727,7 +727,34 @@ int game_libs_func_0000A1B0(int *a0, int ms) {
     return 3;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A2B8);
+/* gl_func_0000A2B8: insert a {min, sec, hundredths} record at slot idx of a
+ * 3-entry table of 8-byte unaligned records (shift entries [idx..1] up one,
+ * then fill slot idx via the blank callee) -- EXACT 134/134 (2026-10-15,
+ * agent-g). Sibling of game_libs_func_0000A1B0 above (same ms split, same
+ * `x - q * d` remainder form). Shape keys: (1) the record is a char[8]
+ * struct (alignment 1 -> lwl/lwr + swl/swr struct copy; IDO unrolls the
+ * shift loop by 4 with the negu'd (2-idx)&3 remainder prologue); (2) the
+ * target tests `idx < 2` TWICE (slti a1 + beqzl, then slti s0 + beqz with
+ * `li a3,2` in the slot) = an explicit `if (idx < 2)` guard around the
+ * for-loop whose own entry test IDO keeps; (3) the callee's first arg must
+ * be the byte-offset form `(char *)a0 + idx * 8` -- `&a0[idx]` / `a0 + idx`
+ * swap the t2/t5 colours of the a0 reload vs the idx*8 shift. */
+typedef struct { char b[8]; } Entry8;
+void gl_func_0000A2B8(Entry8 *a0, int idx, int ms, int arg3) {
+    int i;
+    int min, rem, sec;
+    if (idx < 3) {
+        if (idx < 2) {
+            for (i = 2; i > idx; i--) {
+                a0[i] = a0[i - 1];
+            }
+        }
+        min = ms / 60000;
+        rem = ms - min * 60000;
+        sec = rem / 1000;
+        func_00000000((char *)a0 + idx * 8, min, sec, (rem - sec * 1000) / 10, arg3);
+    }
+}
 
 /* gl_func_0000A4D0: 28-insn find-first-match-in-3-entries.
  *   for (i = 0; i < 3; i++) {
