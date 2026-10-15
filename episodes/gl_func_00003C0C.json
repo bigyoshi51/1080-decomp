@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00003C0C",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T14:40:28.683582+00:00",
+  "end_time": "2026-10-15T14:40:28.683596+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T14:40:28.683592+00:00",
+      "assistant_text": "Manual exact match via IDO 7.1 -O2 donor. Free-slot allocator: scan 8 entries for slot->0x94 == 0, init via prototyped (int,int,int,float,float) blank, reload p->slot for every later store, counter at chain+0x14 written as one pointer expression q = (s32 *)(chain + 0x14); *q += arg1 (gives addiu v0,v0,20; sw 0(v0)), -2.0f - r * 2 with int 2 to keep mul.s, 0.1f literal donor-pinned to bootup.uso RoData +0xCF8.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 107,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 -O2 donor for gl_func_00003C0C -- free-slot allocator (3B1C/3DB8\n * family; 0x1AC bytes, 107 words). PROVEN EXACT 107/107 words standalone;\n * the link-resolved words are the blank jals, the two &D_00000000 HI/LO\n * pairs (+0x138 global, +0xCD04 baked absolute = the `lui 1; addiu -X`\n * carry form) and the .rodata %lo of the 0.1f literal.\n *\n * WIRED via REPLACE_FUNC_BODY donor splice into game_libs.c.o (the 2B94 /\n * 7344 recipe, docs/MATCHING_WORKFLOW.md#game-libs-rodata-literals-and-\n * tables-76f0): the 0.1f literal lands at this TU's .rodata +0; the splice\n * renames that reloc gl_func_00003C0C_rodata, pinned to bootup.uso RoData\n * +0xCF8 (word 0x3DCCCCCD).\n *\n * Load-bearing shapes:\n *  - every slot access after the first call goes back through p->slot\n *    (the target reloads entry+0x2C before each store).\n *  - `-2.0f - r * 2` (INT 2): a 2.0f literal is strength-reduced to add.s;\n *    the target keeps lui 0x4000 / mul.s.\n *  - the +0x14 counter: ONE pointer expression `q = (s32 *)(chain + 0x14);\n *    *q += arg1;` gives `lw 20(v0); addiu v0,v0,20; sw 0(v0)`. Any\n *    intermediate pointer local for the chain (g = chain; q = g + 0x14), or\n *    `((s32 *)g)[5] += arg1`, folds the offset into the sw.\n *  - the two float calls are prototyped blanks: (obj, f32, f32) with mfc1\n *    a1/a2 and an f32-returning no-arg blank. */\n#include \"common.h\"\n\nextern int D_00000000;\nextern int gl_func_00000000();\nextern void *gl_func_00000000_i3ff(int, int, int, float, float);\nextern void gl_func_00000000_3c0cff(void *, f32, f32);\nextern f32 gl_func_00000000_3c0cr();\n\ntypedef struct GlSlot3C0C {\n    char pad0[0x78];\n    s32 unk78;\n    s32 unk7C;\n    s32 unk80;\n    s32 unk84;\n    char pad88[0x94 - 0x88];\n    s32 unk94;\n    s32 unk98;\n    s32 unk9C;\n    s32 unkA0;\n    f32 unkA4;\n    f32 unkA8;\n    f32 unkAC;\n    s32 unkB0;\n    char unkB4[4];\n} GlSlot3C0C;\n\ntypedef struct GlEnt3C0C {\n    char pad0[0x2C];\n    GlSlot3C0C *slot;\n} GlEnt3C0C;\n\nGlSlot3C0C *gl_func_00003C0C(char *arg0, s32 arg1, s32 arg2, s32 arg3) {\n    GlEnt3C0C *p = (GlEnt3C0C *)arg0;\n    s32 off = 0;\n    GlSlot3C0C *slot;\n    s32 *q;\n\n    do {\n        slot = p->slot;\n        off += 4;\n        if (slot->unk94 == 0) {\n            gl_func_00000000_i3ff((int)slot, 160, arg2 + 90, 1.0f, 1.0f);\n            p->slot->unkA0 = 0;\n            p->slot->unk7C = 1;\n            q = (s32 *)(*(char **)(*(char **)((char *)&D_00000000 + 0x138) + 0x44) + 0x14);\n            *q += arg1;\n            if (arg3 != 0) {\n                p->slot->unk94 = 3;\n                p->slot->unk9C = 14;\n                gl_func_00000000_3c0cff(p->slot, 0.1f, 0.1f);\n                p->slot->unk78 = 0;\n            } else {\n                p->slot->unk94 = 3;\n                p->slot->unk9C = 0;\n                p->slot->unk78 = 255;\n            }\n            p->slot->unk98 = arg1;\n            p->slot->unkA4 = -2.0f - gl_func_00000000_3c0cr() * 2;\n            p->slot->unkA8 = -3.0f;\n            p->slot->unkAC = 0.5f;\n            p->slot->unk80 = 0;\n            p->slot->unk84 = -18;\n            p->slot->unkB0 = *(s32 *)(arg0 + 0x54);\n            slot = p->slot;\n            gl_func_00000000(slot->unkB4, (char *)&D_00000000 + 0xCD04, slot->unk98);\n            return p->slot;\n        }\n        p = (GlEnt3C0C *)((char *)p + 4);\n    } while (off != 32);\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o2_3C0C.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_00003C0C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff 100.0 in-tree via REPLACE_FUNC_BODY donor splice; make exit 0 + tenshoe.z64 cmp byte-identical; raw .text slice equals expected/ except the renamed _rodata LO16 reloc word."
+  }
+}
