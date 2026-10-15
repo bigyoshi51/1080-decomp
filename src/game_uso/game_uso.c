@@ -6272,72 +6272,31 @@ float game_uso_func_00007A98(int *a0) {
     return ret;
 }
 
-#ifdef NON_MATCHING
 /* game_uso_func_00007ACC: 0x150 (84 insns). Function-table dispatcher.
- * ~92% fuzzy, 67/84 words EXACT, word-count now EQUAL (was 82 build / 84
- * target). 2026-07 refinement CRACKED the frame-layout gap (0x28->0x38)
- * that the old note called an unforced codegen-cap:
- *   (1) The dispatch callee's 2nd arg is a 1-word struct passed BY VALUE
- *       (`S1_7ACC av; av.a = **(...); func(a0, av, ...)`), which forces
- *       IDO to emit BOTH the local temp-copy `sw a1,0x34(sp)` AND the
- *       outgoing-home `sw a1,4(sp)` in the jal delay — exactly the two
- *       "dead" stores the old note said were unreproducible. Same idiom
- *       as the game_uso precall-spill family (docs/PATTERNS.md) but 1-word.
- *   (2) The 0x958 store re-reads through the just-stored 0x954 slot
- *       (`*(tbl+0x958)=((int*)*(int*)(tbl+0x954))[0x2C]`), not reusing r.
- *   (3) Tail is `if(inner!=0){math}` (single beql-skip), not
- *       `if(inner==0)return` (which inverts to bnezl+b).
- *   (4) `av` declared FIRST fixes its stack slot to 0x34.
- * RESIDUAL (17 words): a single register-coloring PERMUTATION — the
- * saved return value r lands in a2 (build) vs t0 (target); everything
- * downstream (tail temps t1-t3 vs t2-a1, inner a1 vs a2, r-spill slot
- * 0x2C vs 0x30) shifts with it. IDO leaves t0 unused and colors r into
- * arg-reg a2; no C lever found to flip it (|0, decl-order, temp-hoist,
- * arm-swap all tried — permuter-immune coloring class). NOT exact.
+ * a0[0x40] indexes a 12-entry struct-pointer table at &D + 0x548; the
+ * first word of the selected struct goes to game_uso_func_0000A374 as a
+ * 1-word struct BY VALUE (that is what emits both `sw a1,0x34(sp)` and the
+ * outgoing-home `sw a1,4(sp)` in the jal delay).  The returned record is
+ * cached in a0[0x78] (with a changed/unchanged flag through arg4), its
+ * +0x2C word goes out through a1, and both are mirrored into the shared
+ * table at a0[0x30] + 0x954 / 0x958 before the 0x9B8 vector update.
  *
- * Signature: 4 register args (NOT idx — that comes from a0[0x40]):
- *   a0 = struct ptr (saved as s0 throughout)
- *   a1 = output int* (write r->[0x2C] here)
- *   a2 = arg3 (passed through to dispatch callee)
- *   a3 = arg4 — int* output flag (1 if r changed, 0 if same)
- *
- * Body (decoded 2026-05-05 from asm 0x7ACC-0x7C18):
- *   *a1 = 0;
- *   v = a0[0x40];
- *   if (v < 0 || v >= 12) ASSERT(...);
- *   // Indirect-then-deref through D-table:
- *   //   first: tab[v] = *(int**)(&D + 0x548 + v*4)
- *   //   then:  *tab[v] is loaded as the dispatched-call's a1 arg
- *   r = gl_func_00000000(a0, *(int*)D[0x548 + v*4], arg3, arg4);
- *   if (!r) return 0;
- *   if (r != a0[0x78]) { if (arg4) *arg4=1; a0[0x78]=r; }
- *   else                { if (arg4) *arg4=0; }
- *   *a1 = r->0x2C;
- *   tbl = a0->0x30;
- *   tbl->0x954 = r;
- *   tbl->0x958 = r->0x2C;
- *   if (tbl->0x958 == 0) return r;  // beql at 0x7BB4 jumps to epilogue with v0=t0=r
- *   // Float math (a2 != 0 = inner ptr exists):
- *   tbl->0x9B8f = tbl->0xB4f - inner->0x30f;
- *   tbl->0x9BCf = 0.0f;
- *   tbl->0x9C0f = tbl->0xBCf - inner->0x38f;
- *   gl_func_00000000(&tbl->0x9B8);
- *   return r;
- *
- * Identifies as a GAME-EVENT DISPATCHER for 12 cases (a0[0x40] = case idx).
- * The &D + 0x548 table is a 12-entry struct-pointer array. Each struct's
- * first word is some kind of context value passed to the dispatch callee.
- *
- * Multi-pass — initial body, expect ~30-50% on first build. Reloads from
- * s0->0x30 in asm aren't cached (each access re-reads), which the compiler
- * will reproduce when expressed as direct field accesses below. */
+ * Exact-match notes (2026-10-15):
+ *  - one pointer local `inner` is reused for THREE separate webs (the r+0x2C
+ *    word, the 0x958 reload inside the second sub) - each web colours a1, so
+ *    the r+0x2C value and the 0x958 reload land in a1 instead of the ugen
+ *    temps t3 / t9;
+ *  - the first 0x958 read goes into the dead param arg3, which keeps its
+ *    a2 colour; with a1 and a2 taken, r is pushed to t0 and the tail temps
+ *    renumber t1.. -> t2..;
+ *  - `r` declared before `v` puts r's call-spill slot at 0x30 (not 0x2C). */
 extern void game_uso_func_047B1C();
 /* game_uso_func_071028 declared near game_uso_func_00001DDC. */
 typedef struct { int a; } S1_7ACC;
 int game_uso_func_00007ACC(int *a0, int *a1, int arg3, int *arg4) {
     S1_7ACC av;
-    int v;
     int *r;
+    int v;
     int *inner;
 
     *a1 = 0;
@@ -6346,8 +6305,6 @@ int game_uso_func_00007ACC(int *a0, int *a1, int arg3, int *arg4) {
         game_uso_func_047B1C((char*)&D_00000000 + 0x78C,
                          (char*)&D_00000000 + 0x7B0, 0x609);
     }
-    /* Re-load v from a0[0x40] for the table-lookup — matches asm 0x7B1C
-     * which has an independent lw v0,0x40(s0) after the assertion jal. */
     av.a = *(int*)(*(int*)((char*)&D_00000000 + 0x548 + a0[0x40 / 4] * 4));
     r = (int*)game_uso_func_0000A374(a0, av, arg3, arg4);
     if (r == 0) return 0;
@@ -6359,26 +6316,24 @@ int game_uso_func_00007ACC(int *a0, int *a1, int arg3, int *arg4) {
         if (arg4 != 0) *arg4 = 0;
     }
 
-    *a1 = r[0x2C / 4];
+    inner = (int*)r[0x2C / 4];
+    *a1 = (int)inner;
     *(int*)((char*)a0[0x30 / 4] + 0x954) = (int)r;
     *(int*)((char*)a0[0x30 / 4] + 0x958) =
         *(int*)((char*)*(int*)((char*)a0[0x30 / 4] + 0x954) + 0x2C);
 
-    inner = (int*)*(int*)((char*)a0[0x30 / 4] + 0x958);
-    if (inner != 0) {
+    arg3 = *(int*)((char*)a0[0x30 / 4] + 0x958);
+    if (arg3 != 0) {
         *(float*)((char*)a0[0x30 / 4] + 0x9B8) =
-            *(float*)((char*)a0[0x30 / 4] + 0xB4) - *(float*)((char*)inner + 0x30);
+            *(float*)((char*)a0[0x30 / 4] + 0xB4) - *(float*)((char*)arg3 + 0x30);
         *(float*)((char*)a0[0x30 / 4] + 0x9BC) = 0.0f;
+        inner = (int*)*(int*)((char*)a0[0x30 / 4] + 0x958);
         *(float*)((char*)a0[0x30 / 4] + 0x9C0) =
-            *(float*)((char*)a0[0x30 / 4] + 0xBC)
-            - *(float*)((char*)*(int*)((char*)a0[0x30 / 4] + 0x958) + 0x38);
+            *(float*)((char*)a0[0x30 / 4] + 0xBC) - *(float*)((char*)inner + 0x38);
         game_uso_func_071028((char*)a0[0x30 / 4] + 0x9B8);
     }
     return (int)r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_00007C1C: 0x10BC (1071 insns). Collision/penetration sweep:
