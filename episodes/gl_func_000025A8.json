@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_000025A8",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T15:02:14.471861+00:00",
+  "end_time": "2026-10-15T15:02:14.471875+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T15:02:14.471871+00:00",
+      "assistant_text": "Manual exact match via IDO 7.1 -O2 donor. Jump table read from bootup.uso RoData +0xC9C: cases 2..7 in source order, default clears +0x1F0. Each arm writes eight 0x18-stride slot values at +0x74 (typed GlEnt25A8 e[8]) then r = alloc(24); o->unk1F0 = r; init(r, 0x5000X). First-compile match; donor .rodata reloc renamed gl_func_000025A8_rodata pinned to 0xC9C.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 166,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 -O2 donor for gl_func_000025A8 -- mode -> slot-value setter\n * (0x298 bytes, 166 words). PROVEN EXACT 166/166 words standalone; the\n * link-resolved words are the blank jals and the jumptable %lo.\n *\n * WIRED via REPLACE_FUNC_BODY donor splice into game_libs.c.o (the 7344\n * recipe, docs/MATCHING_WORKFLOW.md#game-libs-rodata-literals-and-tables-76f0):\n * the switch's donor-local .rodata jumptable reloc is renamed\n * gl_func_000025A8_rodata, pinned in undefined_syms_auto.txt to the table the\n * USO ships in bootup.uso RoData at +0xC9C (file offset +0xCA0). Shipped\n * words 0x16C48 0x16CA8 0x16D08 0x16D64 0x16DC4 0x16E1C; minus the 0x1466C\n * shim: cases 2..7 -> 0x25DC 0x263C 0x269C 0x26F8 0x2758 0x27B0, in source\n * order; out-of-range -> 0x2808 (default). Straight first-compile match:\n * IDO picks v0 for the per-arm constant it reuses (or the D4 value in\n * case 3 / default) on its own. */\n#include \"common.h\"\n\nextern int gl_func_00000000();\n\ntypedef struct GlEnt25A8 {\n    s32 v;\n    char pad4[0x18 - 4];\n} GlEnt25A8;\n\ntypedef struct GlObj25A8 {\n    char pad0[0x74];\n    GlEnt25A8 e[8];\n    char pad134[0x1F0 - 0x134];\n    s32 unk1F0;\n} GlObj25A8;\n\nvoid gl_func_000025A8(GlObj25A8 *arg0, s32 arg1) {\n    s32 r;\n\n    switch (arg1) {\n    case 2:\n        arg0->e[0].v = 9;\n        arg0->e[1].v = 107;\n        arg0->e[2].v = 1;\n        arg0->e[3].v = 7;\n        arg0->e[4].v = 12;\n        arg0->e[5].v = 13;\n        arg0->e[6].v = 0;\n        arg0->e[7].v = -5;\n        r = gl_func_00000000(24);\n        arg0->unk1F0 = r;\n        gl_func_00000000(r, 0x5000C);\n        break;\n    case 3:\n        arg0->e[0].v = 9;\n        arg0->e[1].v = 110;\n        arg0->e[2].v = 1;\n        arg0->e[3].v = 4;\n        arg0->e[4].v = 14;\n        arg0->e[5].v = 15;\n        arg0->e[6].v = 0;\n        arg0->e[7].v = -7;\n        r = gl_func_00000000(24);\n        arg0->unk1F0 = r;\n        gl_func_00000000(r, 0x5000D);\n        break;\n    case 4:\n        arg0->e[0].v = 11;\n        arg0->e[1].v = 107;\n        arg0->e[2].v = 0;\n        arg0->e[3].v = 7;\n        arg0->e[4].v = 11;\n        arg0->e[5].v = 12;\n        arg0->e[6].v = 1;\n        arg0->e[7].v = -4;\n        r = gl_func_00000000(24);\n        arg0->unk1F0 = r;\n        gl_func_00000000(r, 0x5000E);\n        break;\n    case 5:\n        arg0->e[0].v = 17;\n        arg0->e[1].v = 107;\n        arg0->e[2].v = -2;\n        arg0->e[3].v = 7;\n        arg0->e[4].v = 8;\n        arg0->e[5].v = 13;\n        arg0->e[6].v = 0;\n        arg0->e[7].v = -5;\n        r = gl_func_00000000(24);\n        arg0->unk1F0 = r;\n        gl_func_00000000(r, 0x5000F);\n        break;\n    case 6:\n        arg0->e[0].v = 14;\n        arg0->e[1].v = 108;\n        arg0->e[2].v = 0;\n        arg0->e[3].v = 6;\n        arg0->e[4].v = 9;\n        arg0->e[5].v = 14;\n        arg0->e[6].v = 0;\n        arg0->e[7].v = -6;\n        r = gl_func_00000000(24);\n        arg0->unk1F0 = r;\n        gl_func_00000000(r, 0x5001F);\n        break;\n    case 7:\n        arg0->e[0].v = 14;\n        arg0->e[1].v = 108;\n        arg0->e[2].v = 0;\n        arg0->e[3].v = 7;\n        arg0->e[4].v = 17;\n        arg0->e[5].v = 14;\n        arg0->e[6].v = 0;\n        arg0->e[7].v = -6;\n        r = gl_func_00000000(24);\n        arg0->unk1F0 = r;\n        gl_func_00000000(r, 0x50020);\n        break;\n    default:\n        arg0->e[0].v = 10;\n        arg0->e[1].v = 115;\n        arg0->e[4].v = 11;\n        arg0->e[5].v = 13;\n        arg0->unk1F0 = 0;\n        break;\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o2_25A8.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_000025A8.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "make byte-identical ROM; objdiff report 100.0; raw .text slice equals expected/ except the jumptable %lo reloc word (donor _rodata pin)."
+  }
+}

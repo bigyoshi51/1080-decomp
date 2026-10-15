@@ -1399,7 +1399,18 @@ void game_libs_func_00002580(int *a0, float a1, float a2, float a3, float a4) {
     *(float*)((char*)a0 + 0x1E0) = a4;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000025A8);
+/* gl_func_000025A8: mode -> slot-value setter (0x298, 166 words) -- EXACT
+ * via the IDO 7.1 -O2 donor src/game_libs/game_libs_o2_25A8.c
+ * (REPLACE_FUNC_BODY splice). switch(arg1) cases 2..7 (table read from
+ * bootup.uso RoData +0xC9C: arms in order 2,3,4,5,6,7) each write eight
+ * 0x18-stride slot values at +0x74 and store an alloc(24) result at +0x1F0;
+ * default writes four values and clears +0x1F0. The jumptable's donor-local
+ * .rodata reloc is renamed gl_func_000025A8_rodata and pinned to +0xC9C (an
+ * in-unit compile cannot bake the %lo). Body below is a placeholder for the
+ * splice. */
+void gl_func_000025A8(char *arg0, s32 arg1) {
+    *(s32 *)(arg0 + 0x1F0) = arg1;
+}
 
 #ifdef NON_MATCHING
 #ifndef FW
