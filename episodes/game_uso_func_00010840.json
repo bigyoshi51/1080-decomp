@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_00010840",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T19:06:07.127820+00:00",
+  "end_time": "2026-10-15T19:06:07.127840+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T19:06:07.127837+00:00",
+      "assistant_text": "Exact via IDO 7.1 NCC C++ donor. The mfc1 a3,f0 is the float 4th parameter of DB78 (prototype), and the pre-branch a1/a2/a3 setup is the else-arm DB28(self, 0x20008, 0, 1, 6, 1) arguments hoisted; PMF passed by value to D5BC. Matched on the first compile.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 67,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 NCC (C++) donor for game_uso_func_00010840 (0x10C / 67 words).\n *\n * State-entry handler, sibling of 10694: self->0xB4->0x3DC = 1, D8A8(self),\n * D8EC(self); f0 = self->0xB4->0x970; if |f0| exceeds the double at\n * D_807FFB78+0x258, DB78(self, 0x20002, 0x20003, f0, 0, 1), else\n * DB28(self, 0x20008, 0, 1, 6, 1); E1FC(self); if self->0xB4->0x9CC == 0,\n * D5BC(self, PMF at D_807FF400+0xE10); 11750(self).\n *\n * The cfe wrap (87.67%) had two wrong guesses: the `mfc1 a3,f0` is just\n * DB78's float 4th parameter (as in F13C), and the \"dead arg-prep\" before\n * the abs branch (a1 = 0x20008, a2 = 0, a3 = 1) is the else-arm's DB28\n * argument list, hoisted. With both fixed the NCC compile matches on the\n * first try.\n * Spliced into game_uso.c.o via REPLACE_FUNC_BODY\n * (docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe). Every\n * symbol is extern \"C\". */\nstruct A { char pad[40]; virtual void m(); };\ntypedef void (A::*PM)();\nextern \"C\" {\nextern char game_uso_D_807FFB78;\nextern char game_uso_D_807FF400;\nvoid import_0010DB28(void *, int, int, int, int, int);\nvoid import_0010DB78(void *, int, int, float, int, int);\nvoid game_uso_func_0000D8A8(void *);\nvoid game_uso_func_0000D8EC(void *);\nvoid game_uso_func_0000E1FC(void *);\nvoid game_uso_func_0000D5BC(void *, PM);\nvoid game_uso_func_00011750(void *);\n}\n#define AT(T,b,o) (*(T *)((char *)(b) + (o)))\n#define I(b,o) AT(int,b,o)\nextern \"C\" void game_uso_func_00010840(int *a0) {\n    float f0;\n    I(I(a0, 0xB4), 0x3DC) = 1;\n    game_uso_func_0000D8A8(a0);\n    game_uso_func_0000D8EC(a0);\n    f0 = AT(float, I(a0, 0xB4), 0x970);\n    if ((double)(f0 < 0.0f ? -f0 : f0) > AT(double, &game_uso_D_807FFB78, 0x258)) {\n        import_0010DB78(a0, 0x20002, 0x20003, f0, 0, 1);\n    } else {\n        import_0010DB28(a0, 0x20008, 0, 1, 6, 1);\n    }\n    game_uso_func_0000E1FC(a0);\n    if (I(I(a0, 0xB4), 0x9CC) == 0) {\n        game_uso_func_0000D5BC(a0, AT(PM, &game_uso_D_807FF400, 0xE10));\n    }\n    game_uso_func_00011750(a0);\n}\n",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso_ncc_10840.cpp",
+    "asm_path": "asm/nonmatchings/game_uso/game_uso/game_uso_func_00010840.s",
+    "segment": "game_uso",
+    "compiler": "IDO 7.1 NCC (C++)",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Wab,-r4300_mul",
+    "verification": "NCC donor 67/67 words + 11/11 relocs identical; spliced into game_uso.c.o via REPLACE_FUNC_BODY; report.json 100.0; ROM byte-identical; verify-blocks OK; 0 exacts lost."
+  }
+}

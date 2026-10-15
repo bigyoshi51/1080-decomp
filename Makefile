@@ -1544,6 +1544,10 @@ build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(
 GAMEUSO_10A0C_DONOR := build/src/game_uso/game_uso_ncc_10A0C.cpp.o
 build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: REPLACE_FUNC_BODY += game_uso_func_00010A0C=$(GAMEUSO_10A0C_DONOR)
 build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(GAMEUSO_10A0C_DONOR)
+# 10840 = 10694 sibling; DB78 float 4th param + DB28 else-arm args (67/67 words; cfe 87.67%).
+GAMEUSO_10840_DONOR := build/src/game_uso/game_uso_ncc_10840.cpp.o
+build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: REPLACE_FUNC_BODY += game_uso_func_00010840=$(GAMEUSO_10840_DONOR)
+build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(GAMEUSO_10840_DONOR)
 
 # xldtob.c -O3 donor (73904/73E74): direct CC, no asm-processor
 # (asm-processor rejects -O3; the file has no GLOBAL_ASM). Symbol

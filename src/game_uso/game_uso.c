@@ -12042,62 +12042,21 @@ void game_uso_func_00010694(int *a0) {
     volatile int *ret = a0;
 }
 
-#ifdef NON_MATCHING
-/* game_uso_func_00010840: 67-insn (0x10C) state-init + 2-stage dispatch,
- * sibling of 10694. State-machine: set sub->0x3DC=1, two init dispatches,
- * reload velocity sub->0x970, abs+double-threshold compare, two-arm
- * 6-arg logger dispatch (import_0010DB78 above-thresh / import_0010DB28
- * below-thresh), unconditional follow-up, then a sub->0x9CC-gated pair call.
- *
- * 2026-06-24 RECONSTRUCTION 80.19% -> 87.67% (verified in-tree):
- *   The float velocity's raw bits are passed as the a3 arg of both logger
- *   calls (target: single `mfc1 a3,$f0`). Passing `*(int*)&saved_f0` forces
- *   a swc1+3-reload stack round-trip (frame -48, 80.19%). Instead read the
- *   int bits DIRECTLY from the struct slot into a HOISTED local `bits`
- *   (`*(int*)((char*)sub + 0x970)`) BEFORE the branch: single `lw`, CSE'd
- *   across both arms, frame -40, +7.5pp.
- *
- * RESIDUAL CAP (~88%, not landable):
- *   (1) Target's a3 is `mfc1 a3,$f0` (float-bits-to-int-reg); IDO C cannot
- *       emit single-insn mfc1 for a float — documented 14-variant cap
- *       (docs/IDO_CODEGEN.md#feedback-ido-mfc1-from-c). Here it degrades to
- *       a `lw` from the same slot (correct bytes, wrong instruction).
- *   (2) Target has DEAD arg-prep before the abs branch (a1=0x20008, a2=0,
- *       a3=1, move a0,s0) overwritten before any call — an -O2 hoist
- *       artifact with NO call; reintroducing a real stage-1 call regresses
- *       to 67% (adds a jal the target lacks).
- * Remaining diffs are otherwise register-allocation only (same insn count).
- * Default INCLUDE_ASM. */
-extern char game_uso_D_807FFB78;
-extern int import_0010DB78();
+/* game_uso_func_00010840 (0x10C / 67 words): state-entry handler, sibling of
+ * 10694. sub->0x3DC = 1, D8A8, D8EC; f0 = sub->0x970; |f0| > double at
+ * D_807FFB78+0x258 ? DB78(self, 0x20002, 0x20003, f0, 0, 1)
+ *                  : DB28(self, 0x20008, 0, 1, 6, 1);
+ * E1FC; D5BC(self, PMF at D_807FF400+0xE10) when sub->0x9CC == 0; 11750.
+ * EXACT via REPLACE_FUNC_BODY donor splice: the real body is the IDO 7.1 NCC
+ * (C++) donor src/game_uso/game_uso_ncc_10840.cpp (67/67 words + 11/11
+ * relocs). The old cfe wrap (87.67%) misread two things: `mfc1 a3,f0` is
+ * DB78's float 4th parameter, and the "dead arg-prep" was the else-arm's
+ * DB28 arguments. See
+ * docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe.
+ * Body below is a placeholder for the splice. */
 void game_uso_func_00010840(int *a0) {
-    int *sub = (int*)a0[0xB4/4];
-    float saved_f0;
-    float abs_f0;
-    int bits;
-    sub[0x3DC/4] = 1;
-    game_uso_func_0000D8A8((char*)a0);
-    game_uso_func_0000D8EC(a0);
-    sub = (int*)a0[0xB4/4];
-    saved_f0 = *(float*)((char*)sub + 0x970);
-    bits = *(int*)((char*)sub + 0x970);
-    abs_f0 = (saved_f0 < 0.0f) ? -saved_f0 : saved_f0;
-    if ((double)abs_f0 > *(double*)((char*)&game_uso_D_807FFB78 + 0x258)) {
-        import_0010DB78(a0, 0x20002, 0x20003, bits, 0, 1);
-    } else {
-        import_0010DB28(a0, 0x20002, 0x20003, bits, 6, 1);
-    }
-    game_uso_func_0000E1FC((char*)a0);
-    sub = (int*)a0[0xB4/4];
-    if (sub[0x9CC/4] == 0) {
-        game_uso_func_0000D5BC((char*)a0,
-                         *(Pair2*)((char*)&game_uso_D_807FF400 + 0xE10));
-    }
-    game_uso_func_00011750((char*)a0);
+    volatile int *ret = a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010840);
-#endif
 
 /* game_uso_func_0001094C: 48-insn EE84-family (near-twin of 10A0C).
  * MATCHED 2026-07-08, word-diff 48/48 incl. reloc symbols (import_0010DB78,
