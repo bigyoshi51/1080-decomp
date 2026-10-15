@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_00010694",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T18:35:28.312341+00:00",
+  "end_time": "2026-10-15T18:35:28.312357+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T18:35:28.312353+00:00",
+      "assistant_text": "Donor-splice exact, compiled as C++ by IDO 7.1 NCC (game_uso is C++). game_uso_func_0000D5BC(this, pm) takes a pointer-to-member-function by value (a1/a2 plus home-slot stores sp+4/sp+8); the second call is guarded by pm != null PMF at game_uso_D_807FF3B8+0xDC8, which edg lowers to the 2-word at/addi compare loop with a 1/0 flag. The DB78 import gets a full prototype with a float 4th param, so the sampled 0xB4->0x970 float goes out as mfc1 a3,f0 (the old C wrap called it an mfc1-from-C cap; it was a missing prototype). fabs as ternary (r < 0 ? -r : r) compared as double against D_807FFB70+0x250. All symbols extern \"C\". First NCC compile was exact.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 107,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 NCC (C++) donor for game_uso_func_00010694 (0x1AC / 107 words).\n *\n * State-entry handler: flag the 0xB4 object, set state 2, sample\n * 0xB4->0x970, run the E1FC/D8A8/D8EC enter hooks, pick the DB78 / DB28\n * import by |r| vs the D_807FFB70+0x250 double, then two SetState-style\n * calls game_uso_func_0000D5BC(this, pm) taking a pointer-to-member BY VALUE\n * (a1/a2 + home-slot stores): once with the null-ish PMF at\n * D_807FF438+0xE48, once with this->pm at +0xD0 when it is non-null (the\n * same edg 2-word `at`/`addi` PMF compare as D204). Spliced into\n * game_uso.c.o via REPLACE_FUNC_BODY (docs/MATCHING_WORKFLOW.md#game-uso-\n * ncc-cplusplus-donor-recipe). The float 4th arg of DB78 goes out as\n * `mfc1 a3,$f0` straight from the prototype -- the \"mfc1-from-C cap\" of the\n * old C wrap was a missing prototype, not an IDO limit. Every symbol is\n * extern \"C\". */\nstruct A { char pad[40]; virtual void m(); };\ntypedef void (A::*PM)();\nextern \"C\" {\nextern char game_uso_D_807FFB70;\nextern char game_uso_D_807FF438;\nextern char game_uso_D_807FF3B8;\nvoid game_uso_func_0000E1FC(void *);\nvoid game_uso_func_0000D8A8(void *);\nvoid game_uso_func_0000D8EC(void *);\nvoid import_0010DB78(void *, int, int, float, int, int);\nvoid import_0010DB28(void *, int, int, int, int, int);\nvoid game_uso_func_0000E91C(void *);\nvoid game_uso_func_00011750(void *);\nvoid game_uso_func_0000D5BC(void *, PM);\n}\n#define I(b,o) (*(int *)((char *)(b) + (o)))\n#define F(b,o) (*(float *)((char *)(b) + (o)))\n#define P(b,o) (*(PM *)((char *)(b) + (o)))\nextern \"C\" void game_uso_func_00010694(A *a0) {\n    float r;\n    float ar;\n    I(I(a0, 0xB4), 0xA18) = 1;\n    I(a0, 0x114) = 2;\n    I(I(a0, 0xB4), 0x3DC) = 1;\n    F(a0, 0x11C) = 1.0f;\n    r = F(I(a0, 0xB4), 0x970);\n    game_uso_func_0000E1FC(a0);\n    I(I(a0, 0xB4), 0x960) = 0;\n    game_uso_func_0000D8A8(a0);\n    game_uso_func_0000D8EC(a0);\n    ar = (r < 0.0f) ? -r : r;\n    if ((double)ar > *(double *)(&game_uso_D_807FFB70 + 0x250)) {\n        int v = I(a0, 0xFC);\n        import_0010DB78(a0, v | 2, v | 3, r, 0, 1);\n    } else {\n        import_0010DB28(a0, I(a0, 0xFC) | 8, 0, 1, 6, 1);\n    }\n    if (I(I(a0, 0xB4), 0x9CC) != 0) {\n        game_uso_func_0000D5BC(a0, P(&game_uso_D_807FF438, 0xE48));\n    }\n    game_uso_func_0000E91C(a0);\n    game_uso_func_00011750(a0);\n    I(a0, 0xDC) = I(I(a0, 0xB4), 0x938);\n    if (P(a0, 0xD0) != P(&game_uso_D_807FF3B8, 0xDC8)) {\n        game_uso_func_0000D5BC(a0, P(a0, 0xD0));\n    }\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-g/src/game_uso/game_uso_ncc_10694.cpp",
+    "asm_path": "projects/1080-agent-g/asm/nonmatchings/game_uso/game_uso/game_uso_func_00010694.s",
+    "segment": "game_uso",
+    "compiler": "IDO 7.1 NCC (C++)",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Wab,-r4300_mul",
+    "verification": "NCC donor 107/107 words identical (raw .text slice == expected); spliced into game_uso.c.o via REPLACE_FUNC_BODY; report.json 100.0; ROM byte-identical; verify-blocks OK."
+  }
+}

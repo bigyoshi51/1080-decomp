@@ -12181,81 +12181,17 @@ void game_uso_func_00010648(void *a0) {
     gl_func_00000000(a0);
 }
 
-#ifdef NON_MATCHING
 /* game_uso_func_00010694: 0x1AC (107 insns). State-machine entry handler,
- * sibling of 00010840. Reconstructed vs expected .o (call-graph DFS, reloc
- * sites): distinct D symbols (D_807FFB70 ldc1 +0x250 threshold, D_807FF438
- * +0xE48 pair, D_807FF3B8 +0xDC8 table), real callee names, two dispatch
- * arms call DIFFERENT funcs (import_0010DB78 above-threshold,
- * import_0010DB28 below-threshold), 2-word table-scan vs D_807FF3B8+0xDC8
- * (modeled on sibling 0000D204).
- *
- * RESIDUAL CAP (shared with 00010840): the above-arm passes the raw float
- * bits of saved_f0 as a3 via the target's single `mfc1 a3,$f0`. IDO C cannot
- * emit single-insn mfc1 for a float local — `*(int*)&saved_f0` forces a
- * swc1+lw stack round-trip. Documented mfc1-from-C cap. Default INCLUDE_ASM. */
-extern void game_uso_func_0000E1FC(char *);
-extern void game_uso_func_0000D8A8(char *);
-extern void game_uso_func_0000D8EC(int *);
-extern int import_0010DB78();
-extern int import_0010DB28();
-extern void game_uso_func_0000E91C_1arg(char *);
-extern void game_uso_func_00011750(char *);
-extern void game_uso_func_0000D5BC(char *, Pair2);
-extern char game_uso_D_807FFB70;
-extern char game_uso_D_807FF438;
+ * sibling of 00010840. EXACT via REPLACE_FUNC_BODY donor splice: the real
+ * body is the IDO 7.1 NCC (C++) donor src/game_uso/game_uso_ncc_10694.cpp
+ * (107/107 words identical). Two game_uso_func_0000D5BC(this, pm) calls pass
+ * a pointer-to-member by value, the second guarded by the edg 2-word PMF
+ * null compare (same block as D204). The old "mfc1-from-C cap" was a missing
+ * float prototype for import_0010DB78. docs/MATCHING_WORKFLOW.md#game-uso-
+ * ncc-cplusplus-donor-recipe. Body below is a placeholder for the splice. */
 void game_uso_func_00010694(int *a0) {
-    int *sub;
-    float saved_f0;
-    float abs_f0;
-    int v;
-    ((int*)a0[0xB4/4])[0xA18/4] = 1;
-    a0[0x114/4] = 2;
-    ((int*)a0[0xB4/4])[0x3DC/4] = 1;
-    *(float*)((char*)a0 + 0x11C) = 1.0f;
-    saved_f0 = *(float*)((char*)(int*)a0[0xB4/4] + 0x970);
-    game_uso_func_0000E1FC((char*)a0);
-    ((int*)a0[0xB4/4])[0x960/4] = 0;
-    game_uso_func_0000D8A8((char*)a0);
-    game_uso_func_0000D8EC(a0);
-
-    abs_f0 = (saved_f0 < 0.0f) ? -saved_f0 : saved_f0;
-
-    v = a0[0xFC/4];
-    if ((double)abs_f0 > *(double*)((char*)&game_uso_D_807FFB70 + 0x250)) {
-        import_0010DB78(a0, v | 2, v | 3, *(int*)&saved_f0, 0, 1);
-    } else {
-        import_0010DB28(a0, v | 8, 0, 1, 6, 1);
-    }
-
-    sub = (int*)a0[0xB4/4];
-    if (sub[0x9CC/4] != 0) {
-        game_uso_func_0000D5BC((char*)a0, *(Pair2*)((char*)&game_uso_D_807FF438 + 0xE48));
-    }
-    game_uso_func_0000E91C_1arg((char*)a0);
-    game_uso_func_00011750((char*)a0);
-
-    *(int*)((char*)a0 + 0xDC) = ((int*)a0[0xB4/4])[0x938/4];
-    {
-        int *p = (int*)((char*)a0 + 0xD0);
-        int *t = (int*)((char*)&game_uso_D_807FF3B8 + 0xDC8);
-        int found = 0;
-        do {
-            if (*p != *t) { found = 0; break; }
-            p++;
-            t++;
-        } while (p != (int*)((char*)a0 + 0xD0) + 2);
-        if (p == (int*)((char*)a0 + 0xD0) + 2) {
-            found = 1;
-        }
-        if (found) {
-            game_uso_func_0000D5BC((char*)a0, *(Pair2*)((char*)a0 + 0xD0));
-        }
-    }
+    volatile int *ret = a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010694);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_00010840: 67-insn (0x10C) state-init + 2-stage dispatch,
