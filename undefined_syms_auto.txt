@@ -3601,3 +3601,4 @@ gl_ref_00033D20 = 0x00033D20;  /* gl_func_00021498 baked USO jal (0x0C00CF48) */
 gl_func_00002B94_rodata = 0x00000CB8;  /* gl_func_00002B94 colour float literals (200/255, 30/255, 93/255, 162/255) in bootup.uso RoData +0xCB8..0xCC4; donor-local .rodata reloc renamed by replace-function-body.py (game_libs_o2_2B94.c) */
 D_2B94_alpha = 0x00000000;  /* gl_func_00002B94 blank import float (255 * alpha multiplier; lui 0 / lwc1 0) */
 gl_func_00000000_2B94f = 0x00000000;  /* gl_func_00002B94 (obj, int, f32, f32, int) prototyped blank-jal alias (float args in a2/a3) */
+gl_func_00007344_rodata = 0x00000DE8;  /* switch(arg1) 7-entry jumptable (cases 0..6): bootup.uso ships it in RoData at +0xDE8; donor-local .rodata reloc renamed by replace-function-body.py (game_libs_o2_7344.c) */
