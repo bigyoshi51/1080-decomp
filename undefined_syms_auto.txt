@@ -3590,3 +3590,4 @@ gl_ref_00032320 = 0x00032320;  /* gl_func_0001CD64 baked USO jal (0x0C00C8C8) ->
 D_345c0_27E24 = 0x00000000;  /* gl_func_00027E24 typed alias of D_00000000_345c0 (bootup.uso sym1255 @0x345C0; f204C/f2050, count +0x2070, recs +0x2CFC stride 0xD0) */
 gl_func_00000000_27E24f = 0x00000000;  /* gl_func_00027E24 float-returning blank (cross-module callee) */
 gl_ref_0003BE70 = 0x0003BE70;  /* gl_func_00027E24 baked USO jal (0x0C00EF9C) */
+D_23E60_g = 0x00000000;  /* gl_func_00023E60 typed view of the 0x1DD4/0x1DF0/0x1ACC0 base (NM path) */

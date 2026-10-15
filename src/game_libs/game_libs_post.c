@@ -6513,34 +6513,39 @@ extern int D_00000000;
  * to folded same-sym), if(1){} BB wrap, or inline-expression spelling. Coupled
  * residual: align expr lives in an s3 CSE-temp (guard reads temp) + or s0,s3
  * copy; two-def split of the align expr doesn't break it. Entry-block const
- * placement = uopt const-sink canonicalization cap. */
+ * placement = uopt const-sink canonicalization cap.
+ * 2026-10-14 agent-c run 63 (70.9 -> 74.1): the third table is D+0x1ACC0 /
+ * 0x1ACCC, not 0x2ACC0 (target `lui s4,2; addiu s4,-21312` is the carry form of
+ * 0x1ACC0). Rewritten through a typed per-site view D_23E60_g (pinned 0) with
+ * member-array addresses as call args, params advanced in place, void return.
+ * Residual unchanged in kind: the (sz+15)&~15 value lives in an s3 temp + `or s0,s3`
+ * (target computes straight into s0), and the sltiu guard sits before the three
+ * lui/addiu base pairs (target: bases first, guard after). Probed inert: u32 n,
+ * if+do-while, assignment inside the call arg, two-statement n. */
 extern int gl_func_00038604();
-int gl_func_00023E60(int a0, int a1, int sz, int a3) {
-    char *g = (char *)&D_00000000;
-    char *s3;
-    char *s4;
-    char *s6;
-    int s0;
-    int s2;
-    int s1;
-    s3 = g + 0x1DD4;
-    s4 = g + 0x2ACC0;
-    s6 = g + 0x1DF0;
-    s0 = sz + 0xF;
-    s0 = s0 & ~0xF;
-    s1 = a1;
-    s2 = a0;
-    gl_func_00000000(a1, s0);
-    while ((u32)s0 >= 0x400) {
-        gl_func_00038604(s6, 1, 0, s2, s1, 0x400, s3, a3, s4);
-        gl_func_00000000(s3, 0, 1);
-        s0 -= 0x400;
-        s2 += 0x400;
-        s1 += 0x400;
+typedef struct {
+    char p0[0x1DD4];
+    char t1DD4[0x1DF0 - 0x1DD4];
+    char t1DF0[0x1ACC0 - 0x1DF0];
+    char t1ACC0[0xC];
+    char t1ACCC[4];
+} gl_23E60_GS;
+extern gl_23E60_GS D_23E60_g;
+void gl_func_00023E60(int a0, int a1, int sz, int a3) {
+    int n;
+
+    n = (sz + 0xF) & ~0xF;
+    gl_func_00000000(a1, n);
+    while ((u32)n >= 0x400) {
+        gl_func_00038604(D_23E60_g.t1DF0, 1, 0, a0, a1, 0x400, D_23E60_g.t1DD4, a3, D_23E60_g.t1ACC0);
+        gl_func_00000000(D_23E60_g.t1DD4, 0, 1);
+        n -= 0x400;
+        a0 += 0x400;
+        a1 += 0x400;
     }
-    if (s0 != 0) {
-        gl_func_00038604(s6, 1, 0, s2, s1, s0, s3, a3, g + 0x2ACCC);
-        gl_func_00000000(s3, 0, 1);
+    if (n != 0) {
+        gl_func_00038604(D_23E60_g.t1DF0, 1, 0, a0, a1, n, D_23E60_g.t1DD4, a3, D_23E60_g.t1ACCC);
+        gl_func_00000000(D_23E60_g.t1DD4, 0, 1);
     }
 }
 #else
