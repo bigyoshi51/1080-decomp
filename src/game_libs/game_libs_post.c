@@ -17208,19 +17208,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F934);
 //   phantom slot: frame -56 -> -48 matches, cvt.d.s gone. 83.66 -> 89.55% fuzzy.
 //   RESIDUAL (genuine regalloc cap): target coalesces param `b` into $a3 up
 //   front (`or a3,a1,zero`, homing arg4 to 60(sp)); the sign-extend + v1 home
-//   slot (32 vs 36) shift with it. A parameter-shuffle coloring cap, not C-
-//   reachable. Name pre-checked: no extern reuse.
+//   slot (32 vs 36) shift with it. (SUPERSEDED 2026-10-15: the a3 copy IS
+//   reachable -- see the note in the wrap.) Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+/* 2026-10-15 (agent-c): the first call takes FOUR args, (s8)b in a1 and b
+ * itself in a3 (the entry `or a3,a1,zero` is b's web coloured a3; scanner
+ * nm=jal/01 tgt=jal/013), with arg3 riding in a2. Only with a param's
+ * address taken (varargs-style reads of arg4/the two stack bytes off
+ * &arg3) does b stay in a register (sll/sra of a3, not `lb a1,55(sp)` from
+ * its home). RESIDUAL: IDO still reloads arg3 (`lw a2,56(sp)` in the jal
+ * delay; target has none there) and the 0x06000000|sub CSE temp spills to
+ * 32(sp) vs 36(sp). Tried: register/char/short/u16 b, uninitialised 3rd
+ * arg, named cmd/op locals (frame +8), pads (frame +8), &b/&arg4/&s43 as
+ * the address-taken param -- all keep the a2 reload. */
 extern int gl_func_00000000();
-void gl_func_0002F9D4(int a0, int b, int arg3, int arg4,
-                      int stk_43, int stk_47) {
-    int op = (a0 == 0) ? 1 : 5;
-    int sub = (op & 0xFF) << 8;
-    gl_func_00000000(0x06000000 | sub | 5, (signed char)b);
+void gl_func_0002F9D4(int a0, int b, int arg3, ...) {
+    int sub = (((a0 == 0) ? 1 : 5) & 0xFF) << 8;
+    gl_func_00000000(0x06000000 | sub | 5, (signed char)b, arg3, b);
     gl_func_00000000_f(0x01000000 | sub, (float)arg3 / 127.0f);
-    gl_func_00000000(0x04000000 | sub, arg4);
-    gl_func_00000000(0x06000000 | sub, (signed char)stk_43);
-    gl_func_00000000(0x03000000 | sub, (signed char)stk_47);
+    gl_func_00000000(0x04000000 | sub, (&arg3)[1]);
+    gl_func_00000000(0x06000000 | sub, ((signed char *)&arg3)[11]);
+    gl_func_00000000(0x03000000 | sub, ((signed char *)&arg3)[15]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F9D4);
