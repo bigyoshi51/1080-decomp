@@ -9289,59 +9289,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E238);
 #endif
 #endif
 
-// gl_func_0003E2B0 — NM WRAP 95.8% (2026-05-28, was documented-only).
+// gl_func_0003E2B0 — EXACT 2026-10-15 (agent-c; was NM 96.2).
 // Diagnostic/trace serializer: list-walk + per-node vtable dispatch bracketed
-// by emit-callback open/value/close. Helper trio H_0145A8/H_01459B/H_0145B5 are
-// HARDCODED mid-function jals (0x516a0/0x5166c/0x516d4 land INSIDE
-// gl_func_00051694 / gl_func_0005165C — no symbol, baked-not-reloc'd) → the
-// documented hardcoded-jal cap (reference_1080_hardcoded_jal_addresses); the
-// wrap uses gl_func_00000000 placeholders for them, which is the ~4% residual.
-// Other residual: frame 0x48 vs 0x40 (8-byte spill-slot-allocator diff, decl
-// order already matches the term>hA>hB slot order) + vt/fn in v1/a1 vs v0/t9.
-// Logic/control-flow/arg-threading exact. Family: same H_0145xx record-emit
-// trio + cb open/value/close as sibling serializers gl_func_00040640 / 00040974.
-#ifdef NON_MATCHING
+// by emit-callback open/value/close. Helper trio at 0x516A0/0x5166C/0x516D4
+// is a set of BAKED in-unit jals (no symbol at those addresses) -> pinned
+// gl_ref_<addr> aliases in undefined_syms_auto.txt, all void. Fixes vs the
+// old wrap: hA is the RESULT of the first gl_func_00000000(g,1,0) call
+// (stored in the delay slot of H(&hA)), not of H(&hA); H is void (frees v0
+// for vt); and &D_00000000 is spelled inline rather than via a `g` local,
+// which drops the 4-byte frame-top gap so hB/hA/term land at 0x30/0x34/0x38.
+// Family: sibling serializers gl_func_00040640 / 00040974.
+extern void gl_ref_000516A0();
+extern void gl_ref_0005166C();
+extern void gl_ref_000516D4();
 void gl_func_0003E2B0(void *a0) {
   int *node = *((int **) (((char *) a0) + 0x2C));
-  char *g = (char *) (&D_00000000);
   int term;
   int hA;
-  int (*new_var2)();
   int hB;
-  unsigned short new_var;
-  if (node != 0)
-  {
-    do
-    {
-      if ((*((int *) (((char *) node) + 0x10))) != 0)
-      {
-        int rc;
+  while (node != 0) {
+      if (*((int *) (((char *) node) + 0x10)) != 0) {
         int *vt;
-        int (*fn)();
-        gl_func_00000000(((char *) node) + 0x2C);
-        gl_func_00000000(g, 1, 0);
-        hA = gl_func_00000000(&hA);
+        gl_ref_000516A0(((char *) node) + 0x2C);
+        hA = gl_func_00000000(&D_00000000, 1, 0);
+        gl_ref_0005166C(&hA);
         vt = *((int **) (((char *) node) + 0x28));
-        new_var = 1;
-        fn = *((int (**)()) (((char *) vt) + 0x44));
-        fn = (new_var2 = *((int (**)()) (((char *) vt) + 0x44)));
-        fn((*((short *) (((char *) vt) + 0x40))) + ((int) node));
-        rc = gl_func_00000000(g, new_var, 0);
-        hB = (rc - hA) - 4;
-        gl_func_00000000(g, 0, hA);
-        gl_func_00000000(&hB);
-        gl_func_00000000(g, new_var, hB);
+        (*((void (**)()) (((char *) vt) + 0x44)))((*((short *) (((char *) vt) + 0x40))) + ((int) node));
+        hB = (gl_func_00000000(&D_00000000, 1, 0) - hA) - 4;
+        gl_func_00000000(&D_00000000, 0, hA);
+        gl_ref_0005166C(&hB);
+        gl_func_00000000(&D_00000000, 1, hB);
       }
       node = *((int **) (((char *) node) + 0x30));
-    }
-    while (node != 0);
   }
   term = 0;
-  gl_func_00000000(&term);
+  gl_ref_000516D4(&term);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E2B0);
-#endif
 
 // gl_func_0003E39C — STRUCTURAL PASS (0x1AC / 108 words, no episode). Raw-.word
 // USO. realjr=2 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends at jr 0x3E51C;

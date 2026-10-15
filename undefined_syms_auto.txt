@@ -3632,3 +3632,6 @@ D_5591C_z4 = 0x00000000;
 D_5591C_z8 = 0x00000000;
 D_5591C_zc = 0x00000000;
 gl_func_00000000_35fd4f = 0x00000000;  /* float-prototyped blank (direct jal, single-precision float args) for gl_func_00035FD4 second call */
+gl_ref_000516A0 = 0x000516A0;  /* gl_func_0003E2B0 baked USO jal (0x0C0145A8) */
+gl_ref_0005166C = 0x0005166C;  /* gl_func_0003E2B0 baked USO jal (0x0C01459B) */
+gl_ref_000516D4 = 0x000516D4;  /* gl_func_0003E2B0 baked USO jal (0x0C0145B5) */
