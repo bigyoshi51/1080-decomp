@@ -12583,39 +12583,58 @@ int game_libs_func_0002A9F0(unsigned char **a0) {
 //   disasm + reloc-pad jal infra. Real-C STRUCTURAL body below per
 //   the analysis. Byte-match deferred. Name pre-checked: no extern
 //   reuse.
-#ifdef NON_MATCHING
-extern int gl_func_00000000();
-void gl_func_0002AA30(char *o) {
-    int v0 = *(int *)o;
-    short c;
+// EXACT 2026-10-15 (agent-c; was NM 82.5). Fixes vs the old wrap:
+//   (1) word 0 is a bitfield word: b31 gates entry (srl 31; beqzl), b29 is
+//   both the countdown latch (sll 2; bltz) and the `o->b0 |= 0x20` set
+//   (lbu/ori/sb), b28 is the final OR term; (2) the countdown decrements
+//   BEFORE testing b29 -- the `sh` sits in the bltz delay slot, executed on
+//   both paths, which is why `addiu t7,v1,-1` fills the earlier bnez slot;
+//   (3) the 3f22c call takes the 3f708 result as a second arg (target
+//   `or a1,v0,zero` after 3f708 keeps r in a1 for the merge); (4) the five
+//   in-unit jals are baked words -> gl_ref_<addr> pins.
+extern int gl_ref_0003F1A0();
+extern int gl_ref_0003F388();
+extern int gl_ref_0003FC60();
+extern int gl_ref_0003F708();
+extern int gl_ref_0003F22C();
+typedef struct {
+    unsigned b31 : 1;
+    unsigned b30 : 1;
+    unsigned b29 : 1;
+    unsigned b28 : 1;
+    unsigned rest : 28;
+    int w4;
+    short h8;
+    short hA;
+    char pad[0x2C - 0xC];
+    int w2C;
+} AA30;
+void gl_func_0002AA30(AA30 *o) {
     int r;
-    if (v0 >= 0) return;                       /* srl+beql sign gate: proceed only if negative */
-    c = *(short *)(o + 8);
-    if (c >= 2) {
-        if ((v0 << 2) < 0) return;             /* bltz (v0<<2) */
-        *(short *)(o + 8) = c - 1;
-        if (*(short *)(o + 0xA) < *(short *)(o + 8)) return;
+    if (!o->b31) return;
+    if (o->h8 >= 2) {
+        o->h8--;
+        if (o->b29) return;
+        if (o->hA < o->h8) return;
+        gl_func_00000000();
+        o->b29 = 1;
+        return;
     }
-    gl_func_00000000();                         /* pre() */
-    *(unsigned char *)o = *(unsigned char *)o | 0x20;
-    gl_func_00000000(o);                        /* 3f1a0 */
-    r = gl_func_00000000(o);                    /* 3f388 */
+    gl_ref_0003F1A0(o);
+    r = gl_ref_0003F388(o);
     if (r == -1) return;
-    r = gl_func_00000000(o, r);                 /* 3fc60(o, r) */
-    if (r == -1) return;
-    r = gl_func_00000000(o, r);                 /* 3f708(o, r) */
+    r = gl_ref_0003FC60(o, r);
     if (r != -1) {
-        gl_func_00000000(o);                    /* 3f22c(o) */
+        r = gl_ref_0003F708(o, r);
     }
-    v0 = *(int *)o;                             /* re-read o->0 for second gate */
-    if ((v0 << 2) >= 0) return;
-    if (*(int *)(o + 0x2C) != 0 || (v0 << 3) < 0) {
-        gl_func_00000000(o);                    /* final cb */
+    if (r != -1) {
+        gl_ref_0003F22C(o, r);
+    }
+    if (o->b29 != 1) return;
+    if (o->w2C != 0 || o->b28) {
+        gl_func_00000000(o);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AA30);
-#endif
 
 // gl_func_0002AB34 — STRUCTURAL PASS (0x8C / 35 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
