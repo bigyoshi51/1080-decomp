@@ -522,8 +522,7 @@ build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x565c
 # 0x17a38 -> 0x17a48 (2026-09-05 agent-g): game_libs_func_000343F4 absorbed the
 # 0x10-byte g3_34448 carve-out (its own switch default block).
 build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x17a48
-build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5550 gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
-build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x17a38
+build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5570 gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
 # game_libs_func_000295BC: the two all-zero ROM words at 0x295BC-0x295C3 are
 # inter-fn pad (real entry 0x295C4); appended to gl_func_00029494 as an all-zero
 # SUFFIX_BYTES_FORCE. expected/ metadata: 29494 size 0x128->0x130, 295BC value +8
