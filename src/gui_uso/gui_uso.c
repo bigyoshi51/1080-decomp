@@ -1307,6 +1307,22 @@ void gui_func_0000271C(char *a0) {
  * (dl-recycle cast flips it but shrinks the frame 120->112 — worse);
  * move-s8-vs-sw-a2 prologue slot swap; ori pair order; move v0,a3 /
  * move a1,a3 info-copy webs (info2 copy var coalesces away).
+ * 2026-10-15 agent-g (call-shape-scan site #3): 92.37 -> ~96.4.
+ *  - else-arm `tile = s0;` FIRST (target `or s1,s0` then the shared
+ *    `subu s0,s0,s1` = 0); the old else did s0 -= tile with the stale
+ *    tile. Fixed the counter/base colour too (+3pp).
+ *  - Dispatch back to a SWITCH: IDO sorts the compare chain 272/288/1032
+ *    (+1 nop insn vs target's 1032/272/288) but lays the arm bodies out
+ *    default-first in source order like the target: +1pp over nested !=.
+ *  - FOUND, NOT KEPT: the `move a1,a3` / `move v0,a3` copies are the
+ *    first call taking a SECOND arg: `a1 = a0[4]; tile = gl(budget/h,
+ *    a1);` (a0[4] CSE'd into one temp copied to info=v0 and a1). That
+ *    reproduces both copies but the temp colours t0 (target a3, budget
+ *    a3 vs v1) and the t-ring shifts: 95.4, -1pp by objdiff. Passing a
+ *    named pointer instead forces it into an s-reg (whole-variable
+ *    allocation: any use reaching the jal block).
+ * RESIDUAL: switch compare order (+1 insn); budget a3 vs v1; info-copy
+ *  webs; prologue move-s8 slot.
  *
  * Default build uses INCLUDE_ASM via #else; ROM stays exact. */
 extern int D_27A0_fn1032, D_27A0_fn272, D_27A0_fn288, D_27A0_fndef;
@@ -1350,21 +1366,22 @@ void gui_func_000027A0(int *a0, int a1, int a2, int a3) {
     info = (int *)a0[0x10 / 4];
     a1 = info[0x24 / 4];
     budget = 4096;
-    if (a1 != 1032) {
-        if (a1 != 272) {
-            if (a1 != 288) {
-                budget = 2048;
-                render_fn = (int (*)())&D_27A0_fndef;
-            } else {
-                budget = 1024;
-                render_fn = (int (*)())&D_27A0_fn288;
-            }
-        } else {
-            budget = 2048;
-            render_fn = (int (*)())&D_27A0_fn272;
-        }
-    } else {
+    switch (a1) {
+    case 1032:
         render_fn = (int (*)())&D_27A0_fn1032;
+        break;
+    case 272:
+        budget = 2048;
+        render_fn = (int (*)())&D_27A0_fn272;
+        break;
+    case 288:
+        budget = 1024;
+        render_fn = (int (*)())&D_27A0_fn288;
+        break;
+    default:
+        budget = 2048;
+        render_fn = (int (*)())&D_27A0_fndef;
+        break;
     }
     w = *(short *)((char *)info + 0x20);
     h = *(short *)((char *)info + 0x22);
@@ -1384,7 +1401,9 @@ void gui_func_000027A0(int *a0, int a1, int a2, int a3) {
                     s6 += tile;
                     s0 -= tile;
                 } else {
-                    int t0 = (s0 << 10) / s0;
+                    int t0;
+                    tile = s0;
+                    t0 = (s0 << 10) / s0;
                     info = (int *)a0[0x10 / 4];
                     render_fn(*(int **)&D_00000000, info[8 / 4], w, h, s6, 0, s0, h, 0);
                     gl_func_00000000(*(int **)&D_00000000, s8, a2, s0, h, t0, s4);
