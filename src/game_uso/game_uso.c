@@ -9536,7 +9536,21 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C48C);
  * on the `f0 < thresh` path and the child mode-mask is `& ~3` (corrected from the
  * earlier comment's `!(...)` / `~4`). Future tightening = per-block RE. */
 #ifdef NON_MATCHING
-/* game_uso_func_0000D204/D210 - logic-corrected decode, 60.98 -> 81.14% fuzzy.
+/* game_uso_func_0000D204/D210 - 81.14 -> 85.73% (2026-10-15 agent-g): the
+ * 0x114 gate was inverted (target CALLS D9CC when 0x114 != 0: beqzl skips the
+ * jal); 076E78 takes a3->0x74 as a 2nd arg (a1 loaded before the beqz and
+ * kept live across the call); the +0x1F4 threshold is one cached float local
+ * (target loads f2 once and re-tests in the bc1fl delay slot).
+ * ROOT CAUSE OF THE RESIDUAL: this function is C++ compiled by IDO 7.1 NCC
+ * (edg front end), not cfe. The `addi`/`at` 2-word loop + 1/0 flag is edg's
+ * pointer-to-member-function compare (a3->pmf at +200 vs a null PMF at
+ * D_807FF3B8+0xDC8) and the bgez/vptr-offset-40 block is the PMF call
+ * (this->*pmf)(). cfe rejects struct ==, and never allocates `at`. A C++
+ * body compiled with tools/ido-static-recomp/build/7.1/out/NCC is
+ * instruction-identical (0x214, relocs identical) - see
+ * docs/IDO_CODEGEN.md#game-uso-is-cplusplus-ncc-pmf-compare-d204. Landing it
+ * needs a per-TU NCC build of a carved region (Yay0 block concat infra).
+ * Earlier notes (60.98 -> 81.14% logic-corrected decode):
  * LOGIC FIXES over prior 47.4%/61% body:
  *  (1) table-scan flag was INVERTED: target runs the vtable-dispatch body on
  *      MISMATCH (the loop sets the flag=1 on the first differing word and =0
@@ -9564,22 +9578,20 @@ extern char game_uso_D_807FF3B8;
 extern void game_uso_func_07C0C0(int, char *, int);
 extern void game_uso_func_0000D9CC(char *);
 extern void game_uso_func_0000ECE8(int *);
-extern void game_uso_func_076E78(int);
+extern void game_uso_func_076E78(int, int);
 extern void game_uso_func_0775F8(int *);
 void game_uso_func_0000D204(int *a0) {
     int *a3 = a0;
-    int *obj;
     int *child;
     int *v0;
     int *v1;
 
     if (*(int *)((char *)&import_80020098 + 0x64) == 0) {
-        obj = *(int **)((char *)a3 + 0xB4);
-        if (*(float *)((char *)obj + 0xBC) < *(float *)((char *)&D_00000000 + 0x1F4)) {
-            *(int *)((char *)a3 + 0x120) = 0;
+        float th = *(float *)((char *)&D_00000000 + 0x1F4);
+        if (*(float *)((char *)*(int **)((char *)a0 + 0xB4) + 0xBC) < th) {
+            *(int *)((char *)a0 + 0x120) = 0;
         }
-        obj = *(int **)((char *)a3 + 0xB4);
-        if (*(float *)((char *)obj + 0xBC) < *(float *)((char *)&D_00000000 + 0x1F4)) {
+        if (*(float *)((char *)*(int **)((char *)a0 + 0xB4) + 0xBC) < th) {
             goto clear_bits;
         }
         if (*(int *)((char *)a3 + 0x120) == 0) {
@@ -9603,7 +9615,7 @@ void game_uso_func_0000D204(int *a0) {
                              (char *)&game_uso_D_807FF68C + 4252, 1);
     }
 
-    if (*(int *)((char *)a3 + 0x114) == 0) {
+    if (*(int *)((char *)a3 + 0x114) != 0) {
         game_uso_func_0000D9CC((char *)a3);
     }
 
@@ -9651,7 +9663,7 @@ void game_uso_func_0000D204(int *a0) {
 
     game_uso_func_0000ECE8(a3);
     if (*(int *)((char *)a3 + 0x74) != 0) {
-        game_uso_func_076E78(*(int *)((char *)a3 + 0x58));
+        game_uso_func_076E78(*(int *)((char *)a3 + 0x58), *(int *)((char *)a3 + 0x74));
         if (*(int *)((char *)a3 + 0x74) != *(int *)((char *)a3 + 0x104)) {
             *(int *)((char *)a3 + 0x104) = *(int *)((char *)a3 + 0x74);
         }
