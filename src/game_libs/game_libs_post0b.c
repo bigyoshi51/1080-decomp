@@ -20224,47 +20224,29 @@ void game_libs_func_0004D39C(int *a0, int **a1) {
     }
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0004D3E4: doubly-linked-list unlink with *a1==0 assert.
- * Decoded from bare stub 2026-05-18. void f(void *node, int *head):
- *   if (*head == 0) cb_assert(&D_00000000 + 0x201E4, node);
- *   nxt = node->0x54; prv = node->0x50;
- *   if (prv == nxt) {                 // bnel chain
- *       t = *head;
- *       if (node != nxt) ... ; *head = 0;   // list now empty
- *   } else {
- *       t = *head; *head = (*head)->0x50;    // advance head off node
- *   }
- *   (node->0x54)->0x50 = node->0x50;   // unlink: prv/nxt splice
- *   (node->0x50)->0x54 = node->0x54;
- * Multi-idiom (defer): the two bnel-delay-likely tests
- * (`bnel prv,nxt` then `bnel node,nxt`) with `lw t8,0(a1)` reused
- * in the likely slots, the *head==0 assert guard, and the
- * head-pointer fixups must line up; the exact prv==nxt arm
- * (empty-list vs advance-head) and whether `*head` is rewritten
- * unconditionally need confirming in a focused pass (hand-decode
- * ambiguous on the w19-26 region). Real decoded C preserved. */
+/* gl_func_0004D3E4: doubly-linked-list unlink with a *head == 0 assert.
+ * EXACT (2026-10-15 agent-c, was 78.1): the assert call is
+ * cb(msg, head, node) -- head is the a1 that the target saves around the jal
+ * without setting it (docs/IDO_CODEGEN.md#spilled-arg-reg-is-extra-assert-arg-6280c;
+ * node is moved to a2 at entry for the same reason). The last node
+ * (prev == next == node) clears *head and returns early, skipping the
+ * splice; otherwise *head advances to (*head)->0x50 and node is spliced out.
+ * Test spelled with BOTH 0x54 reads inline: a named `nxt` local swaps the
+ * bnel operands (bnel v0,t7 vs the target's bnel t7,v0). */
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_0004D3E4(int node, int *head) {
-    int nxt;
-    int prv;
     if (*head == 0) {
-        gl_func_00000000((char *)&D_00000000 + 0x201E4, node);
+        gl_func_00000000((char *)&D_00000000 + 0x201E4, head, node);
     }
-    nxt = *(int *)(node + 0x54);
-    prv = *(int *)(node + 0x50);
-    if (prv == nxt) {
+    if (*(int *)(node + 0x50) == *(int *)(node + 0x54) && node == *(int *)(node + 0x54)) {
         *head = 0;
-    } else {
-        *head = *(int *)(*(int *)head + 0x50);
+        return;
     }
+    *head = *(int *)(*head + 0x50);
     *(int *)(*(int *)(node + 0x54) + 0x50) = *(int *)(node + 0x50);
     *(int *)(*(int *)(node + 0x50) + 0x54) = *(int *)(node + 0x54);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D3E4);
-#endif
 
 // gl_func_0004D468 — STRUCTURAL PASS (0x1EC / 124 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x30
