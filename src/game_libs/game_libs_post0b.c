@@ -9710,44 +9710,25 @@ char *gl_func_0003E868(void *a0, char *a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E868);
 #endif
 
-#ifdef NON_MATCHING
-/* 87.52% NM. gl_func_0003E904: 25-insn link-back wrapper.
- *   a1->[0x30] = a0->[0x2C];
- *   a0->[0x2C] = a1;          // 2026-05-17 corrected: was wrongly decoded as a0->[0x1C]
- *   func(&a0->[0x10], a1, a2);
+/* gl_func_0003E904: link-back wrapper.
+ *   a1->[0x30] = a0->[0x2C]; a0->[0x2C] = a1;
+ *   callee(&a0->[0x10], a1);          (TWO args)
  *   if (a1->[0x14] != 0) a1[1] = 1;
- *   a1->[0x14] = a0;
- *   a1->[0x44] = a2;
- *
- * 2026-05-17 offset fix: prior wrap had `a0->[0x1C] = a1` but target
- * asm shows `sw a1, 0x1C(a0)` AFTER `addiu a0, a0, 0x10`, so the
- * effective address is orig_a0 + 0x10 + 0x1C = orig_a0 + 0x2C. The
- * pre-existing C `a0[0x1C/4] = a1` was decoded against orig_a0 (giving
- * effective +0x1C). Correct decode is +0x2C. Built bytes for the sw
- * now match target's offset exactly. % went 87.28→87.52.
- *
- * Cap (still 26 vs 25 insns): built spills a1 BEFORE jal then fills
- * the delay slot with a2 reload; target leaves the pre-jal slot empty
- * and uses the delay slot to spill a1 (then reloads a2 later into t9).
- * The reload-target-register choice ($a2 vs $t9) and the delay-slot
- * fill selection are IDO scheduler decisions tied to live-range
- * analysis. Tested 2026-05-17: snapshot local `int sa2 = a2` doesn't
- * change scheduler choice; moving `a1[0x44] = a2` before the call
- * REGRESSES (built shorter than target by 2 insns, target's t9 chain
- * vanishes entirely). PERMUTER/structural — deferred. */
+ *   a1->[0x14] = a0; a1->[0x44] = a2;
+ * The old 87.52% NM passed a2 as a 3rd call arg; that made IDO reload a2 from
+ * its home slot into the jal delay slot. The target never touches a2 before
+ * the jal (a2 still holds the incoming value by coincidence), so the callee
+ * takes two args; a2 is homed at entry and reloaded into t9 after the call. */
 void gl_func_0003E904(int *a0, int *a1, int a2) {
     a1[0x30/4] = a0[0x2C/4];
     a0[0x2C/4] = (int)a1;
-    func_00000000((char*)a0 + 0x10, a1, a2);
+    gl_func_00000000((char*)a0 + 0x10, a1);
     if (a1[0x14/4] != 0) {
         a1[1] = 1;
     }
     a1[0x14/4] = (int)a0;
     a1[0x44/4] = a2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E904);
-#endif
 
 /* gl_func_0003E968: call rec->fn(*rec->p) (a 4-byte struct passed by value),
  * then gl_func(a0, ret, rec->arg); return ret. The struct arg is a comma
