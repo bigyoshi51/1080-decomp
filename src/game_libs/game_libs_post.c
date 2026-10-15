@@ -7555,100 +7555,126 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000253C4);
 // rematerializes the 0xFFFFFF mask 7x (lui/ori per &-use) and runs higher
 // register pressure (keeps n in-reg, beql-likely 2-arm dispatch, per-record re-multu),
 // while clean C at -O2 holds the mask in a saved reg + spills n. Not forceable from C.
+// 2026-10-15 agent-c run 66: 65.6 -> 93.6 -- the "mask remat cap" above is the
+// BITFIELD-extract tell (IDO_CODEGEN #bitfield-extract-and-with-at-macro-258cc): word0
+// is the Desc258 layout {pad:4, sh:2, pad:2, msk:24} of game_libs_func_000258C0 (same
+// registry D_00000000_345c0: count 0x1030, pending 0x1034, records 0x620 stride 0x14,
+// blob 0x1684), and `& 0xFFF3` on byte 0 is `e->sh = 0`. Other levers: both arg3
+// dispatches are 2-label switches (beqz / beql s7 ladder, case bodies in order), the
+// `e->key = cur; e->sh = 0` pair is duplicated into both arms of the sh==1 test (target
+// has two copies; a shared tail compiles once), loop bound re-read from the global
+// each iteration, separate externs for the first-loop table base, the 0x2B0 store
+// and the 0x1684 arg (each re-materialised by lui in the target), baked jals
+// gl_ref_00038248 / gl_ref_0003959C. cur stays maybe-uninitialised (target homes it
+// at sp+92: loaded into s2 at loop entry, stored at the normal loop exit).
+// Residual: first loop -- target keeps sum in a1 / p in v0 off a fresh lui t7 and
+// re-zeroes i (s5) before AND after the loop; ours hoists the p lui into a1 above
+// the blez with sum in v1 (an indexed `for` instead triggers the x4 unroller);
+// sh==1 test -- target computes sh in v1 and copies `or a3,v1` in the bne delay,
+// ours colours sh straight into a3 (bnel); a named sh2 local regresses (-1.4).
 #ifdef NON_MATCHING
-#define GB ((char *)&D_00000000)
+/* registry base D_00000000_345c0 (held in s1) declared above */
+extern char D_25504_tab, D_25504_2b0, D_25504_1684;  /* separately materialised bases */
+extern int gl_ref_00038248();
+extern int gl_ref_0003959C();
+#define GB ((char *)&D_00000000_345c0)
 #define GW(o) (*(s32 *)(GB + (o)))
-void gl_func_00025504(s32 arg0, s32 arg1, char *arg2, s32 arg3) {
+/* word0: 4-bit pad | 2-bit sh | 2-bit pad | 24-bit msk (cf. game_libs_func_000258C0) */
+typedef struct Desc25504 {
+    unsigned pad0 : 4;
+    unsigned sh : 2;
+    unsigned pad1 : 2;
+    unsigned msk : 24;
+    s32 key;
+} Desc25504;
+void gl_func_00025504(s32 arg0, s32 arg1, s32 *arg2, s32 arg3) {
     s32 ret;
     s32 sum;
     s32 i;
     s32 cur;
-    s32 n;
-    char *e;
-    s32 v0;
-    s32 v1;
+    Desc25504 *e;
+    s32 sh;
     s32 idx;
+    char *p;
+    char *lim;
 
     ret = 0;
     if (GW(0x1034) != 0) {
         ret = 1;
     } else {
-        GW(0x2B0) = 0;
+        *(s32 *)(&D_25504_2b0 + 0x2B0) = 0;
     }
     GW(0x1030) = 0;
-    game_libs_func_0003443C(arg0, arg1, arg2);
-    n = GW(0x1030);
-    if (n > 0) {
-        char *p = GB;
-        char *lim = GB + n * 4;
-        sum = 0;
+    gl_ref_00038248(arg0, arg1, arg2);
+    sum = 0;
+    i = 0;
+    if (GW(0x1030) > 0) {
+        p = &D_25504_tab;
+        lim = p + GW(0x1030) * 4;
         do {
-            sum += ((**(s32 **)(p + 0x430) & 0xFFFFFF) + 15) & -16;
+            sum += ((*(Desc25504 **)(p + 0x430))->msk + 15) & -16;
             p += 4;
         } while (p < lim);
     }
-    if (n > 0) {
-        i = 0;
-        do {
-            if (GW(0x1034) == 120) {
-                goto done;
+    for (i = 0; i < GW(0x1030); i++) {
+        if (GW(0x1034) == 120) {
+            break;
+        }
+        e = *(Desc25504 **)(GB + 0x430 + i * 4);
+        switch (arg3) {
+        case 0:
+            sh = e->sh;
+            if (arg2[4] == sh) {
+                cur = gl_func_0001CA10(e->msk, arg2[0], e->key, (s8)sh);
+            } else if (arg2[5] == sh) {
+                cur = gl_func_0001CA10(e->msk, arg2[1], e->key, (s8)sh);
             }
-            e = (char *)GW(0x430 + i * 4);
-            if (arg3 == 0) {
-                v0 = *(s32 *)e;
-                v1 = (s32) ((u32) (v0 << 4) >> 0x1E);
-                if (*(s32 *)(arg2 + 0x10) == v1) {
-                    cur = gl_func_0001CA10(v0 & 0xFFFFFF, *(s32 *)arg2, *(s32 *)(e + 4), (s8) v1);
-                } else if (*(s32 *)(arg2 + 0x14) == v1) {
-                    cur = gl_func_0001CA10(v0 & 0xFFFFFF, *(s32 *)(arg2 + 4), *(s32 *)(e + 4), (s8) v1);
-                }
-            } else if (arg3 == 1) {
-                v0 = *(s32 *)e;
-                v1 = (s32) ((u32) (v0 << 4) >> 0x1E);
-                if (*(s32 *)(arg2 + 0x10) == v1) {
-                    cur = gl_func_0001CA10(v0 & 0xFFFFFF, *(s32 *)arg2, *(s32 *)(e + 4), (s8) v1);
-                } else if (*(s32 *)(arg2 + 0x14) == v1) {
-                    cur = gl_func_0001CA10(v0 & 0xFFFFFF, *(s32 *)(arg2 + 4), *(s32 *)(e + 4), (s8) v1);
-                }
+            break;
+        case 1:
+            sh = e->sh;
+            if (arg2[4] == sh) {
+                cur = gl_func_0001CA10(e->msk, arg2[0], e->key, (s8)sh);
+            } else if (arg2[5] == sh) {
+                cur = gl_func_0001CA10(e->msk, arg2[1], e->key, (s8)sh);
             }
-            if (cur != 0) {
-                if (arg3 == 0) {
-                    v0 = *(s32 *)e;
-                    v1 = (s32) ((u32) (v0 << 4) >> 0x1E);
-                    if (v1 == 1) {
-                        gl_func_0001CA10(*(s32 *)(e + 4), cur, v0 & 0xFFFFFF, (s8) *(s16 *)(GW(0x2024) + 2));
-                    } else {
-                        gl_func_0001CA10(*(s32 *)(e + 4), cur, v0 & 0xFFFFFF, (s8) v1);
-                    }
-                    *(s32 *)(e + 4) = cur;
-                    *(u8 *)e = (u8) (*(u8 *)e & 0xFFF3);
-                } else if (arg3 == 1) {
-                    GW(GW(0x1034) * 0x14 + 0x634) = (s32) e;
-                    GW(GW(0x1034) * 0x14 + 0x638) = cur;
-                    idx = GW(0x1034);
-                    GW(idx * 0x14 + 0x63C) = (idx << 0x18) | 0xFFFFFF;
-                    GW(GW(0x1034) * 0x14 + 0x640) = 0;
-                    v0 = *(s32 *)e;
-                    GW(GW(0x1034) * 0x14 + 0x630) =
-                        *(s32 *)(e + 4) + (v0 & 0xFFFFFF) + ((u32) (v0 << 4) >> 0x1E);
-                    GW(0x1034) += 1;
-                }
+            break;
+        }
+        if (cur == 0) {
+            continue;
+        }
+        switch (arg3) {
+        case 0:
+            if (e->sh == 1) {
+                gl_func_0001CA10(e->key, cur, e->msk, *(s16 *)(GW(0x2024) + 2));
+                e->key = cur;
+                e->sh = 0;
+            } else {
+                gl_func_0001CA10(e->key, cur, e->msk, e->sh);
+                e->key = cur;
+                e->sh = 0;
             }
-            i += 1;
-        } while (i < n);
+            break;
+        case 1:
+            GW(GW(0x1034) * 0x14 + 0x634) = (s32)e;
+            GW(GW(0x1034) * 0x14 + 0x638) = cur;
+            idx = GW(0x1034);
+            GW(idx * 0x14 + 0x63C) = (idx << 24) | 0xFFFFFF;
+            GW(GW(0x1034) * 0x14 + 0x640) = 0;
+            GW(GW(0x1034) * 0x14 + 0x630) = e->key + e->msk + e->sh;
+            GW(0x1034) += 1;
+            break;
+        }
     }
-done:
-    v1 = GW(0x1034);
+    idx = GW(0x1034);
     GW(0x1030) = 0;
-    if ((v1 != 0) && (ret == 0)) {
-        idx = v1 * 0x14;
-        e = (char *)GW(idx + 0x620);
-        v0 = *(s32 *)e;
-        game_libs_func_0003443C(*(s32 *)(e + 4), GW(idx + 0x624), v0 & 0xFFFFFF,
-                                (u32) (v0 << 4) >> 0x1E, ((v0 & 0xFFFFFF) >> 0xC) + 1,
-                                0x1684, GW(idx + 0x628));
+    if (idx != 0 && ret == 0) {
+        e = *(Desc25504 **)(GB + idx * 0x14 + 0x620);
+        gl_ref_0003959C(e->key, GW(idx * 0x14 + 0x624), e->msk, e->sh, (e->msk >> 12) + 1,
+                        &D_25504_1684 + 0x1684, GW(idx * 0x14 + 0x628));
     }
 }
+#undef GB
+#undef GW
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025504);
 #endif
