@@ -429,6 +429,16 @@ void game_libs_func_0003487C(int a0, int a1) {
 //  (IDO DCEs my passthrough form b=a; target keeps the dead allocs + stack-
 //  spills the chain) + saved-reg(s0)-vs-stack. Documented alloc-cascade cap.
 #ifdef NON_MATCHING
+/* 2026-10-15 agent-c 82.39 -> 90.17: (1) the iterator-next is an if/ELSE
+ * (`... } else { node = 0; }`): the hoisted `li node,0` + `b next` vestige
+ * of the emptied else arm is the target's head/loop shape, and the node web
+ * stops crossing the call so the s0 save disappears; (2) b and c are
+ * BLOCK-scoped in their cascade levels: two extra dead homes give frame 56
+ * with it@48/52 and h@44 as in the target. Residual: h stays memory-homed
+ * (target colours it a1 with caller-save spill/reload around every call),
+ * b/c/node colour v1/a0/v0 vs target a3/v1/a2+v1, loop ring +2 (t9 for
+ * p->cur, nx a ring temp t0). Probed inert: register h, decl order, h
+ * assigned in the call arg, nx-less STEP (87.8), do-while, int return. */
 /* 2026-09-04 agent-g real-C: alloc(0x10, o->0xC) then the inline-expanded
  * base-ctor chain on the SAME object (b = a, c = b re-tests with sizeof
  * 0x10 / 4 alloc fallbacks, inner failure falls to the outer tail);
@@ -442,20 +452,20 @@ typedef struct { Link34890 *cur; Link34890 *next; } Iter34890;
 typedef struct { int a, b; } Pair34890;
 extern int D_34890_a, D_34890_b, D_34890_c, D_34890_d, D_34890_e;
 #define ITER34890_STEP(p, nx, node) \
-    nx = (p)->next; (node) = 0; (p)->cur = nx; if (nx != 0) { (p)->next = nx->next; (node) = nx->data; }
+    nx = (p)->next; (p)->cur = nx; if (nx != 0) { (p)->next = nx->next; (node) = nx->data; } else { (node) = 0; }
 void gl_func_00034890(char *o) {
     Iter34890 it;
     int h;
     char *a;
-    char *b;
-    char *c;
     Iter34890 *p;
     Link34890 *nx;
     char *node;
 
     h = *(int *)(o + 0x0C);
     if ((a = (char *)gl_func_00034458(0x10, h)) != 0) {
+        char *b;
         if ((b = a) != 0 || (b = (char *)gl_func_00034458(0x10, h)) != 0) {
+            char *c;
             if ((c = b) != 0 || (c = (char *)gl_func_00034458(4, h)) != 0) {
                 *(char **)c = (char *)&D_34890_a + 0x1E1E8;
             }
