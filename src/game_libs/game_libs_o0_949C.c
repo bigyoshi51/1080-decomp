@@ -1,6 +1,8 @@
 #include "common.h"
 
-/* -O0 sub-file split out of game_libs.c on 2026-05-07. Holds the
+/* (2026-10-15: now also holds gl_func_0000959C, 0x959C..0x9674 -> TRUNCATE
+ * 0x1D8; see its note at the end of the file.)
+ * -O0 sub-file split out of game_libs.c on 2026-05-07. Holds the
  * 0x949C..0x959C cluster (4 functions, 16 insns / 0x40 each, total 0x100):
  * 4 sibling 2-call accessor wrappers all compiled at -O0 in the original.
  *
@@ -62,3 +64,51 @@ void gl_func_0000955C(char *a0) {
     gl_ref_0001CFB0(&scratch);
     gl_ref_0001D0AC(a0 + 0x10);
 }
+
+/* gl_func_0000959C (0xD8 incl. one trailing pad word), moved here from
+ * game_libs_tail.c 2026-10-15 (agent-g): it is -O0 like the cluster above
+ * (unfilled jal/branch delays, s-reg `register` locals, arg + result homed),
+ * not -O2. Decoded as an inlined constructor `obj = new T` (cfront-style:
+ * this==0 -> alloc 0x40; base-init, vtable at +0x28, +0x3C = 0) followed by
+ * linking the owner's head child (a0->0x40) to it.
+ * Standalone -O0: byte-for-byte the target PLUS the dead closing-brace
+ * `b epilogue; nop` pair of every value-returning framed -O0 function (the
+ * toolchain-binary gap, docs/IDO_CODEGEN.md#feedback-ido-o0-return-value-
+ * dead-double-b), so the live return branch reads 10000003 vs 10000001.
+ * Load-bearing (docs/IDO_CODEGEN.md#ido-o0-decl-order-slot-lever-register-
+ * reserve-plain-home-alias): `ret` declared BEFORE the three `register`
+ * locals -> its home is the top slot sp+0x34 (after them: sp+0x28); the
+ * `s1 != 0 || (s1 = alloc) != 0` shape gives the bnez/beqz pair (a nested
+ * if + goto gives a bnez + extra b). */
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+int *gl_func_0000959C(int *a0) {
+    int *ret;
+    register int *s0;
+    register int *s1;
+    register int *s2;
+
+    s1 = 0;
+    if (s1 != 0 || (s1 = (int *)gl_func_00000000(0x40)) != 0) {
+        gl_func_00000000(s1);
+        s1[0x28 / 4] = (int)&D_00000000;
+        s1[0x3C / 4] = 0;
+    }
+    ret = s0 = s1;
+    if (a0[0x40 / 4] != 0) {
+        s0 = (int *)a0[0x40 / 4];
+        s1 = ret;
+        s2 = (int *)((char *)s1 + 0x10);
+        gl_func_00000000(s2, s0);
+        if (s0[0x14 / 4] != 0) {
+            s0[1] = 1;
+        }
+        s2 = s1;
+        s0[0x14 / 4] = (int)s2;
+    }
+    return ret;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000959C);
+#endif

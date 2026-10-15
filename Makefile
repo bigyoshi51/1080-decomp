@@ -494,11 +494,13 @@ build/src/game_libs/game_libs_o0_8AE4.c.o: TRUNCATE_TEXT := 0x158
 build/src/game_libs/game_libs_mid.c.o build/non_matching/src/game_libs/game_libs_mid.c.o: OPT_FLAGS := -O0
 build/src/game_libs/game_libs_mid.c.o: TRUNCATE_TEXT := 0x860
 build/src/game_libs/game_libs_o0_949C.c.o build/non_matching/src/game_libs/game_libs_o0_949C.c.o: OPT_FLAGS := -O0
-build/src/game_libs/game_libs_o0_949C.c.o: TRUNCATE_TEXT := 0x100
+# 0x100 -> 0x1D8 (2026-10-15 agent-g): the -O0 gl_func_0000959C (0xD8) moved in from game_libs_tail.c.
+build/src/game_libs/game_libs_o0_949C.c.o: TRUNCATE_TEXT := 0x1D8
 # Bake resolved jal targets to match expected/.o (which is INCLUDE_ASM-derived
 # with pre-baked jals). Without these, the .o has `jal 0` + R_MIPS_26 relocs;
 # byte-verify fails even though ROM ends up identical post-link.
-build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x565c
+# 0x565c -> 0x5584 (2026-10-15 agent-g): gl_func_0000959C (0xD8) moved out to game_libs_o0_949C.c; tail now starts at 0x9674.
+build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x5584
 # gl_func_0000EBC8 is a byte-correct real-def (ROM matches, make verify OK) but IDO
 # emits a trailing jr-delay nop so its symbol is 0x30 (12w) vs the target's 0x2c (11w
 # — baserom attributes that nop to alignment). objdiff per-symbol scored 90.9%=11/12.
@@ -519,13 +521,14 @@ build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x565c
 # old NM body (1 word longer in-tree); EBC8 NM offset 0x554c -> 0x5548, clip = offset + 0x30.
 # tail clip 0x5570 -> 0x5628 (2026-10-15 agent-g): gl_func_0000B958 NM body is now the 69w
 # unrolled form (was a 24w plain loop); EBC8 NM offset 0x5540 -> 0x55f8, clip = offset + 0x30.
-build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5628 gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
+# tail clip 0x5628 -> 0x5590 (2026-10-15 agent-g): gl_func_0000959C (old 0x98 -O2 NM body)
+# moved out to game_libs_o0_949C.c; EBC8 NM offset 0x55f8 -> 0x5560, clip = offset + 0x30.
+build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5590 gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
 # tail clip 0x5550 -> 0x5554 (2026-09-11 agent-g): gl_func_0000A670 real def is 62w vs its
 # old 61w NM body; EBC8 NM offset 0x5520 -> 0x5524, clip = offset + 0x30.
 # 0x17a38 -> 0x17a48 (2026-09-05 agent-g): game_libs_func_000343F4 absorbed the
 # 0x10-byte g3_34448 carve-out (its own switch default block).
 build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x17a48
-build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5570 gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
 # game_libs_func_000295BC: the two all-zero ROM words at 0x295BC-0x295C3 are
 # inter-fn pad (real entry 0x295C4); appended to gl_func_00029494 as an all-zero
 # SUFFIX_BYTES_FORCE. expected/ metadata: 29494 size 0x128->0x130, 295BC value +8
