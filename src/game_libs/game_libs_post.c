@@ -13168,7 +13168,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AD1C);
  * chain (current build). Reproducing the USO-relative jumptable needs the
  * uso-jumptable + reloc-pad infra. Reported, not ground. Permuter (700s/j4)
  * found no byte-exact -- consistent with the cap. NON_MATCHING. */
+/* PASS 2026-10-15 (agent-c run 66): 74.0 -> 87.8. The "external jumptable" cap is
+ * void (game_libs_post.c.o is reloc-free). ROM table at RoData +0x1098 (module
+ * 0xD9FE28 sec 7, value - 0x1466C - 0x2B09C): cases 1,3,5 -> +0x29C, 2,4 -> +0x2A8,
+ * else default: the transform picks numerator/denominator from {tbl[pos]*m,
+ * tbl[o->4]*m} and o->0x30 = the DENOMINATOR (old body had only cases 1/3 and
+ * stored f2). Also: callee takes 2 args (a2/a3 are arg0/arg1 copies, not args);
+ * old 0x4C read AFTER the call (lw/sw/xor order); pos = volatile int home (sp24,
+ * reloaded per use) + u8 pb (sb/lbu 55(sp) spill, final sb); distinct externs for
+ * the float table / 0x2040+0x2074 shorts / 0x205C float / 0x158 object base; e20
+ * pointer reads b20; o->0xE is u16. Residual: arg1 is HOMED here (sw a1,60(sp),
+ * per-use lw) where the target copies it to a3 (or a3,a1) -- b_2/selector then
+ * colour a3/t0 instead of t0/v1 and the frame is 0x38 vs 0x70 (target homes
+ * t3 at 108 and spills a2 into the a0 slot 112); probes (u32 param, local copy,
+ * decl order, t3 init order) all keep the home. Tail: target loads the 3-deep
+ * 0x4C chain before sp38->8 and puts sh zero,10 after the lwc1s. */
 #ifdef NON_MATCHING
+extern char D_2B09C_obj, D_2B09C_tbl, D_2B09C_2000, D_2B09C_205C;
 int gl_func_0002B09C(char *arg0, int arg1) {
     char *buf = *(char **)(arg0 + 0x50);
     char *sp38 = *(char **)(buf + 0x4C);
@@ -13184,7 +13200,7 @@ int gl_func_0002B09C(char *arg0, int arg1) {
     switch (v1) {
     case 0:
         r = (void **)gl_func_0001CA10(*(unsigned char *)(buf + 7),
-            (arg1 + *(short *)(buf + 0x26) + *(short *)(arg0 + 0x10)) & 0xFF, arg0, arg1);
+            (arg1 + *(short *)(buf + 0x26) + *(short *)(arg0 + 0x10)) & 0xFF);
         if (r == 0) { *(unsigned char *)(arg0 + 0) |= 0x20; *(short *)(arg0 + 0xC) = *(short *)(arg0 + 8); return -1; }
         *(int *)(arg0 + 0x1C) = *(int *)((char *)r + 0xC);
         *(unsigned char *)(arg0 + 0x18) = *(unsigned char *)((char *)r + 0);
@@ -13194,65 +13210,66 @@ int gl_func_0002B09C(char *arg0, int arg1) {
         goto block_46;
     case 1:
         r = (void **)gl_func_0001CA10(*(unsigned char *)(buf + 7),
-            ((*(short *)(arg0 + 0x10) << 6) + (arg1 & 0xFF)) & 0xFFFF, arg0, arg1);
+            ((*(short *)(arg0 + 0x10) << 6) + (arg1 & 0xFF)) & 0xFFFF);
         if (r == 0) { *(unsigned char *)(arg0 + 0) |= 0x20; *(short *)(arg0 + 0xC) = *(short *)(arg0 + 8) + 1; return -1; }
         *(int *)(arg0 + 0x4C) = (int)r;
         *(float *)(arg0 + 0x30) = *(float *)((char *)r + 4);
         goto block_46;
     default: {
-        int pos = (arg1 + *(short *)(sp38 + 0xE) + *(short *)(buf + 0x26) + *(short *)(arg0 + 0x10)) & 0xFF;
-        int va0, va1;
-        float f02, f2, f03;
+        unsigned char pb = (arg1 + *(short *)(sp38 + 0xE) + *(short *)(buf + 0x26) + *(short *)(arg0 + 0x10)) & 0xFF;
+        volatile int pos = pb;
+        int va0, va1, pv;
+        float f02, f2, f03, f12, f14;
         char *e20 = arg0 + 0x20;
         int t9, v0, b20;
-        if (pos >= 0x80) { *(unsigned char *)(arg0 + 0) |= 0x20; return -1; }
+        if (pb >= 0x80) { *(unsigned char *)(arg0 + 0) |= 0x20; return -1; }
+        pv = pos;
         va0 = (t0 == 0xFF) ? *(int *)(buf + 0x48) : *(int *)(arg0 + 0x48);
         if (*(unsigned char *)(arg0 + 0x20) != 0) {
             va1 = *(unsigned char *)(arg0 + 4);
-            if (va1 < pos) va1 = pos;
+            if (va1 < pv) va1 = pv;
             if (va0 != 0) {
-                void **t8 = *(void ***)(arg0 + 0x4C);
-                r = (void **)gl_func_0001CA10(va0, va1, arg0, arg1);
+                void **t8;
+                r = (void **)gl_func_0001CA10(va0, va1);
+                t8 = *(void ***)(arg0 + 0x4C);
                 *(int *)(arg0 + 0x4C) = (int)r;
                 f02 = *(float *)((char *)r + 4);
                 t3 = (r == t8);
             } else {
                 f02 = 1.0f;
                 *(int *)(arg0 + 0x4C) = 0;
-                if (v1 >= 0xC0) *(int *)(arg0 + 0x4C) = (v1 * 0x158) + ((int)&D_00000000 - 0x100D8);
+                if (v1 >= 0xC0) *(int *)(arg0 + 0x4C) = (v1 * 0x158) + ((int)&D_2B09C_obj - 0x100D8);
             }
-            f2 = *(float *)((char *)&D_00000000 + pos * 4) * f02;
-            b20 = *(unsigned char *)(arg0 + 0x20);
-            t9 = b20 & ~0x80;
-            if ((unsigned)(t9 - 1) < 5) {
-                switch (t9) {
-                case 1: case 3: f03 = *(float *)((char *)&D_00000000 + *(unsigned char *)(arg0 + 4) * 4) * f02; break;
-                default: f03 = f2; break;
-                }
-            } else {
-                f03 = f2;
+            f2 = *(float *)((char *)&D_2B09C_tbl + pos * 4) * f02;
+            f14 = *(float *)((char *)&D_2B09C_tbl + *(unsigned char *)(arg0 + 4) * 4) * f02;
+            b20 = *(unsigned char *)e20;
+            switch (b20 & ~0x80) {
+            case 1: case 3: case 5: f03 = f2; f12 = f14; break;
+            case 2: case 4: f12 = f2; f03 = f14; break;
+            default: f12 = f2; f03 = f2; break;
             }
-            *(float *)(e20 + 8) = (f03 / f2) - 1.0f;
+            *(float *)(e20 + 8) = (f03 / f12) - 1.0f;
             if (b20 & 0x80) {
-                v0 = (((*(unsigned short *)(sp38 + 8) << 0xF) / *(short *)((char *)&D_00000000 + 0x2074)) << 8) / (*(short *)(arg0 + 8) * *(short *)(arg0 + 0xE));
+                v0 = (((*(unsigned short *)(sp38 + 8) << 0xF) / *(short *)((char *)&D_2B09C_2000 + 0x2074)) << 8) / (*(short *)(arg0 + 8) * *(unsigned short *)(arg0 + 0xE));
             } else {
-                v0 = 0x20000 / (*(short *)(arg0 + 0xE) * *(short *)((char *)&D_00000000 + 0x2040));
+                v0 = 0x20000 / (*(short *)((char *)&D_2B09C_2000 + 0x2040) * *(unsigned short *)(arg0 + 0xE));
             }
             if (v0 >= 0x7FFF) v0 = 0x7FFF; else if (v0 <= 0) v0 = 1;
             *(short *)(e20 + 4) = (short)v0;
             *(short *)(e20 + 2) = 0;
-            *(float *)(arg0 + 0x30) = f2;
-            if ((*(unsigned char *)(arg0 + 0x20) & ~0x80) == 5) *(unsigned char *)(arg0 + 4) = (unsigned char)pos;
+            *(float *)(arg0 + 0x30) = f12;
+            if ((*(unsigned char *)e20 & ~0x80) == 5) *(unsigned char *)(arg0 + 4) = pb;
         } else if (va0 != 0) {
-            void **t7 = *(void ***)(arg0 + 0x4C);
-            r = (void **)gl_func_0001CA10(va0, pos, arg0, arg1);
+            void **t7;
+            r = (void **)gl_func_0001CA10(va0, pos);
+            t7 = *(void ***)(arg0 + 0x4C);
             *(int *)(arg0 + 0x4C) = (int)r;
             t3 = (r == t7);
-            *(float *)(arg0 + 0x30) = *(float *)((char *)&D_00000000 + pos * 4) * *(float *)((char *)r + 4);
+            *(float *)(arg0 + 0x30) = *(float *)((char *)&D_2B09C_tbl + pos * 4) * *(float *)((char *)r + 4);
         } else {
             *(int *)(arg0 + 0x4C) = 0;
-            *(float *)(arg0 + 0x30) = *(float *)((char *)&D_00000000 + pos * 4);
-            if (v1 >= 0xC0) *(int *)(arg0 + 0x4C) = (v1 * 0x158) + ((int)&D_00000000 - 0x100D8);
+            *(float *)(arg0 + 0x30) = *(float *)((char *)&D_2B09C_tbl + pos * 4);
+            if (v1 >= 0xC0) *(int *)(arg0 + 0x4C) = (v1 * 0x158) + ((int)&D_2B09C_obj - 0x100D8);
         }
         goto block_46;
     }
@@ -13263,11 +13280,9 @@ block_46:
     *(float *)(arg0 + 0x30) = *(float *)(arg0 + 0x30) * *(float *)(arg0 + 0x34);
     if (c == 0) {
         int t4 = *(int *)(*(int *)(*(int *)(*(int *)(arg0 + 0x4C)) + 8) + 4);
-        float f0 = (float)(unsigned)t4;
-        unsigned short t6 = *(unsigned short *)(sp38 + 8);
-        float f18 = (float)(unsigned)t6;
+        float f0 = (float)(unsigned)t4 * (float)(unsigned)*(unsigned short *)(sp38 + 8);
         *(short *)(arg0 + 0xA) = 0;
-        *(short *)(arg0 + 8) = (short)((int)((f0 * f18 * *(float *)((char *)&D_00000000 + 0x205C)) / *(float *)(arg0 + 0x30)) + 1);
+        *(short *)(arg0 + 8) = (short)((int)((f0 * *(float *)((char *)&D_2B09C_205C + 0x205C)) / *(float *)(arg0 + 0x30)) + 1);
     }
     return t3;
 }
