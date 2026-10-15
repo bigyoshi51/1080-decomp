@@ -426,7 +426,6 @@ void gui_func_00000B58(int *a0, int a1, int a2, unsigned char *a3) {
     }
 }
 
-#ifdef NON_MATCHING
 /* gui_func_00000D04: 0x200 (128 insns). Text-rendering function that builds
  * an RDP command list. Partial structural decode 2026-05-03:
  *
@@ -490,10 +489,18 @@ extern char D_00000000;
  *  (4) hold glyph[2] in a named local `gw` (target s0) reused by both calls + div;
  *  (5) keep only the masked OFFSET (goff) and re-derive the base `a0->0x20` at
  *      each glyph2 field access (target re-reads s1->0x20), not a cached pointer.
- * Residual 4.26% = pure as1/uopt scheduling+coloring ties: prologue RDP-const
- * ori/lw order, `move s8,zero` delay-slot placement, char read into v0+`move a0,v0`
- * vs target's `lbu a0`, and the glyph[0]/[1] stack-store schedule. INCLUDE_ASM
- * stays the build path. */
+ * 2026-10-15 (agent-g) 95.74 -> EXACT, closing every listed residual:
+ *  (6) test the raw `*p != ' '` and pass `*p` to the lookup (no `c` local): the
+ *      char loads straight into a0 and the test becomes `beql a0,at` (the old
+ *      `lbu v0` + `move a0,v0` delay copy = the tested value had been named
+ *      first; IDO_CODEGEN#extra-call-arg-and-test-member-before-naming-3d8a8);
+ *  (7) glyph[0]/[1] read into named locals next to gw: both load before the arg
+ *      setup and store together, like the target;
+ *  (8) the RDP-const pair on ONE line (`slot[0]=..; slot[1]=..;`) fixes the
+ *      prologue ori/lw order; `(i = 0)` inside the first loop test moves the
+ *      `move s8,zero` after the a3 arg copy;
+ *  (9) glyph2 x arg as `px = x; px += glyph16;` gives `addu a1,s3,t9` (x first);
+ *      `x + glyph16` in either operand order emits `addu a1,t9,s3`. */
 void gui_func_00000D04(int *a0, int *a1, int a2, char *a3) {
     int *cmd_state = (int *)a0[0x24 / 4];
     int *cmd_list = (int *)cmd_state[0xC / 4];
@@ -505,23 +512,25 @@ void gui_func_00000D04(int *a0, int *a1, int a2, char *a3) {
     char *p = a3;
     cmd_list[1] = idx + 1;
     slot = (int *)((char *)((int *)cmd_state[0xC / 4])[0] + idx * 8);
-    slot[0] = 0xBB000001;
-    slot[1] = 0x80008000;
-    i = 0;
-    if ((unsigned int)i < (unsigned int)gl_func_00000000(a3)) {
+    slot[0] = 0xBB000001; slot[1] = 0x80008000;
+    if ((unsigned int)(i = 0) < (unsigned int)gl_func_00000000(a3)) {
         do {
-            char c = *p;
-            if (c != ' ') {
-                int g = gl_func_00000000((int)c);
+            if (*p != ' ') {
+                int g = gl_func_00000000(*p);
                 unsigned int gi = (unsigned char)g;
                 int sd = (scale * 1024) / scale;
                 int *glyph = (int *)((char *)a0[0x20 / 4] + g * 0x14);
                 int goff;
+                int px;
+                int gu = glyph[0];
+                int gv = glyph[1];
                 int gw = glyph[2];
                 gl_func_00000000(a0[0x24 / 4], a0[0x4 / 4], a0[0x18 / 4], a0[0x1C / 4],
-                                 glyph[0], glyph[1], gw, scale, 0);
+                                 gu, gv, gw, scale, 0);
                 goff = gi * 0x14;
-                gl_func_00000000(a0[0x24 / 4], x + *(int *)((char *)a0[0x20 / 4] + goff + 16),
+                px = x;
+                px += *(int *)((char *)a0[0x20 / 4] + goff + 16);
+                gl_func_00000000(a0[0x24 / 4], px,
                                  a2, gw, scale, (gw * 1024) / gw, sd);
                 x += *(int *)((char *)a0[0x20 / 4] + goff + 12);
             } else {
@@ -532,9 +541,6 @@ void gui_func_00000D04(int *a0, int *a1, int a2, char *a3) {
         } while ((unsigned int)i < (unsigned int)gl_func_00000000(a3));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000D04);
-#endif
 
 /* gui_func_00000F04: 313-insn / 0x4E4 F3DEX2 glyph-STRING renderer.
  * 2026-06-05 FULL DECODE (was INCLUDE_ASM-only + prose). Disassembled the
