@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_00006A30",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T20:08:01.714430+00:00",
+  "end_time": "2026-10-15T20:08:01.714455+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T20:08:01.714448+00:00",
+      "assistant_text": "Exact match. Source language is C++ (game_uso), compiled with IDO 7.1 NCC (edg front end), not cfe C. Vec3 is a value class: operator* returns by value (r -> return temp -> += binding word copies), the constructor forwards to set(a,b,c), += takes const Vec3 ref. The bnez-on-stack-address + alloc(12) block is the cfront-style constructor protocol edg emits for a derived class constructor with a base initialiser (struct XZ : Vec3 { XZ(const Vec3 &v) : Vec3(v.x, 0.0f, v.z) {} }); an inline base-class operator new forwarding to the import keeps the jal reloc on game_uso_func_055750. No named w pointer (PRE places the per-branch loads); the accessor on the load expression keeps the unfolded 0x6F8 base; declaration order va, r1, v94, rv, pt, yaw and a W *w local in both timer arms give the 184-byte frame.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 176,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 NCC (C++) donor for game_uso_func_00006A30 (0x2C0 / 176 words).\n *\n * Per-frame steer update: va = w->pos; va += w->vel * k; 7ACC(self, &n, &va)\n * (return without 7538 on null); rv = 7C1C(...) (Vec3 by value); pt = the\n * XZ projection of w->0x3C8; yaw = 3ED4(&pt, &rv, 0); self->0x3C =\n * -yaw * (1 + speed / 0xB0) * 0xAC / w->0x6F8.max; flag 16 / 8; then the\n * shared 0x938 / 0xA54 / 0x70 timer tail and 7538(self, flag).\n *\n * C++ / edg facts this body depends on (the cfe wrap capped at 93.2%):\n *  - Vec3 is a value class. operator* returns by value (r -> return temp ->\n *    += binding temp word copies); += takes const Vec3 & (float adds).\n *  - pt is a DERIVED class whose constructor forwards to the base\n *    Vec3(a, b, c). edg's cfront-style constructor protocol emits\n *    `if (this == 0 && (this = operator new(12)) == 0) skip`; that is the\n *    \"bnez on a stack address + 055750(0xC)\" block. The stores go through\n *    `this` only with a base-initialiser (a body-assigned derived ctor\n *    folds them onto &pt). The class operator new (inline, in Vec3) forwards\n *    to the import, so the jal reloc is game_uso_func_055750 and not\n *    __nw__FUi.\n *  - No named `w` pointer: every access is s0->w->..., and uopt's PRE puts\n *    the tail's load in each branch (the target's per-branch `lw v1,48(s0)`).\n *    A function-scope named w adds an `or v0,v1` copy. The 0x6F8 accessor\n *    on the load expression s0->w->lim keeps the `addiu v0,v1,0x6F8` base.\n *  - Declaration order va, r1, v94, rv, pt, yaw fixes the homes (r1 before\n *    v94 although v94 is written first).\n *  - Frame 184: the tail declares `W *w = s0->w;` in BOTH timer arms (two\n *    slots, no code change). With one or none the frame is 176.\n * Spliced into game_uso.c.o via REPLACE_FUNC_BODY\n * (docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe). Every\n * symbol is extern \"C\". */\nextern \"C\" void *game_uso_func_055750(unsigned);\nstruct Vec3 {\n    void *operator new(unsigned n) { return game_uso_func_055750(n); }\n    float x, y, z;\n    Vec3() {}\n    void set(float a, float b, float c) { x = a; y = b; z = c; }\n    Vec3(float a, float b, float c) { set(a, b, c); }\n    Vec3 &operator=(Vec3 v) { x = v.x; y = v.y; z = v.z; return *this; }\n    Vec3 &operator+=(const Vec3 &v) { x = x + v.x; y = y + v.y; z = z + v.z; return *this; }\n    Vec3 operator*(float s) const { return Vec3(x * s, y * s, z * s); }\n};\nstruct XZ : Vec3 {\n    XZ(const Vec3 &v) : Vec3(v.x, 0.0f, v.z) {}\n};\nstruct Lim { char pad[0x10]; float max; float getMax() const { return max; } };\nstruct W {\n    char pad0[0xB4]; Vec3 pos;           /* 0xB4 */\n    char padC0[0x318 - 0xC0]; Vec3 vel;  /* 0x318 */\n    char pad324[0x348 - 0x324]; float speed; /* 0x348 */\n    char pad34C[0x3C8 - 0x34C]; Vec3 at; /* 0x3C8 */\n    char pad3D4[0x6F8 - 0x3D4]; Lim lim; /* 0x6F8 */\n    char pad70C[0x840 - 0x70C]; int snd; /* 0x840 */\n    char pad844[0x938 - 0x844]; int f938;\n    char pad93C[0xA54 - 0x93C]; int fA54;\n};\nstruct Self;\nextern \"C\" {\nint game_uso_func_00007ACC(Self *, int *, Vec3 *, int);\nVec3 game_uso_func_00007C1C(Self *, int, int, Vec3 *, int);\nfloat game_uso_func_00003ED4(Vec3 *, Vec3 *, int);\nvoid game_uso_func_000110A4(int);\nvoid game_uso_func_00007538(Self *, int);\n}\nstruct Self {\n    char pad0[0x30]; W *w;   /* 0x30 */\n    char pad34[0x3C - 0x34]; float f3C;\n    char pad40[0x6C - 0x40]; int f6C; int f70;\n    char pad74[0x80 - 0x74]; int f80;\n    char pad84[0xA8 - 0x84]; float fA8; float fAC; float fB0;\n};\nextern \"C\" void game_uso_func_00006A30(Self *s0) {\n    int flag = 0;\n    if (s0->f80 != 0) {\n        Vec3 va = s0->w->pos;\n        int r1;\n        int v94;\n        va += s0->w->vel * s0->fA8;\n        r1 = game_uso_func_00007ACC(s0, &v94, &va, 0);\n        if (r1 == 0) return;\n        Vec3 rv = game_uso_func_00007C1C(s0, r1, v94, &va, 0);\n        XZ pt(s0->w->at);\n        float yaw = game_uso_func_00003ED4(&pt, &rv, 0);\n        s0->f3C = -yaw * (1.0f + s0->w->speed / s0->fB0) * s0->fAC / s0->w->lim.getMax();\n        if (s0->f6C == 0) {\n            if (v94 == 0) flag = 16;\n            else if (80.0f <= s0->w->speed) flag = 8;\n        }\n    } else {\n        if (s0->f6C == 0) flag = 16;\n    }\n    if (s0->w->f938 != 0 && s0->w->fA54 != 0) {\n        int c = s0->f70;\n        if (c < 60) {\n            W *w = s0->w;\n            if (w->speed <= 30.0f) {\n                game_uso_func_000110A4(w->snd);\n                s0->f70 = 61;\n            } else {\n                s0->f70 = c + 1;\n            }\n        } else if (c == 60) {\n            W *w = s0->w;\n            game_uso_func_000110A4(w->snd);\n            s0->f70 = 61;\n        }\n    }\n    game_uso_func_00007538(s0, flag);\n}\n",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso_ncc_6A30.cpp",
+    "asm_path": "asm/nonmatchings/game_uso/game_uso/game_uso_func_00006A30.s",
+    "segment": "game_uso",
+    "compiler": "IDO 7.1 NCC (C++)",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Wab,-r4300_mul",
+    "verification": "NCC donor 176/176 words + 7 relocs identical to expected; spliced into game_uso.c.o via REPLACE_FUNC_BODY; report.json 100.0; ROM byte-identical; verify-blocks OK; 0 exacts lost."
+  }
+}
