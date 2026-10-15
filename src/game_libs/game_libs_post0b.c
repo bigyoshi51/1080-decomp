@@ -24078,8 +24078,15 @@ int gl_func_00052104(int *a0) {
  * nonzero, +3). Fallthrough-call form (no goto) keeps all beqs but hoists
  * the call block above the arms => objdiff alignment craters (25.9%).
  * Switch + K&R precolor is the fuzzy-optimal form; the chain sort is the
- * residual cap. */
-#ifdef NON_MATCHING
+ * residual cap.
+ * 2026-10-15 re-audit (agent-c): EXACT 45/45. The source-order compare
+ * chain is a NESTED-`!=` ladder (`if (s != 0x120) { if (s != 0x110) {
+ * if (s != 0x308 && ... && s != 0x608) { if (s != 0x304) goto def; goto
+ * half; } goto one; } goto two; } return 4.0f;`): every test becomes a
+ * `beq s,K,arm` in source order (no case sort), and the arm bodies follow
+ * TEXTUAL label order, so the labels two/one/half/def written after the
+ * 4.0f return give 4.0, 2.0, 1.0, 0.5, then the call block reached by the
+ * last `b` (docs/IDO_CODEGEN.md#nested-ne-goto-ladder-source-order-chain-52144). */
 float gl_func_00052144(a0, dmy, state)
 int *a0;
 int dmy;
@@ -24090,21 +24097,29 @@ int state;
     if (state) {}
     state = *(int*)((char*)a0 + 0x24);
     self = a0;
-    switch (state) {
-        case 0x120: return 4.0f;
-        case 0x110: return 2.0f;
-        case 0x308:
-        case 0x408:
-        case 0x508:
-        case 0x608: return 1.0f;
-        case 0x304: return 0.5f;
+    if (state != 0x120) {
+        if (state != 0x110) {
+            if (state != 0x308 && state != 0x408 && state != 0x508 && state != 0x608) {
+                if (state != 0x304) {
+                    goto def;
+                }
+                goto half;
+            }
+            goto one;
+        }
+        goto two;
     }
+    return 4.0f;
+two:
+    return 2.0f;
+one:
+    return 1.0f;
+half:
+    return 0.5f;
+def:
     gl_func_00000000((char*)&gl_data_00000000 + 0x20F90, *(int*)((char*)self + 0x18));
     return 0.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052144);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000521F8: 73-insn alloc-or-init + nested sub-alloc setup.

@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00052144",
+  "project": "1080-agent-c",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T15:17:25.319684+00:00",
+  "end_time": "2026-10-15T15:17:25.319699+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T15:17:25.319696+00:00",
+      "assistant_text": "The \"switch-case sort cap\" was a mis-identified source construct: IDO always sorts a switch compare chain ascending, but the target chain is in source order (0x120, 0x110, 0x308..0x608, 0x304). A nested-`!=` ladder gives one `beq key,K,arm` per test in source order, and turning each arm into a goto with the labels written after the 4.0f return lays the bodies out in the target order (4.0, 2.0, 1.0, 0.5, call block). The K&R unpassed `state` param keeps the a2 colouring. 45/45.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 45,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern int gl_data_00000000;\n\nfloat gl_func_00052144(a0, dmy, state)\nint *a0;\nint dmy;\nint state;\n{\n    int *self;\n    if (dmy) {}\n    if (state) {}\n    state = *(int*)((char*)a0 + 0x24);\n    self = a0;\n    if (state != 0x120) {\n        if (state != 0x110) {\n            if (state != 0x308 && state != 0x408 && state != 0x508 && state != 0x608) {\n                if (state != 0x304) {\n                    goto def;\n                }\n                goto half;\n            }\n            goto one;\n        }\n        goto two;\n    }\n    return 4.0f;\ntwo:\n    return 2.0f;\none:\n    return 1.0f;\nhalf:\n    return 0.5f;\ndef:\n    gl_func_00000000((char*)&gl_data_00000000 + 0x20F90, *(int*)((char*)self + 0x18));\n    return 0.0f;\n}\n\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_00052144.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "make RUN_CC_CHECK=0: tenshoe.z64 cmp byte-identical to baserom; report.json 100.0; raw .text slice equals expected/ (180 bytes EQUAL)."
+  }
+}
