@@ -3895,377 +3895,278 @@ int gl_func_0002119C(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002119C);
 #endif
 
-// gl_func_00021498 — STRUCTURAL PASS (0x8EC / 571 words ≈ 2.3KB, no
-// episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO
-// bundle (named fn + 2 trailing helpers) — deferred USO re-split.
-// The named leading fn is one of the LARGEST gl_func_0002119C
-// jump-table state handlers: the sprite-record build/layout state.
-// Huge -0x98 frame, full s0-s8/ra save.
-//
-//   void gl_func_00021498(void) {
-//     S *g = &D_0;
-//     byte idx = g->b_2CF1;                          // sub-state/index
-//     g->w_1E0C = 0;                                  // clear global
-//     int v = *(int*)tbl;                             // table base
-//     g->h_2036 = (short)v;                            // config hw
-//     (*setup)(idx & 0xFFFF);                          // jal 0 USO-rel
-//     short cfg = g->h_2036;
-//     int   q   = g->w_213C;
-//     // 16-align + FP convert/divide per record:
-//     int sz = (q + 0xF) & ~0xF;                        // align16
-//     float f = (float)g->h_203A;                       // cvt.s.w
-//     ... long multi-phase body: lays out the record set, computing
-//         per-record FP-transformed fields (mtc1/cvt.s.w/div.s) and
-//         writing the &D_0+0x20xx config halfwords, with further
-//         USO-reloc sub-calls ...
-//   }
-//
-// Struct-typing reference: operates on the same &D_0 sprite-subsystem
-//   state block as gl_func_0002119C / gl_func_0001FBD4 — byte
-//   &D_0+0x2CF1 is a sub-state/index right after the 0x2CF0 main
-//   state; word &D_0+0x1E0C a scratch/result global cleared on entry;
-//   halfwords &D_0+0x2036 / 0x203A / word 0x213C are layout-config
-//   fields written/read while building the record set. The body mixes
-//   integer index math (16-align `(x+0xF)&~0xF`) with single-prec FP
-//   (mtc1 / cvt.s.w / div.s) to compute per-record transformed
-//   geometry, and calls USO-relocated sub-routines (`jal 0` slots).
-//   This is the heavyweight "(re)build the sprite record set" state
-//   reached from the gl_func_0002119C dispatcher.
-// Caps (DEFERRED): single jr $ra (the "3-jr bundle" note is STALE;
-//   .s is 0x8EC/549 words, ONE function). One of the largest
-//   gl_func_0002119C jump-table state handlers — the heavyweight
-//   "(re)build the sprite record set" layout state. Real-C
-//   STRUCTURAL body below per the analysis (clear &D_0+0x1E0C,
-//   stash (short)*tbl into &D_0+0x2036, setup(idx&0xFFFF), then a
-//   16-align + per-record FP convert/divide layout pass writing the
-//   &D_0+0x20xx config halfwords). Name pre-checked: no extern reuse
-//   (collision-safe). gl_func_00000000 = canonical never-defined
-//   USO placeholder for the sub-routines.
-//
-// CAP CLASS (CORRECTED 2026-06-21, agent-b deep diagnostic): BASE-POINTER-PIN
-//   is a C-DATAFLOW divergence, NOT an address-value/infra problem. The
-//   prior note's claim "IDO refuses to pin a literal-0 base" is FALSE —
-//   proven by experiment:
-//     (1) The current `char *g = &D_00000000` ALREADY pins g into a saved
-//         reg ($s3, copied to $s5) and uses `off($s3)` for direct accesses.
-//         IDO pins base-0 addresses fine.
-//     (2) H2 control: setting D_00000000 = 0x80300000 in undefined_syms and
-//         rebuilding produces IDENTICAL codegen (same `lui sN,0x0`+HI16 reloc,
-//         same pin count). The symbol value is a LINK-TIME fill; it has ZERO
-//         effect on the compiler's pinning/scheduling. So non-zero data
-//         addresses are NOT the trigger and would only BREAK the .text byte
-//         match (target stores base-0 placeholder bytes + HI16/LO16 relocs to
-//         D_0, exactly like our build — verified in the .s and the .o).
-//   THE REAL DIVERGENCE: the STRUCTURAL C below passes INTEGER LITERALS where
-//   the target passes `&D_0 + offset` POINTERS held across calls. Target pins
-//   `$s3 = g + 0x2198` ONCE (offset 0x420: `addiu s3,s3,8600`) and passes it
-//   as `or a0,s3,zero` for all 16 allocator calls; pins `s0 = g + 0x2D00`
-//   incrementing by 0x160 per loop iter; passes `a0 = g + {0x2BE0,0x2BF0,
-//   0x2BF8,0x2C04}` as pointers. PROTOTYPE (agent-b): converting the allocator
-//   arg to a held `char *alloc = g + 0x2198;` and the group calls to pointers
-//   flipped 0 -> 20 `or a0,sN,zero` passes (target 19) and pinned $s3 = g+8600
-//   EXACTLY matching the target. So H1 (held-base-pointer in C) WORKS for the
-//   call-arg bases. RESIDUAL (why not yet 0-diff): IDO still re-materializes g
-//   (`lui;off(at)`) for many DIRECT `*(T*)(g+off)` accesses right after jals
-//   instead of keeping ONE base live the whole body like target's $s6 (73x
-//   off(s6)). Closing that needs the second index-base pinned like target's
-//   $t8 (`temp_v0 = g + idx*0x38` as its own held base, not derived from g)
-//   and decl/dataflow tuning so g stays in a single saved reg across all
-//   calls. VERDICT: C-fixable (no infra) — full land is a precise per-stmt
-//   reconstruction of the largest fn in the file, deferred. Also: 2 intra-
-//   module jals carry REAL targets (0x33D20 in gl_func_00033BE4, 0x3408C in
-//   gl_func_00033EB8 — splat-over-merged callees) needing split-out symbols.
-//   Body below is the faithful STRUCTURAL reconstruction (NM path builds clean).
-//
-// FIELD-WIDTH PASS (agent-b 2026-06-22): drove size-gap -44 -> -33 words and
-//   eliminated ALL 24 unaligned swl/swr/lwl/lwr ops (now 0) by correcting field
-//   widths to the target mnemonics: the per-record loop and entry block stored
-//   bytes/halfwords via `*(s32*)` (m2c over-widened), which both mis-modeled the
-//   struct AND generated unaligned-access bloat. Fixed: g+0x2070/0x2048/0x2/0x1 &
-//   the sp60+5/6/7/0x14 sources to (u8)/(u16); the 9 s4-record + 8 s2-record
-//   stores to their true s8/s16 widths; the var_s4 zero loop to sb (start=g, not
-//   0). RESIDUAL (391 non-reloc diffs, -33 words): the base-pin cap above — 48
-//   surplus `lui` re-materializing &D_0 after jals where target uses off(s6).
-//   Closing it needs live-local economy so IDO keeps g in one saved reg across
-//   all ~20 calls; m2c's temp explosion (~45 locals) evicts it. Not landable.
-//
-// DIRECT-GLOBAL PASS (agent-h 2026-07-23): 53.1 -> 77.4 fuzzy. Eliminated the
-//   `char *g` local entirely (direct `&D_00000000 + off` macro spellings) —
-//   IDO then pins the base itself in a saved reg (matches target's off(s6)
-//   form; ALL 48 surplus post-jal lui remats gone) and fresh-materializes
-//   lui/addiu for address-args exactly like target. Decode fixes found vs
-//   target: (u32) float->int conversion at 0x2074 (cfc1/ctc1 block was
-//   missing), rec+0x4 is lbu not lw, group-call args are POINTERS
-//   (&D_0+0x2BE0/0x2BF0/0x2BF8/0x2C04), alloc arg is held &D_0+0x2198,
-//   rec+0x110/0x120 get POINTER values (&D_0+0x130/+0x140 stepped 0x158),
-//   tail loop arg is pointer &D_0+0x2D00 stepped 0x160, rec+0x114 stores f32
-//   1.0f (swc1 not int), D_0+4 store is sh 0x1000 (u16 not u8), loop div
-//   operand is s32<<6 (no s16 truncation), D_0+1 reads are lb (s8 not
-//   (s8)u8), tail call args plain lw (no s16 cast), final result var s32.
-//   NOTE: reintroducing ANY `char *g` local regresses to 617 insns (remat
-//   disease returns) — keep direct spellings. RESIDUAL (540 word diffs but
-//   structure now 552 vs 549 insns): whole-body reg-number cascade — build
-//   colors base=s5/r4=s6(move-derived)/p140=s7 + spills srcoff; target
-//   colors r4=s4(fresh lui)/src=s5/base=s6/srcoff=s7 + spills p140+cnt.
-//   Decl-order permutation does NOT flip the spill choice (uopt-internal
-//   weights) — regalloc-renumber cap class; next tool would be the
-//   -Wo,-zdbug:6 uoptlist dump.
-#ifdef NON_MATCHING
-extern int gl_func_0001CA10();
-extern int func_33d20();
-extern int func_3408c();
-#define B21(o) (*(u8 *)((char *)&D_00000000 + (o)))
-#define SB21(o) (*(s8 *)((char *)&D_00000000 + (o)))
-#define H21(o) (*(u16 *)((char *)&D_00000000 + (o)))
-#define SH21(o) (*(s16 *)((char *)&D_00000000 + (o)))
-#define W21(o) (*(s32 *)((char *)&D_00000000 + (o)))
-#define F21(o) (*(f32 *)((char *)&D_00000000 + (o)))
-#define P21(o) ((char *)&D_00000000 + (o))
-void gl_func_00021498(void) {
-    char *rp;
-    s32 i;
-    char *r2;
-    char *alloc;
-    char *r4;
-    char *src;
-    s32 srcoff;
-    char *fp_;
-    char *zp;
-    char *dp;
-    char *rec;
-    char *p140;
-    s32 cnt;
-    s32 t;
-    s32 sum0;
-    s32 sum1;
-    s32 cb;
-    s32 h;
-    s32 rv;
-    s32 s0v;
-    s32 t1_;
-    s32 lo_;
-    u32 uidx;
-    u32 nb;
-    f32 f0;
-    f32 fidx;
-    f32 uf;
-    u16 v1_;
-    u16 ret0;
-    u16 na;
-    s16 a2_;
-    s16 a3_;
-    s16 a1_;
-    s16 a0_;
-    s16 mul_;
-    u8 nsub;
+// gl_func_00021498 — sprite record-set (re)build state (0x894, 549 insns).
+// Base = bootup.uso Data sym1255 @0x345C0 through the typed alias D_345c0_21498;
+// rec table = sym1299 @0x1CC10 (stride 0x38, own zero alias D_1cc10_21498), the
+// h2 divisor = sym1284 @0x1CDD0 +2, the 0xE90 float = sym1 +0xE90 (zero aliases so
+// the addends stay in the immediates). Plain indexed loops over the typed view
+// give every strength-reduced cursor: slots[i] fields (fresh &G IV, +0x18 folded),
+// r = &slots[i] (s2), &slots[i].bits (s8), &slots[i].w128 (spilled), src = &rec->src[i]
+// (s7 = i*18); the main counter is its own name (spilled home) and the 0x2D00 loop
+// reuses j. Levers: named-local decl order for the homes (rec 0x60, i 0x6C, temp
+// 0x40); 208u (unsigned) keeps the alloc size off the division's 208 constant web;
+// void blank alias for unused-result calls (frees v0); ret = w2170 - sum - 256 into a
+// named temp; statement order inside the head and the slot-init block found by an
+// adjacent-move hill climb (docs/IDO_CODEGEN.md#typed-global-member-sr-cursor-first-addu-1cc98).
+typedef struct { int a; int b; char p8[0xC]; } gl_21498_Buf;
+typedef struct { unsigned a:4, b:2, c:2, len:24; } gl_21498_Bits;
+typedef struct {
+    unsigned char b0, b1, b2, b3, b4;
+    signed char b5;
+    unsigned short h6;
+    short h8, hA, hC, hE, h10, h12;
+    int w14, w18, w1C, w20, w24;
+    int w28, w2C, w30, w34;
+    char p38[4];
+    gl_21498_Buf sub[5];
+    gl_21498_Buf sub2[4];
+    char pF0[0x10];
+    int w100, w104, w108, w10C;
+    gl_21498_Bits *p110;
+    float f114;
+    gl_21498_Bits bits;
+    int w11C;
+    int *p120;
+    char p124[4];
+    int w128, w12C, w130;
+    char p134[0x158 - 0x134];
+} gl_21498_Slot;
+typedef struct {
+    unsigned char b0, b1;
+    unsigned short h2, h4, h6, h8;
+    signed char bA;
+    char pB;
+    unsigned short hC;
+    short hE, h10;
+} gl_21498_Src;
+typedef struct {
+    int w0;
+    unsigned char b4, b5, b6, b7;
+    gl_21498_Src *src;
+    int wC, w10;
+    unsigned short h14;
+    char p16[2];
+    int w18, w1C, w20, w24, w28, w2C, w30, w34;
+} gl_21498_Rec;
+typedef struct {
+    char p0;
+    signed char nslots;
+    unsigned short h2;
+    unsigned short h4;
+    char p6[0x18 - 6];
+    gl_21498_Slot slots[11];
+    char p1F50[0x1034 - 0x18 - 11 * 0x158];
+    int w1034;
+    char p1038[0x1E0C - 0x1038];
+    int w1E0C;
+    char p1E10[0x2034 - 0x1E10];
+    short h2034;
+    unsigned short h2036;
+    unsigned short h2038;
+    short h203A, h203C, h203E, n2040, h2042, h2044, h2046, n2048;
+    char p204A[2];
+    float f204C, f2050, f2054, f2058, f205C;
+    int w2060, w2064;
+    char p2068[4];
+    int w206C;
+    int count;
+    short h2074;
+    char p2076[0x2088 - 0x2076];
+    int a2088[2];
+    char p2090[0x2138 - 0x2090];
+    float f2138;
+    int w213C;
+    char p2140[0x2170 - 0x2140];
+    int w2170;
+    char p2174[4];
+    int w2178, w217C;
+    char p2180[0x2198 - 0x2180];
+    char tbl2198[4];
+    char p219C[0x2BE0 - 0x219C];
+    int g2BE0[4];
+    int g2BF0[2];
+    int g2BF8[3];
+    int g2C04[3];
+    char p2C10[0x2CF1 - 0x2C10];
+    unsigned char b2CF1;
+    char p2CF2[0x2CF8 - 0x2CF2];
+    int w2CF8, w2CFC;
+    char recs2D00[8][0x160];
+} gl_21498_GS;
+extern gl_21498_GS D_345c0_21498;
+extern gl_21498_Rec D_1cc10_21498[];
+extern char D_1cdd0_21498[];
+extern char D_sym1_21498[];
+#define G D_345c0_21498
+extern void gl_ref_0003408C();
+extern void gl_ref_00033D20();
+extern void gl_func_00000000_21498v();
 
-    rec = P21(B21(0x2CF1) * 0x38);
-    W21(0x1E0C) = 0;
-    t = *(s32 *)rec;
-    H21(0x2036) = (u16) t;
-    ret0 = gl_func_0001CA10(t & 0xFFFF);
-    v1_ = H21(0x2036);
-    t1_ = W21(0x213C);
-    SH21(0x203A) = (s16) ((((s32) v1_ / t1_) + 0xF) & 0xFFF0);
-    a2_ = SH21(0x203A);
-    H21(0x2038) = ret0;
-    a0_ = a2_ + 0x10;
-    SH21(0x2040) = (s16) ((a0_ / 208) + 1);
-    a3_ = SH21(0x2040);
-    SH21(0x203E) = (s16) (a2_ - 0x10);
-    SH21(0x203C) = a0_;
-    f0 = (f32) a3_;
-    SH21(0x2042) = (s16) ((a2_ / a3_) & ~7);
-    a1_ = SH21(0x2042);
-    SH21(0x2044) = (s16) (a1_ + 8);
-    SH21(0x2046) = (s16) (a1_ - 8);
-    F21(0x2058) = f0 * 0.25f;
-    F21(0x204C) = 32000.0f / (f32) v1_;
-    F21(0x2054) = 0.00390625f / f0;
-    F21(0x2050) = 1.0f / f0;
-    W21(0x2060) = *(s32 *)(rec + 0xC);
-    W21(0x2064) = *(s32 *)(rec + 0x10);
-    W21(0x2070) = *(u8 *)(rec + 0x5);
-    SH21(0x2048) = *(u8 *)(rec + 0x6);
-    if (SH21(0x2048) >= 5) {
-        SH21(0x2048) = 4;
+void gl_func_00021498(void) {
+    int v;
+    int ret;
+    gl_21498_Src *src;
+    gl_21498_Slot *r;
+    int sum0, sum1, sum;
+    int v1, t1, a2;
+    int i;
+    int j, n;
+    gl_21498_Rec *rec;
+    int a1, a3;
+    int na;
+
+    rec = &D_1cc10_21498[G.b2CF1];
+    G.w1E0C = 0;
+    G.h2036 = rec->w0;
+    ret = gl_func_00000000(G.h2036);
+    G.h2038 = ret;
+    v1 = G.h2036;
+    t1 = G.w213C;
+    G.h203A = (v1 / t1 + 15) & 0xFFF0;
+    a2 = G.h203A;
+    G.h203E = a2 - 16;
+    G.n2040 = (a2 + 16) / 208 + 1;
+    a3 = G.n2040;
+    G.h203C = a2 + 16;
+    G.h2042 = (a2 / a3) & ~7;
+    a1 = G.h2042;
+    G.h2044 = a1 + 8;
+    G.h2046 = a1 - 8;
+    G.f204C = 32000.0f / (float)v1;
+    G.f2054 = 0.00390625f / (float)a3;
+    G.f2058 = (float)a3 * 0.25f;
+    G.f2050 = 1.0f / (float)a3;
+    G.w2060 = rec->wC;
+    G.w2064 = rec->w10;
+    G.count = rec->b5;
+    G.n2048 = rec->b6;
+    if (G.n2048 >= 5) {
+        G.n2048 = 4;
     }
-    SH21(2) = *(u16 *)(rec + 0x14);
-    fidx = ((f0 * *(f32 *)P21(0xE90)) / (f32) *(s16 *)P21(2)) / F21(0x2138);
-    uidx = (u32) fidx;
-    SH21(0x2074) = uidx;
-    nb = H21(0x2038);
-    uf = (f32) nb;
-    F21(0x205C) = (((f32) t1_ * f0) / uf) / (f32) SH21(0x2074);
-    SH21(0x2034) = *(u8 *)(rec + 0x4);
-    mul_ = SH21(0x2034);
-    SH21(0x203A) = (s16) (a2_ * mul_);
-    SH21(0x203C) = (s16) (SH21(0x203C) * mul_);
-    SH21(0x203E) = (s16) (SH21(0x203E) * mul_);
-    SH21(0x2040) = (s16) (a3_ * mul_);
-    if (mul_ >= 2) {
-        SH21(0x203C) = (s16) (SH21(0x203C) - 0x10);
+    G.h2 = rec->h14;
+    G.h2074 = (unsigned int)((float)a3 * *(float *)(D_sym1_21498 + 0xE90) / *(short *)(D_1cdd0_21498 + 2) / G.f2138);
+    G.f205C = (float)t1 * (float)a3 / (float)(unsigned int)G.h2038 / G.h2074;
+    G.h2034 = rec->b4;
+    n = G.h2034;
+    G.h203A = a2 * n;
+    G.h203C = G.h203C * n;
+    G.h203E = G.h203E * n;
+    G.n2040 = a3 * n;
+    if (n >= 2) {
+        G.h203C -= 16;
     }
-    W21(0x206C) = (W21(0x2070) * 0x10 * SH21(0x2040)) + (*(u8 *)(rec + 0x7) * 0x18) + 0x140;
-    sum0 = *(s32 *)(rec + 0x18) + *(s32 *)(rec + 0x1C) + *(s32 *)(rec + 0x20) + 0x10;
-    sum1 = *(s32 *)(rec + 0x24) + *(s32 *)(rec + 0x28) + *(s32 *)(rec + 0x2C) + 0x10;
-    t = sum0 + sum1;
-    W21(0x2BE0) = (W21(0x2170) - t) - 0x100;
-    W21(0x2BEC) = t;
-    gl_func_0001CA10(P21(0x2BE0));
-    W21(0x2BF0) = sum0;
-    W21(0x2BF4) = sum1;
-    gl_func_0001CA10(P21(0x2BF0));
-    W21(0x2BF8) = *(s32 *)(rec + 0x18);
-    W21(0x2BFC) = *(s32 *)(rec + 0x1C);
-    W21(0x2C00) = *(s32 *)(rec + 0x20);
-    gl_func_0001CA10(P21(0x2BF8));
-    W21(0x2C04) = *(s32 *)(rec + 0x24);
-    W21(0x2C08) = *(s32 *)(rec + 0x28);
-    W21(0x2C0C) = *(s32 *)(rec + 0x2C);
-    gl_func_0001CA10(P21(0x2C04));
-    rv = W21(0x2178);
-    if (rv != 0) {
-        W21(0x217C) = rv;
+    G.w206C = G.count * 16 * G.n2040 + rec->b7 * 24 + 320;
+    sum0 = rec->w18 + rec->w1C + rec->w20 + 16;
+    sum1 = rec->w24 + rec->w28 + rec->w2C + 16;
+    sum = sum0 + sum1;
+    G.g2BE0[0] = ret = G.w2170 - sum - 256;
+    G.g2BE0[3] = sum;
+    gl_func_00000000_21498v(G.g2BE0);
+    G.g2BF0[0] = sum0;
+    G.g2BF0[1] = sum1;
+    gl_func_00000000_21498v(G.g2BF0);
+    G.g2BF8[0] = rec->w18;
+    G.g2BF8[1] = rec->w1C;
+    G.g2BF8[2] = rec->w20;
+    gl_func_00000000_21498v(G.g2BF8);
+    G.g2C04[0] = rec->w24;
+    G.g2C04[1] = rec->w28;
+    G.g2C04[2] = rec->w2C;
+    gl_func_00000000_21498v(G.g2C04);
+    if (G.w2178 != 0) {
+        G.w217C = G.w2178;
     }
-    func_3408c();
-    alloc = P21(0x2198);
-    W21(0x2CFC) = gl_func_0001CA10(alloc, W21(0x2070) * 0xD0);
-    gl_func_0001CA10();
-    gl_func_0001CA10();
-    dp = (char *)&D_00000000;
-    do {
-        dp += 4;
-        *(s32 *)(dp + 0x2084) = gl_func_0001CA10(alloc, W21(0x206C) * 8);
-    } while (dp != P21(8));
-    W21(0x2CF8) = gl_func_0001CA10(alloc, 0x400);
-    func_33d20();
-    zp = (char *)&D_00000000;
-    do {
-        zp += 0x158;
-        *(s8 *)(zp - 0x13F) = 0;
-    } while (zp < P21(0x408));
-    cnt = 0;
-    r2 = P21(0x18);
-    SB21(1) = *(u8 *)(rec + 0x7);
-    r4 = (char *)&D_00000000;
-    srcoff = 0;
-    if (SB21(1) > 0) {
-        p140 = P21(0x140);
-        fp_ = P21(0x130);
-        do {
-            src = (char *) *(s32 *)(rec + 0x8) + srcoff;
-            cb = *(u8 *)src;
-            *(s8 *)(r4 + 0x1C) = cb;
-            t = *(u8 *)(src + 0x1) << 6;
-            lo_ = (t & 0xFFFF) / (cb & 0xFF);
-            *(s16 *)(r4 + 0x1E) = t;
-            *(s16 *)(r4 + 0x1E) = lo_;
-            *(s16 *)(r4 + 0x24) = *(u16 *)(src + 0x2);
-            *(s16 *)(r4 + 0x22) = *(u16 *)(src + 0x4);
-            *(s16 *)(r4 + 0x28) = *(u16 *)(src + 0x6);
-            *(s16 *)(r4 + 0x2A) = *(u16 *)(src + 0x8);
-            *(s8 *)(r4 + 0x1D) = *(s8 *)(src + 0xA);
-            *(s8 *)(r4 + 0x19) = 8;
-            *(s16 *)(r4 + 0x20) = *(u16 *)(src + 0xC);
-            *(s32 *)(r2 + 0x20) = gl_func_0001CA10(alloc, (lo_ & 0xFFFF) * 2);
-            *(s32 *)(r2 + 0x24) = gl_func_0001CA10(alloc, *(u16 *)(r2 + 0x6) * 2);
-            na = *(u16 *)(r2 + 0x6);
-            *(s32 *)(r2 + 0x14) = 0;
-            *(s32 *)(r2 + 0x18) = 0;
-            *(s8 *)(r2 + 0x3) = 0;
-            *(s8 *)(r2 + 0x2) = 2;
-            *(s8 *)(r2 + 0x0) = 1;
-            *(char **)(r2 + 0x110) = fp_;
-            h = (*(u8 *)(r2 + 0x118) & 0xFF0F) | 0x40;
-            *(s32 *)(r2 + 0x1C) = na;
-            *(s8 *)(r2 + 0x118) = h;
-            *(s8 *)(r2 + 0x118) = h & 0xF3;
-            t = *(s32 *)(r2 + 0x118);
-            *(char **)(r2 + 0x120) = p140;
-            nsub = *(u8 *)(r2 + 0x4);
-            *(s32 *)(r2 + 0x118) = ((u32) ((((na * 2) & 0xFFFFFF) ^ t) << 8) >> 8) ^ t;
-            *(s32 *)(r2 + 0x128) = 0;
-            *(s32 *)(r2 + 0x130) = 1;
-            *(s32 *)(r2 + 0x12C) = na;
-            *(f32 *)(r2 + 0x114) = 1.0f;
-            *(s32 *)(r2 + 0x11C) = *(s32 *)(r2 + 0x20);
-            if (nsub != 1) {
-                *(s16 *)(r2 + 0xE) = (s16) (0x8000 / (s32) nsub);
-                i = 0;
-                *(s32 *)(r2 + 0x28) = gl_func_0001CA10(alloc, 0x20);
-                *(s32 *)(r2 + 0x2C) = gl_func_0001CA10(alloc, 0x20);
-                *(s32 *)(r2 + 0x30) = gl_func_0001CA10(alloc, 0x20);
-                *(s32 *)(r2 + 0x34) = gl_func_0001CA10(alloc, 0x20);
-                if (SH21(0x2040) > 0) {
-                    rp = r2;
-                    do {
-                        rv = gl_func_0001CA10(alloc, 0x340);
-                        *(s32 *)(rp + 0x3C) = rv;
-                        *(s32 *)(rp + 0x40) = rv + 0x1A0;
-                        rv = gl_func_0001CA10(alloc, 0x340);
-                        *(s32 *)(rp + 0xA0) = rv;
-                        *(s32 *)(rp + 0xA4) = rv + 0x1A0;
-                        i += 1;
-                        rp += 0x14;
-                    } while (i < SH21(0x2040));
-                }
+    gl_ref_0003408C();
+    G.w2CFC = gl_func_00000000(G.tbl2198, G.count * 208u);
+    gl_func_00000000_21498v();
+    gl_func_00000000_21498v();
+    for (i = 0; i != 2; i++) {
+        G.a2088[i] = gl_func_00000000(G.tbl2198, G.w206C * 8);
+    }
+    G.w2CF8 = gl_func_00000000(G.tbl2198, 1024);
+    gl_ref_00033D20();
+    for (i = 0; i < 3; i++) {
+        G.slots[i].b1 = 0;
+    }
+    G.nslots = rec->b7;
+    for (i = 0; i < G.nslots; i++) {
+        src = &rec->src[i];
+        r = &G.slots[i];
+        G.slots[i].b4 = src->b0;
+        G.slots[i].h6 = src->b1 << 6;
+        G.slots[i].h6 /= G.slots[i].b4;
+        G.slots[i].hC = src->h2;
+        G.slots[i].hA = src->h4;
+        G.slots[i].h10 = src->h6;
+        G.slots[i].h12 = src->h8;
+        G.slots[i].b5 = src->bA;
+        G.slots[i].h8 = src->hC;
+        G.slots[i].b1 = 8;
+        r->w20 = gl_func_00000000(G.tbl2198, G.slots[i].h6 * 2);
+        r->w24 = gl_func_00000000(G.tbl2198, r->h6 * 2);
+        na = r->h6;
+        r->w14 = 0;
+        r->w18 = 0;
+        r->b3 = 0;
+        r->b2 = 2;
+        r->b0 = 1;
+        r->p110 = &G.slots[i].bits;
+        r->w1C = na;
+        r->p120 = &G.slots[i].w128;
+        r->f114 = 1.0f;
+        r->bits.a = 4;
+        r->bits.b = 0;
+        r->bits.len = na * 2;
+        r->w128 = 0;
+        r->w12C = r->h6;
+        r->w11C = r->w20;
+        r->w130 = 1;
+        if (r->b4 != 1) {
+            r->hE = 0x8000 / r->b4;
+            r->w28 = gl_func_00000000(G.tbl2198, 32);
+            r->w2C = gl_func_00000000(G.tbl2198, 32);
+            r->w30 = gl_func_00000000(G.tbl2198, 32);
+            r->w34 = gl_func_00000000(G.tbl2198, 32);
+            for (j = 0; j < G.n2040; j++) {
+                v = gl_func_00000000(G.tbl2198, 832);
+                r->sub[j].a = v;
+                r->sub[j].b = v + 416;
+                v = gl_func_00000000(G.tbl2198, 832);
+                r->sub2[j].a = v;
+                r->sub2[j].b = v + 416;
             }
-            if (*(s16 *)(src + 0xE) != 0) {
-                *(s32 *)(r2 + 0x108) = gl_func_0001CA10(alloc, 0x20);
-                rv = gl_func_0001CA10(alloc, 0x10);
-                *(s32 *)(r2 + 0x100) = rv;
-                gl_func_0001CA10(rv, *(s16 *)(src + 0xE));
-            } else {
-                *(s32 *)(r2 + 0x100) = 0;
-            }
-            if (*(s16 *)(src + 0x10) != 0) {
-                *(s32 *)(r2 + 0x10C) = gl_func_0001CA10(alloc, 0x20);
-                rv = gl_func_0001CA10(alloc, 0x10);
-                *(s32 *)(r2 + 0x104) = rv;
-                gl_func_0001CA10(rv, *(s16 *)(src + 0x10));
-            } else {
-                *(s32 *)(r2 + 0x104) = 0;
-            }
-            cnt += 1;
-            p140 += 0x158;
-            r4 += 0x158;
-            srcoff += 0x12;
-            r2 += 0x158;
-            fp_ += 0x158;
-        } while (cnt < SB21(1));
+        }
+        if (src->hE != 0) {
+            r->w108 = gl_func_00000000(G.tbl2198, 32);
+            r->w100 = v = gl_func_00000000(G.tbl2198, 16);
+            gl_func_00000000_21498v(v, src->hE);
+        } else {
+            r->w100 = 0;
+        }
+        if (src->h10 != 0) {
+            r->w10C = gl_func_00000000(G.tbl2198, 32);
+            r->w104 = v = gl_func_00000000(G.tbl2198, 16);
+            gl_func_00000000_21498v(v, src->h10);
+        } else {
+            r->w104 = 0;
+        }
     }
-    i = 0;
-    gl_func_0001CA10();
-    dp = P21(0x2D00);
-    if (SH21(0x2048) > 0) {
-        do {
-            gl_func_0001CA10(i);
-            gl_func_0001CA10(dp);
-            i += 1;
-            dp += 0x160;
-        } while (i < SH21(0x2048));
+    gl_func_00000000_21498v();
+    for (j = 0; j < G.n2048; j++) {
+        gl_func_00000000_21498v(j);
+        gl_func_00000000_21498v(G.recs2D00[j]);
     }
-    gl_func_0001CA10(*(s32 *)(rec + 0x30), *(s32 *)(rec + 0x34));
-    gl_func_0001CA10(W21(0x2070));
-    W21(0x1034) = 0;
-    gl_func_0001CA10();
-    H21(4) = 0x1000;
-    gl_func_0001CA10();
-    s0v = gl_func_0001CA10(1);
-    gl_func_0001CA10();
-    gl_func_0001CA10(s0v);
+    gl_func_00000000_21498v(rec->w30, rec->w34);
+    gl_func_00000000_21498v(G.count);
+    G.w1034 = 0;
+    gl_func_00000000_21498v();
+    G.h4 = 0x1000;
+    gl_func_00000000_21498v();
+    v = gl_func_00000000(1);
+    gl_func_00000000_21498v();
+    gl_func_00000000_21498v(v);
 }
-#undef B21
-#undef SB21
-#undef H21
-#undef SH21
-#undef W21
-#undef F21
-#undef P21
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
-#endif
+#undef G
 
 /* game_libs_func_00021D2C: pair-key table search, EXACT MATCH (22/22 words,
  * 2026-07-08 agent-e). BOUNDARY MERGED 2026-06-02: absorbed over-split loop
