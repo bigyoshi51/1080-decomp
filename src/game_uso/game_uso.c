@@ -5085,6 +5085,9 @@ commit_flags:
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
 #endif
 
+/* V3_6A30 is outside the NM block: the exact game_uso_func_00006CF0 uses it. */
+typedef struct { float x, y, z; } V3_6A30;
+
 #ifdef NON_MATCHING
 /* game_uso_func_00006A30: 176-insn per-frame FPU update. Re-decoded 2026-06-24
  * from expected/.o. Stack-staged Vec3 layout: va@sp+0x9C (from sub+0xB4..),
@@ -5107,7 +5110,6 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
  * scaled.x=fx;... then cpy=scaled; acc=cpy word-copies.
  * Residual 15%: frame 0xA8 vs 0xB8 (home/gap layout), copy-chain interleave,
  * arg-address staging order. Placeholder callees — NM wrap regardless. */
-typedef struct { float x, y, z; } V3_6A30;
 extern int game_uso_func_00007ACC(int *, int *, int, int *);
 extern int game_uso_func_00007C1C(char *, char *, char *, char *, char *, f32 *);
 extern int game_uso_func_055750();
@@ -5221,114 +5223,22 @@ skpt:;
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
 #endif
 
-#ifdef NON_MATCHING
-/* game_uso_func_00006CF0: 102-insn (0x198) per-frame FPU update with
- * conditional dispatch. Frame -0x88, single arg a0.
+/* game_uso_func_00006CF0: 102-insn (0x198) per-frame update. Copies
+ * sub->{0xB4..0xBC} (sub = a0->0x30), adds sub->0x318 Vec3 scaled by
+ * a0->0xA8, gates on sub->0x938 / 0xA54 and the a0->0x70 timer (dispatch
+ * through game_uso_func_00011024(sub->0x840, flag) when sub->0x348 <= 30 or
+ * timer == 60), then tail-calls game_uso_func_00007538(a0, flag); flag is 0x10
+ * when a0->0x6C == 0.
  *
- * Structural decode (offsets in target asm):
- *
- *   sub = a0->[0x30];                          ; sub-object pointer
- *
- *   ; Stage 1: copy 3 ints (Vec3-int) from sub->{0xB4,B8,BC} to sp[0x70..0x78]
- *   sp[0x70] = sub->[0xB4];
- *   sp[0x74] = sub->[0xB8];
- *   sp[0x78] = sub->[0xBC];
- *
- *   ; Stage 2: scale Vec3 (sub->{0x318,31C,320}) by a0->[0xA8] (negated for
- *   ; the .x component) and store to sp[0x48..0x50]
- *   scale = a0->[0xA8];
- *   sp[0x48] = -scale;
- *   sp[0x4C] = sub->[0x31C] * scale;
- *   sp[0x50] = sub->[0x320] * scale;
- *
- *   ; Stage 3: Vec3 copy 3 ints from sub_a (= some pointer) to t1 (= sp+0x7C),
- *   ; then 3 ints from t2 to t3 — pointer-walking copy pair (asm 0x60-0x90)
- *
- *   ; Stage 4: FPU ops on staged Vec3 + conditional branches based on
- *   ; sub->[0x6C] and sub->[0x70]
- *   if (sub->[0x6C] == 0) ...
- *   if (a0->[0x70] < 0x3C) ...
- *
- *   ; Stage 5: 2-3 cross-USO calls with sub->0x840 (function ptr)
- *   gl_func_00000000(sub->0x840, a1, a2);
- *
- * Spine context: per-frame compute (FPU-heavy update). Reads ONE input
- * struct (a0 with sub at +0x30) and writes scaled Vec3s into local stack
- * frame for downstream. Field offsets used: a0->{0x30,0x70,0xA8}, sub->{
- * 0xB4,0xB8,0xBC, 0x318,0x31C,0x320, 0x6C, 0x70, 0x840, 0x938, 0xA54}.
- *
- * 2026-05-08 pass: decoded the full high-level flow through the terminal
- * call. This body now captures the staged Vec3 copy, scaled Vec3 add, timer
- * gate, optional dispatch via sub->0x840, and unconditional tail call.
- * Still NM: stack layout / register allocation and copy scheduling are not
- * byte-matched yet. Default INCLUDE_ASM build remains exact.
- *
- * 2026-05-08 logic fix: the dispatch arm for the timer<60 branch was
- * inverted. Asm at 0x120 reads `bc1f` after `c.lt.s f4(=30), f6(=sub[0x348])`,
- * meaning the dispatch fires when `30 < sub[0x348]` (NOT when `sub[0x348]
- * <= 30` as previously written). Flipped the C accordingly. No build effect
- * (still NM-wrapped, default uses INCLUDE_ASM), but future tightening passes
- * now have correct logic to grind from.
- *
- * 2026-05-18 pass: added explicit frame padding so IDO emits the target
- * 0x88-byte frame / epilogue, and tried register-vs-stack dispatch_arg plus
- * single-scale-load variants. Best measured C body is 76.12745% by objdiff;
- * single-scale-load regressed to 69.80% because it grew the frame to 0x90.
- *
- * 2026-06-23 pass (agent-e): 77.75% -> 82.40%. Three BUGS fixed:
- *   (1) real callees wired with paired R_MIPS_26 relocs: the two timer-gate
- *       dispatch calls are game_uso_func_00011024(sub->0x840, dispatch_arg)
- *       (called via implicit K&R 2-arg decl so a1 is passed), the tail is
- *       game_uso_func_00007538(a0, dispatch_arg). Threading dispatch_arg into
- *       the tail (a1 already live) was the big mover: it stops IDO emitting a
- *       spurious `move a1,zero` and reproduces the a1+a2 save/restore pair
- *       around each call. All 3 relocs now byte-match target.
- *   (2) dispatch comparison: target is `c.le.s f6(sub->0x348),f4(30)` + bc1f,
- *       i.e. dispatch fires when sub->0x348 <= 30.0f (fall-through), timer+1
- *       when > 30. Rewrote the inner if as `if (x <= 30.0f) dispatch; else
- *       timer+1`. Old `30.0f < x` emitted the wrong `c.lt.s` form.
- *   (3) frame/decl order: V3 decl order added,base,tmp,scaled + pad[12] gives
- *       the 0x88 frame and the right relative slot ordering.
- * 2026-07-15 pass (agent-g): 82.40 -> 91.02. Three of the four "caps" fell:
- *   - grouped load*3/mul*3/store*3 + single 0xA8 load: named REGISTER float
- *     result locals (rx/ry/rz) + named `scale` local — the RESULT webs take
- *     the primary FP pool {f2,f12,f14} and the loads the secondary {f4,f6,f8}
- *     exactly as target; capturing the LOADS into locals instead mirrors the
- *     pools (loads f2,f12,f14) = wrong. scale named -> single lwc1 f0 + the
- *     mul operand order fs=load,ft=scale (a CSE'd inline load flips to
- *     fs=f0 = wrong).
- *   - volatile-qualified sub reload (`*(int * volatile *)(a0+0x30)`) gives the
- *     target's second lw of a0->0x30 (plain reload CSEs away).
- *   - bnel->bne fell out with the web fixes; frame 0x90 (target 0x88 +
- *     one extra dead float home: 4 register floats all get dead homes, target
- *     has 3 home words + the a1 spill at 0x6C; our a1 spill sits at 0x24).
- * 2026-07-15 pass 2 (agent-g cross-pollination): 91.02 -> 97.64 (95/102
- * aligned words; frame 0x88 exact, ALL homes/spills exact). Levers:
- *   - DE-NAMED stage-1 sub (inline a0->0x30 deref in the struct copy) ->
- *     ring temp t7 exactly as target; the named web starts at the volatile
- *     stage-2 reload. This also fixed the copy-pointer coloring (t0/t3/v0)
- *     and the tail temp-pool phase (old "dead-addiu drives them" theory
- *     was wrong — the phase came from the named stage-1 web).
- *   - dispatch_arg -> PLAIN named int declared between base_vec and rx:
- *     its 0x6C decl-position home is the a1 spill slot (afa5006c).
- *   - scale -> block-scope `register float` inside the p-block: $f0 with
- *     NO fn-scope home (3 float homes exactly); rz/scale same-name reuse
- *     miscolors the z-result f0 (dead-reg reuse) — keep scale separate.
- *   - pointer decls (p, timer) moved BELOW pad[8] in the decl list: p/self
- *     homes at decl-top were the phantom +8 ABOVE the vec block; last-decl
- *     scalars home below it. pad[8] = 0x28-0x47.
- *   - self ELIMINATED: target's a0/a2 pair is uopt range-splitting of the
- *     param web itself (spill to arg slot 0x88 across the calls); a named
- *     self copy is byte-equivalent, both split at stage-2.
- * REMAINING (true residual, 5-7 words, one-two cells):
- *   - param-web split POINT: target splits after the 0x6C dispatch test
- *     (stage-2 reload + scale + 0x6C read via a0, copy a2 parked at head
- *     word 7); ours splits at stage 1 (those 3 reads via a2) and schedules
- *     move a2,a0 at word 4 vs 7 (the 4-insn head reorder is the same cell).
- *     dead if(a0){} after the test = inert; if(1){self=a0;} = inert.
- *   - the dead `addiu v0,v0,0x318` post-bump: still NOT C-reachable
- *     (p+=0x318 DCE'd even with a zero-emission if(p){} consumer).
- * Default INCLUDE_ASM build remains exact; logic + relocs are correct. */
+ * Exact-match notes (see the agent-g 2026-07-15 / 2026-10-15 passes in
+ * docs/IDO_CODEGEN.md): register result floats rx/ry/rz + block-scope
+ * register scale give the FP pools; de-named stage-1 sub; plain int
+ * dispatch_arg at the a1 spill home; decl order + pad[8] = frame 0x88.
+ * 2026-10-15 closed the last two cells: (1) the second sub load is an
+ * int-typed read (a0[0x30/4]) instead of a volatile one - type keeps it out
+ * of CSE, and without volatile uopt splits the a0 web at the 0x6C test like
+ * the target; (2) the dead `addiu v0,v0,0x318` is `p += 0x318` placed BEFORE
+ * the three reads, which read through p (folded back to 0x318(v0)..). */
 void game_uso_func_00011024();
 void game_uso_func_00006CF0(int *a0) {
     V3_6A30 added_vec;   /* sp+0x7C */
@@ -5344,22 +5254,23 @@ void game_uso_func_00006CF0(int *a0) {
 
     (void)pad;
     /* stage-1 sub is DE-NAMED (inline deref -> ring temp t7); the named sub
-     * web starts at the volatile stage-2 reload. */
+     * web starts at the stage-2 reload. */
     base_vec = *(V3_6A30 *)(*(char**)((char*)a0 + 0x30) + 0xB4);
     dispatch_arg = 0;    /* early: move a1,zero schedules into the stage-1 copy */
 
-    p = *(char * volatile *)((char*)a0 + 0x30);   /* target reloads sub */
+    /* int-typed read: not CSE'd with the char** read above, so the target's
+     * second lw is kept WITHOUT volatile (volatile moved the a0/a2 split) */
+    p = (char*)a0[0x30 / 4];
     {
         register float scale;     /* block-scope: $f0, no home */
         scale = *(float*)((char*)a0 + 0xA8);
-        rx = *(float*)(p + 0x318) * scale;
-        ry = *(float*)(p + 0x31C) * scale;
-        rz = *(float*)(p + 0x320) * scale;
-        p += 0x318;               /* folds away, but the bump + zero-emission
-                                     consumer below shape p's web: removing
-                                     them costs a word (build 102) and the
-                                     copy-pointer colors */
-        if (p) {}
+        p += 0x318;               /* bump FIRST, read through it: copyprop
+                                     folds the reads to 0x318(v0).. but the
+                                     bump survives as the dead addiu */
+        rx = *(float*)(p + 0) * scale;
+        ry = *(float*)(p + 4) * scale;
+        rz = *(float*)(p + 8) * scale;
+        if (p) {}                 /* needed: without it 16 diff lines */
         scaled_vec.x = rx;
         scaled_vec.y = ry;
         scaled_vec.z = rz;
@@ -5393,9 +5304,6 @@ void game_uso_func_00006CF0(int *a0) {
 
     game_uso_func_00007538(a0, dispatch_arg);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006CF0);
-#endif
 
 void game_uso_func_00006E88(int *a0) {
     int r;
