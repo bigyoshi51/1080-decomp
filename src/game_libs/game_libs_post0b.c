@@ -33098,30 +33098,30 @@ int* gl_func_00060370(int *self_or_null) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060370);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_00060468: 26-insn 3-call record-update. v=func(a0); p=a0->0x44;
- * p[1]=v; p[2]+=p[1]-p[0]; func(p); v=func(); p=a0->0x44; p[0]=v. Reloc-blind
- * (jal-0 placeholders, a0->0x44 reloaded inline). Straight C caps at 77% — IDO
- * regalloc/scheduler divergence across the 3 calls (below the 80% threshold,
- * documented for completeness; kept INCLUDE_ASM as the build path).
- * 2026-06-20: re-derived; target forms &p[2] (addiu a1,v1,8) and RMWs p[2]
- * through that pointer (2 extra insns vs folded direct-offset). Reused-ptr
- * lever folds back to direct offset — needs the real struct member typed. */
+/* gl_func_00060468: 3-call record update on rec = a0->0x44:
+ *   rec->b = f1(); rec->c += rec->b - rec->a; f2(a0->0x44, &rec->c);
+ *   a0->0x44->a = f3();
+ * f1 takes no args (a0 is only homed for the later reloads). The `addiu a1,v1,8`
+ * + RMW through it = &rec->c is f2's SECOND arg; take it from its own
+ * a0->0x44 read BEFORE naming rec (`q = &(a0->0x44)->c; p = a0->0x44;`) --
+ * assigning q from p (q = &p->c) lets uopt fold the RMW back to 8(v1). */
+typedef struct R_00060468 {
+    int a;
+    int b;
+    int c;
+} R_00060468;
 void gl_func_00060468(int *a0) {
-    int *p;
+    R_00060468 *p;
+    int *q;
     int v;
-    v = gl_func_00000000(a0);
-    ((int *)a0[0x44 / 4])[1] = v;
-    p = (int *)a0[0x44 / 4];
-    p[2] += p[1] - p[0];
-    gl_func_00000000(p);
     v = gl_func_00000000();
-    p = (int *)a0[0x44 / 4];
-    p[0] = v;
+    ((R_00060468 *)a0[0x44 / 4])->b = v;
+    q = &((R_00060468 *)a0[0x44 / 4])->c;
+    p = (R_00060468 *)a0[0x44 / 4];
+    *q += p->b - p->a;
+    gl_func_00000000(a0[0x44 / 4], q);
+    ((R_00060468 *)a0[0x44 / 4])->a = gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060468);
-#endif
 
 /* gl_func_000604D0: 23-insn linked-list walk-and-call. Walks a2->[0x18]
  * via [0x14] next-ptrs; calls gl_func(node, a1) on each; stops on first
