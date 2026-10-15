@@ -79,7 +79,7 @@ Use Ghidra by trigger only (struct shape unknown, function family >3, stuck <50%
 - **[splat](https://github.com/ethteck/splat)** — ROM splitting tool
 - **[asm-processor](https://github.com/simonlindholm/asm-processor)** — Mixes C decompilation with INCLUDE_ASM stubs
 - **[spimdisasm](https://github.com/Decompollaborate/spimdisasm)** — MIPS disassembler (via splat)
-- **[decomp.me](https://decomp.me)** / **[objdiff](https://github.com/encounter/objdiff)** — Function-level matching, progress tracking, [bytematch.dev](https://bytematch.dev/bigyoshi51/1080-decomp) integration
+- **[decomp.me](https://decomp.me)** / **[objdiff](https://github.com/encounter/objdiff)** — Function-level matching, progress tracking, [bytematch.dev](https://bytematch.dev/djsaunde/1080-decomp) integration
 
 ## Game Structure
 
