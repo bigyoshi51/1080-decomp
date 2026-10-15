@@ -5,54 +5,41 @@ typedef struct { int a, b, c, d; } Quad4;
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000000);
 
-#ifdef NON_MATCHING
-/* gl_func_000001CC: 79-insn alloc-if-null constructor + color-normalize.
- * Allocates a 0x13C-byte object if a0==NULL (and a 0x10C sub-object if
- * that's NULL too), wires several setup callees, then fills the object:
- *   - obj[0x28] = &D_0; obj[0xC] = &gl_ref_0000CAFC
- *   - color floats obj[0xC4..0xD0] = {250,235,100,0} / 255.0f
- *   - obj[0xD4..0xDC] = {0, 255, 130}; obj[0xE0] = a1 (saved param)
- *   - trailing setup call gl_func(obj, -78, -1, -51, 0)
- * Structural first pass — many cross-USO jal-0 calls + magic args;
- * exact match deferred to a later tightening tick. */
+/* gl_func_000001CC: get-or-create constructor (0x13C object, one inlined
+ * 0x10C base sub-object) + colour normalize (0x13C, 79 words). EXACT in-unit.
+ * arg0 IS self (reassigned by the || alloc fallback): a separate self local
+ * adds a named home (frame 0x40 instead of 0x38) and schedules `or s0,a0`
+ * into the bnez delay slot. The sub pointer is declared BEFORE d255 so its
+ * spill lands at +0x34 (d255 first -> +0x30). d255 keeps the four
+ * divisions at run time. */
 extern int gl_func_00000000();
-extern char gl_ref_0000CAF4;
-extern char gl_ref_0000CAFC;
-int gl_func_000001CC(int *a0, int a1) {
-    int *s0 = a0;
-    float div255 = 255.0f;
-    if (a0 == 0) {
-        s0 = (int*)gl_func_00000000(0x13C);
-        if (s0 == 0) {
-            return 0;
+char *gl_func_000001CC(char *arg0, s32 arg1) {
+    char *sub;
+    f32 d255 = 255.0f;
+
+    if ((arg0 != 0) || (arg0 = (char *)gl_func_00000000(0x13C), (arg0 != 0))) {
+        sub = arg0;
+        if ((arg0 != 0) || (sub = (char *)gl_func_00000000(0x10C), (sub != 0))) {
+            gl_func_00000000(sub, (char *)&D_00000000 + 0xCAF4);
+            *(s32 *)(sub + 0x28) = (s32)&D_00000000;
+            gl_func_00000000(sub + 0x2C);
         }
+        *(s32 *)(arg0 + 0xC) = (s32)((char *)&D_00000000 + 0xCAFC);
+        gl_func_00000000(arg0 + 0x10C, 0x50000);
+        gl_func_00000000(arg0 + 0x124, 0x50007);
+        gl_func_00000000(arg0, arg0 + 0x124, arg0 + 0x10C);
+        *(s32 *)(arg0 + 0xD4) = 0;
+        *(s32 *)(arg0 + 0xD8) = 0xFF;
+        *(s32 *)(arg0 + 0xDC) = 0x82;
+        *(f32 *)(arg0 + 0xC4) = 250.0f / d255;
+        *(f32 *)(arg0 + 0xC8) = 235.0f / d255;
+        *(f32 *)(arg0 + 0xCC) = 100.0f / d255;
+        *(f32 *)(arg0 + 0xD0) = 0.0f / d255;
+        *(s32 *)(arg0 + 0xE0) = arg1;
+        gl_func_00000000(arg0, -78, -1, -51, 0);
     }
-    if (s0 == 0) {
-        int *p = (int*)gl_func_00000000(0x10C);
-        if (p != 0) {
-            gl_func_00000000(p, &gl_ref_0000CAF4);
-            *(int*)((char*)p + 0x28) = (int)&D_00000000;
-            gl_func_00000000((char*)p + 0x2C);
-        }
-    }
-    *(int*)((char*)s0 + 0xC) = (int)&gl_ref_0000CAFC;
-    gl_func_00000000((char*)s0 + 0x10C, 0x50000);
-    gl_func_00000000((char*)s0 + 0x124, 0x50007);
-    gl_func_00000000(s0, (char*)s0 + 0x124);
-    *(float*)((char*)s0 + 0xC4) = 250.0f / div255;
-    *(float*)((char*)s0 + 0xC8) = 235.0f / div255;
-    *(float*)((char*)s0 + 0xCC) = 100.0f / div255;
-    *(float*)((char*)s0 + 0xD0) = 0.0f / div255;
-    *(int*)((char*)s0 + 0xD4) = 0;
-    *(int*)((char*)s0 + 0xD8) = 255;
-    *(int*)((char*)s0 + 0xDC) = 130;
-    *(int*)((char*)s0 + 0xE0) = a1;
-    gl_func_00000000(s0, -78, -1, -51, 0);
-    return (int)s0;
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000001CC);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_00000308(char *a0) {
