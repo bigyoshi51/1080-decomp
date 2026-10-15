@@ -1478,59 +1478,57 @@ void gl_func_00002B94(char *self) {
     (void)ret;
 }
 
-#ifdef NON_MATCHING
+/* gl_func_00003138: get-or-create ctor (0x168 object) + 8-slot fill + colour
+ * normalize (0x160, 88 words). EXACT in-unit: arg0 IS self (reassigned by the
+ * || alloc fallback, no separate self local) -- the old var_s3 = arg0 copy
+ * scheduled `or s3,a0` into the bnez delay slot instead of before `sw ra`
+ * (96.9 NM). Same lever as gl_func_000001CC / 0FD0 / 0A8C. */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00003138)();
+extern int gl_func_00000000();
 char *gl_func_00003138(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
     f32 d255 = 255.0f;
     f32 temp_f0;
     f32 temp_f12;
     f32 temp_f2;
     s32 var_s0;
-    char *temp_v0;
     char *var_s1;
-    char *var_s3;
 
-    var_s3 = arg0;
-    if ((arg0 != 0) || (temp_v0 = (char*)func_00000000((char *)0x168), var_s3 = temp_v0, (temp_v0 != 0))) {
-        (char*)func_00000000(var_s3, (char*)&D_00000000 + 0xCCD0);
-        *(int*)((char*)var_s3 + 0x28) = (int)&D_00000000;
-        FW(var_s3, 0xC) = (int)((char*)&D_00000000 + 0xCCD8);
-        FW(var_s3, 0x50) = arg3;
-        FW(var_s3, 0x54) = arg1;
-        FW(var_s3, 0x58) = arg2;
-        (char*)func_00000000(var_s3 + 0xF0, 0x50003);
-        (char*)func_00000000(var_s3 + 0x108, 0x50004);
-        (char*)func_00000000(var_s3 + 0x120, 0x50006);
-        (char*)func_00000000(var_s3 + 0x150, 0x50005);
-        (char*)func_00000000(var_s3 + 0x138, 0x50021);
+    if ((arg0 != 0) || (arg0 = (char *)gl_func_00000000(0x168), (arg0 != 0))) {
+        gl_func_00000000(arg0, (char *)&D_00000000 + 0xCCD0);
+        *(int *)(arg0 + 0x28) = (int)&D_00000000;
+        FW(arg0, 0xC) = (int)((char *)&D_00000000 + 0xCCD8);
+        FW(arg0, 0x50) = arg3;
+        FW(arg0, 0x54) = arg1;
+        FW(arg0, 0x58) = arg2;
+        gl_func_00000000(arg0 + 0xF0, 0x50003);
+        gl_func_00000000(arg0 + 0x108, 0x50004);
+        gl_func_00000000(arg0 + 0x120, 0x50006);
+        gl_func_00000000(arg0 + 0x150, 0x50005);
+        gl_func_00000000(arg0 + 0x138, 0x50021);
         var_s0 = 0;
-        var_s1 = var_s3;
+        var_s1 = arg0;
         do {
-            FW(var_s1, 0x2C) = (char*)func_00000000(0, arg1);
+            FW(var_s1, 0x2C) = gl_func_00000000(0, arg1);
             var_s1 += 4;
             var_s0 += 1;
         } while (var_s0 != 8);
-        (char*)func_00000000(var_s3);
+        gl_func_00000000(arg0);
         temp_f0 = (f32)255 / d255;
         temp_f2 = 102.0f / d255;
-        *(f32*)((char*)var_s3 + 0xCC) = temp_f0;
-        *(f32*)((char*)var_s3 + 0xD8) = temp_f0;
-        *(f32*)((char*)var_s3 + 0xE0) = temp_f0;
-        *(f32*)((char*)var_s3 + 0xE8) = temp_f0;
+        *(f32 *)(arg0 + 0xCC) = temp_f0;
+        *(f32 *)(arg0 + 0xD8) = temp_f0;
+        *(f32 *)(arg0 + 0xE0) = temp_f0;
+        *(f32 *)(arg0 + 0xE8) = temp_f0;
         temp_f12 = 80.0f / d255;
-        *(f32*)((char*)var_s3 + 0xD0) = temp_f2;
-        *(f32*)((char*)var_s3 + 0xDC) = temp_f2;
-        *(f32*)((char*)var_s3 + 0xD4) = temp_f12;
-        *(f32*)((char*)var_s3 + 0xE4) = temp_f12;
+        *(f32 *)(arg0 + 0xD0) = temp_f2;
+        *(f32 *)(arg0 + 0xDC) = temp_f2;
+        *(f32 *)(arg0 + 0xD4) = temp_f12;
+        *(f32 *)(arg0 + 0xE4) = temp_f12;
     }
-    return var_s3;
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003138);
-#endif
 
 /* USO Sym[943] exports Text+0x17904 (synthetic 0x3298); 0x32B0 is
  * an internal prologue split, not a separate function. Shared float divisor
