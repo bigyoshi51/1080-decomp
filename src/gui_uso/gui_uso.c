@@ -1467,182 +1467,86 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002BB0);
 #endif
 
 #ifdef NON_MATCHING
-/* gui_func_00002DE0: RE 2026-08-22 from target disasm. Structure: held
- * char **dp base (lui/addiu form, 1EF4 idiom); ONE reused scratch t -> $s0
- * (gctx/mode/x0/x1/x-scroll); if-else chain 0x408/0x120/0x110 (switch would
- * sort ascending); reused temps dl/idx/slot1/w/lrx/u per target reg webs;
- * Y-guard on RAW uly<<2 (not s16); multu scroll products; negu-shl combine. */
-/* gui_func_00002DE0: RE'd from target disasm 2026-08-22 (69.23->72.7).
- * Levers that WORKED: (1) volatile-deref held base `char * volatile *dp =
- * (char * volatile *)&D_00000000` -> the target's lui;addiu $11 held-address
- * web incl. per-call remats (non-volatile char** ALWAYS folds %lo here, even
- * multi-def w/ distinct pinned syms); (2) goto-chain (NOT switch: sorts
- * ascending; NOT if-else: bnel-inline) for the beq 0x408/0x120/0x110 grouped
- * compare chain; (3) f32 two=2.0f local forces div.s (literal /2.0f becomes
- * *0.5f); (4) (u32)*(u32) multu scroll products; (5) negu+sll final combine;
- * (6) Y B4-guard on RAW uly<<2, X guard on (s16). Reused temp webs mirror
- * target ($2/$3/$5/$6/$7/$8/$9 multi-role). RESIDUAL: target holds the big
- * scratch var in $s0 (mine $7, no s-reg; suspect pressure cascade), missing
- * mid-region $11 remats + 2 copy insns in scroll chains.
- * 2026-10-15 (72.2 -> 77.5): (a) divide by the INT literal `/ 2`, not a
- * `two = 2.0f` local -- the local got const-propagated into the first use
- * as mul.s by 0.5f (lui 0x3f00); `/ 2` keeps ONE held 2.0f (lui 0x4000,
- * $f16) feeding both div.s like the target (+2.9); (b) store the B3 packet
- * command word BEFORE its operand word (target: lui t4,0xb300 early, +1.3);
- * (c) writing the goto arms in c,b,a source order (+1.2) -- note the target
- * still lays them out a,b,c with `b merge` as the default, so this is a
- * score-only proxy, not the real arm structure. A plain typed
- * `extern char *G` read directly scores the same as the volatile dp hack
- * (77.41). Still open: the multi-role scratch in $s0 (frame -104 with s0
- * save) and the beqz-zero join branches of the scroll if/else chains. */
-void gui_func_00002DE0(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4) {
-    char * volatile *dp = (char * volatile *)&D_00000000;
-    char *t;    /* $s0: gctx / mode / x0 / x1 / x-scroll */
-    s32 dl;     /* $v0: dlring / y0t / (s16)dsdx / tmp */
-    s32 idx;    /* $v1: idx / uly / zero / (s16)dtdy */
-    s32 slot1;  /* $a3: packet1 slot / lry */
-    s32 slot2;  /* $t1: scissor slot / dsdx */
-    s32 slot3;  /* $t2: B4 slot */
-    s32 slot4;  /* packet4 slot */
-    s32 w;      /* $t0: t0 ptr / y0 / y1 / copy */
-    s32 lrx;    /* $a1: lrx / y-scroll */
-    s32 u;      /* $a2: ulx / uly<<2 raw / dtdy */
-    s32 x0t;    /* x0 test / x tmp */
-    s32 sp3C;
-    s32 sp38;
-    f32 fv;
-    f32 ws;
-    f32 hs;
+/* gui_func_00002DE0: f32-scale sibling of gui_func_0000329C. Re-decoded
+ * 2026-10-15 (77.5 -> 80.7) with the same stock gbi.h macro text as 329C:
+ * gSPTexture, a 3-way texture-load dispatch on spr->0x24, then
+ * gSPScisTextureRectangle(pkt, x<<2, y<<2, (x+(s32)fw)<<2, (y+(s32)fh)<<2,
+ * 0, 0, 0, dsdx, dtdy) where x = x0 + (-(w/2))*sx (int-literal `/ 2` keeps the
+ * held 2.0f div.s), fw = w*sx. See IDO_CODEGEN#gbi-macro-redecode-scistexrect-329c.
+ * RESIDUAL: as in 329C, the target keeps the ring ctx / switch value / x-side
+ * MAX temps in callee-saved $s0 (frame 0x68 with s0 save; here 0x60, no s0)
+ * plus the per-packet `lui t3; addiu t3` re-materialization of the held ring
+ * address before the B4/B3 packets; the rest is the register rotation that
+ * follows. Spelling `x0 - (w/2)*sx` instead of `x0 + (-(w/2))*sx` drops to
+ * 78.3 (sub.s vs neg+add.s). Old hand decode (volatile dp + goto chain) was
+ * 77.5. */
+#define _SHIFTL(v, s, w) ((u32)(((u32)(v) & ((1 << (w)) - 1)) << (s)))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define PKT_BEGIN { char *_c = (*(char **)&D_00000000); s32 _i = (*(s32 **)(_c + 0xC))[1]; u32 *_g; \
+    (*(s32 **)(_c + 0xC))[1] = _i + 1; _g = (u32 *)(**(s32 **)(_c + 0xC) + _i * 8);
+#define PKT_END }
 
-    t = *dp;
-    dl = *(s32 *)(t + 0xC);
-    idx = *(s32 *)(dl + 4);
-    *(s32 *)(dl + 4) = idx + 1;
-    slot1 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
-    *(s32 *)slot1 = 0xBB000001;
-    *(s32 *)(slot1 + 4) = 0x80008000;
+void gui_func_00002DE0(char *arg0, s32 x0, s32 y0, f32 sx, f32 sy) {
+    s32 pad[5]; /* frame placeholder: 10 named words precede w/h (w@0x3C, h@0x38) */
+    char *spr;
+    f32 fw;
+    f32 fh;
+    s32 x;
+    s32 y;
+    s32 w;
+    s32 h;
 
-    w = *(s32 *)(arg0 + 0x10);
-    sp3C = *(s16 *)(w + 0x20);
-    sp38 = *(s16 *)(w + 0x22);
-    t = *(char **)(w + 0x24);
-    if ((s32)t == 0x408) goto case_a;
-    if ((s32)t == 0x120) goto case_b;
-    if ((s32)t == 0x110) goto case_c;
-    goto merge;
-case_c:
-    gui_func_00000000(*dp, *(s32 *)(w + 8), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-    goto merge;
-case_b:
-    gui_func_00000000(*dp, *(s32 *)(w + 8), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-    goto merge;
-case_a:
-    gui_func_00000000(*dp, *(s32 *)(w + 8), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-    goto merge;
-merge:
-    dp = (char * volatile *)&D_00000000;
-    t = *dp;
-    dl = *(s32 *)(t + 0xC);
-    idx = *(s32 *)(dl + 4);
-    *(s32 *)(dl + 4) = idx + 1;
-    slot2 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
-
-    w = 0;
-    t = 0;
-    fv = (f32)sp3C;
-    u = (s32)((f32)arg1 + (-(fv / 2) * arg3));
-    ws = fv * arg3;
-    lrx = u;
-    lrx = (s16)(lrx << 2);
-    x0t = (s16)((u + (s32)ws) << 2);
-    if (x0t > 0) {
-        t = (char *)x0t;
+    PKT_BEGIN _g[0] = 0xBB000001; _g[1] = 0x80008000; PKT_END
+    spr = *(char **)(arg0 + 0x10);
+    w = *(s16 *)(spr + 0x20);
+    h = *(s16 *)(spr + 0x22);
+    switch (*(s32 *)(spr + 0x24)) {
+    case 0x110:
+        gui_func_00000000((*(char **)&D_00000000), *(s32 *)(spr + 8), w, h, 0, 0, w, h, 0);
+        break;
+    case 0x120:
+        gui_func_00000000((*(char **)&D_00000000), *(s32 *)(spr + 8), w, h, 0, 0, w, h, 0);
+        break;
+    case 0x408:
+        gui_func_00000000((*(char **)&D_00000000), *(s32 *)(spr + 8), w, h, 0, 0, w, h, 0);
+        break;
     }
-    fv = (f32)sp38;
-    idx = (s32)((f32)arg2 + (-(fv / 2) * arg4));
-    hs = fv * arg4;
-    dl = (s16)((idx + (s32)hs) << 2);
-    u = idx << 2;
-    if (dl > 0) {
-        w = dl;
-    }
-    *(s32 *)slot2 = ((((s32)t & 0xFFF) << 0xC) | 0xE4000000) | (w & 0xFFF);
-    t = 0;
-    if (lrx > 0) {
-        t = (char *)lrx;
-    }
-    slot1 = (s16)u;
-    if (slot1 > 0) {
-        w = slot1;
-    } else {
-        w = 0;
-    }
-    *(s32 *)(slot2 + 4) = (((s32)t & 0xFFF) << 0xC) | (w & 0xFFF);
-
-    t = *dp;
-    dl = *(s32 *)(t + 0xC);
-    idx = *(s32 *)(dl + 4);
-    *(s32 *)(dl + 4) = idx + 1;
-    slot3 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
-    *(s32 *)slot3 = 0xB4000000;
-    if (lrx < 0) {
-        slot2 = (s32)(((f32)(sp3C - 1) * 1024.0f) / ws);
-        dl = (s16)slot2;
-        if (dl < 0) {
-            x0t = ((s32)((u32)lrx * (u32)dl)) >> 7;
-            idx = 0;
-            if (x0t > 0) {
-                t = (char *)x0t;
-            } else {
-                t = (char *)idx;
-            }
-        } else {
-            x0t = ((s32)((u32)lrx * (u32)dl)) >> 7;
-            dl = 0;
-            if (x0t < 0) {
-                dl = x0t;
-            }
-            w = dl;
-            t = (char *)w;
-        }
-    } else {
-        t = 0;
-        slot2 = (s32)(((f32)(sp3C - 1) * 1024.0f) / ws);
-    }
-    if (u < 0) {
-        u = (s32)(((f32)(sp38 - 1) * 1024.0f) / hs);
-        idx = (s16)u;
-        if (idx < 0) {
-            dl = ((s32)((u32)slot1 * (u32)idx)) >> 7;
-            idx = 0;
-            lrx = idx;
-            if (dl > 0) {
-                lrx = dl;
-            }
-        } else {
-            dl = ((s32)((u32)slot1 * (u32)idx)) >> 7;
-            idx = 0;
-            if (dl < 0) {
-                idx = dl;
-            }
-            dl = idx;
-            lrx = dl;
-        }
-    } else {
-        lrx = 0;
-        u = (s32)(((f32)(sp38 - 1) * 1024.0f) / hs);
-    }
-    *(s32 *)(slot3 + 4) = ((-(s32)t) << 0x10) | ((-lrx) & 0xFFFF);
-
-    dp = (char * volatile *)&D_00000000;
-    t = *dp;
-    dl = *(s32 *)(t + 0xC);
-    idx = *(s32 *)(dl + 4);
-    *(s32 *)(dl + 4) = idx + 1;
-    slot4 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
-    *(s32 *)slot4 = 0xB3000000;
-    *(s32 *)(slot4 + 4) = (slot2 << 0x10) | (u & 0xFFFF);
+    x = (f32)x0 + (-((f32)w / 2) * sx);
+    fw = w * sx;
+    y = (f32)y0 + (-((f32)h / 2) * sy);
+    fh = h * sy;
+#define XL (x << 2)
+#define YL (y << 2)
+#define XH ((x + (s32)fw) << 2)
+#define YH ((y + (s32)fh) << 2)
+#define DSDX ((s32)(((f32)(w - 1) * 1024.0f) / fw))
+#define DTDY ((s32)(((f32)(h - 1) * 1024.0f) / fh))
+    PKT_BEGIN
+    _g[0] = (_SHIFTL(0xE4, 24, 8) | _SHIFTL(MAX((s16)(XH), 0), 12, 12) | _SHIFTL(MAX((s16)(YH), 0), 0, 12));
+    _g[1] = (_SHIFTL(0, 24, 3) | _SHIFTL(MAX((s16)(XL), 0), 12, 12) | _SHIFTL(MAX((s16)(YL), 0), 0, 12));
+    PKT_END
+    PKT_BEGIN
+    _g[0] = _SHIFTL(0xB4, 24, 8);
+    _g[1] = (_SHIFTL((0 - (((s16)(XL) < 0) ? (((s16)(DSDX) < 0) ? (MAX((((s16)(XL) * (s16)(DSDX)) >> 7), 0)) : (MIN((((s16)(XL) * (s16)(DSDX)) >> 7), 0))) : 0)), 16, 16) |
+             _SHIFTL((0 - (((YL) < 0) ? (((s16)(DTDY) < 0) ? (MAX((((s16)(YL) * (s16)(DTDY)) >> 7), 0)) : (MIN((((s16)(YL) * (s16)(DTDY)) >> 7), 0))) : 0)), 0, 16));
+    PKT_END
+    PKT_BEGIN
+    _g[1] = (_SHIFTL(DSDX, 16, 16) | _SHIFTL(DTDY, 0, 16));
+    _g[0] = _SHIFTL(0xB3, 24, 8);
+    PKT_END
 }
+#undef XL
+#undef YL
+#undef XH
+#undef YH
+#undef DSDX
+#undef DTDY
+#undef PKT_BEGIN
+#undef PKT_END
+#undef MAX
+#undef MIN
+#undef _SHIFTL
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002DE0);
 #endif
