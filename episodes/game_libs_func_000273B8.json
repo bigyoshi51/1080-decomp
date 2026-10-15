@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_000273B8",
+  "project": "1080-agent-c",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T15:26:43.488433+00:00",
+  "end_time": "2026-10-15T15:26:43.488446+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T15:26:43.488443+00:00",
+      "assistant_text": "The documented \"+5 temp-ring rotation\" was five byte read-modify-writes each one ring slot short: the change flags in byte 1 (cases 1-4, `a0[1] |= K`) and the bit-4 insert into byte 0 (case 8). Writing each as a 1-bit unsigned bitfield (`((BF *)a0)->f40 = 1;`, `->bit4 = v;`) emits the same instructions but burns one ring slot per insert, which closed all 44 register-only diffs. Landed as an IDO 7.1 -O2 REPLACE_FUNC_BODY donor so the switch jumptable reloc can be pinned to the USO table at +0xF88. 99/99.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 99,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_000273B8 -- 14-case jumptable message handler (switch on\n * msg[0]): float/s8/short setters on the object with change-flag bits in\n * byte 1, a bit-4 insert into byte 0, and one indexed byte store.\n *\n * IDO 7.1 -O2 REPLACE_FUNC_BODY donor for game_libs_post.c.o (99/99 words;\n * the only word the build cannot bake is the `lw t7,%lo(jtbl)(at)` load).\n * A C `switch` puts its jumptable in this unit's local .rodata; the splice\n * renames that reloc to game_libs_func_000273B8_rodata, pinned in\n * undefined_syms_auto.txt to the table the USO ships in its data at +0xF88\n * (14 entries; entry 7 = default). Same recipe as game_libs_o2_29CCC.c.\n *\n * Load-bearing: the change flags (byte 1 bits 0x80/0x40/0x20) and the\n * byte-0 bit 0x10 are 1-bit unsigned BITFIELDS, not `a0[1] |= K` /\n * `(a0[0] & ~0x10) | ((v << 4) & 0x10)`. Each bitfield insert lowers through\n * one extra eliminated temp, which burns the ugen ring slot the old byte\n * spelling was missing (the documented \"+5 temp-ring rotation\" = cases\n * 1, 2, 3, 4 and 8, one slot each). See docs/IDO_CODEGEN.md\n * #single-bit-bitfield-set-extra-ring-temp-29000. */\n#include \"common.h\"\n\ntypedef struct { unsigned int b0hi:3, bit4:1, b0lo:4, f80:1, f40:1, f20:1, b1lo:5, rest:16; } BF_273B8;\nvoid game_libs_func_000273B8(unsigned char *a0, unsigned char *a1) {\n    switch (a1[0]) {\n    case 1:\n        if (*(float *)(a1 + 4) != *(float *)(a0 + 40)) {\n            *(float *)(a0 + 40) = *(float *)(a1 + 4);\n            ((BF_273B8 *)a0)->f40 = 1;\n        }\n        return;\n    case 2:\n        if (*(float *)(a1 + 4) != *(float *)(a0 + 44)) {\n            *(float *)(a0 + 44) = *(float *)(a1 + 4);\n            ((BF_273B8 *)a0)->f40 = 1;\n        }\n        return;\n    case 3:\n        if (*(signed char *)(a1 + 4) != a0[10]) {\n            a0[10] = *(signed char *)(a1 + 4);\n            ((BF_273B8 *)a0)->f20 = 1;\n        }\n        return;\n    case 4:\n        if (*(float *)(a1 + 4) != *(float *)(a0 + 56)) {\n            *(float *)(a0 + 56) = *(float *)(a1 + 4);\n            ((BF_273B8 *)a0)->f80 = 1;\n        }\n        return;\n    case 5:\n        if (*(signed char *)(a1 + 4) != a0[4]) {\n            a0[4] = *(signed char *)(a1 + 4);\n        }\n        return;\n    case 6: {\n        int idx = a1[3];\n        if (idx < 8) {\n            a0[idx + 212] = *(signed char *)(a1 + 4);\n        }\n        return;\n    }\n    case 8:\n        ((BF_273B8 *)a0)->bit4 = *(signed char *)(a1 + 4);\n        return;\n    case 9:\n        a0[3] = *(signed char *)(a1 + 4);\n        return;\n    case 10:\n        *(short *)(a0 + 22) = a1[4] << 3;\n        *(short *)(a0 + 26) = 1;\n        return;\n    case 11:\n        *(short *)(a0 + 20) = a1[4] << 5;\n        *(short *)(a0 + 24) = 1;\n        return;\n    case 12:\n        a0[15] = a1[4];\n        return;\n    case 13:\n        *(short *)(a0 + 32) = *(unsigned short *)(a1 + 4);\n        return;\n    case 14:\n        a0[224] = a1[4];\n        return;\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o2_273B8.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_000273B8.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "make RUN_CC_CHECK=0: tenshoe.z64 cmp byte-identical to baserom; report.json 100.0; raw .text slice equals expected/ except the jumptable lw LO16 word (renamed donor .rodata reloc to game_libs_func_000273B8_rodata pinned at 0xF88 vs baked 0x8C2F0F88, resolved identically in the link)."
+  }
+}

@@ -9275,74 +9275,19 @@ void game_libs_func_000273AC(void) {
  * NOT inverted). Named f32/s8 locals per case: byte-identical (0
  * effect, candidates copy-prop). Confirmed uoptlist-ceiling class
  * (coloring/numbering choice, not C-steerable); permuter inapplicable
- * (raw-.word USO). */
-#ifdef NON_MATCHING
+ * (raw-.word USO).
+ * 2026-10-15 re-audit (agent-c): EXACT 99/99. The five skipped ring slots
+ * are the change flags (byte 1 bits 0x80/0x40/0x20, cases 1-4) and the
+ * byte-0 bit-4 insert (case 8) written as 1-bit unsigned BITFIELDS: each
+ * bitfield insert burns one ugen ring slot (docs/IDO_CODEGEN.md
+ * #single-bit-bitfield-set-extra-ring-temp-29000). WIRED via
+ * REPLACE_FUNC_BODY donor splice: the real C lives in the IDO 7.1 -O2
+ * donor game_libs_o2_273B8.c; the splice renames the switch's donor-local
+ * .rodata jumptable reloc to game_libs_func_000273B8_rodata (pinned to the
+ * USO table at +0xF88). Body below is a placeholder for the splice. */
 void game_libs_func_000273B8(unsigned char *a0, unsigned char *a1) {
-    switch (a1[0]) {
-    case 1:
-        if (*(float *)(a1 + 4) != *(float *)(a0 + 40)) {
-            *(float *)(a0 + 40) = *(float *)(a1 + 4);
-            a0[1] |= 0x40;
-        }
-        return;
-    case 2:
-        if (*(float *)(a1 + 4) != *(float *)(a0 + 44)) {
-            *(float *)(a0 + 44) = *(float *)(a1 + 4);
-            a0[1] |= 0x40;
-        }
-        return;
-    case 3:
-        if (*(signed char *)(a1 + 4) != a0[10]) {
-            a0[10] = *(signed char *)(a1 + 4);
-            a0[1] |= 0x20;
-        }
-        return;
-    case 4:
-        if (*(float *)(a1 + 4) != *(float *)(a0 + 56)) {
-            *(float *)(a0 + 56) = *(float *)(a1 + 4);
-            a0[1] |= 0x80;
-        }
-        return;
-    case 5:
-        if (*(signed char *)(a1 + 4) != a0[4]) {
-            a0[4] = *(signed char *)(a1 + 4);
-        }
-        return;
-    case 6: {
-        int idx = a1[3];
-        if (idx < 8) {
-            a0[idx + 212] = *(signed char *)(a1 + 4);
-        }
-        return;
-    }
-    case 8:
-        a0[0] = (a0[0] & ~0x10) | ((*(signed char *)(a1 + 4) << 4) & 0x10);
-        return;
-    case 9:
-        a0[3] = *(signed char *)(a1 + 4);
-        return;
-    case 10:
-        *(short *)(a0 + 22) = a1[4] << 3;
-        *(short *)(a0 + 26) = 1;
-        return;
-    case 11:
-        *(short *)(a0 + 20) = a1[4] << 5;
-        *(short *)(a0 + 24) = 1;
-        return;
-    case 12:
-        a0[15] = a1[4];
-        return;
-    case 13:
-        *(short *)(a0 + 32) = *(unsigned short *)(a1 + 4);
-        return;
-    case 14:
-        a0[224] = a1[4];
-        return;
-    }
+    a0[0] = a1[0];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000273B8);
-#endif
 
 
 /* game_libs_func_00027438: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
