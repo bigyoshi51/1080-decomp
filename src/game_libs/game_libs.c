@@ -576,45 +576,40 @@ int gl_func_00000FA4(char *a0, int arg1) {
     return gl_func_00000000(a0 + 0xB4, &gl_ref_0000CBF8, arg1);
 }
 
-#ifdef NON_MATCHING
-extern int func_00000000();
-extern char gl_ref_0000CBFC;
-extern char gl_ref_0000CC04;
+/* gl_func_00000FD0: two-level get-or-create ctor + colour normalize (0x144,
+ * 81 words). EXACT in-unit with the gl_func_000001CC shape verbatim (arg0 is
+ * self via the || fallback, sub declared before the named d255 whose unused
+ * home completes the 0x38 frame); only the vtable/ids/0xD4 value differ. The
+ * old wrap's separate self local + volatile pad scheduled `or s0,a0` into
+ * the bnez delay slot. */
+extern int gl_func_00000000();
 char *gl_func_00000FD0(char *arg0, s32 arg1) {
-  f32 d255;
-  char *var_s0;
-  char *var_a2;
-  volatile char pad[4];
-  (void)pad;
+    char *sub;
+    f32 d255 = 255.0f;
 
-  var_s0 = arg0;
-  if ((arg0 != 0) || ((var_s0 = (char *) func_00000000((char *) 0x13C)) != 0)) {
-    var_a2 = var_s0;
-    if ((var_s0 != 0) || ((var_a2 = (char *) func_00000000((char *) 0x10C)) != 0)) {
-      func_00000000(var_a2, &gl_ref_0000CBFC);
-      *((int *) (var_a2 + 0x28)) = (int) (&D_00000000);
-      func_00000000(var_a2 + 0x2C);
+    if ((arg0 != 0) || (arg0 = (char *)gl_func_00000000(0x13C), (arg0 != 0))) {
+        sub = arg0;
+        if ((arg0 != 0) || (sub = (char *)gl_func_00000000(0x10C), (sub != 0))) {
+            gl_func_00000000(sub, (char *)&D_00000000 + 0xCBFC);
+            *(s32 *)(sub + 0x28) = (s32)&D_00000000;
+            gl_func_00000000(sub + 0x2C);
+        }
+        *(s32 *)(arg0 + 0xC) = (s32)((char *)&D_00000000 + 0xCC04);
+        gl_func_00000000(arg0 + 0x10C, 0x50002);
+        gl_func_00000000(arg0 + 0x124, 0x50008);
+        gl_func_00000000(arg0, arg0 + 0x124, arg0 + 0x10C);
+        *(s32 *)(arg0 + 0xD4) = 0x80;
+        *(s32 *)(arg0 + 0xD8) = 0xFF;
+        *(s32 *)(arg0 + 0xDC) = 0x82;
+        *(f32 *)(arg0 + 0xC4) = 250.0f / d255;
+        *(f32 *)(arg0 + 0xC8) = 235.0f / d255;
+        *(f32 *)(arg0 + 0xCC) = 100.0f / d255;
+        *(f32 *)(arg0 + 0xD0) = 0.0f / d255;
+        *(s32 *)(arg0 + 0xE0) = arg1;
+        gl_func_00000000(arg0, -3, -1, 0x25, 0);
     }
-    *((int *) (var_s0 + 0xC)) = (int) (&gl_ref_0000CC04);
-    func_00000000(var_s0 + 0x10C, (char *) 0x50002);
-    func_00000000(var_s0 + 0x124, (char *) 0x50008);
-    func_00000000(var_s0, var_s0 + 0x124, var_s0 + 0x10C);
-    *((int *) (var_s0 + 0xD4)) = 0x80;
-    *((int *) (var_s0 + 0xD8)) = 0xFF;
-    *((int *) (var_s0 + 0xDC)) = 0x82;
-    d255 = 255.0f;
-    *((f32 *) (var_s0 + 0xC4)) = 250.0f / d255;
-    *((f32 *) (var_s0 + 0xC8)) = 235.0f / d255;
-    *((f32 *) (var_s0 + 0xCC)) = 100.0f / d255;
-    *((f32 *) (var_s0 + 0xD0)) = 0.0f / d255;
-    *((int *) (var_s0 + 0xE0)) = arg1;
-    func_00000000(var_s0, (char *) (-3), (char *) (-1), 0x25, 0);
-  }
-  return var_s0;
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000FD0);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_00001114(char *a0) {
