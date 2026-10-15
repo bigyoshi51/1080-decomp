@@ -35006,39 +35006,18 @@ void game_libs_func_00062D70(int a0, short *a1, float *a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062D70);
 #endif
 
-/* gl_func_00062E10: 28-insn assert-then-store.
- *   v1 = a0->[0x48];
- *   if ((v1[0] & 0xFFFF) != 0x17) {
- *     assert(0x22130, 0x22144, 0x2A1);
- *     v1 = a0->[0x48];   // reload
- *   }
- *   v1[a1*4 + 0xC/4] = a2;
- *
- * Standard "magic-tag-check + assert" then field-set.
- * 2026-07-15 (agent-f): 83.21 -> 99+ (26/28 exact). Naming BOTH the
- * base ptr AND the tag (two-statement destructive `tag = base[0];
- * tag = tag & 0xFFFF;`) promotes them to candidates colored v1/v0
- * (any de-named/joined spelling flips to v0/v1 or demotes tag to ring
- * temps t6/t7, phase-shifting the tail reload ring by +2). RESIDUAL
- * (2 words): `li at,0x17` vs speculated `lui a0,%hi(str)` slot swap at
- * 0x18/0x20 — as1 scheduling tie; immune to mask spelling ((unsigned
- * short) cast, &=, compare reversal), named-msg hoist. as1-tie cap. */
-#ifdef NON_MATCHING
+/* gl_func_00062E10: 28-insn assert-then-store.  EXACT (2026-10-15
+ * agent-c): the old 2-word `li at,0x17` vs `lui a0` slot swap was the
+ * comparison spelling, not an as1 tie -- the assert is written
+ * `if (!(tag == 0x17)) fail(...)` (a != test emits the other order).
+ * The base re-read after the call is just a second a0->0x48 read. */
 void gl_func_00062E10(int *a0, int a1, int a2) {
-    int *base;
     int tag;
-    base = (int *)a0[0x48/4];
-    tag = base[0];
+    tag = ((int *)a0[0x48/4])[0];
     tag = tag & 0xFFFF;
-    if (tag != 0x17) {
-        func_00000000((char*)&D_00000000 + 0x22130, (char*)&D_00000000 + 0x22144, 0x2A1);
-        base = (int*)a0[0x48/4];
-    }
-    *(int*)((char*)base + a1*4 + 0xC) = a2;
+    if (!(tag == 0x17)) gl_func_00000000((char*)&D_00000000 + 0x22130, (char*)&D_00000000 + 0x22144, 0x2A1);
+    ((int *)a0[0x48/4])[a1 + 3] = a2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062E10);
-#endif
 
 /* gl_func_00062E80: 34-insn constructor (was bundled w/ 62F08+62F58, split 2026-05-16).
  *   s0 = a0;
