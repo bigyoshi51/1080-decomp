@@ -12133,38 +12133,19 @@ void game_uso_func_0001094C(int *a0) {
     game_uso_func_0000D7F4((char *)a0);
 }
 
-#ifdef NON_MATCHING
-/* game_uso_func_00010A0C: 45-insn EE84-family, near-twin of 0001094C
- * (constant first-call args 0x20004/0x20005, D[0xE48] pair, INVERTED t2
- * test: calls X3 when t2==0). Cross-USO jal-0 → gl_func_00000000.
- * 67.9% -> 93.4%: the two D-pair calls (0xE48/0xE4C, 0xE70/0xE74) are
- * passed BY VALUE as *(Pair2*) — the "precall-arg-spill cap" was the
- * un-homed pair (same lever as 10AC8/10B38, see
- * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair).
- * Residual is pure regalloc-renumber (temp regs t6/t7/t9/t3 vs the
- * target's v0/t6/t8/t1 + a deferred `or s0,a0`); same logic, not
- * C-reachable for our IDO binary. */
-extern int gl_func_00000000();
+/* game_uso_func_00010A0C (0xBC / 47 words): EE84-family, near-twin of
+ * 0001094C (constant first-call args 0x20004/0x20005, PMF at
+ * D_807FF438+0xE48, INVERTED 0x9CC test: D5BC(PMF at D_807FF460+0xE70) when
+ * it is 0), then D8EC(self), D7F4(self).
+ * EXACT via REPLACE_FUNC_BODY donor splice: the real body is the IDO 7.1 NCC
+ * (C++) donor src/game_uso/game_uso_ncc_10A0C.cpp (47/47 words + 9/9 relocs).
+ * The cfe C (93.4%) renumbered every temp; the same logic under NCC with the
+ * PMFs passed by value matches. See
+ * docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe.
+ * Body below is a placeholder for the splice. */
 void game_uso_func_00010A0C(int *a0) {
-    int *s0 = a0;
-    int *p = (int *)s0[0xB4 / 4];
-    int t2;
-    gl_func_00000000(s0, 0x20004, 0x20005, p[0x970 / 4], 0, 1);
-    p = (int *)s0[0xB4 / 4];
-    if (p[0x990 / 4] == 0) {
-        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xE48));
-        p = (int *)s0[0xB4 / 4];
-    }
-    t2 = p[0x9CC / 4];
-    if (t2 == 0) {
-        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xE70));
-    }
-    gl_func_00000000(s0);
-    gl_func_00000000(s0);
+    volatile int *ret = a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010A0C);
-#endif
 
 /* MATCHED via struct-by-value arg-home: the adjacent D[0xE40]/D[0xE44] pair
  * passed as `*(Pair2*)(&D+0xE40)` homes a1,a2 to sp+4/sp+8 (the target's
