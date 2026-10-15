@@ -3703,3 +3703,4 @@ D_2FB74_tgl = 0x0001C90C;  /* gl_func_0002FB74 baked toggle word (lui 2 / -14068
 D_2FB74_tglw = 0x0001C90C;  /* same word, case 36 write */
 gl_ref_0006F620 = 0x0006F620;  /* gl_func_0005B3E0 baked in-unit jal (game_libs_func_0005AFB0 entry 0x5AFB4, 0x0C01BD88) */
 gl_func_00000000_d414 = 0x00000000;  /* (float, int *, int *) blank cb for gl_func_0005D414 */
+gl_func_00000000_37bec = 0x00000000;  /* (void *, void *) void blank list-splice cb for gl_func_00037BEC */

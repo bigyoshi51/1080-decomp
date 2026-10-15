@@ -3592,33 +3592,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037AF0);
 //   gl_func_00034458 processor / gl_func_0002FB74 interpreter
 //   iterate. 0x0001EBF0 is a deferred data-segment template-
 //   symbolization site.
-// Caps (DEFERRED): raw-word USO + USO-relocated jal-0 factory/insert
-//   callbacks + data-seg template + intrusive-list splice. Object/list
-//   structs untyped. Real-C STRUCTURAL body below — template-init
-//   sibling of gl_func_00033228. Byte-match deferred. Name pre-checked:
-//   no extern reuse.
-#ifdef NON_MATCHING
+// NOTE: the splice tests/writes the NEW node n (n->0x14 / n->0x04) and
+//   stores lst into n->0x14 (sketch above predates that correction).
+/* gl_func_00037BEC: EXACT. Two levers: (1) the list-splice callback is a
+ * VOID-returning blank alias (gl_func_00000000_37bec) -- with the int-returning
+ * blank, call3 defines $v0, so lst (live across it) can't colour v0 and takes
+ * v1; (2) read lst BEFORE n: with n read first uopt forwards the just-stored
+ * call2 result (or a1,v0) instead of the target's `lw a1,16(a2)` reload.
+ * (docs/IDO_CODEGEN.md #void-alias-frees-v0-across-call-37bec) */
 extern int D_00000000;
 extern int gl_func_00000000();
+extern void gl_func_00000000_37bec(void *, void *);
 void gl_func_00037BEC(char *p) {
-    char *n;
     char *lst;
+    char *n;
     gl_func_00000000(p);
-    n = (char *)gl_func_00000000(0, (char *)&D_00000000 + 0x0001EBF0);
-    *(char **)(p + 0x10) = n;
+    *(char **)(p + 0x10) = (char *)gl_func_00000000(0, (char *)&D_00000000 + 0x0001EBF0);
     *(int *)(p + 0x0C) = 0;
-    if (*(char **)(p + 0x38) != 0) {
+    if (*(int *)(p + 0x38) != 0) {
         lst = *(char **)(*(char **)(p + 0x3C) + 0x10);
-        gl_func_00000000(lst + 0x10, *(char **)(p + 0x10));
-        if (*(char **)(lst + 0x14) == 0) {
-            *(int *)(lst + 0x04) = 1;
+        n = *(char **)(p + 0x10);
+        gl_func_00000000_37bec(lst + 0x10, n);
+        if (*(int *)(n + 0x14) != 0) {
+            *(int *)(n + 0x04) = 1;
         }
-        *(char **)(lst + 0x14) = *(char **)(p + 0x10);
+        *(char **)(n + 0x14) = lst;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037BEC);
-#endif
 
 void gl_func_00037C70(Vec3 *dst) {
     int pad_top[1];
