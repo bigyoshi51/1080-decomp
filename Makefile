@@ -1548,6 +1548,11 @@ build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(
 GAMEUSO_10840_DONOR := build/src/game_uso/game_uso_ncc_10840.cpp.o
 build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: REPLACE_FUNC_BODY += game_uso_func_00010840=$(GAMEUSO_10840_DONOR)
 build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(GAMEUSO_10840_DONOR)
+# F6D4 = E35C-sibling queue advance; no named prev local, base-first ceil-div
+# addu (132/132 words; cfe capped at 95.4%).
+GAMEUSO_F6D4_DONOR := build/src/game_uso/game_uso_ncc_F6D4.cpp.o
+build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: REPLACE_FUNC_BODY += game_uso_func_0000F6D4=$(GAMEUSO_F6D4_DONOR)
+build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(GAMEUSO_F6D4_DONOR)
 
 # xldtob.c -O3 donor (73904/73E74): direct CC, no asm-processor
 # (asm-processor rejects -O3; the file has no GLOBAL_ASM). Symbol

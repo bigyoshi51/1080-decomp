@@ -11214,150 +11214,28 @@ void game_uso_func_0000F664(char *a0) {
     gl_func_00000000(a0, 0);
 }
 
-/* game_uso_func_0000F6D4 - SIBLING of game_uso_func_0000E35C (same
- * node-process/queue-advance shape).
- *
- * 2026-06-23 (agent-i) 90.11% -> 95.32% (objdiff fuzzy): replaced ALL the
- * generic `func_00000000` placeholder callees and the `D_00000000`/`D_00000138`
- * placeholder globals with the REAL reloc symbols recovered from the resolved
- * target .o (objdump -dr expected/src/game_uso/game_uso.c.o, R_MIPS_26 +
- * R_MIPS_HI16):
- *   - game_uso_func_0000D6E4(s0)                     pre-flush (was func_00000000)
- *   - game_uso_func_0000EE30(s0, cur->0x30, 1)       worker
- *   - import_000B8518(*(int*)(&import_800201D0+0x138), b4, idx)   index call
- *   - game_uso_func_0000E564((int*)s0)               mid call (was func_00000000(s0))
- *   - game_uso_func_077C44(s0, f4->0x20, 4, dir,1,1) tail logger
- *   - game_uso_func_0000D5F8(s0, Pair2, dir)         tail pair-home
- *   - game_uso_func_0000D5BC(s0, Pair2)              trailing pair-copy
- * globals: base = *(int*)&game_uso_D_807FFBC0 (was D_00000000); the index call's
- * first arg = *(int*)((char*)&import_800201D0 + 0x138) (was the wrong distinct
- * extern D_00000138); the 3 tail D-pairs use the distinct symbols
- * game_uso_D_807FF4B0+0xEC0 / _4B8+0xEC8 / _4C0+0xED0 (were all &D_00000000+...).
- * Also fixed a BUG: prev is read from s0->0xF0 (the current node), not s0->0xF4
- * (E35C-identical). Now 131->133 insns, exact size 0x214.
- *   RESIDUAL (~4.7%, 3 diff clusters, all coloring/scheduling caps verified):
- *   (A) the `(base + (x<<6))` addu emits `addu t5,t4,v0` (shift-operand first)
- *       vs target `addu t5,v0,t4` (base first) — commutative-addu source-order
- *       cap; tried both `base + (x<<6)` and `(x<<6) + base`, IDO normalizes to
- *       shift-first regardless. (B) the prev-wrap block colors `prev` into $v0
- *       (no redundant moves) vs the target's $t0 + two `move v0,t0` — IDO's
- *       global allocator reserves $v0 here; tried split-cmp-local, int-cast,
- *       if/else-swap — all keep prev in $v0. (C) the entire tail (8 lui/addiu +
- *       sw-pairs + the 077C44/D5F8 arg setup) is a UNIFORM +1 temp-register
- *       renumber downstream of (B): t0/t8/t9/t4/t5 in target vs v0/t0/t3/t7 here.
- *       Crack (B) and (C) follows. permuter (base score 650, 4-way ~4.5min)
- *       reached 255 only via incidental a0/s0 substitution (not byte-0; a0 is
- *       clobbered by the calls so not a real fix). Genuine regalloc-renumber cap
- *       of the E35C/E5C8/F6D4 family. Callees/globals/relocs now ALL correct.
- *
- * --- HISTORY ---
- * 36% -> 86.53% 2026-05-31: the prior body
- * was INCOMPLETE (58 vs 133 insns) — missing E35C's whole tail (the 0xA58&0x40
- * flag-set + 0x38&2 D-pair dispatch with EC0/EC8/ED0 pairs) AND had a wrong
- * index-calc (was `*64`/`>>6` 2-arg; target is the E35C base-cancellation
- * `((base+(x<<6))-base)/64` with a0=*(&D+0x138), a1=s0->0xB4). Added both +
- * the Pair2 struct-by-value for the 3 tail D-pairs. 86.53 -> 90.11 on
- * 2026-05-31: (a) the &D+0x138 access uses the distinct extern `D_00000138`
- * (extern int, already in undefined_syms) instead of `*(int*)(&D+0x138)`, so it
- * no longer shares IDO's CSE'd &D base register with `base` (the E5C8-class
- * shared-base codegen the old note called a cap — the distinct-extern lever
- * busts it, +2.28pp); (b) factored the prev-wrap `s0->0xF8 = old` out of both
- * if/else arms (both wrote it) to `if (old==prev) counter=0; prev=old;`,
- * matching the target's single-write form (+1.3pp). Residual (~10%, len 129 vs
- * 133): regalloc-renumber + first-call unfilled-delay + the `base` (&D+0) load
- * placement (re-materialized per branch in target vs hoisted) + one commutative
- * addu. Per-branch distinct externs for 0x138 tested = no further gain.
- *   s0 = a0;
- *   if (((int*)s0->0xF4)->0x38 & 1) func_00000000(s0->0xF0);   // pre-flush
- *   func_00000000(s0, (s0->0xF0)->0x30, 1);
- *   if ((s0->0xB4 -> 0xA58) & 0x20) {
- *       n = ceil_div_64( (s0->0xF0)->0x3C * 64 ... );           // node-local
- *       func_00000000(&D, ..., n);
- *   } else {
- *       func_00000000(&D, ..., ceil_div_64(s0->0xF0 - D_glob));
- *   }
- *   s0->0x100 += 1;  s0->0xF0 = 0;  s0->0xF4 = old;
- *   s0->0xF8 = (old != s0->0xF8) ? old : (s0->0x100 = 0, old);
- *   func_00000000(s0);
- *   ... (E35C tail: s0->0xB4->0xA58 & 0x40 gate -> v=s0->0xF4;
- *        v->0x20 = v->0x28 ? v->0x28 : v->0x24; if (v->0x38 & 2)
- *        D-pair calls; trailing D-pair) ...
- * Struct-typing: identical family to E35C - s0->0xF0 active node
- * (->0x30 arg, ->0x3C size), s0->0xB4 obj (->0xA58 mode bits
- * 0x20=node-local / 0x40=configure), s0->0xF4 current (->0x38 flag
- * bit 0x1 pre-flush / 0x2), s0->0xF8 prev, s0->0x100 counter (reset on
- * prev-wrap). The (d+63)>>6 = signed ceil-div-by-64. Caps <80: same as
- * E35C - beql/bgez branch-likely + D-pair sp-spill + &D reloc + ceil
- * scheduling. Full per-instance call args/D-offsets are INCLUDE_ASM-
- * preserved (.s = source of truth). INCLUDE_ASM (no episode). */
+/* game_uso_func_0000F6D4 (0x210 / 132 words): node-process / queue-advance
+ * handler, sibling of game_uso_func_0000E35C. Optional D6E4 pre-flush
+ * (cur->0x38 & 1); EE30(self, active->0x30, 1); import_000B8518 index call
+ * with a ceil-div-by-64 node offset (two forms on obj->0xA58 & 0x20);
+ * counter (0x100)++, F4 = F0, F0 = 0, counter reset when F8 == F4, F8 = F4;
+ * E564(self); cur->0x20 = cur->0x28 (if 0xA58 & 0x40 and nonzero) else
+ * cur->0x24; 077C44 + D5F8 (pointer-to-member by value) on cur->0x38 & 2;
+ * then D5BC.
+ * EXACT via REPLACE_FUNC_BODY donor splice: the real body is the IDO 7.1 NCC
+ * (C++) donor src/game_uso/game_uso_ncc_F6D4.cpp (132/132 words). The cfe
+ * wrap capped at 95.4%: edg puts the ceil-div addu base-first, and the
+ * target has NO named prev local (the F0 -> F4 move goes through the members
+ * and the F8 compare/store re-read F4; a named local colours v0 and renumbers
+ * every later temp). See docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe.
+ * Body below is a placeholder for the splice. */
 extern char game_uso_D_807FF4B0;
 extern char game_uso_D_807FF4B8;
 extern char game_uso_D_807FF4C0;
 extern int import_000B8518();
-#ifdef NON_MATCHING
 void game_uso_func_0000F6D4(char *a0) {
-    char *s0 = a0;
-    char *prev;
-    char *f4;
-    int v1;
-    if (*(int *)(*(char **)(s0 + 0xF4) + 0x38) & 1) {
-        game_uso_func_0000D6E4(s0);
-    }
-    game_uso_func_0000EE30(s0, *(int *)(*(char **)(s0 + 0xF0) + 0x30), 1);
-    {
-        char *b4 = *(char **)(s0 + 0xB4);
-        if (*(int *)(b4 + 0xA58) & 0x20) {
-            int base = *(int *)&game_uso_D_807FFBC0;
-            import_000B8518(*(int *)((char *)&import_800201D0 + 0x138), b4,
-                (int)((base + (*(int *)(*(char **)(s0 + 0xF0) + 0x3C) << 6)) - base) / 64);
-        } else {
-            import_000B8518(*(int *)((char *)&import_800201D0 + 0x138), b4,
-                (int)((int)*(char **)(s0 + 0xF0) - *(int *)&game_uso_D_807FFBC0) / 64);
-        }
-    }
-    prev = *(char **)(s0 + 0xF0);
-    *(int *)(s0 + 0x100) = *(int *)(s0 + 0x100) + 1;
-    *(char **)(s0 + 0xF0) = 0;
-    *(char **)(s0 + 0xF4) = prev;
-    if (prev == *(char **)(s0 + 0xF8)) {
-        *(int *)(s0 + 0x100) = 0;
-    }
-    /* F8 write re-reads the just-stored F4 slot: emits a real reload web
-     * (t1) whose extra live range reproduces the target's downstream temp
-     * numbering (kills residual cluster C, the uniform +1 renumber). The
-     * target's own form — prev in $t0 + TWO `move v0,t0` (branch-delay dup
-     * + join def) — is a pure-register-copy web that copy-prop folds back
-     * from EVERY C spelling probed (2026-07-18): multi-def if/else both-arms
-     * `next=prev` (cross-jump merges + coalesces), ternary-comma value form
-     * (emits explicit `b`, 93.8), single-def-after-if(1)-barrier tail-dup
-     * spelling per the 2838 lever (folds; that lever needs an ARITHMETIC
-     * def, not a pure copy), F4-slot reload for BOTH compare and store (the
-     * dominating compare load forwards to $v0 but the join reload stays lw).
-     * Residual: that 2-insn move-dup web + the commutative addu operand
-     * order in the ceil-div block (both-order probe + pointer-base + IXA
-     * subscript all emit shift-first) + unpaired-HI16 baked-USO relocs. */
-    *(char **)(s0 + 0xF8) = *(char **)(s0 + 0xF4);
-    game_uso_func_0000E564((int *)s0);
-    if ((*(int *)(*(char **)(s0 + 0xB4) + 0xA58) & 0x40) &&
-        (f4 = *(char **)(s0 + 0xF4), v1 = *(int *)(f4 + 0x28), (v1 != 0))) {
-        *(int *)(f4 + 0x20) = v1;
-    } else {
-        f4 = *(char **)(s0 + 0xF4);
-        *(int *)(f4 + 0x20) = *(int *)(f4 + 0x24);
-    }
-    f4 = *(char **)(s0 + 0xF4);
-    if (*(int *)(f4 + 0x38) & 2) {
-        game_uso_func_077C44(s0, *(int *)(f4 + 0x20), 4, 2, 1, 1);
-        game_uso_func_0000D5F8(s0, *(Pair2 *)((char *)&game_uso_D_807FF4B0 + 0xEC0), 2);
-    } else {
-        game_uso_func_077C44(s0, *(int *)(f4 + 0x20), 4, 3, 1, 1);
-        game_uso_func_0000D5F8(s0, *(Pair2 *)((char *)&game_uso_D_807FF4B8 + 0xEC8), 3);
-    }
-    game_uso_func_0000D5BC(s0, *(Pair2 *)((char *)&game_uso_D_807FF4C0 + 0xED0));
+    volatile char *ret = a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F6D4);
-#endif
 
 /* MATCHED 2026-05-28 via struct-by-value (E50/E54 pair homes a1,a2). The
  * varargs-extern attempt failed because the spill is struct-by-value-driven,
