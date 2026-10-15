@@ -11018,57 +11018,28 @@ void game_uso_func_0000EF70(int *a0) {
     }
 }
 
-#ifdef NON_MATCHING
-/* game_uso_func_0000F060: 55-insn flag-dispatch (EE84-family, 5 calls).
- * 2026-10-15 agent-g: 91.18 -> 99.53%. The beql-chain "cap" was two C facts:
- * (a) `((p->0x10 & 0x100) != 0) == 0` keeps the materialized bool
- *     (`sltu t8,zero,t7; beqzl t8`) and the inverted short-circuit order
- *     (0x100, then 0x200, then 0x938, p-first, as the target);
- * (b) the 0x200 test reads p->0x10 through `(unsigned int *)` - a type split
- *     defeats the load CSE so the target's reload `lw t9,16(a0)` appears
- *     (docs/IDO_CODEGEN.md#type-split-cse-and-dead-bump-6cf0), and p stored
- *     into the DEAD PARAM a0 colours it a0 (7acc dead-param lever).
- * RESIDUAL (3 words): v = a0->0xB4 colours v0, target v1 (lw v1,180(s0) and
- * the two lw t1,2360(v1)). Tried: decl orders, register, block-scoped self
- * copy, if(1){} split, dead pre-call def, 11888 result capture, end-of-fn
- * reuse of v, a materialized result var (worse), the same body under NCC
- * (same v0). An edg-inlined member (`this` = v) gives v1 under NCC only
- * because its return temp holds v0 - not reproducible in cfe so far.
- * Earlier notes:
- * Early-return gated by a beql-chain boolean: v->0x938 set AND NOT
- * (0x100-bit set AND 0x200-bit clear). Cross-USO jal-0 → gl_func_00000000.
- * 61.7% -> 70.1%: the D-pair call (0xEB0/EB4) now passes the float-pair BY
- * VALUE as *(Pair2*) (struct-by-value lever, homes a1,a2). Remaining residual
- * is the EE84 beql-chain flag dispatch: target reads p->0x10 and v1->0x938
- * UNCACHED (multiple reloads) and evaluates 0x100/0x200/0x938 in p-first
- * order; this C caches p/v1 + checks 0x938 first. Inline-uncached + ternary
- * reorder both REGRESSED (27%) — the beql-chain scheduling is the cap.
- * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair */
+/* game_uso_func_0000F060 (0xDC / 55 words): flag-dispatch state handler.
+ * self->0xF4 = 0; 11888(self); if the 0xB4 object's 0x800 child has
+ * (!(flags & 0x100) || (flags & 0x200)) and the 0xB4 object's 0x938 is set,
+ * F360(self) and return; else DB28(self, 0x10011, 0, 0, 0x100, self->0x16C),
+ * D5F8(self, PMF at D_807FF4A0+0xEB0, -1), self->0xE6 = 0, ++self->0xE4,
+ * 966AC(self->0xB4 + 0x808).
+ * EXACT via REPLACE_FUNC_BODY donor splice: the real body is the IDO 7.1 NCC
+ * (C++) donor src/game_uso/game_uso_ncc_F060.cpp (55/55 words + 7/7 relocs).
+ * The cfe C capped at 99.64% because `v = self->0xB4` coloured v0 where the
+ * target has v1; reading the 0x800 child through an edg-inlined member
+ * (`self->0xB4->child()`) holds the inline return temp in v0 and pushes the
+ * 0xB4 pointer to v1, which is what the original C++ did. See
+ * docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe.
+ * Body below is a placeholder for the splice. */
 extern int import_0010DB28();
 extern int import_000966AC();
 void game_uso_func_0000F360(int *a0);
 void game_uso_func_00011888(int *a0);
 extern char game_uso_D_807FF4A0;
 void game_uso_func_0000F060(int *a0) {
-    int *s0 = a0;
-    int *v1;
-    a0[0xF4 / 4] = 0;
-    game_uso_func_00011888(a0);
-    v1 = (int *)s0[0xB4 / 4];
-    a0 = (int *)v1[0x800 / 4];
-    if ((((a0[0x10 / 4] & 0x100) != 0) == 0 || (((unsigned int *)a0)[0x10 / 4] & 0x200)) && v1[0x938 / 4] != 0) {
-        game_uso_func_0000F360(s0);
-        return;
-    }
-    import_0010DB28(s0, 0x10011, 0, 0, 0x100, s0[0x16C / 4]);
-    game_uso_func_0000D5F8((char *)s0, *(Pair2 *)((char *)&game_uso_D_807FF4A0 + 0xEB0), -1);
-    *(short *)((char *)s0 + 0xE6) = 0;
-    *(short *)((char *)s0 + 0xE4) = *(short *)((char *)s0 + 0xE4) + 1;
-    import_000966AC((char *)s0[0xB4 / 4] + 0x808);
+    volatile int *ret = a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F060);
-#endif
 
 /* game_uso_func_0000F13C — verified structural decode (EE84-family, 82 insns,
  * 12% LEN-DIFF; branch-likely + double-const abs-threshold + D-pair sp-args =

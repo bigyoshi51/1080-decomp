@@ -1525,6 +1525,11 @@ build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(
 GAMEUSO_10694_DONOR := build/src/game_uso/game_uso_ncc_10694.cpp.o
 build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: REPLACE_FUNC_BODY += game_uso_func_00010694=$(GAMEUSO_10694_DONOR)
 build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(GAMEUSO_10694_DONOR)
+# F060 = flag-dispatch handler; the 0x800 child read through an inlined
+# member puts the 0xB4 pointer in v1 (55/55 words; cfe capped at 99.64%).
+GAMEUSO_F060_DONOR := build/src/game_uso/game_uso_ncc_F060.cpp.o
+build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: REPLACE_FUNC_BODY += game_uso_func_0000F060=$(GAMEUSO_F060_DONOR)
+build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(GAMEUSO_F060_DONOR)
 
 # xldtob.c -O3 donor (73904/73E74): direct CC, no asm-processor
 # (asm-processor rejects -O3; the file has no GLOBAL_ASM). Symbol

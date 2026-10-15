@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_0000F060",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T18:50:39.986129+00:00",
+  "end_time": "2026-10-15T18:50:39.986147+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T18:50:39.986143+00:00",
+      "assistant_text": "Exact via IDO 7.1 NCC (C++) donor. The cfe C capped at 99.64% because the self->0xB4 pointer coloured v0 instead of v1. Reading the 0x800 child through an inlined member V::child() makes edg hold the inline return temp in v0, pushing the 0xB4 pointer to v1 as in the target. Materialized bool ((x & 0x100) != 0) == 0 and the unsigned* re-read keep the beqzl chain and flag reload; PMF passed by value as AT(PM, &sym, 0xEB0).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 55,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 NCC (C++) donor for game_uso_func_0000F060 (0xDC / 55 words).\n *\n * Flag-dispatch state handler: clear self->0xF4, run 11888, then if the\n * 0xB4 object's 0x800 child has (!(flags & 0x100) || (flags & 0x200)) and\n * the 0xB4 object's 0x938 is set, F360(self) and return. Otherwise DB28,\n * D5F8 with the PMF at D_807FF4A0+0xEB0 passed by value, clear 0xE6,\n * bump 0xE4 and call 966AC(self->0xB4 + 0x808).\n *\n * The 0x800 child is read through an inlined member `V::child()`. edg keeps\n * the inline return temp in v0, so the 0xB4 pointer colours v1 as in the\n * target; the same expression written inline (cfe or NCC) colours it v0\n * (99.64%). `((x & 0x100) != 0) == 0` keeps the materialized bool\n * (`sltu; beqzl`), and the `unsigned *` re-read keeps the flag reload.\n * Spliced into game_uso.c.o via REPLACE_FUNC_BODY\n * (docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe). Every\n * symbol is extern \"C\". */\nstruct A { char pad[40]; virtual void m(); };\ntypedef void (A::*PM)();\nextern \"C\" {\nextern char game_uso_D_807FF4A0;\nvoid import_0010DB28(void *, int, int, int, int, int);\nvoid import_000966AC(void *);\nvoid game_uso_func_0000F360(void *);\nvoid game_uso_func_00011888(void *);\nvoid game_uso_func_0000D5F8(void *, PM, int);\n}\n#define AT(T,b,o) (*(T *)((char *)(b) + (o)))\n#define I(b,o) AT(int,b,o)\nstruct V { int *child() { return AT(int *, this, 0x800); } };\nextern \"C\" void game_uso_func_0000F060(int *a0) {\n    int *s0 = a0;\n    a0[0xF4 / 4] = 0;\n    game_uso_func_00011888(a0);\n    a0 = AT(V *, s0, 0xB4)->child();\n    if ((((a0[0x10 / 4] & 0x100) != 0) == 0 || (((unsigned int *)a0)[0x10 / 4] & 0x200)) && I(AT(V *, s0, 0xB4), 0x938) != 0) {\n        game_uso_func_0000F360(s0);\n        return;\n    }\n    import_0010DB28(s0, 0x10011, 0, 0, 0x100, s0[0x16C / 4]);\n    game_uso_func_0000D5F8(s0, AT(PM, &game_uso_D_807FF4A0, 0xEB0), -1);\n    AT(short, s0, 0xE6) = 0;\n    AT(short, s0, 0xE4) = AT(short, s0, 0xE4) + 1;\n    import_000966AC(AT(char *, s0, 0xB4) + 0x808);\n}\n",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso_ncc_F060.cpp",
+    "asm_path": "asm/nonmatchings/game_uso/game_uso/game_uso_func_0000F060.s",
+    "segment": "game_uso",
+    "compiler": "IDO 7.1 NCC (C++)",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Wab,-r4300_mul",
+    "verification": "NCC donor 55/55 words + 7/7 relocs identical; spliced into game_uso.c.o via REPLACE_FUNC_BODY; report.json 100.0; ROM byte-identical; verify-blocks OK; 0 exacts lost."
+  }
+}
