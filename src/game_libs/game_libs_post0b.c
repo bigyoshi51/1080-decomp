@@ -1807,87 +1807,53 @@ void gl_func_00035AE0(int *dst) {
     *dst = scratch;
 }
 
-// gl_func_00035B1C — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
-// (0x150 / 84 words, no episode). Raw-.word USO form (game_libs).
-//
-// MULTI-FUNCTION USO BUNDLE (no-frame-leaf shape — see
-// docs/N64_FORENSICS.md ADDENDUM 2026-05-18b). realjr=4 but only
-// ONE 27BDFFB0 prologue; the three trailing jr's bound tiny
-// no-frame LEAF stubs (dense ~8/8/12-byte spacing at the tail) at
-// 0x35C50 / 0x35C58 / 0x35C64 that splat could not separate. Only
-// the NAMED leading function is decoded; the trailing stubs are a
-// DEFERRED USO RE-SPLIT (tracked with the other game_libs_post.c
-// bundle notes; not fixable with mnemonic split/merge tooling —
-// needs the spimdisasm-USO migration).
-//
-// Leading fn gl_func_00035B1C (chained-alloc record constructor):
-//   O *gl_func_00035B1C(O *o, int a1, int a2, int a3) {
-//     if (o == 0) {
-//       o = alloc(0x10);                        // jal 0 (USO alloc)
-//       if (o == 0) return 0;
-//     }
-//     o->p_0C = &D_0;                            // wire global root
-//     int *sub = alloc(0x04);                    // 2nd alloc
-//     *sub = 0;
-//     o->w_08 = a3;
-//     // template 0x0001E6B0 ; then iterate a source list at s3
-//     for (e = ...; ...; ) { ... attach e ... }
-//     return o;
-//   }
-// i.e. allocate-or-reuse a 0x10-byte record + a 4-byte zeroed
-// sub-block (via USO-relocated allocator callbacks, jal 0 →
-// resolved at load), back-link the global root at o->0x0C, stash
-// the a3 argument at o->0x08, reference the fixed data-segment
-// template 0x0001E6B0, then walk a source list building the
-// record.
-//
-// Struct-typing reference: a constructor/builder of the same
-//   family as gl_func_00034890 / gl_func_00032E18 / gl_func_00033228
-//   (chained alloc with rollback, &D_0 back-link, data-seg
-//   template); the three bundled no-frame leaves are its companion
-//   accessor/predicate stubs. A factory + accessor cluster of the
-//   game_libs object subsystem (0x0001E6B0 is a deferred data-
-//   segment template-symbolization site; 0x10 / 0x04 are the
-//   struct sizes to type).
-// Caps (DEFERRED): raw-word USO + bundled no-frame leaves + USO-reloc
-//   jal-0 allocator + &D_0 back-link + data-seg template (0x0001E6B0
-//   unsymbolized) — byte-match needs USO mnemonic disasm + boundary
-//   re-split + structs typed. Real-C STRUCTURAL body below for the
-//   NAMED leading function only — bundled tail stubs untouched.
-//   Byte-match deferred. Name pre-checked: no extern reuse.
+/* gl_func_00035B1C (0x134 / 77 words): list-append constructor. The old
+ * bundle note is stale: the .s is one function now (the three tail leaves are
+ * their own symbols at 0x35C50 / 0x35C58 / 0x35C60).
+ *   o = o ? o : alloc(0x10); if (o) { o->0C = &D (vtable); placement-construct
+ *   the 4-byte member at o+4 (alloc(4) if &o->4 is null) to 0; o->08 = a3;
+ *   for each node of a1->04 list: if node->4 == a2, report(0x1E6B0, &a2);
+ *   append o at the list tail; o->0 = 0; o->4 = a2 }; return o.
+ * NM (2026-10-15 agent-c, 66.3 -> 2 words off): a2 and the per-node temp are
+ * 4-byte STRUCTS (W35B1C): the struct copies keep `sw t1,0(s1)` through
+ * s1 = &tmp and `lw t8,0(s3)` through s3 = &a2 (plain ints fold to sp offsets);
+ * a3 is read through a pointer so it stays in its home (an int a3 takes an
+ * s-reg); decl order a3p, q, last, s0, tmp, p gives frame 0x50 with tmp at 0x3C
+ * and p's spill at 0x34; `if (o != 0 || (o = alloc) != 0) { ... } return o;`
+ * gives the shared epilogue. Residual: the target schedules the vtable store
+ * `sw t6,12(s4)` after `addiu v1,s4,4; addiu at,zero,-4` (just before the bne);
+ * every build has it right after `addiu t6`. Not moved by: statement order
+ * (store before/after p and q), any one-line join of the four statements
+ * (32 variants), a named &D local, p volatile or address-taken, storing
+ * through p+8, 5 min of permuter. The baked 0x1E6B0 address needs a
+ * gl_ref_0001E6B0 pin when this goes on the build path. */
 #ifdef NON_MATCHING
-char *gl_func_00035B1C(char *o, char *a1, int a2, int a3) {
-    char *s4 = o;
-    char *g = (char *)&D_00000000;
-    int *v1;
-    char *s0, *last;
-    if (s4 == 0) {
-        s4 = (char *)gl_func_00000000(0x10);
-        if (s4 == 0) return 0;
-    }
-    *(int *)(s4 + 0xC) = (int)g;
-    v1 = (int *)(s4 + 4);
-    if ((s4 != (char *)-4) || (v1 = (int *)gl_func_00000000(4), v1 != 0)) {
-        *v1 = 0;
-    }
-    *(int *)(s4 + 8) = a3;
-    for (s0 = *(char **)(a1 + 4); s0 != 0; s0 = *(char **)s0) {
-        if (*(int *)(s0 + 4) == a2) {
-            gl_func_00000000(g + 0x2E6B0, &a2);
+extern char gl_ref_0001E6B0;
+typedef struct { int v; } W35B1C;
+char *gl_func_00035B1C(char *o, char *a1, W35B1C a2, int a3) {
+    int *a3p = &a3;
+    W35B1C *q;
+    char *last;
+    char *s0;
+    W35B1C tmp;
+    W35B1C *p;
+    if (o != 0 || (o = (char *)gl_func_00000000(0x10)) != 0) {
+        *(int **)(o + 0xC) = &D_00000000;
+        p = (W35B1C *)(o + 4);
+        q = p;
+        if (q != 0 || (q = (W35B1C *)gl_func_00000000(4)) != 0) q->v = 0;
+        *(int *)(o + 8) = *a3p;
+        for (s0 = *(char **)(a1 + 4); s0 != 0; s0 = *(char **)s0) {
+            tmp = *(W35B1C *)(s0 + 4);
+            if (tmp.v == a2.v) gl_func_00000000(&gl_ref_0001E6B0, &a2);
         }
+        last = 0;
+        for (s0 = *(char **)(a1 + 4); s0 != 0; s0 = *(char **)s0) last = s0;
+        if (last != 0) *(char **)last = o; else *(char **)(a1 + 4) = o;
+        *(char **)o = 0;
+        *p = a2;
     }
-    last = 0;
-    for (s0 = *(char **)(a1 + 4); s0 != 0; s0 = *(char **)s0) {
-        last = s0;
-    }
-    if (last != 0) {
-        *(char **)last = s4;
-    } else {
-        *(char **)(a1 + 4) = s4;
-    }
-    *(char **)s4 = 0;
-    *v1 = a2;
-    return s4;
+    return o;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035B1C);
