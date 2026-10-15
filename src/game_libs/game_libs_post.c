@@ -13494,34 +13494,26 @@ void game_libs_func_0002BA08(void *arg0, int arg1) {
     }
 }
 
-/* Caps (DEFERRED): stack-byte-spill + byte-load + node-copy
- * idiom + indirect alloc helper. Real-C STRUCTURAL body below per
- * the in-comment sketch. Byte-match deferred. Name pre-checked: no
- * extern reuse. */
-#ifdef NON_MATCHING
+/* gl_func_0002BA38: EXACT 2026-10-15 (agent-c; was NM 92.6). The entry
+ * `sw a1,0x24(sp); lbu a1,0x27(sp)` + `sw a1,0x18(sp)` in the jal delay is
+ * a NARROW (unsigned char) param that is the alloc call's SECOND ARG (the
+ * old wrap called it with one arg, so a1 was never narrowed at entry or
+ * spilled to its own slot; frame 0x18 vs 0x20). Returns (u8)(a1 + 2). */
 extern int gl_func_00000000();
-int gl_func_0002BA38(char *a0, int a1, int **a2, char *a3) {
+int gl_func_0002BA38(char *a0, unsigned char a1, int **a2, char *a3)
+{
   char *rv;
-  int new_var2;
-  char *new_var;
-  rv = (char *) gl_func_00000000(*((unsigned char *) (a0 + 7)));
-  if (rv == 0)
-  {
+  rv = (char *) gl_func_00000000(*((unsigned char *) (a0 + 7)), a1);
+  if (rv == 0) {
     *a2 = 0;
     return 0;
   }
   *((int *) (a3 + 4)) = *((int *) (rv + 4));
-  new_var = a3;
-  *((unsigned char *) new_var) = *((unsigned char *) (rv + 3));
-  a1 = (unsigned char) a1;
+  *((unsigned char *) a3) = *((unsigned char *) (rv + 3));
   *a2 = (int *) rv;
-  new_var2 = (a1 + 2) & 0xFF;
-  a1 = (unsigned char) a1;
-  return new_var2;
+  a1 += 2;
+  return a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BA38);
-#endif
 
 // gl_func_0002BAAC — STRUCTURAL PASS (0xAC / 43 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
