@@ -11190,6 +11190,21 @@ void game_uso_func_0000EF70(int *a0) {
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000F060: 55-insn flag-dispatch (EE84-family, 5 calls).
+ * 2026-10-15 agent-g: 91.18 -> 99.53%. The beql-chain "cap" was two C facts:
+ * (a) `((p->0x10 & 0x100) != 0) == 0` keeps the materialized bool
+ *     (`sltu t8,zero,t7; beqzl t8`) and the inverted short-circuit order
+ *     (0x100, then 0x200, then 0x938, p-first, as the target);
+ * (b) the 0x200 test reads p->0x10 through `(unsigned int *)` - a type split
+ *     defeats the load CSE so the target's reload `lw t9,16(a0)` appears
+ *     (docs/IDO_CODEGEN.md#type-split-cse-and-dead-bump-6cf0), and p stored
+ *     into the DEAD PARAM a0 colours it a0 (7acc dead-param lever).
+ * RESIDUAL (3 words): v = a0->0xB4 colours v0, target v1 (lw v1,180(s0) and
+ * the two lw t1,2360(v1)). Tried: decl orders, register, block-scoped self
+ * copy, if(1){} split, dead pre-call def, 11888 result capture, end-of-fn
+ * reuse of v, a materialized result var (worse), the same body under NCC
+ * (same v0). An edg-inlined member (`this` = v) gives v1 under NCC only
+ * because its return temp holds v0 - not reproducible in cfe so far.
+ * Earlier notes:
  * Early-return gated by a beql-chain boolean: v->0x938 set AND NOT
  * (0x100-bit set AND 0x200-bit clear). Cross-USO jal-0 → gl_func_00000000.
  * 61.7% -> 70.1%: the D-pair call (0xEB0/EB4) now passes the float-pair BY
@@ -11207,12 +11222,11 @@ extern char game_uso_D_807FF4A0;
 void game_uso_func_0000F060(int *a0) {
     int *s0 = a0;
     int *v1;
-    int *p;
     a0[0xF4 / 4] = 0;
     game_uso_func_00011888(a0);
     v1 = (int *)s0[0xB4 / 4];
-    p = (int *)v1[0x800 / 4];
-    if (((p[0x10 / 4] & 0x100) == 0 || (p[0x10 / 4] & 0x200) != 0) && v1[0x938 / 4] != 0) {
+    a0 = (int *)v1[0x800 / 4];
+    if ((((a0[0x10 / 4] & 0x100) != 0) == 0 || (((unsigned int *)a0)[0x10 / 4] & 0x200)) && v1[0x938 / 4] != 0) {
         game_uso_func_0000F360(s0);
         return;
     }
