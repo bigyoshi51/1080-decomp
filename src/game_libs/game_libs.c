@@ -3774,7 +3774,23 @@ void game_libs_func_000076E8(int a0) {
  * `beqzl v1,..; li at,2` straight to the `!= 2` compare; (4) the counter
  * blocks' hoisted `li 1` and the vt+0xB4/0xCC tails' `lh t9; addu a0;
  * lw t9; jalr; nop` order (temp colouring); (5) &D/256 arg hoist in the
- * 0x48->0x80 arm. */
+ * 0x48->0x80 arm.
+ * PASS-6 2026-10-15 (agent-g run 61): the case-3 and case-4/5 0x518
+ * counters written FIELD-FORM (`if (o->518 != 0) o->518 = o->518 - 1;
+ * if (o->518 == 0) o->500 = 1;`, no var_v0/temp locals) - uopt forwards
+ * the stored value (`or v0,tN`), case 3 now hoists `li 1` above the beqz
+ * and case 4/5 computes the -1 in the beqz delay, both like the target
+ * (92.47 -> 94.60 in-tree objdiff; either counter alone ~ +0.8). Residual
+ * now: (1) phantom case 4 in switch2/switch4 (sltiu 5 vs 4) - a 4-label
+ * switch NEVER tables in IDO 7.1 or 5.3 at any -O (-O0..-O3, -g3, -mips1),
+ * for int/unsigned/u8/s16/enum/`&3` selectors, reversed label order,
+ * default with body, or an outlier 5th label (case 100 -> chain, case -1
+ * -> 5-entry table + addiu); (2) switch1 bounds delay (beqzl + stolen
+ * 0x500 load vs target beqz + sll), which shifts every later t-temp by one
+ * (t4 vs t3 ...) through case 3/4/5; (3) case-0 `li t3,1` not hoisted above
+ * the 0x4E4 decrement (statement-order / --/-=/break-form probes neutral);
+ * (4) switch3 `or v0,v1` switch-temp copy (switch on a named local, cast,
+ * or assignment-expr all coalesce - neutral). */
 extern char D_00000000_76F0;
 typedef struct GlObj76F0VtEnt {
     s16 off;
@@ -3911,13 +3927,10 @@ void gl_func_000076F0(GlObj76F0 *self) {
         case 3:                                     /* switch 1 */
             vt = self->vt;
             if (vt->e[19].fn(vt->e[19].off + (char *)self) != 0) {
-                var_v0 = self->unk518;
-                if (var_v0 != 0) {
-                    temp = var_v0 - 1;
-                    self->unk518 = temp;
-                    var_v0 = temp;
+                if (self->unk518 != 0) {
+                    self->unk518 = self->unk518 - 1;
                 }
-                if (var_v0 == 0) {
+                if (self->unk518 == 0) {
                     self->unk500 = 1;
                 }
                 self->unk4E4 = self->unk4E4 - 1;
@@ -3936,13 +3949,10 @@ void gl_func_000076F0(GlObj76F0 *self) {
         case 5:                                     /* switch 1 */
             vt = self->vt;
             if (vt->e[20].fn(vt->e[20].off + (char *)self) != 0) {
-                var_v0 = self->unk518;
-                temp = var_v0 - 1;
-                if (var_v0 != 0) {
-                    self->unk518 = temp;
-                    var_v0 = temp;
+                if (self->unk518 != 0) {
+                    self->unk518 = self->unk518 - 1;
                 }
-                if (var_v0 == 0) {
+                if (self->unk518 == 0) {
                     self->unk500 = 1;
                 }
                 self->unk4E4 = self->unk4E4 - 1;
