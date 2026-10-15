@@ -1589,22 +1589,30 @@ void gl_func_0000B8E0(int a0, int a1, int a2, int a3) {
 
 #ifdef NON_MATCHING
 /* gl_func_0000B958: 69-insn word-array equality predicate. Compares a3/4 words
- * (signed div, trunc-toward-zero — target's `bgez a3; sra a3,2 / addiu a3,3;
- * sra` idiom, NOT (a3+3)/4) of a1[] vs a2[]; returns 0 on first mismatch, 1 if
- * all equal. a0 is dead (saved, never read). RELOC-FREE and -O2.
- * Target is IDO's 4-way Duff's-device UNROLL (andi&3 remainder prologue, v0
- * counts up; 4-wide main body, v0 += 4; v0==n short-exit only on the rem!=0
- * path). A hand-unrolled C form was tried 2026-06-02: IDO re-expanded the
- * nested do-whiles to 173 insns (vs 69) — worse, fuzzy=None. The plain loop
- * below (corrected divisor) is the faithful reference; exact unroll is
- * permuter-class. */
-int gl_func_0000B958(int a0, int *a1, int *a2, int a3) {
-    int n = a3 / 4;
+ * (signed div, trunc-toward-zero) of a1[] vs a2[]; returns 0 on first
+ * mismatch, 1 if all equal. a0 is dead (saved, never read). RELOC-FREE, -O2.
+ * Target is IDO's OWN 4-way loop unroll (andi&3 remainder loop, v0 counts up,
+ * 4-wide main body). 2026-10-15 agent-g: 25.5% -> 67/69 words. Load-bearing:
+ *  - trip count spelled INLINE in the test (`i < a3/4`): an `n = a3/4` local
+ *    blocks uopt's unroll (24-insn plain loop);
+ *  - `register` on a1 = the s0 pointer (frame -8, s0 save) -- register on a2
+ *    or on a local copy colors the wrong pointer;
+ *  - per-iteration copies `y = a2; x = a1;` then both ++, compare *x != *y:
+ *    the `or a0,a2 / or a1,s0` copy pair each copy. `*a1++ != *a2++` gives
+ *    xor/sltu materialized compares and no s0.
+ * Residual: ONE delay-slot swap in the first main-body copy (target
+ * `addiu s0,s0,4; beq t8,t9; or a0,a2,zero`, build `or a0,a2,zero; beq;
+ * addiu s0`); copies 2-4 and the remainder loop agree. ~30 stmt orders /
+ * decl orders / loop forms / -g3 / K&R / types probed, all stuck on it. */
+int gl_func_0000B958(int a0, register int *a1, int *a2, int a3) {
     int i;
-    for (i = 0; i < n; i++) {
-        if (a1[i] != a2[i]) {
-            return 0;
-        }
+    int *x, *y;
+    for (i = 0; i < a3 / 4; i++) {
+        y = a2;
+        x = a1;
+        a2++;
+        a1++;
+        if (*x != *y) return 0;
     }
     return 1;
 }
