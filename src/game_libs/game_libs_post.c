@@ -18374,6 +18374,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030A20);
  * 30AF4 is the 7-word state struct (prev=f0 swap, zero sweep, fC=256, f14
  * float seed from D_30AF4_flt). K&R def homes all three args (a2 homed though
  * unused). */
+/* PASS-6 2026-10-15 (agent-c run 66): 84.8 -> 91.5. (1) switch2 had compiled
+ * to a compare ladder (only 4 real labels): explicit `case 1..8: break;` labels
+ * restore the sltiu-12 jump table (+2.3). (2) case-6 sub dispatch is a
+ * `switch (sub)` with `case 3: default:` sharing one body (target: beq 3 and the
+ * fall-out b both go to +0x394), case 11 likewise a 2-label switch (not if/else).
+ * (3) case 5 through a block-local `s32 *cp = &gl_cmd_30AF4` holds the a2 base
+ * for load+stores+lbu 3. (4) `if ((D_30AF4_s = sub) == 2)` = single sub load.
+ * Residual: case 5 constants 13/14/16 sit in a0/v1 webs in the target (beql
+ * a0,v0 / bnel v1,v0 with the 16 reassign in the likely slot); every spelling
+ * (named c13/c14 at block or fn scope, decl order, operand order) is const-
+ * propagated to `at` immediates here; same for the case-6 a0=13 hoisted into
+ * the sub-switch beq delay slots. Case 4 loads sub once (t9, copy v0) where ours
+ * reloads it per use; making sv a real register (volatile read) makes uopt
+ * rewrite sv==6 / sv==0 as (sv+4)==10 / ==4 (-1.5). Pre-switch `lui v0;addiu
+ * v0` (&gl_state for case-6 `sw 256,12(v0)`) still sinks into the case. */
 extern int gl_func_00041D0C();
 extern int gl_func_00042364();
 extern int gl_func_000460D0();
@@ -18496,72 +18511,83 @@ s32 arg2;
         D_30AF4_k = 14;
         break;
     case 5:                             /* body F @0x268 */
-        c = gl_cmd_30AF4;
-        c13 = 13;
-        if (c == c13) {
-            break;
-        }
-        if (c == 15) {
-            break;
-        }
-        c14 = 14;
-        if (c == c14) {
-            break;
-        }
-        if (prev == 8) {
-            break;
-        }
-        g = D_30AF4_l;
-        if (g == c14) {
-            gl_cmd_30AF4 = c14;
-        } else {
-            c14 = 16;
-            if (g != c14) {
-                gl_cmd_30AF4 = c13;
-            } else {
-                gl_cmd_30AF4 = c14;
+        {
+            s32 *cp = &gl_cmd_30AF4;
+            c = *cp;
+            c13 = 13;
+            if (c == c13) {
+                break;
             }
+            if (c == 15) {
+                break;
+            }
+            c14 = 14;
+            if (c == c14) {
+                break;
+            }
+            if (prev == 8) {
+                break;
+            }
+            g = D_30AF4_l;
+            if (g == c14) {
+                *cp = c14;
+            } else {
+                c14 = 16;
+                if (g != c14) {
+                    *cp = c13;
+                } else {
+                    *cp = c14;
+                }
+            }
+            gl_func_emit(((u8 *)cp)[3]);
         }
-        gl_func_emit(CMD_B3);
         break;
     case 6:                             /* body G @0x2DC */
+        {
+        s32 *cp = &gl_cmd_30AF4;
         m = D_30AF4_m;
         w = 35;
         if (m == 4) {
-            gl_cmd_30AF4 = 13;
+            *cp = 13;
             wv = 523;
         } else {
-            sv = sub;
-            if (sv == 0) {
+            switch (sub) {
+            case 0:
                 wv = 21;
                 if (m != 0) {
-                    gl_cmd_30AF4 = 14;
+                    *cp = 14;
                 }
-            } else if (sv == 1) {
-                gl_cmd_30AF4 = 13;
+                break;
+            case 1:
+                *cp = 13;
                 wv = 20;
-            } else if (sv == 2) {
-                gl_cmd_30AF4 = 13;
+                break;
+            case 2:
+                *cp = 13;
                 wv = 22;
                 w = 60;
-            } else {
-                gl_cmd_30AF4 = 14;
+                break;
+            case 3:
+            default:
+                *cp = 14;
                 wv = 256;
+                break;
             }
         }
-        D_30AF4_n = gl_cmd_30AF4;
+        D_30AF4_n = *cp;
         if (m == 0 && sub == 0) {
             *(s32 *)(gb + 0xC) = 256;
             gl_func_emit(0x83010000, 2000);
             D_30AF4_o = 14;
         } else if (D_30AF4_p == 1) {
             gl_func_emit(0x46010000, 0);
-            gl_func_emit(CMD_B3, w + 10);
+            gl_func_emit(((u8 *)cp)[3], w + 10);
         } else {
             gl_func_emit(0x83010000, 80);
-            gl_func_emit(CMD_B3, w);
+            gl_func_emit(((u8 *)cp)[3], w);
         }
         gl_func_emit(wv);
+        }
         break;
     case 7:                             /* body H @0x464 */
         D_30AF4_q = 14;
@@ -18575,10 +18601,7 @@ s32 arg2;
         break;
     case 9:                             /* body J @0x4AC */
         gl_func_00042364(3);
-        {
-            s32 gb9 = (s32)&gl_state_30AF4;
-            *(s32 *)gb9 = sub;
-        }
+        *(s32 *)gb = sub;
         if (sub == 1) {
             gl_cmd_30AF4 = 5;
         } else {
@@ -18591,8 +18614,7 @@ s32 arg2;
         gl_func_00042364(7);
         gl_cmd_30AF4 = 18;
         gl_func_emit(0x81000F00, 0);
-        D_30AF4_s = sub;
-        if (sub == 2) {
+        if ((D_30AF4_s = sub) == 2) {
             gl_func_emit(0x81001300, 0);
         }
         gl_func_emit(CMD_B3);
@@ -18680,6 +18702,8 @@ s32 arg2;
             gl_func_emit(0xBC);
         }
         break;
+    case 1: case 2: case 3: case 4: case 5: case 6: case 7: case 8:
+        break;
     case 9:                             /* @0x790 */
         gl_func_emit(0xF8000000, 0);
         gl_func_emit(0xA3);
@@ -18689,10 +18713,13 @@ s32 arg2;
         gl_func_emit(0, 0x3E99999A, 0);
         break;
     case 11:                            /* @0x7D4 */
-        if (sub == 0) {
+        switch (sub) {
+        case 0:
             gl_func_emit(14);
-        } else if (sub == 1) {
+            break;
+        case 1:
             gl_func_emit(15);
+            break;
         }
         break;
     }
