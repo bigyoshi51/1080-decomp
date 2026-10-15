@@ -1561,6 +1561,10 @@ build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(
 GAMEUSO_6A30_DONOR := build/src/game_uso/game_uso_ncc_6A30.cpp.o
 build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: REPLACE_FUNC_BODY += game_uso_func_00006A30=$(GAMEUSO_6A30_DONOR)
 build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(GAMEUSO_6A30_DONOR)
+# 71E0: 6A30 sibling (inline tick() param colours a1; nested-block k/fr give the frame); cfe capped at 83.6%.
+GAMEUSO_71E0_DONOR := build/src/game_uso/game_uso_ncc_71E0.cpp.o
+build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: REPLACE_FUNC_BODY += game_uso_func_000071E0=$(GAMEUSO_71E0_DONOR)
+build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(GAMEUSO_71E0_DONOR)
 
 # xldtob.c -O3 donor (73904/73E74): direct CC, no asm-processor
 # (asm-processor rejects -O3; the file has no GLOBAL_ASM). Symbol
