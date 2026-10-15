@@ -4233,61 +4233,55 @@ int gl_func_000083AC(char *a0) {
     return gl_func_00000000(a0 + 0x50);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_000083CC: 79-insn 5-call dispatcher + 2 trailing prologue-stolen
- * words for gl_func_00008510 (the next function). Reads global state at
- * D_00000000+0x134 (re-read fresh at every use — NOT cached in a saved reg;
- * the saved reg s0 holds the original arg a0), calls gl_func_00000000 5 times
- * with state-derived args, mutates state flags between calls.
- *
- * STATE() re-derefs the global each use so IDO rematerializes the load rather
- * than caching the pointer across calls (this matched the per-block reload
- * shape in the target). Remaining residual is a result-coloring cap: IDO holds
- * &D_00000000 in s0 here, but the target holds the arg a0 in s0 — values all
- * match, only which saved reg holds which differs (coloring-immune). */
+/* gl_func_000083CC: 79-insn 5-call state swap (0x13C). EXACT in-unit.
+ * ROM text relocs (bootup.uso TextReloc, shim +0x1466C): the 0x134 state
+ * holder is import sym 272 at every site, but call2's a1 = `lui/addiu +0x70`
+ * is a DIFFERENT symbol (sym 256 = D_007294) -- distinct abs-0 alias
+ * gl_data_00000000_83cc; the old decode had it as a literal 0x70. And
+ * state->0x108 takes call2's result (stored in call3's jal delay slot), not
+ * call3's. call4's 3rd arg is the cached c4 (sp+0x4C), not a reload.
+ * Frame 0x50: decl order = home order (c4 0x4C, x800 0x48, v70 0x44, r1 0x40,
+ * obj 0x3C, r2 0x38, r3 0x34, q 0x30). ONE reused q for both flag clears
+ * (v1 for both). The trailing emission-free `if (a0) {}` keeps a0 live to the
+ * end so s0 is not recoloured to `side` (target spills side to sp+0x2C) --
+ * the dead-if lever, IDO_CODEGEN #ce38-dead-if-lifts-constant-lr-over-passthrough-params. */
 extern int gl_func_00000000();
+extern int gl_data_00000000_83cc;
 void gl_func_000083CC(int *a0) {
 #define STATE (*(int**)((char*)&D_00000000 + 0x134))
-    int *t6 = *(int**)((char*)STATE + 0x108);
-    int *a3 = *(int**)((char*)STATE + 0xC4);
-    int t7 = *(int*)((char*)t6 + 0x70);
-    int v0_call1 = gl_func_00000000(STATE, 1,
-                                    *(int*)((char*)STATE + 0x80),
-                                    a3,
-                                    *(int*)((char*)a3 + 0x800));
-    int *t9 = *(int**)((char*)STATE + 0x108);
-    *(int**)((char*)a0 + 0x520) = t9;
-    *(int*)((char*)t9 + 0x18) &= ~8;
-    {
-        int *v1 = *(int**)((char*)a0 + 0x520);
-        *(int*)((char*)v1 + 0x18) = *(int*)((char*)v1 + 0x18) & ~4;
+    int *c4;
+    int x800;
+    int v70;
+    int r1;
+    int *obj;
+    int r2;
+    int r3;
+    int *q;
+    int *side;
+    c4 = *(int**)((char*)STATE + 0xC4);
+    x800 = *(int*)((char*)c4 + 0x800);
+    v70 = *(int*)((char*)*(int**)((char*)STATE + 0x108) + 0x70);
+    r1 = gl_func_00000000(STATE, 1, *(int*)((char*)STATE + 0x80), c4, x800);
+    *(int**)((char*)a0 + 0x520) = *(int**)((char*)STATE + 0x108);
+    q = (int*)((char*)*(int**)((char*)a0 + 0x520) + 0x18);
+    *q &= ~8;
+    q = (int*)((char*)*(int**)((char*)a0 + 0x520) + 0x18);
+    *q &= ~4;
+    r2 = gl_func_00000000(STATE, (char*)&gl_data_00000000_83cc + 0x70, v70);
+    *(int*)((char*)a0 + 0x51C) = r2;
+    *(int*)((char*)STATE + 0x108) = r2;
+    r3 = gl_func_00000000(0x80);
+    if (r3 != 0) {
+        gl_func_00000000(r3, 1);
     }
-    {
-        int v0_call2 = gl_func_00000000(STATE, 0x70, t7);
-        *(int*)((char*)a0 + 0x51C) = v0_call2;
-    }
-    {
-        int v0_call3 = gl_func_00000000(0x80);
-        int *obj;
-        int *side;
-        *(int*)((char*)STATE + 0x108) = v0_call3;
-        if (v0_call3 != 0) {
-            gl_func_00000000(v0_call3, 1);
-        }
-        obj = (int*)gl_func_00000000(0, v0_call3,
-                         *(int*)((char*)STATE + 0xC4),
-                         *(int*)((char*)a0 + 0x51C),
-                         t7, v0_call1);
-        side = *(int**)((char*)STATE + 0x84);
-        gl_func_00000000((char*)side + 0x10, obj);
-        if (*(int*)((char*)obj + 0x14) != 0) *(int*)((char*)obj + 4) = 1;
-        *(int*)((char*)obj + 0x14) = (int)side;
-    }
+    obj = (int*)gl_func_00000000(0, r3, c4, *(int*)((char*)a0 + 0x51C), v70, r1);
+    side = *(int**)((char*)STATE + 0x84);
+    gl_func_00000000((char*)side + 0x10, obj);
+    if (*(int*)((char*)obj + 0x14) != 0) *(int*)((char*)obj + 4) = 1;
+    *(int*)((char*)obj + 0x14) = (int)side;
+    if (a0) {}
 #undef STATE
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000083CC);
-#endif
 
 
 /* gl_func_00008510: 42-insn dispatcher. ORPHAN-MERGED 2026-05-30: the 8-byte
