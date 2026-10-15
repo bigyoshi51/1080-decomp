@@ -5357,94 +5357,111 @@ void gl_func_00039624(int *a0, int *a1) {
 }
 
 #ifdef NON_MATCHING
-/* gl_func_000396FC: 153-insn dense switch on a1[0] (states 109..114).
- *
- * Switch dispatch: `if ((unsigned)(state-109) < 6) jmp_table[state-109]
- * else default`. Cases:
- *   109 (0x6D): two gl_func calls passing &sp[0x74] scratch
- *   110 (0x6E): two gl_func calls passing &sp[0x80] scratch (different
- *               offset only)
- *   111 (0x6F): two gl_func calls passing &sp[0x8C] scratch
- *   112 (0x70): "deque-pop + copy" — read v1 = a1->[0x4], advance
- *               a1->[0x4] += 4, then copy 16 ints from *v1 into
- *               a0+0x30..0x6C (unrolled 5-iter loop, +0xC stride)
- *   113 (0x71): a0->[0x2C] |= 0x2 (set bit)
- *   114 (0x72): large FPU block — read v0=*v1 (struct of 7+ shorts),
- *               cvt.s.w + mul.s by D_0+0x1A10 / D_0+0x1A7C globals,
- *               store as floats into sp+0x38..0x5C, jal gl_func with
- *               (a0+0x30, sp+0x50), then 16-int copy into a0+0x64..0x70
- *   default: tail-call gl_func(a0, a1)
- *
- * Cap: same scratch-pointer cap as 39624 + jump-table reloc needs
- * .rodata. Initial wrap documents structure; future passes tighten. */
-extern int gl_func_00000000();
+/* gl_func_000396FC: 153-insn (0x264) message handler, switch on a1[0]
+ * (109..114; 6-entry jumptable at bootup.uso RoData +0x1A64, arms 109 ->
+ * +0x38, 110 -> +0x60, 111 -> +0x88, 112 -> +0xB0, 113 -> +0xF8, 114 ->
+ * +0x10C, out of range -> +0x248; the 1/32767 literal 0x38000100 follows
+ * the table at +0x1A7C, the 0.01f at +0x1A10 is another function's).
+ *   109/110/111: cb(msg, local[3]); cb(self + 0x30, local[3])
+ *   112: pop a pointer from the msg stream, copy its 64-byte matrix to
+ *        self + 0x30
+ *   113: self[0x2C] |= 2
+ *   114: pop a short record: rot = s[3..6] / 32767, pos = s[0..2],
+ *        scale = s[7..9] * 0.01f into a 10-float block, cb(&block,
+ *        self + 0x30), then copy the matrix at self + 0x30 to self + 0x70
+ *   default: cb(self, msg)
+ * NM 2026-10-15 agent-c (59 -> ~99): 152/153 words match standalone apart
+ * from the two rodata reloc fields. Levers (docs/IDO_CODEGEN.md
+ * #param-split-spill-home-396fc): if (1) {} between the two calls of
+ * 109..111 adds the BBs that make uopt split `self` (a3 + spills to its
+ * own home at 152(sp)) instead of colouring s0; named products for the
+ * rot/scale groups (loads grouped before the stores); the `s2 = s` copy
+ * for the pos/scale reads gives the target's FP colouring (k1 f16, k2 f14,
+ * products f0/f2/f12/f18) and the two extra spill words (m spills at
+ * 32(sp)); 5 named scalars above and below xf + b3/b2/b1 first = frame
+ * 0x98 with every slot exact.
+ * Residual (1 word, shifts the later branch offsets): the range check's
+ * delay slot. The target keeps `sll t7,t7,2` there and starts the default
+ * block with `or a0,a3`; IDO steals `or a0,a3` into the slot because the
+ * default block has only one predecessor. In the target as1 behaves as if
+ * the default block had a second predecessor (as in 52CD4 / 40304, where
+ * default shares jumptable entries), but all six table entries are
+ * distinct here. Tried: default first / after the switch with returns /
+ * goto label / extra labels, (unsigned) and rebased switch values, int
+ * return, same-line default, arg spellings, IDO 5.3; permuter 80k iters
+ * found nothing. When the steal is cracked, land via the 52CD4 donor
+ * recipe (table + literal ride one gl_func_000396FC_rodata pin = 0x1A64). */
+typedef struct { int m[16]; } Mtx16_396FC;
+typedef struct { f32 v[10]; } Xform_396FC;
 void gl_func_000396FC(int *a0, int *a1) {
-    int state = a1[0];
-    if ((unsigned)(state - 109) >= 6) {
-        gl_func_00000000(a0, a1);
-        return;
-    }
-    switch (state) {
-    case 109: {
-        int scratch[3];
-        gl_func_00000000(a1, scratch);
-        gl_func_00000000((char*)a0 + 0x30, scratch);
+    int b3[3];
+    int b2[3];
+    int b1[3];
+    int *q;
+    short *s;
+    Mtx16_396FC *m;
+    f32 x;
+    f32 y;
+    Xform_396FC xf;
+    f32 z;
+    f32 w;
+    int *p;
+    int pad1;
+    short *s2;
+    switch (a1[0]) {
+    case 109:
+        gl_func_00000000(a1, b1);
+        if (1) {}
+        gl_func_00000000((char *)a0 + 0x30, b1);
         break;
-    }
-    case 110: {
-        int scratch[3];
-        gl_func_00000000(a1, scratch);
-        gl_func_00000000((char*)a0 + 0x30, scratch);
+    case 110:
+        gl_func_00000000(a1, b2);
+        if (1) {}
+        gl_func_00000000((char *)a0 + 0x30, b2);
         break;
-    }
-    case 111: {
-        int scratch[3];
-        gl_func_00000000(a1, scratch);
-        gl_func_00000000((char*)a0 + 0x30, scratch);
+    case 111:
+        gl_func_00000000(a1, b3);
+        if (1) {}
+        gl_func_00000000((char *)a0 + 0x30, b3);
         break;
-    }
-    case 112: {
-        int *v1 = (int*)a1[0x4/4];
-        int *dst;
-        int i;
-        a1[0x4/4] = (int)(v1 + 1);
-        v1 = (int*)v1[0];
-        dst = (int*)((char*)a0 + 0x30);
-        for (i = 0; i < 16; i++) {
-            dst[i] = v1[i];
-        }
+    case 112:
+        q = (int *)a1[1]; a1[1] = (int)(q + 1);
+        s = (short *)*q;
+        *(Mtx16_396FC *)((char *)a0 + 0x30) = *(Mtx16_396FC *)s;
         break;
-    }
     case 113:
-        a0[0x2C/4] |= 0x2;
-        break;
-    case 114: {
-        /* FPU vec-cvt block + 2nd memcpy — too complex for skeleton */
-        short *v0;
-        float scratch[8];
-        int *dst;
-        int *v1 = (int*)a1[0x4/4];
-        float k1 = *(float*)((char*)&D_00000000 + 0x1A7C);
-        float k2 = *(float*)((char*)&D_00000000 + 0x1A10);
-        a1[0x4/4] = (int)(v1 + 1);
-        v0 = (short*)v1[0];
-        scratch[0] = (float)v0[3] * k1;
-        scratch[1] = (float)v0[4] * k1;
-        scratch[2] = (float)v0[5] * k1;
-        scratch[3] = (float)v0[6] * k1;
-        scratch[4] = (float)v0[0];
-        scratch[5] = (float)v0[1];
-        scratch[6] = (float)v0[2];
-        scratch[7] = (float)v0[7] * k2;
-        gl_func_00000000((char*)a0 + 0x30, &scratch[6]);
-        {
-            int *vv1 = (int*)a1[0x4/4];   /* re-read after potential side-effect */
-            int *ddst = (int*)((char*)a0 + 0x64);
-            int i;
-            for (i = 0; i < 4; i++) ddst[i*3] = vv1[i];  /* approximate */
+        p = (int *)((char *)a0 + 0x2C);
+        if (1) {
+            *p |= 2;
         }
         break;
-    }
+    case 114:
+        q = (int *)a1[1]; a1[1] = (int)(q + 1); s = (short *)*q;
+        x = s[3] * (1.0f / 32767.0f);
+        y = s[4] * (1.0f / 32767.0f);
+        z = s[5] * (1.0f / 32767.0f);
+        w = s[6] * (1.0f / 32767.0f);
+        s2 = s;
+        xf.v[6] = x;
+        xf.v[7] = y;
+        xf.v[8] = z;
+        xf.v[9] = w;
+        xf.v[0] = s2[0];
+        xf.v[1] = s2[1];
+        xf.v[2] = s2[2];
+        x = *(f32 *)((char *)&D_00000000 + 0x1A10) * s2[7];
+        y = *(f32 *)((char *)&D_00000000 + 0x1A10) * s2[8];
+        z = *(f32 *)((char *)&D_00000000 + 0x1A10) * s2[9];
+        xf.v[3] = x;
+        xf.v[4] = y;
+        xf.v[5] = z;
+        m = (Mtx16_396FC *)((char *)a0 + 0x30);
+        gl_func_00000000(&xf, m);
+        *(Mtx16_396FC *)((char *)a0 + 0x70) = *m;
+        break;
+    default:
+        gl_func_00000000(a0, a1);
+        break;
     }
 }
 #else
