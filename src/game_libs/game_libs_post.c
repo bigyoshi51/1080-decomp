@@ -11119,80 +11119,41 @@ void gl_func_00028B0C(char *obj) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028B0C);
 #endif
 
-// gl_func_00028C6C — STRUCTURAL PASS (0x228 / 138 words, no episode).
-// Raw-.word USO form (game_libs). BOUNDARY NOTE: 7-jr USO bundle
-// (named fn + 6 trailing helpers) — deferred USO re-split. The named
-// leading fn is a multi-mode counted loop processor.
-//
-//   void gl_func_00028C6C(int a0, int n, …) {
-//     (*setup)(a0);                                     // jal 0 USO
-//     if (n <= 0) return;
-//     int mode = 0;
-//     for (int i = 0; i < n; i++) {
-//       switch (mode) {                                  // beq 1/2/3/4
-//         case 1: (*h1)(…); break;
-//         case 2: (*h2)(…); break;
-//         case 3: (*h3)(…); break;
-//         case 4: (*h4)(…); break;
-//         default: ...
-//       }
-//       ... advance mode / index, accumulate ...
-//     }
-//   }
-//
-// Struct-typing reference: a state-driven counted dispatch loop. It
-//   runs a leading USO-relocated setup, then iterates `n` (a1) times,
-//   each pass routing on a running mode value in {1,2,3,4} to one of
-//   four USO-relocated per-mode handlers (`jal 0` slots). Stack args
-//   sp+0x44 / sp+0x48 (s2 / s1) and the caller object a0 thread
-//   through the handlers. A small interpreter/sequencer: walk a
-//   command/state list `n` long, executing the mode-appropriate
-//   action each step. The 6 trailing bundled bodies are its
-//   per-mode/helper leaves, left for the deferred USO re-split.
-// Caps (DEFERRED): raw-word USO + 4-way mode loop with jal-0
-//   USO-reloc handlers — byte-match needs USO mnemonic disasm +
-//   reloc-pad jal infra. STALE 7-jr-bundle comment: grep -c
-//   03E00008 = 1 (.s now single fn, helpers split elsewhere). Real-C
-//   STRUCTURAL body below per the analysis (placeholder calls /
-//   fields). Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+// gl_func_00028C6C — four-template drain: gl(a0); for mode s4 = 0..3 pick
+// tmpl = &D+0x5378+s4*16 and dst = a0+s4*16, then a shared counter s0 drains
+// gl(tmpl) -> v (stop on 0) into gl(dst, v) while s0 < n. s1/s2 are
+// maybe-uninitialised (no default case) so uopt homes them and loads/stores
+// them around the loop; their home slots (0x48/0x44) follow the named-local
+// decl order (s5, g, s4, s1, s2, s0), see docs/IDO_CODEGEN.md
+// #feedback-ido-named-local-count-frame.
 extern int gl_func_00000000();
-/* Whole-body decode 2026-06-01 (prior switch was a placeholder). gl(a0); for
- * each of 4 modes s4=0..3: tmpl=&D+0x5378+s4*16, dst=a0+s4*16; a shared inner
- * counter s0 drains gl(tmpl)→v (break when v==0) then gl(dst,v), s0++ while s0<n. */
 void gl_func_00028C6C(int a0, int n) {
     char *s5 = (char *)a0;
     char *g = (char *)&D_00000000;
-    int s4, s0;
-    char *s2, *s1;
+    int s4;
+    char *s1, *s2;
+    int s0;
 
     gl_func_00000000(a0);
-    if (n <= 0) {
-        return;
-    }
+    s4 = 0;
     s0 = 0;
-    s2 = 0;
-    s1 = 0;
-    for (s4 = 0; s4 != 4; s4++) {
+    while (s0 < n) {
+        if (s4 == 4) return;
         switch (s4) {
-        case 0: s1 = g + 21368; s2 = s5;      break;
+        case 0: s1 = g + 21368; s2 = s5; break;
         case 1: s1 = g + 21384; s2 = s5 + 16; break;
         case 2: s1 = g + 21400; s2 = s5 + 32; break;
         case 3: s1 = g + 21416; s2 = s5 + 48; break;
         }
         while (s0 < n) {
             int v = gl_func_00000000(s1);
-            if (v == 0) {
-                break;
-            }
+            if (v == 0) break;
             gl_func_00000000(s2, v);
             s0++;
         }
+        s4++;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028C6C);
-#endif
 
 void game_libs_func_00028DA8(int *a0, int *a1) {
     if (*a1 != 0) {
