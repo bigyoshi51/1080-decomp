@@ -281,8 +281,11 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # game_libs_func_0005AFB0: its .s began with a 1-word 0x00000000 pad (ROM 0x5AFB0); the
 # real body starts at 0x5AFB4 -> all-zero pad on the predecessor gl_func_0005AF64.
 # expected/ metadata: 5AF64 size 0x4c->0x50, 5AFB0 value +4, size 0x24->0x20 (2026-10-15).
-build/src/game_libs/game_libs_post0b.c.o: SUFFIX_BYTES_FORCE := gl_func_0005FD20=0x00000000 game_libs_func_00060574=0x00000000 gl_func_00055B10=0x00000000 gl_func_0005AF64=0x00000000
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_0005FD20=0x00000000 game_libs_func_00060574=0x00000000 gl_func_00055B10=0x00000000 gl_func_0005AF64=0x00000000
+# game_libs_func_0004DD0C: .s began with 2 all-zero pad words (ROM 0x4DD0C-0x4DD13); the real
+# `void f(int a0) {}` body starts at 0x4DD14 -> pad on the predecessor gl_func_0004DCD4.
+# expected/ metadata: 4DCD4 size 0x38->0x40, 4DD0C value +8, size 0x10->0x8 (2026-10-15).
+build/src/game_libs/game_libs_post0b.c.o: SUFFIX_BYTES_FORCE := gl_func_0005FD20=0x00000000 game_libs_func_00060574=0x00000000 gl_func_00055B10=0x00000000 gl_func_0005AF64=0x00000000 gl_func_0004DCD4=0x00000000,0x00000000
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_0005FD20=0x00000000 game_libs_func_00060574=0x00000000 gl_func_00055B10=0x00000000 gl_func_0005AF64=0x00000000 gl_func_0004DCD4=0x00000000,0x00000000
 # gl_func_00055B10: byte-correct real-def, IDO trailing jr-delay nop -> symbol 0x30
 # vs target 0x2c (nop is baserom alignment). Resize non_matching symbol to 0x2c so
 # objdiff scores 11w not 12w. ROM-neutral (non_matching .o only). (Same class as EBC8.)
@@ -395,7 +398,10 @@ build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_SUFFIX_BYTES
 # 55B10 in both builds; old NM body was also 0xF0, so +4 = the pad): 62F08 NM offset 0x2e054 + 0x50.
 # Clip re-probed 2026-10-15 agent-c (5AFB0 exact: pad word moved to 5AF64 SUFFIX in both
 # builds, NM build +4): 62F08 NM offset 0x2e114 + 0x50.
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2e164 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# Clip re-probed 2026-10-15 agent-c (4DD0C exact: INCLUDE_ASM -> C + 2-word pad SUFFIX on 4DCD4,
+# same size, but the NM build lost 6 stray zero words inside the NM gl_func_00061478 body -- an
+# asm-processor block-count artifact, NM build only): 62F08 NM offset 0x2e0fc + 0x50.
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2e14c gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0

@@ -20933,7 +20933,9 @@ void gl_func_0004DCD4(int *a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004DD0C);
+/* game_libs_func_0004DD0C: EXACT 2026-10-15. The .s began with 2 all-zero pad words
+ * (ROM 0x4DD0C); they are now an all-zero SUFFIX_BYTES_FORCE on gl_func_0004DCD4. */
+void game_libs_func_0004DD0C(int a0) {}
 
 void game_libs_func_0004DD1C(int a0) {}
 
