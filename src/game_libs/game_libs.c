@@ -284,93 +284,38 @@ void gl_func_000009B4(char *arg0) {
                      arg0 + 0xBC);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_00000A8C: 64-insn (0x100) nested-alloc + color-normalize
- * constructor. Full hand-decode 2026-05-28 (m2c can't parse the raw-.word
- * USO format). Same alloc-cascade family as gl_func_000001CC / func_0000FC28.
- *
- * Structure (verified from asm 0x0A8C-0x0B88):
- *   obj = a0;
- *   if (obj == 0) { obj = alloc(0xD4); if (!obj) return 0; }    // 212-byte
- *   sub = obj;
- *   if (sub == 0) { sub = alloc(0xC4); if (!sub) goto colors; } // 196-byte (defensive)
- *   init(sub, &gl_ref_0000CB84, sub);   // jal @0xADC
- *   sub->0x28 = &D_00000000;
- *   init2(sub + 0x2C);                  // jal @0xAF4
- * colors:
- *   obj->0x94 = 235.0f/255.0f;  obj->0x98 = 80.0f/255.0f;       // RGBA normalize
- *   obj->0x9C = 80.0f/255.0f;   obj->0xA0 = 0.0f/255.0f;
- *   obj->0xC  = &gl_ref_0000CB8C;       // type/vtable
- *   obj->0xA4 = 0; obj->0xA8 = 255;
- *   obj->0xAC = a1_saved; obj->0xB0 = a2_saved;
- *   gl_func(obj, 0x59, 2);              // jal @0xB64 (89, 2)
- *   obj->0xC4 = 0; obj->0xC8 = 1;
- *   return obj;
- *
- * The 0xCB84 / 0xCB8C data refs are %hi/%lo with sign-extended %lo (lui 1 +
- * addiu negative folds to 0x0000CB84). Reloc-bearing → objdiff-aware compare.
- *
- * 95.91% as of 2026-05-28 (fresh decode this session: 0% → 64% → 91.6% → 95.9%).
- * Four levers found:
- *  (1) `denom = 255.0f; x = 235.0f/denom;` FORCES a runtime div.s — the literal
- *      `235.0f/255.0f` lets IDO constant-fold it to lwc1-from-rodata-pool
- *      (the documented named-local-divisor lever, IDO_CODEGEN.md
- *      #feedback-ido-div-2-mul-fold-and-mtc1-load-delay-nops).
- *  (2) `if (alloc==0) goto ret;` to a shared epilogue instead of `return 0;`
- *      (which emits a separate `move v0,zero` block).
- *  (3) Home the a1/a2 PARAMS directly (no a1_saved/a2_saved locals) → 0x30→0x28
- *      frame.
- *  (4) The first init call is 2-arg `init(sub, &ref)`, NOT 3-arg `(sub,&ref,sub)`
- *      — sub is live across the call (used after for ->0x28 + the 2nd call) so it
- *      stays in $a2 and is homed; writing it as a 3rd arg forced an extra
- *      `move a2,a3` (+1 insn, $a3 vs $a2). This was the 91.6%→95.9% jump.
- *  Data refs use the `(char*)&D_00000000 + 0xCB84` ADDEND idiom (NOT a separate
- *  gl_ref_XXXX extern): the addend rides in the .o reloc so objdiff matches it
- *  against the raw-word expected baseline; an undefined gl_ref symbol resolves
- *  to 0 and does NOT match (undefined_syms_auto.txt is link-time-only).
- * RESIDUAL CAP (~4%, scheduling/stack-slot, not C-fixable): (a) `move s0,a0` is
- * scheduled into the bnez delay slot (mine) vs hoisted before `sw ra` (target);
- * (b) the `sub` spill homes to sp+0x20 (mine) vs sp+0x24 (target). Both are
- * IDO scheduler/stack-slot-order choices, deterministic + permuter-resistant.
- * Stays NM. */
+/* gl_func_00000A8C: get-or-create ctor + colour normalize (0x100, 64 words).
+ * EXACT in-unit with the gl_func_000001CC / 0FD0 shape (arg0 is self via the
+ * || fallback; sub declared before the named d255 whose unused home is the
+ * otherwise-empty sp+0x20 slot, sub spills to sp+0x24). Was 95.9 NM with a
+ * separate obj local + goto ladder (move s0 in the bnez delay, sub at 0x20). */
 extern int gl_func_00000000();
-int gl_func_00000A8C(int *a0, int a1, int a2) {
-    int *obj = a0;
-    int *sub;
-    float denom;
+char *gl_func_00000A8C(char *arg0, int a1, int a2) {
+    char *sub;
+    f32 d255 = 255.0f;
 
-    if (obj == 0) {
-        obj = (int*)gl_func_00000000(0xD4);
-        if (obj == 0) goto ret;
+    if ((arg0 != 0) || (arg0 = (char *)gl_func_00000000(0xD4), (arg0 != 0))) {
+        sub = arg0;
+        if ((arg0 != 0) || (sub = (char *)gl_func_00000000(0xC4), (sub != 0))) {
+            gl_func_00000000(sub, (char *)&D_00000000 + 0xCB84);
+            *(s32 *)(sub + 0x28) = (s32)&D_00000000;
+            gl_func_00000000(sub + 0x2C);
+        }
+        *(f32 *)(arg0 + 0x94) = 235.0f / d255;
+        *(f32 *)(arg0 + 0x98) = 80.0f / d255;
+        *(f32 *)(arg0 + 0x9C) = 80.0f / d255;
+        *(f32 *)(arg0 + 0xA0) = 0.0f / d255;
+        *(s32 *)(arg0 + 0xC) = (s32)((char *)&D_00000000 + 0xCB8C);
+        *(s32 *)(arg0 + 0xA4) = 0;
+        *(s32 *)(arg0 + 0xA8) = 0xFF;
+        *(s32 *)(arg0 + 0xAC) = a1;
+        *(s32 *)(arg0 + 0xB0) = a2;
+        gl_func_00000000(arg0, 0x59, 2);
+        *(s32 *)(arg0 + 0xC4) = 0;
+        *(s32 *)(arg0 + 0xC8) = 1;
     }
-    sub = obj;
-    if (sub == 0) {
-        sub = (int*)gl_func_00000000(0xC4);
-        if (sub == 0) goto colors;
-    }
-    gl_func_00000000(sub, (char*)&D_00000000 + 0xCB84);
-    *(int*)((char*)sub + 0x28) = (int)&D_00000000;
-    gl_func_00000000((char*)sub + 0x2C);
-colors:
-    denom = 255.0f;
-    *(float*)((char*)obj + 0x94) = 235.0f / denom;
-    *(float*)((char*)obj + 0x98) = 80.0f / denom;
-    *(float*)((char*)obj + 0x9C) = 80.0f / denom;
-    *(float*)((char*)obj + 0xA0) = 0.0f / denom;
-    *(int*)((char*)obj + 0x0C) = (int)((char*)&D_00000000 + 0xCB8C);
-    *(int*)((char*)obj + 0xA4) = 0;
-    *(int*)((char*)obj + 0xA8) = 255;
-    *(int*)((char*)obj + 0xAC) = a1;
-    *(int*)((char*)obj + 0xB0) = a2;
-    gl_func_00000000(obj, 0x59, 2);
-    *(int*)((char*)obj + 0xC4) = 0;
-    *(int*)((char*)obj + 0xC8) = 1;
-ret:
-    return (int)obj;
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000A8C);
-#endif
 
 void game_libs_func_00000B8C(int a0) {}
 
