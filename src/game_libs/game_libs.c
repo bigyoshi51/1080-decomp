@@ -1899,76 +1899,76 @@ void gl_func_000038F4(char *arg0) {
     }
 }
 
-/* gl_func_00003B1C - verified structural decode (0xF0, 60 insns,
- * free-slot allocator + initializer).
- * Struct-typing reference: a0 = a table of slot-pointer entries
- * (stride 4); each entry's slot = entry->0x2C. Slot fields: 0x94
- * (148) s32 state (0 = free, 5 = claimed), 0x9C (156) s32 = 32 or
- * 0 (by a3), 0x78 (120) s32 = 255, 0x80 (128) s32 = 0, 0x84 (132)
- * s32 = -18, 0x98 (152) s32 = a1 (caller handle), 0xA0 (160) s32 =
- * 0, 0xA8 (168) f32 = 0.0, 0xB0 (176) = a0->0x54 (source field
- * copied in), slot+0xB4 (180) = a sub-struct passed to a second
- * reloc init. gl_func_00000000(slot,161,a2+90,1.0f) = primary
- * init (arg2 a2+90, f32 1.0). Caps <80: scan loop + FP-const
- * (mfc1/swc1 1.0) + 2x reloc + large sentinel limit constant.
- * INCLUDE_ASM remains build path (no episode; tautology-trap rule). */
-/* gl_func_00003B1C - free-slot allocator + initializer (0xF0, 60 insns).
- * 53.58 -> 71.5% (near-miss, structural rewrite). Scans 8 table entries at
- * v1+0x2C for a slot whose 0x94 state == 0, claims it (state=5), fills fields,
- * runs two absolute-0 init callbacks, returns the slot. Three fixes landed the
- * structure/promote:
- *   (1) primary init takes TWO float args (1.0f, 1.0f) -> arg4 in $a3 (mfc1),
- *       arg5 on stack (swc1) — NOT a single K&R-promoted double. Typed 5-arg
- *       absolute-0 alias gl_func_00000000_i3ff(int,int,int,float,float). This
- *       fixes the cvt.d.s/sdc1 asymmetry (the vein) — frame now -40 (matches),
- *       loop induction (off=v0/table=v1) matches, beqz-a3 if/else matches.
- *   (2) loop sentinel is 32 (off != 32, 8 entries), not 0x10000.
- *   (3) the a3 flag is an explicit if/else (duplicated 0x94=5 store) with slot
- *       homed to $s0 in the beqz delay, not a ?: select.
- * TWO residual caps prevent EXACT: (a) IDO colors `slot` into $s0 for the whole
- * loop; target keeps it in $a0 during scan and copies `move s0,a0` at the found
- * point (a per-fn live-range-split coloring choice; the `o=slot` split-var was
- * coalesced away). (b) the 2nd init's magic 0xCD00 is emitted by the target as
- * lui 0x1 + addiu -13056 = the %hi/%lo of an absolute 0xCD00 USO symbol baked
- * into the raw .word — IDO loads a plain 0xCD00 int as a single `ori`
- * (confirmed 4 literal forms), and a symbol ref would be reloc-placeholder
- * bytes, so the baked address can't be reproduced literally. All callees jal 0
- * (landable). */
+/* gl_func_00003B1C - free-slot allocator + initializer (0xF0, 60 insns),
+ * EXACT 60/60 (agent-g run 61, re-decoded after the 3C0C donor match).
+ * a0 = owner with eight slot pointers at +0x2C; claims the first slot whose
+ * 0x94 state is 0 (state 5, 0x9C = 32 or 0 by a3), runs the (int,int,int,
+ * float,float) primary init, fills 78/A0/98/B0/80/84/A8 and runs the second
+ * init with the baked absolute 0xCD00 (`(char *)&D_00000000 + 0xCD00` = the
+ * `lui 1; addiu -13056` carry form, not an int constant). Load-bearing:
+ *  - `for (i = 0; i != 8; i++)` indexing a typed slots[8] array: the 32
+ *    loop bound is then a compiler IV constant (a1) and does NOT CSE with
+ *    the stored `0x9C = 32` (a do/while on a byte offset shares one web);
+ *  - test `arg0->slots[i]->unk94` inline and assign `slot = arg0->slots[i]`
+ *    INSIDE the if: the scan load stays in a0 and the found slot is the
+ *    `or s0,a0` copy (a slot local assigned before the test colours s0 for
+ *    the whole loop);
+ *  - store order 78, A0, 98, B0, 80, 84, A8 (the only order of the seven
+ *    that schedules like the target). */
+typedef struct GlSlot3B1C {
+    char pad0[0x78];
+    s32 unk78;
+    s32 unk7C;
+    s32 unk80;
+    s32 unk84;
+    char pad88[0x94 - 0x88];
+    s32 unk94;
+    s32 unk98;
+    s32 unk9C;
+    s32 unkA0;
+    f32 unkA4;
+    f32 unkA8;
+    f32 unkAC;
+    s32 unkB0;
+    char unkB4[4];
+} GlSlot3B1C;
+
+typedef struct GlOwn3B1C {
+    char pad0[0x2C];
+    GlSlot3B1C *slots[8];
+    char pad4C[0x54 - 0x4C];
+    s32 unk54;
+} GlOwn3B1C;
+
 extern void *gl_func_00000000_i3ff(int, int, int, float, float);
-#ifdef NON_MATCHING
-void *gl_func_00003B1C(char *a0, int a1, int a2, int a3) {
-    int off = 0;
-    char *v1 = a0;
-    char *slot;
-    do {
-        slot = *(char**)(v1 + 0x2C);
-        off += 4;
-        if (*(int*)(slot + 0x94) == 0) {
-            if (a3 != 0) {
-                *(int*)(slot + 0x94) = 5;
-                *(int*)(slot + 0x9C) = 32;
+GlSlot3B1C *gl_func_00003B1C(GlOwn3B1C *arg0, s32 arg1, s32 arg2, s32 arg3) {
+    s32 i;
+    GlSlot3B1C *slot;
+
+    for (i = 0; i != 8; i++) {
+        if (arg0->slots[i]->unk94 == 0) {
+            slot = arg0->slots[i];
+            if (arg3 != 0) {
+                slot->unk94 = 5;
+                slot->unk9C = 32;
             } else {
-                *(int*)(slot + 0x94) = 5;
-                *(int*)(slot + 0x9C) = 0;
+                slot->unk94 = 5;
+                slot->unk9C = 0;
             }
-            gl_func_00000000_i3ff(slot, 161, a2 + 90, 1.0f, 1.0f);
-            *(int*)(slot + 0x78) = 255;
-            *(int*)(slot + 0xA0) = 0;
-            *(int*)(slot + 0x98) = a1;
-            *(int*)(slot + 0x80) = 0;
-            *(int*)(slot + 0x84) = -18;
-            *(float*)(slot + 0xA8) = 0.0f;
-            *(int*)(slot + 0xB0) = *(int*)(a0 + 0x54);
-            gl_func_00000000(slot + 0xB4, 0xCD00);
+            gl_func_00000000_i3ff((int)slot, 161, arg2 + 90, 1.0f, 1.0f);
+            slot->unk78 = 255;
+            slot->unkA0 = 0;
+            slot->unk98 = arg1;
+            slot->unkB0 = arg0->unk54;
+            slot->unk80 = 0;
+            slot->unk84 = -18;
+            slot->unkA8 = 0.0f;
+            gl_func_00000000(slot->unkB4, (char *)&D_00000000 + 0xCD00, arg1);
             return slot;
         }
-        v1 += 4;
-    } while (off != 32);
+    }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003B1C);
-#endif
 
 /* gl_func_00003C0C: free-slot allocator (0x1AC, 107 words; 3B1C/3DB8
  * family) -- EXACT via the IDO 7.1 -O2 donor src/game_libs/game_libs_o2_3C0C.c
