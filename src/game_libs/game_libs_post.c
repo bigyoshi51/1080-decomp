@@ -8638,24 +8638,26 @@ void game_libs_func_00026AF8(int a0, int a1) {
 //   target's shape needs the hi in the ring (as1 rename-at-def of the arg
 //   copy) — no C grammar reaches ugen's temp choice. Same ugen-internal
 //   class as the gl_func_0000C28C skipped-ring-slot cap. Cap stands.
+//   re-audited 2026-10-15 with lever kit: EXACT. The "ugen destination-
+//   coalesce" cap was wrong source: call 1's arg0 is the RELOAD
+//   *(char **)(D+0x53C8), symmetric with calls 2/3 -- uopt forwards the
+//   just-stored value, which keeps the %hi in the ring (lui t6; addiu a0,t6).
+//   With that, the old `if (1) { } { }` + chained `= (... = 0)` byte stores
+//   burned a ring slot (t7/t8/t9); three plain byte stores give t6/t7/t8.
+//   docs/IDO_CODEGEN.md#store-forwarded-reload-arg-keeps-hi-in-ring-26b40.
 extern int gl_func_00000000();
 extern int D_00000000;
-#ifdef NON_MATCHING
 void game_libs_func_00026B40(void) {
-  char *p;
   ((char *) (&D_00000000))[0x53B8] = 0;
- if (1) { } { }
-  ((char *) (&D_00000000))[0x53BA] = (((char *) (&D_00000000))[0x53B9] = 0);
+  ((char *) (&D_00000000))[0x53B9] = 0;
+  ((char *) (&D_00000000))[0x53BA] = 0;
   *((char **) (((char *) (&D_00000000)) + 0x53C8)) = ((char *) (&D_00000000)) + 0x53D0;
   *((char **) (((char *) (&D_00000000)) + 0x53CC)) = ((char *) (&D_00000000)) + 0x53E8;
   *((char **) (((char *) (&D_00000000)) + 0x53C4)) = ((char *) (&D_00000000)) + 0x5400;
-  gl_func_00000000(((char *) (&D_00000000)) + (0x53D0 ^ 0), ((char *) (&D_00000000)) + 0x5418, 1);
+  gl_func_00000000(*((char **) (((char *) (&D_00000000)) + 0x53C8)), ((char *) (&D_00000000)) + 0x5418, 1);
   gl_func_00000000(*((char **) (((char *) (&D_00000000)) + 0x53CC)), ((char *) (&D_00000000)) + 0x5420, 4);
   gl_func_00000000(*((char **) (((char *) (&D_00000000)) + 0x53C4)), ((char *) (&D_00000000)) + 0x541C, 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026B40);
-#endif
 
 /* game_libs_func_00026BD8: ring-buffer push. head=u8 D[0x53B8],
  * cap=u8 D[0x53B9], 8-byte entries at D+0x5430+head*8 = {a0, *a1}.
