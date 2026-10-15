@@ -11067,79 +11067,53 @@ end:
     return v0;
 }
 
-/* gl_func_000290C8: 62-insn (0xF8) sibling of gl_func_00029078 (just
- * landed 6b9ad3ee). 0x38-byte stack frame, calls gl_func_0003D480
- * directly (jal target 0x3D480, not the cross-USO placeholder).
- *
- * Decoded entry:
- *   t6 = 0x10; t7 = 0x10;             // const 16, stored as stack args
- *   sp[0x28] = t6; sp[0x2C] = t7;     // arg5,arg6 for jal
- *   t8 = a1->[0x50];                  // load field
- *   s0 = a0; s1 = a1;                 // save args via or
- *   gl_func_0003D480(a0+0x20, *(byte*)(sp+5), a1->[0x50], sp+0x24, 16, 16);
- *   if (ret == 0) {
- *     t9 = *(byte*)(s1 + 0x30);       // load tag byte
- *     sp[0x2C] = t9;
- *     // ... continues to second jal with similar pattern
- *   }
- *
- * Pattern: config-record builder calling internal helper at 0x3D480
- * twice with different fields (a1+0x50 first call, then a different
- * field from a1+0x30 byte for second). Reads fields at a1->0x30 (byte)
- * and a1->0x50 (int).
- *
- * Caps (DEFERRED): direct intra-USO jal 0x3D480 needs sym table
- * resolution. Real-C STRUCTURAL body below per the decode above.
- * Byte-match deferred. Name pre-checked: no extern reuse.
- * 90.47% (2026-06-02, dropped the `saved=a0+0x20` spill-local, inlining
- * a0+0x20 at both call sites; +0.07pp). Residual = original-a0 preservation
- * regalloc: a0+0x20 is needed at the first gl_3d480 call AND the later
- * gl(a0+0x20,s0) call, across the `s0=v0` reassignment, so IDO must keep the
- * original a0 live across two clobbering calls — it SPILLS it (extra `or a2,a0`
- * + sw/lw, +8 frame: sp-0x40 vs target sp-0x38) where the target holds it in a
- * callee-saved reg. No C shape flips spill->$s here (explicit `obj=a0` local
- * regresses to 88.5%). Permuter-class. */
-#ifdef NON_MATCHING
+/* gl_func_000290C8: 62-insn (0xF8) sibling of gl_func_00029078. Two baked
+ * in-unit lookups gl_ref_0003D480(list, key) keyed on a1->0x50->5: v1 in the
+ * list at a0+0x20, then the one at a0+0x30 (result reassigned into the a0
+ * param, which is why the target keeps ONE s0 = a0 then v0). Default rank 16
+ * for a missing entry; if both missing return 0. If the second entry ranks
+ * lower it is unlinked (cross-USO), detached (gl_ref_0003D638), re-inserted
+ * into the a0+0x20 list and re-keyed; else v1 is linked to a1 and re-keyed.
+ * Matching notes: `p20 = a0 + 0x20` assigned inside the first call's arg list
+ * (spilled to sp+0x24 in the jal delay slot); key read into a block local
+ * before that call (schedules `or s0,a0` / `addiu a0,a0,32` after the
+ * t6/t7 stores); `char *v1; int pad;` declared first puts the v1 spill at
+ * sp+0x34 and the frame at 0x38. The old "original-a0 spill" cap was the
+ * missing param reassignment. */
 extern int gl_func_00000000();
-/* Whole-body decode 2026-06-01 (prior body was heavily oversimplified). Two
- * gl_3d480 lookups keyed on (*(a1->0x50))->5: v1=lookup(a0+0x20,k),
- * v0=lookup(a0+0x30,k); track their 0x30 fields (default 16). If both null
- * return 0. If v0->0x30 < v1->0x30: register the v0 entry (gl(s0), gl_3d638,
- * gl(a0+0x20,s0)) and set its 0x30; else link v1->0x48=a1 and set v1->0x30.
- * Returns the chosen entry. */
-extern int gl_func_0003D480();
-extern int gl_func_0003D638();
+extern int gl_ref_0003D480();
+extern int gl_ref_0003D638();
 int gl_func_000290C8(char *a0, char *a1) {
-    char *s0 = a0;
-    int t2 = 16, t3 = 16;
-    int *v1, *v0;
+    char *v1;
+    int pad;
+    int t3;
+    int t2;
+    char *p20;
+    t2 = 16; t3 = 16;
 
-    v1 = (int *)gl_func_0003D480(a0 + 0x20, *(unsigned char *)(*(char **)(a1 + 0x50) + 5));
+    { int k = *(unsigned char *)(*(char **)(a1 + 0x50) + 5);
+    v1 = (char *)gl_ref_0003D480(p20 = a0 + 0x20, k); }
     if (v1 != 0) {
-        t3 = *(unsigned char *)((char *)v1 + 0x30);
+        t3 = *(unsigned char *)(v1 + 0x30);
     }
-    v0 = (int *)gl_func_0003D480(s0 + 0x30, *(unsigned char *)(*(char **)(a1 + 0x50) + 5));
-    if (v0 != 0) {
-        s0 = (char *)v0;
-        t2 = *(unsigned char *)((char *)v0 + 0x30);
+    a0 = (char *)gl_ref_0003D480(a0 + 0x30, *(unsigned char *)(*(char **)(a1 + 0x50) + 5));
+    if (a0 != 0) {
+        t2 = *(unsigned char *)(a0 + 0x30);
     }
-    if (v1 == 0 && v0 == 0) {
+    if (v1 == 0 && a0 == 0) {
         return 0;
     }
     if (t2 < t3) {
-        gl_func_00000000(s0);
-        gl_func_0003D638(s0, a1);
-        gl_func_00000000(a0 + 0x20, s0);
-        *(unsigned char *)(s0 + 0x30) = *(unsigned char *)(*(char **)(a1 + 0x50) + 5);
-        return (int)s0;
+        gl_func_00000000(a0);
+        gl_ref_0003D638(a0, a1);
+        gl_func_00000000(p20, a0);
+        *(unsigned char *)(a0 + 0x30) = *(unsigned char *)(*(char **)(a1 + 0x50) + 5);
+        return (int)a0;
     }
-    *(int *)((char *)v1 + 0x48) = (int)a1;
-    *(unsigned char *)((char *)v1 + 0x30) = *(unsigned char *)(*(char **)(a1 + 0x50) + 5);
+    *(char **)(v1 + 0x48) = a1;
+    *(unsigned char *)(v1 + 0x30) = *(unsigned char *)(*(char **)(a1 + 0x50) + 5);
     return (int)v1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000290C8);
-#endif
 
 // gl_func_000291C0 — STRUCTURAL PASS (0x2D4 / 181 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no

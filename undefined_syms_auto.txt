@@ -3635,3 +3635,5 @@ gl_func_00000000_35fd4f = 0x00000000;  /* float-prototyped blank (direct jal, si
 gl_ref_000516A0 = 0x000516A0;  /* gl_func_0003E2B0 baked USO jal (0x0C0145A8) */
 gl_ref_0005166C = 0x0005166C;  /* gl_func_0003E2B0 baked USO jal (0x0C01459B) */
 gl_ref_000516D4 = 0x000516D4;  /* gl_func_0003E2B0 baked USO jal (0x0C0145B5) */
+gl_ref_0003D480 = 0x0003D480;  /* gl_func_000290C8 baked in-unit jal (0x0C00F520) */
+gl_ref_0003D638 = 0x0003D638;  /* gl_func_000290C8 baked in-unit jal (0x0C00F58E) */
