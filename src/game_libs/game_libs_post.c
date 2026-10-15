@@ -10961,55 +10961,50 @@ PrioObj28E14 *game_libs_func_00028E14(PrioNode28E14 *head, int lim) {
 //   setup 0x0C00F0DB (≈0x3C36C) finishes the bind. The
 //   construct/attach counterpart to the gl_func_00028604 detach in
 //   the game_libs object subsystem.
-// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc setup + multi-field
-//   link wiring — byte-match needs USO mnemonic disasm + reloc-pad
-//   jal infra. Real-C STRUCTURAL body below per the analysis
-//   (placeholder calls / fields). Byte-match deferred.
-//   Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-extern int gl_func_00000000();
+/* EXACT 2026-10-15 (agent-c): 3CF18 takes the resolved sub-id as a 3rd arg
+ * (a2 live into the second jal); d->0x00 bits 0/3 and the obj+0xB0 flag /
+ * 3-bit fields are BITFIELDS (the |=1/|=8 temp-numbering skips); obj+0x30
+ * and obj+0xB0 are named at the TOP so uopt rematerializes them after the
+ * first call (addiu v0,a0,48 kept as a base instead of folded offsets); the
+ * 12-byte unused local supplies the target's 0x38 frame / v1 spill at 0x1C. */
+typedef struct { unsigned x0:4; unsigned ready:1; unsigned x1:2; unsigned active:1; unsigned rest:24; } Gl28E94Desc;
+typedef struct { unsigned b0:8; unsigned mode:3; unsigned x:2; unsigned flag:1; unsigned rest:18; int w4, w8, wc; int w10; } Gl28E94Xf;
 extern int gl_func_0003C36C();
 extern int gl_func_0003CF18();
 void gl_func_00028E94(char *obj, char *d) {
-    char *t, *node, *v1, *v0;
-    int a2;
+    Gl28E94Xf *xf;
+    char *b30;
+    char pad[12];
+    int id;
+    b30 = obj + 0x30;
+    xf = (Gl28E94Xf *)(obj + 0xB0);
     *(int *)(obj + 0x40) = -1;
     *(int *)(obj + 0x44) = (int)d;
-    t = *(char **)(d + 0x50);
-    *(unsigned char *)(obj + 0x30) = *(unsigned char *)(t + 5);
+    *(unsigned char *)b30 = *(unsigned char *)(*(char **)(d + 0x50) + 5);
     *(int *)(d + 0x2C) = (int)obj;
-    *(unsigned char *)d = *(unsigned char *)d | 1;
-    *(unsigned char *)d = *(unsigned char *)d | 8;
-    *(int *)(t + 0x40) = (int)obj;
+    ((Gl28E94Desc *)d)->active = 1;
+    ((Gl28E94Desc *)d)->ready = 1;
+    *(int *)(*(char **)(d + 0x50) + 0x40) = (int)obj;
     *(int *)(*(char **)(d + 0x50) + 0x44) = (int)d;
     *(float *)(d + 0x40) = 0.0f;
     gl_func_0003C36C(obj, d);
-    v1 = obj + 0xB0;
-    a2 = *(unsigned char *)(d + 2);
-    if (a2 == 0xFF) {
-        a2 = *(short *)(*(char **)(d + 0x50) + 0x24);
+    id = *(unsigned char *)(d + 2);
+    if (id == 0xFF) {
+        id = *(short *)(*(char **)(d + 0x50) + 0x24);
     }
-    *(int *)(v1 + 0x10) = *(int *)(d + 0x4C);
-    if (a2 >= 128 && a2 < 192) {
-        *(unsigned char *)(v1 + 1) = *(unsigned char *)(v1 + 1) | 4;
+    xf->w10 = *(int *)(d + 0x4C);
+    if (id >= 128 && id < 192) {
+        xf->flag = 1;
     } else {
-        *(unsigned char *)(v1 + 1) = *(unsigned char *)(v1 + 1) & ~4;
+        xf->flag = 0;
     }
-    if ((*(int *)v1 << 0xD) < 0) {
-        gl_func_0003CF18(obj, d);
+    if (xf->flag) {
+        gl_func_0003CF18(obj, d, id);
     }
-    node = *(char **)(d + 0x50);
-    v0 = obj + 0x30;
-    *(unsigned char *)(v0 + 3) = *(unsigned char *)(node + 7);
-    node = *(char **)(d + 0x50);
-    *(unsigned char *)(v0 + 5) = (unsigned int)(*(int *)node << 5) >> 31;
-    node = *(char **)(d + 0x50);
-    *(unsigned char *)(v1 + 1) =
-        (*(unsigned char *)(v1 + 1) & ~0xE0) | ((*(unsigned char *)(node + 8) & 3) << 5);
+    *(unsigned char *)(b30 + 3) = *(unsigned char *)(*(char **)(d + 0x50) + 7);
+    *(unsigned char *)(b30 + 5) = (unsigned int)(**(int **)(d + 0x50) << 5) >> 31;
+    xf->mode = *(unsigned char *)(*(char **)(d + 0x50) + 8) & 3;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028E94);
-#endif
 
 void gl_func_00028FCC(int *a0, int a1) {
     volatile int **vp0 = (volatile int **)&a0;
