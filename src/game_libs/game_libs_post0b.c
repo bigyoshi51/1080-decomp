@@ -11025,8 +11025,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FC58);
 // int-cast store spelling (store-forwarding still fires, kills the reload),
 // all-nameless (recomputes instead of spilling), K&R unpassed node param
 // (arg-area spill 0x34 + prologue reschedule). E6E8-class coloring residual. NM.
-#ifdef NON_MATCHING
+// EXACT 2026-10-15 (agent-c): the "(node,n) 2-web colour permutation" was the
+// CALL SHAPE. The third callee takes node as its SECOND ARG (node then
+// precolours a1: `lw a1,0x10(s0)` + the a1 spill) and returns void (a pinned
+// void alias gl_func_00000000_ff44v, so the jal does not define $v0 and n can
+// colour v0 across the call; with the int-returning K&R blank n lands in v1).
+// The float-arg callee alias gl_proto_FF44 is now pinned to 0 as well.
 extern int gl_proto_FF44(int, void*, float, float, float);
+extern void gl_func_00000000_ff44v();
 void gl_func_0003FF44(int *self) {
     int n;
     int *node;
@@ -11036,16 +11042,13 @@ void gl_func_0003FF44(int *self) {
     if (self[0x38 / 4] != 0) {
         node = (int*)((volatile int*)self)[0x10 / 4];
         n = ((int*)self[0x3C / 4])[0x10 / 4];
-        gl_func_00000000(n + 0x10);
+        gl_func_00000000_ff44v(n + 0x10, node);
         if (node[0x14 / 4] != 0) {
             node[0x4 / 4] = 1;
         }
         node[0x14 / 4] = n;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FF44);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_0003FFDC(int *dst) {

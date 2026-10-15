@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0003FF44",
+  "project": "1080-agent-c",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T15:49:33.507539+00:00",
+  "end_time": "2026-10-15T15:49:33.507556+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T15:49:33.507552+00:00",
+      "assistant_text": "Manual exact match (was NM 98.29). The (node, n) caller-saved colour residual was the call shape: the third callee takes node as its second argument (node precolours a1, matching lw a1,0x10(s0) and the a1 spill) and returns void, so a pinned void alias gl_func_00000000_ff44v lets n colour v0 across the jal. The float-arg callee alias gl_proto_FF44 is pinned to 0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 38,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int D_00000000;\nextern int gl_func_00000000();\nextern int gl_proto_FF44(int, void*, float, float, float);\nextern void gl_func_00000000_ff44v();\nvoid gl_func_0003FF44(int *self) {\n    int n;\n    int *node;\n\n    gl_func_00000000(self);\n    self[0x10 / 4] = (self[0xC / 4] = gl_proto_FF44(0, (char*)&D_00000000 + 0x1F488, 0.0f, 0.0f, 0.0f));\n    if (self[0x38 / 4] != 0) {\n        node = (int*)((volatile int*)self)[0x10 / 4];\n        n = ((int*)self[0x3C / 4])[0x10 / 4];\n        gl_func_00000000_ff44v(n + 0x10, node);\n        if (node[0x14 / 4] != 0) {\n            node[0x4 / 4] = 1;\n        }\n        node[0x14 / 4] = n;\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0003FF44.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "make RUN_CC_CHECK=0: tenshoe.z64 cmp byte-identical to baserom; report.json 100.0; raw .text slice of gl_func_0003FF44 in build/src/game_libs/game_libs_post0b.c.o equals expected/ (152 bytes EQUAL)."
+  }
+}
