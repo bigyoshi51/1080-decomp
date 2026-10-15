@@ -10887,7 +10887,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E5C8);
 #endif
 
 /* game_uso_func_0000E91C — EE84-family branchy orchestrator, 118 insns.
- * NM wrap now 98.98% objdiff (102/118 words byte-exact) — up from 90.31%.
+ * EXACT (was NM 98.98%, 90.31% before that).
  *
  * Reads o=a0->0xB4, v0=o->0xA58, clears a0->0xB0, then
  * game_uso_func_0000EAF4(a0, cond, v0&0x20) where cond=((v0&0x20)!=0) then
@@ -10903,14 +10903,18 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E5C8);
  * a0=a0->0xB4+0x808. Tail (a0->0xB0!=0): zero a0->0x12C, import_0010DB28,
  * game_uso_func_0000D5F8(a0, homed, 1), game_uso_func_0000D5DC(a0).
  *
- * RESIDUAL (16 words, all same-mnemonic register-only): the whole allocation
- * is uniformly shifted — target keeps o->t6, v0-word->v0, mask->v1, cond->a1
- * (with a redundant `move a2,v1` filling the EAF4 jal delay); IDO here parks
- * o->v1 and cascades mask/cond into arg regs a2/a3 (delay = `move a1,a3`).
- * A global register-renumber cap (coloring, permuter-immune); decl-order
- * permutation + inline-o (o->t6 but downstream drops to 59) both tested WORSE.
+ * 2026-10-15 (agent-g, 98.98 -> EXACT 118/118):
+ *   (1) the A58 word is NOT a named local: inlined at all three uses (CSE'd
+ *       to v0, mask v1), so the 0xB4 deref is the t6 expression temp;
+ *   (2) the third EAF4 arg is `(unsigned)(word & 0x20)` -- the no-op cast makes
+ *       it a distinct value from the `!= 0` test's CSE temp, which is what
+ *       emits the target's `or a2,v1` copy in the jal delay (same idiom at the
+ *       E5C8 EAF4 call site);
+ *   (3) `cond` is REUSED for the 0x800 flag pointer and the 0x12C switch word:
+ *       same-variable webs pull a1 (docs #same-name-web-reuse-plus-dead-if-param-332b4);
+ *   (4) frame 0x48 with homed at sp+0x38: two unused ints, one above cond and
+ *       one below homed (`int v0` removal had cost a word).
  */
-#ifdef NON_MATCHING
 extern int import_00096724();
 extern int import_00096704();
 extern int import_0010DB28();
@@ -10918,25 +10922,25 @@ extern char game_uso_D_807FF430;
 extern char game_uso_D_807FF4E0;
 
 void game_uso_func_0000E91C(char *a0) {
-    char *o = *(char **)(a0 + 0xB4);
-    int v0;
+    int pad;
     int cond;
     Pair2 homed;
+    int pad2;
 
     *(int *)(a0 + 0xB0) = 0;
-    v0 = *(int *)(o + 0xA58);
-    cond = ((v0 & 0x20) != 0);
+    cond = ((*(int *)(*(char **)(a0 + 0xB4) + 0xA58) & 0x20) != 0);
     if (cond) {
-        cond = ((v0 & 0x40) != 0);
+        cond = ((*(int *)(*(char **)(a0 + 0xB4) + 0xA58) & 0x40) != 0);
     }
-    game_uso_func_0000EAF4(a0, cond, v0 & 0x20);
+    game_uso_func_0000EAF4(a0, cond, (unsigned)(*(int *)(*(char **)(a0 + 0xB4) + 0xA58) & 0x20));
 
-    if (*(unsigned int *)(*(char **)(*(char **)(a0 + 0xB4) + 0x800) + 0x10) & 0x1000) {
-        int sw = *(int *)(a0 + 0x12C);
-        if (sw == 2) goto L2;
-        if (sw == 1) goto L1;
-        if (sw == 4) goto L4;
-        if (sw != 3) goto done_switch;
+    cond = *(int *)(*(char **)(a0 + 0xB4) + 0x800);
+    if (*(unsigned int *)(cond + 0x10) & 0x1000) {
+        cond = *(int *)(a0 + 0x12C);
+        if (cond == 2) goto L2;
+        if (cond == 1) goto L1;
+        if (cond == 4) goto L4;
+        if (cond != 3) goto done_switch;
         goto L3;
     L2:
         *(int *)(a0 + 0xB0) = *(int *)(a0 + 0xFC) | 0x1B;
@@ -10967,9 +10971,6 @@ void game_uso_func_0000E91C(char *a0) {
         game_uso_func_0000D5DC(a0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E91C);
-#endif
 
 // game_uso_func_0000EAF4 — STRUCTURAL PASS (0x1F8 / 126 words,
 // no episode). Raw-.word USO form (single function, game_uso main
