@@ -11736,35 +11736,31 @@ float game_libs_func_00029CCC(void *p) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00029B6C_pad.s")
 
-#ifdef NON_MATCHING
 /* gl_func_0002A014: byte-table 2-way dispatch (0x68 / 26 words since the
  * 2026-09-11 boundary fix: its former last word 0x2A07C `addiu t6,a2,-242`
  * is the head of game_libs_func_0002A07C below).
- *   v = *(u8*)(D_2A014_table + (a1 & 0xFF));
- *   if ((v & 3) == 1)
- *       v1 = ((v & 0x80) ? gl_func_0003F024() : gl_func_0003F010()) & 0xFFFF;
- *   return v1;
- * v1 takes the CALL RESULT (v0 reused), not the table byte. */
-extern int gl_func_0003F010();
-extern int gl_func_0003F024();
+ * EXACT: a1 is an `unsigned char` param (entry `sw a1,home; andi a1,a1,0xff`
+ * narrowing in place), a0 passes straight through to both baked jals
+ * (gl_ref_0003F010 / gl_ref_0003F024), and the folded `(unsigned short)v`
+ * cast on the table byte burns the one ring slot that puts the tests in t7/t8
+ * (docs/IDO_CODEGEN.md#subsumed-mask-single-ring-slot-burn-2a55c-2a740-cracked-2026-07-03).
+ * The table base is the baked `lui 0 / lbu -176` pair. */
+extern int gl_ref_0003F010();
+extern int gl_ref_0003F024();
 extern unsigned char D_2A014_table[];
-int gl_func_0002A014(int a0, int a1) {
+int gl_func_0002A014(int a0, unsigned char a1) {
     int v1 = 0;
-    unsigned char v;
-    (void)a0;
-    v = D_2A014_table[a1 & 0xFF];
-    if ((v & 3) == 1) {
+    int v;
+    v = (D_2A014_table - 0xB0)[a1];
+    if (((unsigned short)v & 3) == 1) {
         if ((v & 0x80) == 0) {
-            v1 = gl_func_0003F010() & 0xFFFF;
+            v1 = gl_ref_0003F010(a0) & 0xFFFF;
         } else {
-            v1 = gl_func_0003F024() & 0xFFFF;
+            v1 = gl_ref_0003F024(a0) & 0xFFFF;
         }
     }
     return v1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A014);
-#endif
 
 // game_libs_func_0002A07C -- command-buffer VM step (0x1DC / 119 words; was
 // gl_func_0002A080 + the LAST word of gl_func_0002A014). BOUNDARY FIX
