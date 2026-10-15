@@ -4510,7 +4510,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038728);
 //   frame 0x20 w/ s0=o; ours 0x18, o stays caller-save) + IDO switch-case
 //   lowering order (target tests 12,13,14,2 w/ beql-last; ours 2-first) + the
 //   placeholder jal. Regalloc/switch-lowering cap. Name pre-checked: no reuse.
-#ifdef NON_MATCHING
+/* EXACT 2026-10-15 agent-c (84.6 -> 77/77): the last dispatch test is
+ * `if (tag != 2) return; goto L2;`. With `if (tag == 2) goto L2; return;`
+ * IDO pulls the L2 block up as the fall-through (bnel to the epilogue);
+ * the inverted test keeps L2 last, giving the target's beql + b epilogue. */
 void gl_func_00038830(o, c, tag)
 char *o;
 char *c;
@@ -4524,8 +4527,8 @@ int tag;
     if (tag == 0xC) goto L12;
     if (tag == 0xD) goto L13;
     if (tag == 0xE) goto L14;
-    if (tag == 0x2) goto L2;
-    return;
+    if (tag != 0x2) return;
+    goto L2;
 L12:
     pl = *(char **)(c + 0x4);
     pv = *(int *)(pl + 0x4);
@@ -4562,9 +4565,6 @@ L2:
     }
     return;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038830);
-#endif
 
 // gl_func_00038964 — STRUCTURAL PASS (0xC4 / 49 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
