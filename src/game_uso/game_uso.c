@@ -9486,193 +9486,23 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C48C);
 #endif
 
-/* game_uso_func_0000D204/D210 - verified structural decode (132-insn state
- * machine; 0xD204 prelude merged + heavy branch-likely + table-scan + vtable
- * jalr = documented deep sub-80 -> INCLUDE_ASM build path; struct ref).
- *   a3 = a0;
- *   t6 = *(D + 0x64);
- *   if (t6 != 0) goto post_init;
- *   f2 = D[0x1F4];
- *   if (!((a3->0xB4)->0xBC < f2)) { a3->0x120 = 0; }
- *   if ((a3->0xB4)->0xBC < f2) {
- *       w = a3->0x138;
- *       if (a3->0x120 == 0) (a3->0x138->0xB4) and~4;
- *       else                (a3->0x138->0xB4) or 3;
- *   }
- * post_init:
- *   v0 = a3->0xB4;
- *   if (v0->0x938 == 0
- *       and (double-ish) v0->0x9D0 < 1399.0f (D 0x442f...)
- *       and v0->0x31C < -100.0f (0xc2c8...))
- *       func_00000000(v0->0x800, &D+0x109C, 1);   // X1
- *   t5 = a3->0x114;
- *   if (t5 == 0) func_00000000(a3);                // X2
- *   v1 = a3 + 200;
- *   // table-scan: compare v1[0..1] (a3->0xC8/0xCC) against &D+0xDC8 pair
- *   if (match) {
- *       if (a3->0xCA >= 0) {                       // lh signed
- *           ... a2 = (v1->0x4 || a3->0xC8(short)) ? .. : 40 ;
- *           tbl = *(int*)((char*)a3 + a3->0xC8 + a2);
- *           ent = tbl + (a3->0xCE << 3);
- *           ((fn)ent->0x4)( ent->0x0(short) + a3 );  // vtable jalr
- *       } else func_00000000(a3, v1->0x4);
- *   }
- *   func_00000000(a3);                              // X3
- *   if (a3->0x74 != 0) {
- *       func_00000000(a3->0x58);                    // X4
- *       if (a3->0x74 != a3->0x104) a3->0x104 = a3->0x74;
- *   }
- *   func_00000000(a3);                              // X5
- * Struct-typing: a3->0xB4 obj (->0xBC float, ->0x938 flag, ->0x9D0 /
- * ->0x31C floats, ->0x800 sub), a3->0x120 reset-flag, a3->0x138 child
- * (->0xB4 mode bits 0x4/0x3), a3->0x114 state, a3->0xC8/0xCA/0xCE
- * short-trio @+200/202/206, a3->0x74 / 0x104 / 0x58 dispatch fields.
- * D[0x1F4] threshold float, D 700.0/-100.0 compare consts, D-pair
- * @0x109C, scan-table @0xDC8. 2026-05-29: pseudo-C LIFTED to a real NM body
- * (47.4%; was bare INCLUDE_ASM). Residual <80 is the documented deep-cap stack:
- * bc1fl/bc1tl/bnel/beql branch-likely (the two FP clamps + the table-scan loop
- * + the dispatch ladder), the vtable `jalr` dispatch, and reloc scheduling.
- * Logic verified against the build .o disasm; the float-clamp `0x120=0` store is
- * on the `f0 < thresh` path and the child mode-mask is `& ~3` (corrected from the
- * earlier comment's `!(...)` / `~4`). Future tightening = per-block RE. */
-#ifdef NON_MATCHING
-/* game_uso_func_0000D204/D210 - 81.14 -> 85.73% (2026-10-15 agent-g): the
- * 0x114 gate was inverted (target CALLS D9CC when 0x114 != 0: beqzl skips the
- * jal); 076E78 takes a3->0x74 as a 2nd arg (a1 loaded before the beqz and
- * kept live across the call); the +0x1F4 threshold is one cached float local
- * (target loads f2 once and re-tests in the bc1fl delay slot).
- * ROOT CAUSE OF THE RESIDUAL: this function is C++ compiled by IDO 7.1 NCC
- * (edg front end), not cfe. The `addi`/`at` 2-word loop + 1/0 flag is edg's
- * pointer-to-member-function compare (a3->pmf at +200 vs a null PMF at
- * D_807FF3B8+0xDC8) and the bgez/vptr-offset-40 block is the PMF call
- * (this->*pmf)(). cfe rejects struct ==, and never allocates `at`. A C++
- * body compiled with tools/ido-static-recomp/build/7.1/out/NCC is
- * instruction-identical (0x214, relocs identical) - see
- * docs/IDO_CODEGEN.md#game-uso-is-cplusplus-ncc-pmf-compare-d204. Landing it
- * needs a per-TU NCC build of a carved region (Yay0 block concat infra).
- * Earlier notes (60.98 -> 81.14% logic-corrected decode):
- * LOGIC FIXES over prior 47.4%/61% body:
- *  (1) table-scan flag was INVERTED: target runs the vtable-dispatch body on
- *      MISMATCH (the loop sets the flag=1 on the first differing word and =0
- *      when all words match), prior C ran it on full-match. Rewrote as
- *      do{ if(*p!=*tbl){mismatch=1;goto done;} } while(p!=end); mismatch=0; done:
- *  (2) dispatch arm order: target branches (bgez) to the >=0 row-lookup arm and
- *      keeps the <0 (fn=v1[1]; a0=base) arm INLINE -> write `if (cca < 0)` first.
- *  (3) child bit-mask block: AND-path (&=~3) is physically first / shared by both
- *      cond-true and 0x120!=0, OR-path (|=3) is the beqzl forward target. Express
- *      with goto-shared clear_bits/set_bits so IDO emits bc1tl + beqzl, AND first.
- *  (4) inlined the +0x1F4 threshold load (no float-top-local cache) so the obj
- *      deref colors into f0 ahead of the thresh load (gate float-reg numbering).
- *  (5) child store via pointer-to-field `child=(int*)(...+0xB4); *child` to emit the
- *      target's `addiu v0,v0,0xB4; sw ...,0(v0)` base-adjust (not sw ...,180(v0)).
- * Real callee names from R_MIPS_26 relocs (07C0C0/D9CC/ECE8/076E78/0775F8);
- * import_80020098 base for the +0x64 gate + child obj = import->0x138; v1=import;
- * D-pair arg = &game_uso_D_807FF68C+4252; table-scan vs D_807FF3B8+0xDC8.
- * RESIDUAL <100 is coloring/branch-likely scheduling only: gate FP-clamp bc1fl/
- * bc1tl + a redundant %hi(D) reload + float-reg numbering; the table-scan
- * loop-back bnel/bnel + addi (target) vs beq/bne + addiu (build) cost-model
- * delay-fill; dispatch-body a2-vs-t0/v1 coloring. Logic-complete. */
-extern char import_80020098;
-extern char game_uso_D_807FF68C;
-extern char game_uso_D_807FF3B8;
-extern void game_uso_func_07C0C0(int, char *, int);
-extern void game_uso_func_0000D9CC(char *);
-extern void game_uso_func_0000ECE8(int *);
-extern void game_uso_func_076E78(int, int);
-extern void game_uso_func_0775F8(int *);
+/* game_uso_func_0000D204 (0x214 / 133 words): per-frame update. Gate on
+ * import->0x64: clamp self->0xB4->0xBC against D+0x1F4 (reset self->0x120)
+ * and set/clear the child mode bits import->0x138->0xB4 & 3; trigger
+ * 07C0C0 when the 0xB4 object's 0x938 flag is clear and its 0x9D0 < 700 /
+ * 0x31C < -100; D9CC when self->0x114; then `if (self->pm) (self->*pm)();`
+ * (pointer-to-member at +200); ECE8; 076E78 + latch 0x74 into 0x104; 0775F8.
+ * EXACT via REPLACE_FUNC_BODY donor splice: game_uso is C++, and the real
+ * body lives in the IDO 7.1 NCC (C++) donor src/game_uso/game_uso_ncc_D204.cpp
+ * (133/133 words + all 13 relocs identical). The pointer-to-member compare
+ * (2-word `at`/`addi` loop vs the null PMF at D_807FF3B8+0xDC8) and the
+ * delta/index/vptr dispatch are edg-only codegen; cfe capped at 85.8%.
+ * docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe. The
+ * 0xD210 alias label of the old .s is not a real entry (nothing references
+ * it). Body below is a placeholder for the splice. */
 void game_uso_func_0000D204(int *a0) {
-    int *a3 = a0;
-    int *child;
-    int *v0;
-    int *v1;
-
-    if (*(int *)((char *)&import_80020098 + 0x64) == 0) {
-        float th = *(float *)((char *)&D_00000000 + 0x1F4);
-        if (*(float *)((char *)*(int **)((char *)a0 + 0xB4) + 0xBC) < th) {
-            *(int *)((char *)a0 + 0x120) = 0;
-        }
-        if (*(float *)((char *)*(int **)((char *)a0 + 0xB4) + 0xBC) < th) {
-            goto clear_bits;
-        }
-        if (*(int *)((char *)a3 + 0x120) == 0) {
-            goto set_bits;
-        }
-    clear_bits:
-        child = (int *)((char *)*(int **)((char *)&import_80020098 + 0x138) + 0xB4);
-        *child &= ~3;
-        goto bits_done;
-    set_bits:
-        child = (int *)((char *)*(int **)((char *)&import_80020098 + 0x138) + 0xB4);
-        *child |= 3;
-    bits_done:;
-    }
-
-    v0 = *(int **)((char *)a3 + 0xB4);
-    if (*(int *)((char *)v0 + 0x938) == 0
-        && *(float *)((char *)v0 + 0x9D0) < 700.0f
-        && *(float *)((char *)v0 + 0x31C) < -100.0f) {
-        game_uso_func_07C0C0(*(int *)((char *)v0 + 0x800),
-                             (char *)&game_uso_D_807FF68C + 4252, 1);
-    }
-
-    if (*(int *)((char *)a3 + 0x114) != 0) {
-        game_uso_func_0000D9CC((char *)a3);
-    }
-
-    v1 = (int *)((char *)a3 + 200);
-    {
-        int *tbl = (int *)((char *)&game_uso_D_807FF3B8 + 0xDC8);
-        int *p = v1;
-        int *end = v1 + 2;
-        int mismatch;
-        do {
-            if (*p != *tbl) {
-                mismatch = 1;
-                goto scan_done;
-            }
-            p++;
-            tbl++;
-        } while (p != end);
-        mismatch = 0;
-    scan_done:
-        if (mismatch) {
-            char *base = (char *)a3 + *(short *)((char *)a3 + 0xC8);
-            int (*fn)();
-            int a0v;
-            if (*(short *)((char *)a3 + 0xCA) < 0) {
-                fn = (int (*)())v1[1];
-                a0v = (int)base;
-            } else {
-                int sel = v1[1];
-                int *row;
-                if (sel == 0) {
-                    if (*(short *)((char *)v1 + 0) != 0) {
-                        sel = 0;
-                    } else {
-                        sel = 40;
-                    }
-                }
-                row = *(int **)(base + sel);
-                row = (int *)((char *)row + (*(short *)((char *)v1 + 2) << 3));
-                fn = (int (*)())row[1];
-                a0v = (int)((char *)base + *(short *)((char *)row + 0));
-            }
-            fn(a0v);
-        }
-    }
-
-    game_uso_func_0000ECE8(a3);
-    if (*(int *)((char *)a3 + 0x74) != 0) {
-        game_uso_func_076E78(*(int *)((char *)a3 + 0x58), *(int *)((char *)a3 + 0x74));
-        if (*(int *)((char *)a3 + 0x74) != *(int *)((char *)a3 + 0x104)) {
-            *(int *)((char *)a3 + 0x104) = *(int *)((char *)a3 + 0x74);
-        }
-    }
-    game_uso_func_0775F8(a3);
+    volatile int *ret = a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D204);
-#endif
 
 void game_uso_func_0000D418(char *a0) {
     gl_func_00000000(a0 + 0x13C);

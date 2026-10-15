@@ -18,6 +18,8 @@ AS       := $(CROSS)as
 CC       := $(IDO_DIR)/cc
 LD       := $(CROSS)ld
 OBJCOPY  := $(CROSS)objcopy
+# IDO 7.1 C++ driver (edg front end) -- game_uso was written in C++
+NCC      := $(IDO_DIR)/NCC
 
 # Flags
 ASFLAGS  := -EB -march=vr4300 -mtune=vr4300 -mabi=32 -I include
@@ -1492,6 +1494,23 @@ all: verify
 
 # Keep explicit donor dependencies below all so bare make still verifies ROM.
 build/non_matching/src/game_libs/game_libs_post1b.c.o: src/game_libs/game_libs_o2limit_65EE4.c
+
+# game_uso C++ donors (IDO 7.1 NCC). game_uso is C++; functions whose codegen
+# only edg produces (pointer-to-member compare/call, ...) are compiled from a
+# src/game_uso/game_uso_ncc_<OFF>.cpp donor and REPLACE_FUNC_BODY-spliced into
+# game_uso.c.o (both trees), whose own body for them is a placeholder. The
+# .cpp files are outside C_FILES (find -name '*.c') so they are never linked.
+# No asm-processor (no GLOBAL_ASM in a donor). Every symbol is extern "C".
+# See docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe.
+NCC_CFLAGS := -G 0 -non_shared -Wab,-r4300_mul
+build/src/%.cpp.o: src/%.cpp
+	@mkdir -p $(dir $@)
+	$(NCC) -c $(NCC_CFLAGS) $(OPT_FLAGS) $(MIPSISET) -o $@ $<
+# D204 = per-frame update with a pointer-to-member `(this->*pm)()` block
+# (133/133 words + 13/13 relocs identical under NCC; cfe capped at 85.8%).
+GAMEUSO_D204_DONOR := build/src/game_uso/game_uso_ncc_D204.cpp.o
+build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: REPLACE_FUNC_BODY := game_uso_func_0000D204=$(GAMEUSO_D204_DONOR)
+build/src/game_uso/game_uso.c.o build/non_matching/src/game_uso/game_uso.c.o: $(GAMEUSO_D204_DONOR)
 
 # xldtob.c -O3 donor (73904/73E74): direct CC, no asm-processor
 # (asm-processor rejects -O3; the file has no GLOBAL_ASM). Symbol

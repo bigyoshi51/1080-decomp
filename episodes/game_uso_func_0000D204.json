@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_0000D204",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T18:33:11.846993+00:00",
+  "end_time": "2026-10-15T18:33:11.847016+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T18:33:11.847010+00:00",
+      "assistant_text": "Donor-splice exact, compiled as C++ by IDO 7.1 NCC (game_uso is C++). The addi/at 2-word compare loop with a 1/0 flag is the edg-lowered pointer-to-member-function test this->pm != nullpmf (cfront PMF layout short delta, short index, fnptr-or-vptr-offset), compared against the extern null PMF at game_uso_D_807FF3B8+0xDC8 so edg references the USO object instead of emitting its own; the bgez / vptr-at-40 block is (this->*pm)() with the class vptr at +40 (struct A { char pad[40]; virtual void m(); }). All symbols extern \"C\" to keep names unmangled. NCC wants 0x104 != 0x74 operand order where cfe wanted the reverse. cfe capped at 85.8%.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 133,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 NCC (C++) donor for game_uso_func_0000D204 (0x214 / 133 words).\n *\n * game_uso was written in C++ and compiled by IDO 7.1's own C++ driver NCC\n * (edg front end). The `if (pm != null) (this->*pm)();` block below is an\n * edg-lowered cfront-layout pointer-to-member-function test + call (memberwise\n * 2-word compare loop through `at` with `addi`, then the delta/index/vptr\n * dispatch with the class's vptr at +40); cfe cannot emit it (the old C NM\n * wrap capped at 85.8%). Built by the explicit NCC rule in the Makefile\n * (no asm-processor, no GLOBAL_ASM) and spliced into game_uso.c.o via\n * REPLACE_FUNC_BODY; this unit is never linked on its own.\n * docs/IDO_CODEGEN.md#game-uso-is-cplusplus-ncc-pmf-compare-d204,\n * docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe.\n *\n * Every symbol is extern \"C\" so names stay unmangled for the splice's reloc\n * import. Comparing against the extern null PMF at game_uso_D_807FF3B8+0xDC8\n * (not literal 0) makes edg reference the USO's null object instead of\n * emitting its own .data copy. NCC wants `0x104 != 0x74` (cfe wanted the\n * reverse) for the same `beq a1,t9`. */\nextern \"C\" {\nextern char import_80020098;\nextern char game_uso_D_807FF68C;\nextern char game_uso_D_807FF3B8;\nextern char D_00000000;\nvoid game_uso_func_07C0C0(int, char *, int);\nvoid game_uso_func_0000D9CC(void *);\nvoid game_uso_func_0000ECE8(void *);\nvoid game_uso_func_076E78(int, int);\nvoid game_uso_func_0775F8(void *);\n}\nstruct A { char pad[40]; virtual void m(); };\ntypedef void (A::*PM)();\nstruct H : A { char pad2[200-44]; PM pm; };\n#define I(b,o) (*(int *)((char *)(b) + (o)))\n#define F(b,o) (*(float *)((char *)(b) + (o)))\nextern \"C\" void game_uso_func_0000D204(H *a0) {\n    H *a3 = a0;\n    if (I(&import_80020098, 0x64) == 0) {\n        float th = F(&D_00000000, 0x1F4);\n        if (F(I(a0, 0xB4), 0xBC) < th) {\n            I(a0, 0x120) = 0;\n        }\n        if (F(I(a0, 0xB4), 0xBC) < th) goto clear_bits;\n        if (I(a3, 0x120) == 0) goto set_bits;\n    clear_bits:\n        { int *child = (int *)(I(&import_80020098, 0x138) + 0xB4); *child &= ~3; }\n        goto bits_done;\n    set_bits:\n        { int *child = (int *)(I(&import_80020098, 0x138) + 0xB4); *child |= 3; }\n    bits_done:;\n    }\n    {\n        int v0 = I(a3, 0xB4);\n        if (I(v0, 0x938) == 0 && F(v0, 0x9D0) < 700.0f && F(v0, 0x31C) < -100.0f) {\n            game_uso_func_07C0C0(I(v0, 0x800), &game_uso_D_807FF68C + 4252, 1);\n        }\n    }\n    if (I(a3, 0x114) != 0) game_uso_func_0000D9CC(a3);\n    if (a3->pm != *(PM *)(&game_uso_D_807FF3B8 + 0xDC8)) (a3->*(a3->pm))();\n    game_uso_func_0000ECE8(a3);\n    if (I(a3, 0x74) != 0) {\n        game_uso_func_076E78(I(a3, 0x58), I(a3, 0x74));\n        if (I(a3, 0x104) != I(a3, 0x74)) I(a3, 0x104) = I(a3, 0x74);\n    }\n    game_uso_func_0775F8(a3);\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-g/src/game_uso/game_uso_ncc_D204.cpp",
+    "asm_path": "projects/1080-agent-g/asm/nonmatchings/game_uso/game_uso/game_uso_func_0000D204.s",
+    "segment": "game_uso",
+    "compiler": "IDO 7.1 NCC (C++)",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Wab,-r4300_mul",
+    "verification": "NCC donor 133/133 words + 13/13 relocs identical; spliced into game_uso.c.o via REPLACE_FUNC_BODY; report.json 100.0; ROM byte-identical; verify-blocks OK."
+  }
+}
