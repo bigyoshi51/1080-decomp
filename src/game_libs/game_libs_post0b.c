@@ -20661,78 +20661,50 @@ loop_1:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D688);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0004DA40 — decoded 2026-05-19; re-split standalone (62 words,
- * 0xF8). 2026-06-21: corrected first guard sense (self->0xC != 0, was
- * inverted) + threaded self->4 through an explicit v0 local → 40 diffs
- * / 76.9% fuzzy (was 73.7%). RESIDUAL CAP: register coloring — target
- * keeps the reloaded object ptr (self->0xC) live in $a1 across the
- * body; IDO colors mine into $v0/$v1, cascading the offset/temp regs.
- * NAMED fn = stateful init/register:
- *   int gl_func_0004DA40(int *self) {
- *     if (self->0xC == 0) cb1(&D_00000000 + 0x202F0);   // beql-likely
- *     if (self->4 == 0) return 0;                        // beq end
- *     self->0xC = self->4;
- *     cb2(self->4);
- *     if ((self->0xC)->0x74 != 0) cb3((self->0xC)->0x74);// beql-likely
- *     if ((self->0xC)->0x70 == 0) return 0;              // beq end
- *     g = *(int*)(&D_00000000 + 0x254);                  // save global
- *     *(int*)(&D_00000000 + 0x254) = (self->0xC)->0x74;  // set global
- *     cb4((self->0xC)->0x70);
- *     *(int*)(&D_00000000 + 0x254) = g;                  // restore
- *     self->0x3C = &D_00000000 + 0x20308; self->0x1C = 1;
- *     cb5(self->0xC);
- *     self->0x20 = 1; self->0x40 = &D_00000000 + 0x2030C;
- *     cb6(&D_00000000 + 0x20310);
- *     return 1;
- *   }
- * Multi-idiom (defer): beql-likely guards, the global
- * save/cb4/restore bracket, several cb arg-threads off
- * self->0xC, dual return 1/0 epilogue. Exact cb arities + the
- * global-restore placement need a focused pass.
- *
- * BOUNDARY NOTE (DEFERRED USO RE-SPLIT): insns 65..68 after the
- * jr ra are a trailing LEAF (`sw a0,0; sw a1,4; sw a2,8;
- * sw a3,0xC; jr ra; li v0,1` arg-stash stub, own 03E00008). The
- * 0x110 size spans it so the named fn can't byte-match standalone
- * without a re-split at the named-fn end. Real decoded C of the
- * named fn preserved; INCLUDE_ASM is the bundle build path. */
+/* gl_func_0004DA40: attach self->4 as the current child. EXACT 2026-10-15
+ * (agent-c; was NM 76.9). The call-shape scan flagged a1 "missing" at four
+ * sites; only the first is a real arg (cb(child, &self->4), `addiu a1,s0,4`
+ * hoisted above the beqz). The other three are scanner class (a): the
+ * reloaded child pointer merely colours a1. Fixes vs the old wrap:
+ * (1) store-then-test `if ((self->C = self->4) != 0)` -> `lw v0; beqz v0;
+ * sw v0,12(s0)` (store in the delay slot, a0 copied from v0); (2) the
+ * child->0x70 test only guards the save/cb/restore bracket of the global at
+ * D+0x254 -- the tail (self->0x3C/0x1C, cb(child), self->0x20/0x40, cb(str),
+ * return 1) runs unconditionally, so the only return-0 is the self->4==0
+ * exit (shared `or v0,zero,zero` block after the `b` over it). */
 extern int gl_func_00000000();
 extern int D_00000000;
 int gl_func_0004DA40(int *self) {
-    int v0;
+    int c;
     int g;
     if (self[0xC / 4] != 0) {
         gl_func_00000000((char *)&D_00000000 + 0x202F0);
     }
-    v0 = self[4 / 4];
-    if (v0 == 0) {
-        return 0;
+    if ((self[0xC / 4] = self[4 / 4]) != 0) {
+        gl_func_00000000(self[0xC / 4], &self[1]);
+        c = self[0xC / 4];
+        if (*(int *)(c + 0x74) != 0) {
+            gl_func_00000000(*(int *)(c + 0x74));
+        }
+        c = self[0xC / 4];
+        if (*(int *)(c + 0x70) != 0) {
+            g = *(int *)((char *)&D_00000000 + 0x254);
+            *(int *)((char *)&D_00000000 + 0x254) = *(int *)(c + 0x74);
+            gl_func_00000000(*(int *)(self[0xC / 4] + 0x70));
+            *(int *)((char *)&D_00000000 + 0x254) = g;
+        }
+        c = self[0xC / 4];
+        *(int *)((char *)self + 0x3C) = (int)((char *)&D_00000000 + 0x20308);
+        *(int *)((char *)self + 0x1C) = 1;
+        gl_func_00000000(c);
+        *(int *)((char *)self + 0x20) = 1;
+        *(int *)((char *)self + 0x40) = (int)((char *)&D_00000000 + 0x2030C);
+        gl_func_00000000((char *)&D_00000000 + 0x20310);
+        return 1;
     }
-    self[0xC / 4] = v0;
-    gl_func_00000000(v0);
-    if (*(int *)(self[0xC / 4] + 0x74) != 0) {
-        gl_func_00000000(*(int *)(self[0xC / 4] + 0x74));
-    }
-    if (*(int *)(self[0xC / 4] + 0x70) == 0) {
-        return 0;
-    }
-    g = *(int *)((char *)&D_00000000 + 0x254);
-    *(int *)((char *)&D_00000000 + 0x254) = *(int *)(self[0xC / 4] + 0x74);
-    gl_func_00000000(*(int *)(self[0xC / 4] + 0x70));
-    *(int *)((char *)&D_00000000 + 0x254) = g;
-    *(int *)((char *)self + 0x3C) = (int)((char *)&D_00000000 + 0x20308);
-    *(int *)((char *)self + 0x1C) = 1;
-    gl_func_00000000(self[0xC / 4]);
-    *(int *)((char *)self + 0x20) = 1;
-    *(int *)((char *)self + 0x40) = (int)((char *)&D_00000000 + 0x2030C);
-    gl_func_00000000((char *)&D_00000000 + 0x20310);
-    return 1;
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DA40);
 
-#endif
 
 int game_libs_func_0004DB38(int a0, int a1, int a2, int a3) {
     return 1;
