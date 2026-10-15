@@ -3652,3 +3652,4 @@ gl_ref_0003F388 = 0x0003F388;  /* gl_func_0002AA30 baked USO jal (0x0C00FCE2) */
 gl_ref_0003FC60 = 0x0003FC60;  /* gl_func_0002AA30 baked USO jal (0x0C00FF18) */
 gl_ref_0003F708 = 0x0003F708;  /* gl_func_0002AA30 baked USO jal (0x0C00FDC2) */
 gl_ref_0003F22C = 0x0003F22C;  /* gl_func_0002AA30 baked USO jal (0x0C00FC8B) */
+gl_ref_000400A4 = 0x000400A4;  /* gl_func_0002BAAC baked USO jal (0x0C010029) */

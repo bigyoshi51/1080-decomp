@@ -13499,49 +13499,25 @@ int gl_func_0002BA38(char *a0, unsigned char a1, int **a2, char *a3)
   return a1;
 }
 
-// gl_func_0002BAAC — STRUCTURAL PASS (0xAC / 43 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). A script-VM command-argument decoder (sibling of the
-// gl_func_0002B09C / gl_func_0002B5F4 executor family).
-//
-//   void gl_func_0002BAAC(O *o, int op) {
-//     op &= 0xFF;
-//     if (op < 0x80) {
-//       o->h_24 = op;                                   // literal arg
-//       o->w_48 = 0;                                     // mode 0
-//     } else if (op == 0x7F) {
-//       o->h_24 = 0;  o->w_48 = 1;                        // mode 1
-//     } else if (op == 0x7E) {
-//       o->h_24 = 1;  o->w_48 = 2;                        // mode 2
-//     } else {
-//       int a = jal 0x400A4(&o->_8C);                     // 0x0C010029
-//       a = (short)a;                                      // sign-ext
-//       if (a != 0) o->h_24 = a;
-//       o->b_0 &= ~0x08;                                   // clear bit3
-//     }
-//   }
-//
-// Struct-typing reference: decodes one command operand for the script
-//   VM. The opcode byte selects an addressing/argument mode written
-//   into halfword o->0x24 (the operand value) and word o->0x48 (the
-//   mode tag): a literal op (< 0x80) → value=op/mode=0; the special
-//   bytes 0x7F / 0x7E select fixed modes (0/1, 1/2); any other byte
-//   triggers a fetch of a sign-extended halfword argument via the
-//   fixed USO-relocated reader 0x0C010029 (≈0x400A4) from the operand
-//   sub-block at o+0x8C, clearing flag bit3 of o->0. Operand-decode
-//   peer to the gl_func_0002B09C / gl_func_0002B5F4 executors fed by
-//   the gl_func_0002AD1C interpreter loop.
-// Caps (DEFERRED): raw-word USO + fixed-target operand fetch
-//   (0x400A4) — byte-match needs USO mnemonic disasm + reloc-pad
-//   jal infra. Real-C STRUCTURAL body below per the analysis.
-//   Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-extern int gl_func_00000000();
-void gl_func_0002BAAC(char *o, int op) {
+/* gl_func_0002BAAC: script-VM operand decoder (0xAC / 43 words, EXACT).
+ * op >= 0x80 -> literal (h24 = op, w48 = 0); 0x7F / 0x7E -> fixed
+ * modes (0/1, 1/2); anything else fetches a halfword via the in-unit
+ * reader 0x400A4 (baked jal -> gl_ref_000400A4 pin) and clears flag
+ * bit3 when it reads 0; every other path falls through to set bit3.
+ * Levers: the param is `unsigned char` (entry `sw a1,home; andi a1`,
+ * #uchar-param-inplace-narrow-ushort-burn-2a014) and the reader is
+ * PROTOTYPED with an `unsigned char` 2nd param, so op reaches the jal in
+ * a1 untouched while the tests use a v0 copy (K&R / int prototype copies
+ * op into s0 and grows the frame). Flag bit3 as an unsigned-char
+ * bitfield burns t3 (the `|= 8` mask form rings at t3/t4). */
+typedef struct Gl2BAACFlags {
+    unsigned char b7 : 1, b6 : 1, b5 : 1, b4 : 1, f3 : 1, rest : 3;
+} Gl2BAACFlags;
+extern int gl_ref_000400A4(char *, unsigned char, char *, char *);
+void gl_func_0002BAAC(char *o, unsigned char op) {
     int a;
-    op &= 0xFF;
-    if (op < 0x80) {
-        *(short *)(o + 0x24) = (short)op;
+    if (op >= 0x80) {
+        *(short *)(o + 0x24) = op;
         *(int *)(o + 0x48) = 0;
     } else if (op == 0x7F) {
         *(short *)(o + 0x24) = 0;
@@ -13550,18 +13526,15 @@ void gl_func_0002BAAC(char *o, int op) {
         *(short *)(o + 0x24) = 1;
         *(int *)(o + 0x48) = 2;
     } else {
-        a = gl_func_00000000(o, op, o + 0x48, o + 0x8C);
-        *(short *)(o + 0x24) = (short)a;
+        a = gl_ref_000400A4(o, op, o + 0x48, o + 0x8C);
+        *(short *)(o + 0x24) = a;
         if ((short)a == 0) {
-            *(unsigned char *)o = *(unsigned char *)o & ~0x08;
-        } else {
-            *(unsigned char *)o = *(unsigned char *)o | 0x08;
+            ((Gl2BAACFlags *)o)->f3 = 0;
+            return;
         }
     }
+    ((Gl2BAACFlags *)o)->f3 = 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BAAC);
-#endif
 
 /* game_libs_func_0002BB58: 9-insn byte-to-float-scale leaf.
  * `a0[0x2C] = (float)(a1 & 0xFF) / 127.0f`.
