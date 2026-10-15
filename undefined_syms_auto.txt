@@ -3705,3 +3705,7 @@ gl_ref_0006F620 = 0x0006F620;  /* gl_func_0005B3E0 baked in-unit jal (game_libs_
 gl_func_00000000_d414 = 0x00000000;  /* (float, int *, int *) blank cb for gl_func_0005D414 */
 gl_func_00000000_37bec = 0x00000000;  /* (void *, void *) void blank list-splice cb for gl_func_00037BEC */
 gl_ref_0003B844 = 0x0003B844;  /* gl_func_0002722C baked in-unit jal (0x0C00EE11) */
+gl_ref_0003B8E8 = 0x0003B8E8;  /* gl_func_00035440 baked counter word (config block, lui/lw + lui/sw) */
+gl_ref_0001E5AC = 0x0001E5AC;  /* gl_func_00035440 baked lui/addiu message address (kind-2 report) */
+gl_ref_0001E5C8 = 0x0001E5C8;  /* gl_func_00035440 baked lui/addiu message address (a1 & 7 report) */
+gl_ref_0001E5DC = 0x0001E5DC;  /* gl_func_00035440 baked lui/addiu message address (r < 0 report) */

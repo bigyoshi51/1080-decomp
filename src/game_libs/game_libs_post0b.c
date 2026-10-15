@@ -1199,103 +1199,80 @@ int gl_func_00035370(char *o, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035370);
 #endif
 
-// gl_func_00035440 — STRUCTURAL PASS (0x160 / 88 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
-// prologue). The SIBLING of gl_func_00035370 (immediately above) —
-// same kind-dispatch shape, adjacent vtable slot + a kind-2 arm.
-//
-//   void gl_func_00035440(O *o, int a1, int a2) {
-//     switch (o->kind_4) {
-//       case 1: {
-//         H *h = *(H**)&D_0;
-//         r = h->fp_50(o->w_20, a2);           // jalr (*&D_0)->0x50
-//         break;
-//       }
-//       case 0:
-//         r = callback(&D_0, a2);               // jal 0 (USO cb)
-//         break;
-//       case 2: {
-//         int cfg = *(int*)0x0004B8E8;          // device config
-//         report((char*)0x0001E5AC, a2, cfg);   // USO cb
-//         if (a2) { ... }
-//         break;
-//       }
-//       default: break;
-//     }
-//   }
-//
-// Struct-typing reference: the paired counterpart of
-//   gl_func_00035370 — same per-kind polymorphic processor
-//   switching on o->0x04 ∈ {0,1,2}. Deltas vs gl_func_00035370:
-//   the kind==1 arm dispatches through the ADJACENT vtable slot
-//   (*&D_0)+0x50 (vs 0x4C there) — confirming the global handler
-//   object has a contiguous method table around offset 0x4C/0x50 —
-//   and the kind==2 arm reads the global DEVICE CONFIG word at the
-//   FIXED absolute address 0x0004B8E8 (inside the 0x0004B8xx config
-//   block that gl_func_00034A78 initializes) and emits a diagnostic
-//   via a USO-relocated printf-shaped callback (jal 0 → resolved at
-//   load) with format string 0x0001E5AC. Together gl_func_00035370
-//   (slots 0x4C) and gl_func_00035440 (slot 0x50 + device-config
-//   arm) are a dispatch pair over the device-object vtable family
-//   (gl_func_00034188 / 00034458). 0x0004B8E8 / 0x0001E5AC are
-//   deferred absolute-symbol / string-data symbolization sites.
-// Caps (DEFERRED): raw-word USO + jalr through global handler
-//   vtable ((*&D_0)+0x50) + USO-reloc jal-0 callbacks + fixed
-//   absolute device-config (0x0004B8E8) + fixed string data
-//   (0x0001E5AC) — byte-match needs USO mnemonic disasm + vtable
-//   /config typed. Real-C STRUCTURAL body below per the analysis
-//   (paired counterpart to gl_func_00035370). Byte-match deferred.
-//   Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-/* Whole-body decode 2026-06-01 (prior body returned void, mis-stored to o->0x20).
- * Dispatch on o->4 setting a3: case1 a3=(*(&D))->0x50(o->0x20, a2); case0
- * a3=gl(&D,a2); case2 a3=a2 after a sequence of emits + a *(0x3B8E8)+=a2 counter
- * bump; default a3=0. Converge: if a3<0, gl(0x1E5DC, a3). Return a3. */
-int gl_func_00035440(char *o, int a2) {
-    int a3 = 0;
-    switch (*(int *)(o + 4)) {
-    case 1: {
-        char *h = *(char **)&D_00000000;
-        int (*f)(int, int) = *(int (**)(int, int))(h + 0x50);
-        a3 = f(*(int *)(o + 0x20), a2);
-        break;
-    }
-    case 0:
-        a3 = gl_func_00000000(&D_00000000, a2);
-        break;
-    case 2: {
-        int cfg = *(int *)0x0003B8E8;
-        char buf[36];
-        gl_func_00000000((char *)0x0001E5AC, a2, cfg);
+/* gl_func_00035440: EXACT (0x160 / 88 words). Kind dispatch on o->0x04, the
+ * sibling of gl_func_00035370 (vtable slot 0x50 here):
+ *   1: r = (*&D)->0x50(o->0x20, a1, a2)    0: r = cb(&D, a1, a2)
+ *   2: report(fmt 0x1E5AC, a1, a2, counter 0x3B8E8); if (a2) { optional
+ *      report(0x1E5C8) when a1 & 7; build a message block on the stack and
+ *      send it to the 0x3B8EC queue; cb(a1, a2) }; counter += a2; r = a2.
+ *   then: if (r < 0) report(0x1E5DC, r); return r.
+ * Matching notes:
+ * - Compare order 1, 0, 2 with the bodies out of line in that order is a goto
+ *   chain, not a switch (IDO sorts switch compares ascending and gives the
+ *   switch selector its own frame slot). The last test is `if (k != 2) goto
+ *   end; goto L2;` (docs/IDO_CODEGEN.md
+ *   #feedback-ido-split-last-eq-test-to-suppress-bnel).
+ * - Frame 0x70: the named scalars r (0x6C, also r's spill home) and k (0x68)
+ *   take the top slots in decl order, then the block's 44-byte message
+ *   struct at 0x3C, buf at 0x24, tmp at 0x20.
+ * - `s.a1 = a1; s.cfg = ...;` on ONE source line gives the target's
+ *   schedule (cfg loaded first, a1 store in the jal delay slot). On two
+ *   lines the a1 reload is issued between the lui and the lw of cfg.
+ *   (docs/IDO_CODEGEN.md #same-line-store-pair-schedule-35440)
+ * - Baked absolute addresses are per-site gl_ref_ pins. */
+extern int gl_ref_0003B8E8, gl_ref_0003B8EC;
+extern char gl_ref_0001E5AC, gl_ref_0001E5C8, gl_ref_0001E5DC;
+typedef struct {
+    short h;
+    signed char b;
+    char pad;
+    char *p;
+    int a1;
+    int cfg;
+    int a2;
+    int rest[6];
+} Msg35440;
+int gl_func_00035440(char *o, int a1, int a2) {
+    int r = 0;
+    int k = *(int *)(o + 4);
+    if (k == 1) goto L1;
+    if (k == 0) goto L0;
+    if (k != 2) goto end;
+    goto L2;
+L1:
+    r = (*(int (***)(int, int, int))&D_00000000)[0x50 / 4](*(int *)(o + 0x20), a1, a2);
+    goto end;
+L0:
+    r = gl_func_00000000(&D_00000000, a1, a2);
+    goto end;
+L2: {
+        Msg35440 s;
+        char buf[24];
+        int tmp;
+        gl_func_00000000(&gl_ref_0001E5AC, a1, a2, gl_ref_0003B8E8);
         if (a2 != 0) {
-            if ((cfg & 7) != 0) {
-                gl_func_00000000((char *)0x0001E5C8);
+            if (a1 & 7) {
+                gl_func_00000000(&gl_ref_0001E5C8);
             }
-            gl_func_00000000(&buf[20], &buf[16], 1);
-            *(int *)(buf + 28) = (int)&buf[20];
-            *(signed char *)(buf + 26) = 0;
-            *(int *)(buf + 40) = a2;
-            *(int *)(buf + 36) = *(int *)0x0003B8E8;
-            *(int *)(buf + 32) = cfg;
-            gl_func_00000000(*(int *)0x0003B8E4, &buf[24], 0);
-            gl_func_00000000(&buf[20], 0, 1);
-            gl_func_00000000(cfg, a2);
+            gl_func_00000000(buf, &tmp, 1);
+            s.p = buf;
+            s.b = 0;
+            s.a2 = a2;
+            s.a1 = a1; s.cfg = gl_ref_0003B8E8;
+            gl_func_00000000();
+            gl_func_00000000(gl_ref_0003B8EC, &s, 0);
+            gl_func_00000000(buf, 0, 1);
+            gl_func_00000000(a1, a2);
         }
-        *(int *)0x0003B8E8 = *(int *)0x0003B8E8 + a2;
-        a3 = a2;
-        break;
+        gl_ref_0003B8E8 += a2;
+        r = a2;
     }
-    default:
-        break;
+end:
+    if (r < 0) {
+        gl_func_00000000(&gl_ref_0001E5DC, r);
     }
-    if (a3 < 0) {
-        gl_func_00000000((char *)0x0001E5DC, a3);
-    }
-    return a3;
+    return r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035440);
-#endif
 
 // gl_func_000355A0 — STRUCTURAL PASS (0x84 / 33 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
