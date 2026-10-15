@@ -397,63 +397,72 @@ void game_libs_func_00000B8C(int a0) {}
  * (body: mflo of B94's multu, prologue, sprintf-style calls, epilogue). The
  * multu(B94)/mflo(BAC) LO-register dependency proves they are one function;
  * IDO scheduled the division setup before the addiu sp prologue. */
-/* game_libs_func_00000B94: ms->time formatter (a1 / 60000 = minutes, etc.).
- * Merged 2026-05-23: splat mis-split this at 0xBAC into game_libs_func_00000B94
- * (head: div a1,60000; v0<<4; multu v0,60000 — no prologue/jr) + gl_func_00000BAC
- * (body: mflo of B94's multu, prologue, sprintf-style calls, epilogue). The
- * multu(B94)/mflo(BAC) LO-register dependency proves they are one function;
- * IDO scheduled the division setup before the addiu sp prologue. */
+/* NM 94.84 (agent-g run 62; was 66.7). Re-decode: no 4th `rem` arg on the
+ * sprintf-style calls (the target's a3 = rem at the first call is a leftover),
+ * the 0xCB9C..0xCBB8 format strings are the baked `(char *)&D_00000000 + K`
+ * carry form, a typed struct (B4/BC buffers, C4..D0 counters), and the
+ * centiseconds test is `(D0 == 0 && (cs = X) == 0) || (cs = X, C8 == 0)`
+ * -- that is what emits X twice (multu-by-1000 copy, then the shift-chain
+ * copy on the fall-through) with one shared `C4 = 8` block. Residual:
+ *  - uopt hoists the >=100 call's `addiu a0,s0,180` from the join block up
+ *    into the entry block (target computes it at the join, before slti);
+ *  - frame 0x48 vs 0x40 (cs home 0x24 is right here; dropping the
+ *    `temp_a2` local and testing `unkCC != unkD0` gives frame 0x40 but cs at
+ *    0x20, 94.82; a named `secs` local or a volatile pad adds 8);
+ *  - `addu v1,t7,t0` vs target `addu v1,t0,t7` for qmin*60 + qsec (both
+ *    source orders, and a two-step +=, emit t7,t0);
+ *  - C8 store scheduled before the div-check instead of after the rem subu.
+ * Passing rem to the first two calls puts it in s1 (88.2). */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-void game_libs_func_00000B94(char *arg0, s32 arg1, s32 arg2) {
+typedef struct GlTimer0B94 {
+    char pad0[0xB4];
+    char unkB4[8];
+    char unkBC[8];
+    s32 unkC4;
+    s32 unkC8;
+    s32 unkCC;
+    s32 unkD0;
+} GlTimer0B94;
+
+void game_libs_func_00000B94(GlTimer0B94 *arg0, s32 arg1, s32 arg2) {
     s32 sp24;
     s32 qmin;
     s32 rem;
     s32 qsec;
-    s32 secs;
     s32 temp_a2;
     s32 temp_v0;
 
     qmin = arg1 / 60000;
     rem = arg1 - (qmin * 60000);
-    FW(arg0, 0xC8) = arg2;
+    arg0->unkC8 = arg2;
     qsec = rem / 1000;
-    secs = qsec + (qmin * 0x3C);
-    FW(arg0, 0xD0) = secs;
-    if (secs == 0) {
-        sp24 = (rem - (qsec * 1000)) / 10;
-        if (sp24 != 0) {
-            goto block_4;
-        }
-        goto block_5;
+    arg0->unkD0 = qmin * 60 + qsec;
+    if ((arg0->unkD0 == 0 && (sp24 = (rem - (qsec * 1000)) / 10) == 0) ||
+        (sp24 = (rem - (qsec * 1000)) / 10, arg0->unkC8 == 0)) {
+        arg0->unkC4 = 8;
     }
-block_4:
-    sp24 = (rem - (qsec * 1000)) / 10;
-    if (FW(arg0, 0xC8) == 0) {
-block_5:
-        FW(arg0, 0xC4) = 8;
-    }
-    temp_a2 = FW(arg0, 0xD0);
-    if (temp_a2 >= 0x64) {
-        gl_func_00000000((int)arg0 + 0xB4, 0xCB9C, temp_a2, rem);
-    } else if (temp_a2 >= 0xA) {
-        gl_func_00000000((int)arg0 + 0xB4, 0xCBA0, temp_a2, rem);
+    temp_a2 = arg0->unkD0;
+    if (temp_a2 >= 100) {
+        gl_func_00000000(arg0->unkB4, (char *)&D_00000000 + 0xCB9C, temp_a2);
+    } else if (temp_a2 >= 10) {
+        gl_func_00000000(arg0->unkB4, (char *)&D_00000000 + 0xCBA0, temp_a2);
     } else {
-        if (temp_a2 != FW(arg0, 0xCC)) {
-            gl_func_00000000((char *)0x13, temp_a2, temp_a2, rem);
+        if (temp_a2 != arg0->unkCC) {
+            gl_func_00000000(19, temp_a2);
         }
-        temp_v0 = FW(arg0, 0xC4);
-        FW(arg0, 0xC4) = (s32) (temp_v0 + 1);
+        temp_v0 = arg0->unkC4;
+        arg0->unkC4 = temp_v0 + 1;
         if (temp_v0 & 8) {
-            gl_func_00000000((int)arg0 + 0xB4, 0xCBA8, FW(arg0, 0xD0));
+            gl_func_00000000(arg0->unkB4, (char *)&D_00000000 + 0xCBA8, arg0->unkD0);
         } else {
-            gl_func_00000000((int)arg0 + 0xB4, 0xCBB0, FW(arg0, 0xD0));
+            gl_func_00000000(arg0->unkB4, (char *)&D_00000000 + 0xCBB0, arg0->unkD0);
         }
-        FW(arg0, 0xCC) = (s32) FW(arg0, 0xD0);
+        arg0->unkCC = arg0->unkD0;
     }
-    gl_func_00000000((int)arg0 + 0xBC, 0xCBB8, sp24);
+    gl_func_00000000(arg0->unkBC, (char *)&D_00000000 + 0xCBB8, sp24);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00000B94);
