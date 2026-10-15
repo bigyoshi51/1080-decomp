@@ -1648,159 +1648,90 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002DE0);
 #endif
 
 #ifdef NON_MATCHING
-/* gui_func_0000329C: int-arg sibling of gui_func_00002DE0 (same RDP scissor +
- * texrect-scale DL builder; double-deref base = *(int*)g, cursor = base[0xC],
- * bump cur[1], emit at *cur + n*8). Rewritten 2026-06-22 from m2c into the
- * clean reused-local 00002DE0 shape -> 58.6% -> 70.7% fuzzy. Two real
- * misdecodes fixed: sp3C/sp38 are s16 reads (lh) not lw; the H-block guard is
- * `(s16)(by*4) < 0` not the m2c `temp_f6 & 0x20000000` phantom. All ops/field-
- * types now match target; residual is pure whole-function register coloring +
- * scheduling (target keeps the deref base + accumulator in callee-saved s0
- * across blocks; IDO here colors them caller-saved, -88 vs -80 frame). Permuter
- * can't score this (USO-relocatable raw-.word target). Default INCLUDE_ASM
- * keeps ROM byte-exact. */
-void gui_func_0000329C(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    char * volatile *dp = (char * volatile *)&D_00000000;
-    char *t;    /* $s0: gctx / mode / clamp accumulator */
-    s32 dl;     /* $v0: dlring / (s16)dsdx tmp */
-    s32 idx;    /* $v1: idx / (s16)dtdy tmp */
-    s32 slot1;  /* $a3: (s16)(by<<2) */
-    s32 slot2;  /* $t0: packet1+2 slot / dsdx */
-    s32 slot3;  /* $t1: B4 slot */
-    s32 w;      /* $t2: mode struct ptr / clamp var */
-    s32 lrx;    /* $a1: (s16)(bx<<2) / y result */
-    s32 u;      /* $a2: bx / by<<2 raw / dtdy */
-    s32 x0t;    /* $a0: x test / mult tmp / final packet slot */
-    s32 sp3C;
-    s32 sp38;
-    f32 ws;     /* $f0: (f32)(arg3-arg1) */
-    f32 hs;     /* $f2: (f32)(arg4-arg2) */
+/* gui_func_0000329C: int-arg sibling of gui_func_00002DE0. Re-decoded
+ * 2026-10-15 (74.1 -> 85.3) as the stock libultra gbi.h macros: gSPTexture
+ * (0xBB000001/0x80008000), a 3-way texture-load dispatch on spr->0x24, then
+ * gSPScisTextureRectangle(pkt, x<<2, y<<2, xh<<2, yh<<2, 0, 0, 0, dsdx, dtdy)
+ * with pkt = the gui GfxRing bump (re-evaluated per packet: TEXRECT, B4
+ * RDPHALF_1, B3 RDPHALF_2). The macro explains every odd shape of the old
+ * hand decode: MAX((s16)..,0) clamps, the RAW `(yl) < 0` Y guard vs the
+ * (s16) X guard, the negu-shl B4 word, and dsdx/dtdy computed inside the B4
+ * arms (uopt PRE of the inline macro-arg expression into both arms). Frame
+ * homes match the target once w/h are the 7th/8th named decls.
+ * RESIDUAL: the target colours the ring ctx / switch value / x-side MAX
+ * temps into callee-saved $s0 (frame 0x58 with s0 save) while IDO here uses
+ * caller-saved temps (no s0, frame 0x50) -- same ops, same block layout,
+ * only s0 save/restore missing (+2 insns) and the register rotation that
+ * follows. Tried: named function-scope ctx `t` (79.9), ctx + switch value in
+ * one named t (78.9), goto chain (84.5), sequential ifs (75.3), pkt as a
+ * side-effect expression (78.2), separate ring/idx locals (79.1). */
+#define _SHIFTL(v, s, w) ((u32)(((u32)(v) & ((1 << (w)) - 1)) << (s)))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define PKT_BEGIN { char *_c = (*(char **)&D_00000000); s32 _i = (*(s32 **)(_c + 0xC))[1]; u32 *_g; \
+    (*(s32 **)(_c + 0xC))[1] = _i + 1; _g = (u32 *)(**(s32 **)(_c + 0xC) + _i * 8);
+#define PKT_END }
 
-    t = *dp;
-    dl = *(s32 *)(t + 0xC);
-    idx = *(s32 *)(dl + 4);
-    *(s32 *)(dl + 4) = idx + 1;
-    slot2 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
-    *(s32 *)slot2 = 0xBB000001;
-    *(s32 *)(slot2 + 4) = 0x80008000;
+void gui_func_0000329C(char *arg0, s32 x0, s32 y0, s32 x1, s32 y1) {
+    char *pad;  /* frame placeholder: 6 named decls precede w/h (w@0x3C, h@0x38) */
+    char *spr;
+    f32 fw;
+    f32 fh;
+    s32 x;
+    s32 y;
+    s32 w;
+    s32 h;
 
-    w = *(s32 *)(arg0 + 0x10);
-    sp3C = *(s16 *)(w + 0x20);
-    sp38 = *(s16 *)(w + 0x22);
-    t = *(char **)(w + 0x24);
-    if ((s32)t == 0x408) goto case_a;
-    if ((s32)t == 0x120) goto case_b;
-    if ((s32)t == 0x110) goto case_c;
-    goto merge;
-case_a:
-    gui_func_00000000(*dp, *(s32 *)(w + 8), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-    goto merge;
-case_b:
-    gui_func_00000000(*dp, *(s32 *)(w + 8), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-    goto merge;
-case_c:
-    gui_func_00000000(*dp, *(s32 *)(w + 8), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-merge:
-    t = *dp;
-    dl = *(s32 *)(t + 0xC);
-    idx = *(s32 *)(dl + 4);
-    *(s32 *)(dl + 4) = idx + 1;
-    slot2 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
-
-    w = 0;
-    t = 0;
-    u = (s32)(f32)arg1;
-    ws = (f32)(arg3 - arg1);
-    lrx = u;
-    lrx = (s16)(lrx << 2);
-    x0t = (s16)((u + (s32)ws) << 2);
-    if (x0t > 0) {
-        t = (char *)x0t;
+    PKT_BEGIN _g[0] = 0xBB000001; _g[1] = 0x80008000; PKT_END
+    spr = *(char **)(arg0 + 0x10);
+    w = *(s16 *)(spr + 0x20);
+    h = *(s16 *)(spr + 0x22);
+    switch (*(s32 *)(spr + 0x24)) {
+    case 0x110:
+        gui_func_00000000((*(char **)&D_00000000), *(s32 *)(spr + 8), w, h, 0, 0, w, h, 0);
+        break;
+    case 0x120:
+        gui_func_00000000((*(char **)&D_00000000), *(s32 *)(spr + 8), w, h, 0, 0, w, h, 0);
+        break;
+    case 0x408:
+        gui_func_00000000((*(char **)&D_00000000), *(s32 *)(spr + 8), w, h, 0, 0, w, h, 0);
+        break;
     }
-    idx = (s32)(f32)arg2;
-    hs = (f32)(arg4 - arg2);
-    dl = (s16)((idx + (s32)hs) << 2);
-    u = idx << 2;
-    if (dl > 0) {
-        w = dl;
-    }
-    *(s32 *)slot2 = ((((s32)t & 0xFFF) << 0xC) | 0xE4000000) | (w & 0xFFF);
-    t = 0;
-    if (lrx > 0) {
-        t = (char *)lrx;
-    }
-    slot1 = (s16)u;
-    if (slot1 > 0) {
-        w = slot1;
-    } else {
-        w = 0;
-    }
-    *(s32 *)(slot2 + 4) = (((s32)t & 0xFFF) << 0xC) | (w & 0xFFF);
-
-    t = *dp;
-    dl = *(s32 *)(t + 0xC);
-    idx = *(s32 *)(dl + 4);
-    *(s32 *)(dl + 4) = idx + 1;
-    slot3 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
-    *(s32 *)slot3 = 0xB4000000;
-    if (lrx < 0) {
-        slot2 = (s32)(((f32)(sp3C - 1) * 1024.0f) / ws);
-        dl = (s16)slot2;
-        if (dl < 0) {
-            x0t = ((s32)((u32)lrx * (u32)dl)) >> 7;
-            idx = 0;
-            if (x0t > 0) {
-                t = (char *)x0t;
-            } else {
-                t = (char *)idx;
-            }
-        } else {
-            x0t = ((s32)((u32)lrx * (u32)dl)) >> 7;
-            dl = 0;
-            if (x0t < 0) {
-                dl = x0t;
-            }
-            w = dl;
-            t = (char *)w;
-        }
-    } else {
-        t = 0;
-        slot2 = (s32)(((f32)(sp3C - 1) * 1024.0f) / ws);
-    }
-    if (u < 0) {
-        u = (s32)(((f32)(sp38 - 1) * 1024.0f) / hs);
-        idx = (s16)u;
-        if (idx < 0) {
-            dl = ((s32)((u32)slot1 * (u32)idx)) >> 7;
-            idx = 0;
-            if (dl > 0) {
-                lrx = dl;
-            } else {
-                lrx = idx;
-            }
-        } else {
-            dl = ((s32)((u32)slot1 * (u32)idx)) >> 7;
-            idx = 0;
-            if (dl < 0) {
-                idx = dl;
-            }
-            dl = idx;
-            lrx = dl;
-        }
-    } else {
-        lrx = 0;
-        u = (s32)(((f32)(sp38 - 1) * 1024.0f) / hs);
-    }
-    *(s32 *)(slot3 + 4) = ((-(s32)t) << 0x10) | ((-lrx) & 0xFFFF);
-
-    t = *(char **)&D_00000000;
-    dl = *(s32 *)(t + 0xC);
-    idx = *(s32 *)(dl + 4);
-    *(s32 *)(dl + 4) = idx + 1;
-    x0t = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
-    *(s32 *)(x0t + 4) = (slot2 << 0x10) | (u & 0xFFFF);
-    *(s32 *)x0t = 0xB3000000;
+    x = (f32)x0;
+    fw = x1 - x0;
+    y = (f32)y0;
+    fh = y1 - y0;
+#define XL (x << 2)
+#define YL (y << 2)
+#define XH ((x + (s32)fw) << 2)
+#define YH ((y + (s32)fh) << 2)
+#define DSDX ((s32)(((f32)(w - 1) * 1024.0f) / fw))
+#define DTDY ((s32)(((f32)(h - 1) * 1024.0f) / fh))
+    PKT_BEGIN
+    _g[0] = (_SHIFTL(0xE4, 24, 8) | _SHIFTL(MAX((s16)(XH), 0), 12, 12) | _SHIFTL(MAX((s16)(YH), 0), 0, 12));
+    _g[1] = (_SHIFTL(0, 24, 3) | _SHIFTL(MAX((s16)(XL), 0), 12, 12) | _SHIFTL(MAX((s16)(YL), 0), 0, 12));
+    PKT_END
+    PKT_BEGIN
+    _g[0] = _SHIFTL(0xB4, 24, 8);
+    _g[1] = (_SHIFTL((0 - (((s16)(XL) < 0) ? (((s16)(DSDX) < 0) ? (MAX((((s16)(XL) * (s16)(DSDX)) >> 7), 0)) : (MIN((((s16)(XL) * (s16)(DSDX)) >> 7), 0))) : 0)), 16, 16) |
+             _SHIFTL((0 - (((YL) < 0) ? (((s16)(DTDY) < 0) ? (MAX((((s16)(YL) * (s16)(DTDY)) >> 7), 0)) : (MIN((((s16)(YL) * (s16)(DTDY)) >> 7), 0))) : 0)), 0, 16));
+    PKT_END
+    PKT_BEGIN
+    _g[1] = (_SHIFTL(DSDX, 16, 16) | _SHIFTL(DTDY, 0, 16));
+    _g[0] = _SHIFTL(0xB3, 24, 8);
+    PKT_END
 }
+#undef XL
+#undef YL
+#undef XH
+#undef YH
+#undef DSDX
+#undef DTDY
+#undef PKT_BEGIN
+#undef PKT_END
+#undef MAX
+#undef MIN
+#undef _SHIFTL
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000329C);
 #endif
