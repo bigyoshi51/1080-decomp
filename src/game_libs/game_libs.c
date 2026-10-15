@@ -1318,44 +1318,38 @@ char *gl_func_00001C54(char *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001C54);
 #endif
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0000237C)();
+/* gl_func_0000237C: get-or-create constructor (0x2FC object) + eleven
+ * sub-object inits at +0x1F4..+0x2E4 (0x148, 82 words). EXACT in-unit.
+ * Levers: arg0 IS self (reassigned by the || alloc fallback; a separate
+ * var_s0 local moves `or s0,a0` into the bnez delay slot), and the +0x1C0
+ * arg1 store comes BEFORE the four zero-float stores (after them the
+ * arg1 reload / lui a1 schedule below the swc1 run). */
 char *gl_func_0000237C(char *arg0, s32 arg1) {
-    char *temp_v0;
-    char *var_s0;
-
-    var_s0 = arg0;
-    if ((arg0 != 0) || (temp_v0 = (char*)func_00000000((char *)0x2FC), var_s0 = temp_v0, (temp_v0 != 0))) {
-        (char*)func_00000000(var_s0, (char*)&D_00000000 + 0xCCB4);
-        FW(var_s0, 0x28) = (int)&D_00000000;
-        (char*)func_00000000(var_s0 + 0x2C);
-        FW(var_s0, 0xC) = (int)((char*)&D_00000000 + 0xCCBC);
-        *(f32*)((char*)var_s0 + 0x1DC) = 0.0f;
-        *(f32*)((char*)var_s0 + 0x1D4) = 0.0f;
-        *(f32*)((char*)var_s0 + 0x1E0) = 0.0f;
-        *(f32*)((char*)var_s0 + 0x1D8) = 0.0f;
-        FW(var_s0, 0x1C0) = arg1;
-        (char*)func_00000000(var_s0, *(s32 *)((char*)&D_00000000 + 0x64));
-        (char*)func_00000000(var_s0 + 0x1F4, 0x50019);
-        (char*)func_00000000(var_s0 + 0x20C, 0x5001A);
-        (char*)func_00000000(var_s0 + 0x224, 0x50010);
-        (char*)func_00000000(var_s0 + 0x23C, 0x50011);
-        (char*)func_00000000(var_s0 + 0x254, 0x50012);
-        (char*)func_00000000(var_s0 + 0x26C, 0x50013);
-        (char*)func_00000000(var_s0 + 0x284, 0x50014);
-        (char*)func_00000000(var_s0 + 0x29C, 0x50015);
-        (char*)func_00000000(var_s0 + 0x2B4, 0x50016);
-        (char*)func_00000000(var_s0 + 0x2CC, 0x50017);
-        (char*)func_00000000(var_s0 + 0x2E4, 0x50018);
+    if ((arg0 != 0) || (arg0 = (char *)gl_func_00000000(0x2FC), (arg0 != 0))) {
+        gl_func_00000000(arg0, (char *)&D_00000000 + 0xCCB4);
+        *(s32 *)(arg0 + 0x28) = (s32)&D_00000000;
+        gl_func_00000000(arg0 + 0x2C);
+        *(s32 *)(arg0 + 0xC) = (s32)((char *)&D_00000000 + 0xCCBC);
+        *(s32 *)(arg0 + 0x1C0) = arg1;
+        *(f32 *)(arg0 + 0x1DC) = 0.0f;
+        *(f32 *)(arg0 + 0x1D4) = 0.0f;
+        *(f32 *)(arg0 + 0x1E0) = 0.0f;
+        *(f32 *)(arg0 + 0x1D8) = 0.0f;
+        gl_func_00000000(arg0, *(s32 *)((char *)&D_00000000 + 0x64));
+        gl_func_00000000(arg0 + 0x1F4, 0x50019);
+        gl_func_00000000(arg0 + 0x20C, 0x5001A);
+        gl_func_00000000(arg0 + 0x224, 0x50010);
+        gl_func_00000000(arg0 + 0x23C, 0x50011);
+        gl_func_00000000(arg0 + 0x254, 0x50012);
+        gl_func_00000000(arg0 + 0x26C, 0x50013);
+        gl_func_00000000(arg0 + 0x284, 0x50014);
+        gl_func_00000000(arg0 + 0x29C, 0x50015);
+        gl_func_00000000(arg0 + 0x2B4, 0x50016);
+        gl_func_00000000(arg0 + 0x2CC, 0x50017);
+        gl_func_00000000(arg0 + 0x2E4, 0x50018);
     }
-    return var_s0;
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000237C);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_000024C4(char *a0) {
