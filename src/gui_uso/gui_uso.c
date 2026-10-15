@@ -1483,7 +1483,18 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002BB0);
  * (6) Y B4-guard on RAW uly<<2, X guard on (s16). Reused temp webs mirror
  * target ($2/$3/$5/$6/$7/$8/$9 multi-role). RESIDUAL: target holds the big
  * scratch var in $s0 (mine $7, no s-reg; suspect pressure cascade), missing
- * mid-region $11 remats + 2 copy insns in scroll chains. */
+ * mid-region $11 remats + 2 copy insns in scroll chains.
+ * 2026-10-15 (72.2 -> 77.5): (a) divide by the INT literal `/ 2`, not a
+ * `two = 2.0f` local -- the local got const-propagated into the first use
+ * as mul.s by 0.5f (lui 0x3f00); `/ 2` keeps ONE held 2.0f (lui 0x4000,
+ * $f16) feeding both div.s like the target (+2.9); (b) store the B3 packet
+ * command word BEFORE its operand word (target: lui t4,0xb300 early, +1.3);
+ * (c) writing the goto arms in c,b,a source order (+1.2) -- note the target
+ * still lays them out a,b,c with `b merge` as the default, so this is a
+ * score-only proxy, not the real arm structure. A plain typed
+ * `extern char *G` read directly scores the same as the volatile dp hack
+ * (77.41). Still open: the multi-role scratch in $s0 (frame -104 with s0
+ * save) and the beqz-zero join branches of the scroll if/else chains. */
 void gui_func_00002DE0(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4) {
     char * volatile *dp = (char * volatile *)&D_00000000;
     char *t;    /* $s0: gctx / mode / x0 / x1 / x-scroll */
@@ -1502,7 +1513,6 @@ void gui_func_00002DE0(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4) {
     f32 fv;
     f32 ws;
     f32 hs;
-    f32 two;
 
     t = *dp;
     dl = *(s32 *)(t + 0xC);
@@ -1520,14 +1530,15 @@ void gui_func_00002DE0(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4) {
     if ((s32)t == 0x120) goto case_b;
     if ((s32)t == 0x110) goto case_c;
     goto merge;
-case_a:
+case_c:
     gui_func_00000000(*dp, *(s32 *)(w + 8), sp3C, sp38, 0, 0, sp3C, sp38, 0);
     goto merge;
 case_b:
     gui_func_00000000(*dp, *(s32 *)(w + 8), sp3C, sp38, 0, 0, sp3C, sp38, 0);
     goto merge;
-case_c:
+case_a:
     gui_func_00000000(*dp, *(s32 *)(w + 8), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+    goto merge;
 merge:
     dp = (char * volatile *)&D_00000000;
     t = *dp;
@@ -1538,9 +1549,8 @@ merge:
 
     w = 0;
     t = 0;
-    two = 2.0f;
     fv = (f32)sp3C;
-    u = (s32)((f32)arg1 + (-(fv / two) * arg3));
+    u = (s32)((f32)arg1 + (-(fv / 2) * arg3));
     ws = fv * arg3;
     lrx = u;
     lrx = (s16)(lrx << 2);
@@ -1549,7 +1559,7 @@ merge:
         t = (char *)x0t;
     }
     fv = (f32)sp38;
-    idx = (s32)((f32)arg2 + (-(fv / two) * arg4));
+    idx = (s32)((f32)arg2 + (-(fv / 2) * arg4));
     hs = fv * arg4;
     dl = (s16)((idx + (s32)hs) << 2);
     u = idx << 2;
@@ -1630,8 +1640,8 @@ merge:
     idx = *(s32 *)(dl + 4);
     *(s32 *)(dl + 4) = idx + 1;
     slot4 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
-    *(s32 *)(slot4 + 4) = (slot2 << 0x10) | (u & 0xFFFF);
     *(s32 *)slot4 = 0xB3000000;
+    *(s32 *)(slot4 + 4) = (slot2 << 0x10) | (u & 0xFFFF);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002DE0);
