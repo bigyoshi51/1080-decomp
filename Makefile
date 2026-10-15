@@ -408,7 +408,9 @@ build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_SUFFIX_BYTES
 # asm-processor block-count artifact, NM build only): 62F08 NM offset 0x2e0fc + 0x50.
 # Clip re-probed 2026-10-15 agent-c (61040 exact: rolled-loop C (0xA0) replaces the smaller
 # hand-unrolled NM body + 5-word pad SUFFIX on 61030): 62F08 NM offset 0x2e130 + 0x50.
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2e228 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# Clip re-probed 2026-10-15 agent-c (5D414 exact: 0x60 C body replaces the 0xC0 NM body;
+# 5B3E0 exact earlier the same day was size-neutral): 62F08 NM offset 0x2e178 + 0x50.
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2e1c8 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0

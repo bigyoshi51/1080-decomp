@@ -30717,32 +30717,20 @@ void game_libs_func_0005D304(float *out, float ax, float ay, float az)
     gl_func_00000000(q, out, out);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0005D414: 24-insn dispatcher making 3 cross-USO callbacks
- * over three float values (a1/a2/a3 received as int bits, reinterpreted
- * via mtc1/lwc1 per call):
- *   1) call(a0, a0+2, a0+1, a0+2, f12=bx)
- *   2) call(_,  a0,   a0+2, _,    f12=by)
- *   3) call(_,  a0,   a0+1, _,    f12=bz)
- * Each gl_func_00000000 is a distinct USO reloc patched at runtime to
- * a different real callee. The 12 trailing bytes after jr/nop
- * (lui $1,0x3F00; mtc1 a2,f14; mtc1 $1,f4) load 0.5f and are dead/boundary
- * spillage. Draft NM wrap — int-reg float passing via mtc1 is hard to
- * spell in C; expect partial match. */
-void gl_func_0005D414(int* a0, int bx_bits, int by_bits, int bz_bits) {
-    int* p1 = a0 + 1;
-    int* p2 = a0 + 2;
-    float bx, by, bz;
-    *(int*)&bx = bx_bits;
-    gl_func_00000000(a0, p2, p1, p2, bx);
-    *(int*)&by = by_bits;
-    gl_func_00000000(0, a0, p2, 0, by);
-    *(int*)&bz = bz_bits;
-    gl_func_00000000(0, a0, p1, 0, bz);
+/* gl_func_0005D414: three callbacks over the (x, y, z) floats -- EXACT
+ * 2026-10-15 agent-c (1.9 -> 100). The floats are prototyped params that
+ * arrive in a1..a3 because the first param is a pointer: x is used straight
+ * from a1 (mtc1), y and z from their stack homes (lwc1 40/44(sp)). The
+ * callee is (float, int *, int *): its float first arg goes in f12 and the
+ * two pointers in a1/a2, so a0 is never set. The old wrap's 5-arg K&R calls
+ * with 0 args were a misread of that register layout. Blank alias
+ * gl_func_00000000_d414 (pinned 0). */
+extern void gl_func_00000000_d414(float t, int *a, int *b);
+void gl_func_0005D414(int *a0, float x, float y, float z) {
+    gl_func_00000000_d414(x, a0 + 2, a0 + 1);
+    gl_func_00000000_d414(y, a0, a0 + 2);
+    gl_func_00000000_d414(z, a0, a0 + 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D414);
-#endif
 
 
 #ifdef NON_MATCHING
