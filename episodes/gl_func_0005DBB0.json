@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0005DBB0",
+  "project": "1080-agent-c",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T15:47:55.189231+00:00",
+  "end_time": "2026-10-15T15:47:55.189249+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T15:47:55.189245+00:00",
+      "assistant_text": "Manual exact match (was NM 99.01). Shoemake matrix->quaternion. Residual was spelling: IDO emits each commutative FP add with the source operands reversed, so the target order is m[2][2] + (m[1][1] + m[0][0]), m[k][k] + m[j][j], m[j][i] + m[i][j], m[k][i] + m[i][k]; the k/j swap also fixes the rowj/rowk CSE temp numbering. Reusing tr for 0.5/s (no separate f32 t local) frees one named home and moves the three cross-call spill homes up 4 bytes with the 0x60 frame unchanged. sqrtf goes through the pinned f32(f32) blank gl_func_00000000_dbb0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 141,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int D_00000000;\nextern float gl_func_00000000_dbb0(float);\nvoid gl_func_0005DBB0(f32 (*m)[4], f32 *q) {\n    s32 i, j, k;\n    f32 tr;\n    f64 s;\n\n    tr = m[2][2] + (m[1][1] + m[0][0]);\n    if (tr > 0.0) {\n        s = gl_func_00000000_dbb0(tr + 1.0);\n        q[3] = s * 0.5;\n        tr = 0.5 / s;\n        q[0] = (m[1][2] - m[2][1]) * tr;\n        q[1] = (m[2][0] - m[0][2]) * tr;\n        q[2] = (m[0][1] - m[1][0]) * tr;\n    } else {\n        i = 0;\n        if (m[0][0] < m[1][1]) {\n            i = 1;\n        }\n        if (m[i][i] < m[2][2]) {\n            i = 2;\n        }\n        j = (&D_00000000)[i];\n        k = (&D_00000000)[j];\n        s = gl_func_00000000_dbb0((f64)(m[i][i] - (m[k][k] + m[j][j])) + 1.0);\n        q[i] = s * 0.5;\n        tr = 0.5 / s;\n        q[3] = (m[j][k] - m[k][j]) * tr;\n        q[j] = (m[j][i] + m[i][j]) * tr;\n        q[k] = (m[k][i] + m[i][k]) * tr;\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0005DBB0.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "make RUN_CC_CHECK=0: tenshoe.z64 cmp byte-identical to baserom; report.json 100.0; raw .text slice of gl_func_0005DBB0 in build/src/game_libs/game_libs_post0b.c.o equals expected/ (564 bytes EQUAL)."
+  }
+}

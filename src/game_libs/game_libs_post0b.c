@@ -31488,41 +31488,32 @@ void gl_func_0005DB58(int a0, int a1, float *a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DB58);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0005DBB0: 0x234 rotation-matrix (f32 rows, stride 0x10) ->
  * quaternion, classic Shoemake mtx->quat with nxt[]={1,2,0} table at &D_0
- * (lo16 addend 0, placeholder reloc). sqrtf callee = jal placeholder
- * (typed alias per file convention). All row/col address temps
- * (v0/v1/a3/t0/t1/t2) are uopt CSE products of 2D indexing m[i][i] etc,
- * NOT source locals. The while(0){tr=m11+m00} dead loop is a DELIBERATE
- * emission-free coloring lever (analoop ref-weighting): it makes the
- * trace sum a real web colored FIRST (f2, pushing m22 to f16 and keeping
- * m00/m11 = f12/f14 in target order); removing it rotates the whole FP
- * candidate/ring assignment (75 words). 116/141 words exact incl. frame
- * 0x60, all spills, both call regions. Residual 25 = one add.s fs/ft
- * operand pick + else-path rowj/rowk web-rank swap (t1/t2 + sll t4/t5 +
- * 5 spill-home slots + 6 post-call addu pairs, one coupled cluster);
- * named-local (decl-order-slot) spelling of the whole cluster scored
- * WORSE (57) — the rows/cols are provably CSE temps, rank not
- * source-steerable from here. NM wrap kept. */
-extern float sqrtf(float);
+ * (lo16 addend 0, placeholder reloc). sqrtf callee = pinned f32(f32) blank
+ * gl_func_00000000_dbb0. EXACT 2026-10-15 (agent-c, was NM 99.01): the
+ * residual "add.s operand pick + rowj/rowk web-rank swap + 5 spill homes"
+ * was three commutative-operand spellings plus one named home: IDO emits a
+ * commutative FP add with the source operands reversed, so the target's
+ * order is m22 + (m11 + m00), m[k][k] + m[j][j], m[j][i] + m[i][j],
+ * m[k][i] + m[i][k] (this also fixes the rowj/rowk CSE numbering), and the
+ * 0.5/s factor reuses tr (a separate f32 t local costs one home, which
+ * moved the three cross-call spill homes down 4 bytes). The old while(0)
+ * coloring lever is no longer needed. */
+extern float gl_func_00000000_dbb0(float);
 void gl_func_0005DBB0(f32 (*m)[4], f32 *q) {
     s32 i, j, k;
     f32 tr;
     f64 s;
-    f32 t;
 
-    while (0) {
-        tr = m[1][1] + m[0][0];
-    }
-    tr = m[0][0] + m[1][1] + m[2][2];
+    tr = m[2][2] + (m[1][1] + m[0][0]);
     if (tr > 0.0) {
-        s = sqrtf(tr + 1.0);
+        s = gl_func_00000000_dbb0(tr + 1.0);
         q[3] = s * 0.5;
-        t = 0.5 / s;
-        q[0] = (m[1][2] - m[2][1]) * t;
-        q[1] = (m[2][0] - m[0][2]) * t;
-        q[2] = (m[0][1] - m[1][0]) * t;
+        tr = 0.5 / s;
+        q[0] = (m[1][2] - m[2][1]) * tr;
+        q[1] = (m[2][0] - m[0][2]) * tr;
+        q[2] = (m[0][1] - m[1][0]) * tr;
     } else {
         i = 0;
         if (m[0][0] < m[1][1]) {
@@ -31533,17 +31524,14 @@ void gl_func_0005DBB0(f32 (*m)[4], f32 *q) {
         }
         j = (&D_00000000)[i];
         k = (&D_00000000)[j];
-        s = sqrtf((f64)(m[i][i] - (m[j][j] + m[k][k])) + 1.0);
+        s = gl_func_00000000_dbb0((f64)(m[i][i] - (m[k][k] + m[j][j])) + 1.0);
         q[i] = s * 0.5;
-        t = 0.5 / s;
-        q[3] = (m[j][k] - m[k][j]) * t;
-        q[j] = (m[i][j] + m[j][i]) * t;
-        q[k] = (m[i][k] + m[k][i]) * t;
+        tr = 0.5 / s;
+        q[3] = (m[j][k] - m[k][j]) * tr;
+        q[j] = (m[j][i] + m[i][j]) * tr;
+        q[k] = (m[k][i] + m[i][k]) * tr;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DBB0);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
