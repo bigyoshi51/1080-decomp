@@ -1,6 +1,6 @@
 # 1080 Snowboarding n64 decompilation
 
-In progress 1080 Snowboarding decompilation, mostly driven by Claude. Uses https://github.com/bigyoshi51/decomp for n64 common tooling, Claude skills, etc.
+In progress 1080 Snowboarding decompilation, mostly driven by Claude. Uses https://github.com/djsaunde/decomp for n64 common tooling, Claude skills, etc.
 
 ## Status
 
