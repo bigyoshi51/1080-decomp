@@ -780,7 +780,27 @@ int gl_func_0000A4D0(int *a0, int a1) {
     return 3;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A540);
+/* gl_func_0000A540: shift-insert into the 3-entry stride-8 table at +0x18
+ * (aligned int pairs -> lw/sw), then blank callee(&e[idx], arg2) -- EXACT
+ * 76/76 (2026-10-15, agent-g). Twin of gl_func_0000A2B8 above: the target's
+ * unroll-by-4 is IDO's own (one element per source iteration -- the old
+ * "double-unroll, per-file -O" note in docs/MATCHING_WORKFLOW.md came from
+ * compiling m2c's already-unrolled loop), and the doubled `slti a1,2` entry
+ * test is the explicit `if (idx < 2)` guard around the for-loop
+ * (docs/IDO_CODEGEN.md#dup-loop-entry-test-explicit-guard-a2b8). */
+typedef struct { int a, b; } Pair8;
+typedef struct { char pad[0x18]; Pair8 e[3]; } PairTab;
+void gl_func_0000A540(PairTab *a0, int idx, int arg2) {
+    int i;
+    if (idx < 3) {
+        if (idx < 2) {
+            for (i = 2; i > idx; i--) {
+                a0->e[i] = a0->e[i - 1];
+            }
+        }
+        func_00000000((char *)a0 + idx * 8 + 0x18, arg2);
+    }
+}
 
 /* gl_func_0000A670: 8-slot twin-call loop over two data-segment tables (62 insns,
  * frame 0x38, s0-s7) -- EXACT 62/62 (2026-09-11 agent-g; was NM 95.5). The three
