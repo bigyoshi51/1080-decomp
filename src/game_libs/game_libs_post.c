@@ -19788,10 +19788,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033094);
  * baseline. Any zero-instruction growth (dead/volatile locals) is DCE'd by
  * IDO. GENUINE CAP: byte-perfect coloring (33/35) and target frame size are
  * mutually exclusive from C under IDO 7.1 -O2. Left NM at 99.94% (2 imm
- * diffs). Landable-clean callee (all jal 0). */
+ * diffs). Landable-clean callee (all jal 0).
+ * re-audited 2026-10-15 with lever kit: EXACT. The 16-byte top pad is a
+ * plain NON-volatile `char pad[16];` declared FIRST (before n/lst): IDO
+ * reserves an unreferenced array's slot (frame -48 -> -64) without making it
+ * a uopt candidate, so the colouring is untouched. Declared after n/lst (or
+ * as `volatile char pad[16]` after) it does not grow the frame; `volatile int
+ * pad[4]` / four volatile ints FIRST also work (docs/IDO_CODEGEN.md
+ * #unreferenced-array-first-decl-frame-pad-33228). */
 extern void *gl_func_00000000_f228(int, int, float, float, float);
-#ifdef NON_MATCHING
 void gl_func_00033228(char *o) {
+    char pad[16];
     char *n;
     char *lst;
     gl_func_00000000(o);
@@ -19806,9 +19813,6 @@ void gl_func_00033228(char *o) {
     }
     *(int *)(n + 0x14) = (int)lst;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033228);
-#endif
 
 // gl_func_000332B4 — command-stream handler step (0x84 / 33 words).
 // CLEAN SINGLE FUNCTION (1 jr, one prologue).
