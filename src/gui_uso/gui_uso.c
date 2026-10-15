@@ -841,53 +841,65 @@ int gui_uso_func_00001674(int a0) {
 }
 
 #ifdef NON_MATCHING
-/* Full decode 2026-06-01. Display-list emitter: appends 4 fixed GBI
- * commands (RDPPIPESYNC, two SETOTHERMODE_H, a B9/SETOTHERMODE_L) to the
- * gfx builder reached via *(D+0x254)->0x158, caching it at &D for each
- * append. */
-extern char D_gui16a4_cache;
-extern char D_gui16a4_c1;
-extern char D_gui16a4_c2;
-extern char D_gui16a4_c3;
+/* Display-list emitter: appends 4 fixed GBI commands (RDPPIPESYNC, two
+ * SETOTHERMODE_H, SETOTHERMODE_L) to the gfx builder reached via
+ * *(D+0x254)->0x158. The builder is cached in a module global (gui.uso
+ * TextReloc sym3, distinct from the D+0x254 import sym6; pinned here as
+ * D_gui16a4_cache = 0) and re-read ONCE per packet (target holds &G in t0,
+ * `lw v0,0(t0)` per block) -- the old c1/c2/c3 "three more globals" decode
+ * was wrong. `b = G = expr;` keeps the block-1 value an expression temp
+ * (t7, no reload), matching the target exactly through packet 1.
+ * 2026-10-15: 78.2 -> see report. RESIDUAL (14 words, colouring only):
+ * target keeps i in a0 for every packet and rotates the per-packet slot
+ * pointer a1/a2/a3/a1; this body (block-scoped i) rotates i a0/a2/a3/a0
+ * with slot fixed in a1, plus the B900031D/0x00404240 ori pair swapped.
+ * Function-scope i + block-scoped slot gives the target's i=a0 but then the
+ * held &G is coloured a3 (before slot 3) instead of t0 -> 46 words off.
+ * Tried: all 16 block/function scope combos of b/r/i/slot x 3 cache-store
+ * forms, register hints (no effect), held char **dp (52+), post-inc idx
+ * forms, Gfx-struct slot, i<<1 / char* +i*8 / &buf[i*2] slot spellings. */
+extern char *D_gui16a4_cache;
 void gui_uso_func_000016A4(int a0) {
     char *b;
-    char *p;
-    char *buf;
-    int i;
-    (void)a0;
+    struct GfxRing_413C *r;
+    int *slot;
 
-    b = *(char **)(*(char **)((char *)&D_00000000 + 0x254) + 0x158);
-    *(char **)&D_gui16a4_cache = b;
-    p = *(char **)(b + 0xC);
-    i = *(int *)(p + 4);
-    *(int *)(p + 4) = i + 1;
-    buf = *(char **)(*(char **)(b + 0xC));
-    *(int *)(buf + i * 8) = 0xE7000000;
-    *(int *)(buf + i * 8 + 4) = 0;
-
-    b = *(char **)&D_gui16a4_c1;
-    p = *(char **)(b + 0xC);
-    i = *(int *)(p + 4);
-    *(int *)(p + 4) = i + 1;
-    buf = *(char **)(*(char **)(b + 0xC));
-    *(int *)(buf + i * 8) = 0xBA001402;
-    *(int *)(buf + i * 8 + 4) = 0;
-
-    b = *(char **)&D_gui16a4_c2;
-    p = *(char **)(b + 0xC);
-    i = *(int *)(p + 4);
-    *(int *)(p + 4) = i + 1;
-    buf = *(char **)(*(char **)(b + 0xC));
-    *(int *)(buf + i * 8) = 0xBA001301;
-    *(int *)(buf + i * 8 + 4) = 0;
-
-    b = *(char **)&D_gui16a4_c3;
-    p = *(char **)(b + 0xC);
-    i = *(int *)(p + 4);
-    *(int *)(p + 4) = i + 1;
-    buf = *(char **)(*(char **)(b + 0xC));
-    *(int *)(buf + i * 8) = 0xB900031D;
-    *(int *)(buf + i * 8 + 4) = 0x00404240;
+    b = D_gui16a4_cache = *(char **)(*(char **)((char *)&D_00000000 + 0x254) + 0x158);
+    r = *(struct GfxRing_413C **)(b + 0xC);
+    {
+        int i = r->idx;
+        r->idx = i + 1;
+        slot = (*(struct GfxRing_413C **)(b + 0xC))->buf + i * 2;
+        slot[0] = 0xE7000000;
+        slot[1] = 0;
+    }
+    b = D_gui16a4_cache;
+    r = *(struct GfxRing_413C **)(b + 0xC);
+    {
+        int i = r->idx;
+        r->idx = i + 1;
+        slot = (*(struct GfxRing_413C **)(b + 0xC))->buf + i * 2;
+        slot[0] = 0xBA001402;
+        slot[1] = 0;
+    }
+    b = D_gui16a4_cache;
+    r = *(struct GfxRing_413C **)(b + 0xC);
+    {
+        int i = r->idx;
+        r->idx = i + 1;
+        slot = (*(struct GfxRing_413C **)(b + 0xC))->buf + i * 2;
+        slot[0] = 0xBA001301;
+        slot[1] = 0;
+    }
+    b = D_gui16a4_cache;
+    r = *(struct GfxRing_413C **)(b + 0xC);
+    {
+        int i = r->idx;
+        r->idx = i + 1;
+        slot = (*(struct GfxRing_413C **)(b + 0xC))->buf + i * 2;
+        slot[0] = 0xB900031D;
+        slot[1] = 0x00404240;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000016A4);
