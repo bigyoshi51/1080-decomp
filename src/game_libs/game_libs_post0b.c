@@ -29531,57 +29531,59 @@ block_16:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B23C);
 #endif
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005B3E0)();
-void gl_func_0005B3E0(char *arg0, char *arg1) {
-    u32 sp1C;
-    s32 temp_v1;
-    u32 temp_a3;
-    u32 var_v0;
-    char *temp_v0;
-    char *temp_v1_2;
-    char *var_a2;
+/* gl_func_0005B3E0: heap free + coalesce (0x15C / 87 words) -- EXACT
+ * 2026-10-15 agent-c (77.7 -> 100). Block header 16 bytes before the user
+ * pointer: hdr (low 24 bits = size in 16-byte units, 0xFF top byte = free),
+ * next, prev. Notifies (heap, blk), takes the size off heap+0x24, walks the
+ * free list for the first block above blk, unlinks blk, re-inserts it free
+ * before that anchor (game_libs_func_0005AFB0, baked jal 0x6F620 =
+ * gl_ref_0006F620), then merges with the following and the preceding block.
+ * Load-bearing: the first call's a0 is the heap (call-shape-scan SPILL #0 a0
+ * was the untouched heap pointer, not a copy); the loop cursor p is reused for
+ * the next-block pointer (one variable keeps it in v0 and frees v1); the
+ * header word h is reused for the prev pointer (the second merge then sits in
+ * v1, and the b spill lands at 28(sp)); `h + 1 + size` gives addu v1,t2. */
+extern int gl_func_00000000();
+typedef struct Blk5B3E0 {
+    u32 hdr;                       /* top byte flags, low 24 bits = size in 16-byte units */
+    struct Blk5B3E0 *next;
+    struct Blk5B3E0 *prev;
+} Blk5B3E0;
+extern void gl_ref_0006F620(Blk5B3E0 *node, u32 hdr, Blk5B3E0 *anchor); /* game_libs_func_0005AFB0 entry 0x5AFB4 */
+void gl_func_0005B3E0(Blk5B3E0 *heap, char *ptr) {
+    Blk5B3E0 *b;
+    Blk5B3E0 *q;
+    Blk5B3E0 *p;
+    u32 h;
 
-    temp_a3 = arg1 - 0x10;
-    sp1C = temp_a3;
-    gl_func_00034458(temp_a3, temp_a3);
-    var_v0 = FW(arg0, 0x4);
-    FW(arg0, 0x24) = (s32) (FW(arg0, 0x24) - (FW(arg1, -0x10) & 0xFFFFFF));
-    var_a2 = arg0;
-    if (((int)var_v0 != (int)arg0) && ((int)arg0 == (int)arg0)) {
-loop_2:
-        if (temp_a3 < var_v0) {
-            var_a2 = (char *) var_v0;
+    b = (Blk5B3E0 *) (ptr - 0x10);
+    gl_func_00000000(heap, b);
+    *(s32 *) ((char *) heap + 0x24) -= b->hdr & 0xFFFFFF;
+    p = heap->next;
+    q = heap;
+    while (p != heap && q == heap) {
+        if (b < p) {
+            q = p;
         }
-        var_v0 = FW(var_v0, 0x4);
-        if (((int)var_v0 != (int)arg0) && ((int)var_a2 == (int)arg0)) {
-            goto loop_2;
-        }
+        p = p->next;
     }
-    FW(FW(temp_a3, 0x4), 0x8) = (char *) FW(temp_a3, 0x8);
-    FW(FW(temp_a3, 0x8), 0x4) = (char *) FW(temp_a3, 0x4);
-    sp1C = temp_a3;
-    game_libs_func_00062F08(temp_a3, (FW(arg1, -0x10) & 0xFFFFFF) + 0xFF000000, (u32) var_a2, temp_a3);
-    temp_v1 = FW(arg1, -0x10);
-    temp_v0 = FW(temp_a3, 0x4);
-    if ((int)temp_v0 == (int)(temp_a3 + ((temp_v1 & 0xFFFFFF) * 0x10) + 0x10)) {
-        FW(arg1, -0x10) = (s32) (temp_v1 + (FW(temp_v0, 0x0) & 0xFFFFFF) + 1);
-        FW(FW(temp_v0, 0x4), 0x8) = temp_a3;
-        FW(temp_a3, 0x4) = (char *) FW(FW(temp_a3, 0x4), 0x4);
+    b->next->prev = b->prev;
+    b->prev->next = b->next;
+    gl_ref_0006F620(b, (b->hdr & 0xFFFFFF) + 0xFF000000, q);
+    h = b->hdr;
+    p = b->next;
+    if (p == (Blk5B3E0 *) ((char *) b + (h & 0xFFFFFF) * 16 + 16)) {
+        b->hdr = h + 1 + (p->hdr & 0xFFFFFF);
+        p->next->prev = b;
+        b->next = b->next->next;
     }
-    temp_v1_2 = FW(temp_a3, 0x8);
-    if ((int)temp_a3 == (int)(temp_v1_2 + ((FW(temp_v1_2, 0x0) & 0xFFFFFF) * 0x10) + 0x10)) {
-        FW(temp_v1_2, 0x0) = (s32) (FW(temp_v1_2, 0x0) + (FW(arg1, -0x10) & 0xFFFFFF) + 1);
-        FW(FW(temp_a3, 0x4), 0x8) = (char *) FW(temp_a3, 0x8);
-        FW(FW(temp_a3, 0x8), 0x4) = (char *) FW(temp_a3, 0x4);
+    h = (u32) b->prev;
+    if (b == (Blk5B3E0 *) ((char *) h + (((Blk5B3E0 *) h)->hdr & 0xFFFFFF) * 16 + 16)) {
+        *(s32 *) h += (b->hdr & 0xFFFFFF) + 1;
+        b->next->prev = b->prev;
+        b->prev->next = b->next;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B3E0);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_0005B53C(int a0, int *a1) {
