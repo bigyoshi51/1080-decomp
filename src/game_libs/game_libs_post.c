@@ -14318,19 +14318,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BB7C);
  * a u8 local that crosses calls with only 3 s-regs -> stack-homed
  * (sb/lbu 102(sp), reproduced naturally). Cleanup: 16-slot sweep over
  * w38[] calling 401E8 on bit31 slots (v0-held cursor spills at 44(sp)). */
+/* PASS-3 2026-10-15 (agent-c): 80.3 -> 96.7, same levers as gl_func_0002BB7C:
+ *  - struct fix: no pad after the 0x1C-byte Sub (w94 at 0x94, wE0 at 0xE0).
+ *  - status bits as 1-bit bitfields (live / stop / f04 / f02): re-phases
+ *    the t-register sequence.
+ *  - ok path is go_g(o->b4, 2); go_f(o->b5, 2) (two calls); stop_c takes 1 arg.
+ *  - op is s32 = (u8)r (keeps the target's `andi a1,s0,0xff` handler arg);
+ *    `r &= 0xFF` before the >= 0xC0 split (the low path reads v1 = r & 0xFF).
+ *  - 127.0f literals: two identical `127.0f` in the 0xCC arms are CSE'd and
+ *    hoisted into callee-saved $f20 (sdc1 + frame growth); spelling one of
+ *    them `(f32)127` keeps every site as lui at,0x42fe / mtc1.
+ *  - (f32)(s32)(u16)x for the u16 divisors (signed cvt.s.w, no 2^32 fixup).
+ *  - 0xA0: r = fetch16 (r dead afterwards) so n is the homed byte instead of
+ *    being re-derived from r & 0xF; `u8 x; u8 n;` decl order puts n at 102(sp).
+ *  - 0xCB / 0xCC are switch statements (explicit `case 2: continue;`).
+ * Residual (~3.3%): 0xC6's empty body (target keeps its own b/nop); 0xC9
+ * reloads D_2074 (lhu) after the h8 store (target holds the lh in a0);
+ * 0xCB switch copy `or v1,s0`; scattered t-register numbering. */
 extern int gl_func_0003E680();
 extern int gl_func_0003EC34();
 extern int gl_func_000401E8();
 extern s16 D_2C7A4_2074;       /* speed clamp threshold */
 extern u32 D_2C7A4_2154;
-extern f32 D_2C7A4_f127a, D_2C7A4_f127b, D_2C7A4_f127c, D_2C7A4_f127d;       /* random source (>>2), case 0xD4 */
 /* relocated (jal-0-baked) intra-USO callees — distinct per site */
 extern int gl2C7A4_probe_a();  /* entry probe (o->b4) */
 extern int gl2C7A4_probe_b();  /* entry probe (o->b5) */
-extern int gl2C7A4_stop_c();   /* teardown (o->b4, 2) */
+extern int gl2C7A4_stop_c();   /* teardown (o->b4) */
 extern int gl2C7A4_stop_d();   /* teardown (o->b5) */
 extern int gl2C7A4_stop_e();   /* teardown (o) */
 extern int gl2C7A4_go_f();     /* running path (o->b5, 2) */
+extern int gl2C7A4_go_g();     /* running path (o->b4, 2) */
 extern int gl2C7A4_destroy();  /* -1 handler teardown (o) */
 extern int gl2C7A4_call_a();   /* case 0xC5 first call (o+0x9C) */
 extern int gl2C7A4_call_b();   /* case 0xC5 second call (o+0x9C, v) */
@@ -14339,7 +14356,14 @@ extern int gl2C7A4_call_d();   /* low 0x70 (o->w38[op&0xF]) */
 extern int gl2C7A4_call_e();   /* low 0xA0 (x, base+imm16, chan+n) */
 
 typedef struct Gl2C7A4 {
-    u8 b0;                     /* 0x00 (w0 via *(s32 *) cast) */
+    unsigned live : 1;         /* 0x00 status bits */
+    unsigned f40 : 1;
+    unsigned stop : 1;         /* 0x20 */
+    unsigned f10 : 1;
+    unsigned f08 : 1;
+    unsigned f04 : 1;          /* 0x04: running */
+    unsigned f02 : 1;          /* 0x02: done */
+    unsigned f01 : 1;
     u8 b1, b2, b3, b4, b5, b6, b7;
     u16 h8;                    /* 0x08 step */
     u16 hA;                    /* 0x0A accum */
@@ -14358,7 +14382,6 @@ typedef struct Gl2C7A4 {
     u8 pad30[8];
     s32 *w38[16];              /* 0x38 slot words (bit31 = live) */
     Gl2BB7CSub sub;            /* 0x78 */
-    u8 pad92[2];
     s32 w94;                   /* 0x94 */
     s32 w98;                   /* 0x98 */
     u8 x9C[0x44];              /* 0x9C embedded sub-object */
@@ -14368,7 +14391,9 @@ typedef struct Gl2C7A4 {
 } Gl2C7A4;
 
 void gl_func_0002C7A4(Gl2C7A4 *o) {
-    volatile s32 padc[14];     /* dead frame band to -0x68 */
+    u8 x;                      /* unused: its home byte (103) puts n at 102(sp) */
+    u8 n;
+    volatile s32 padc[6];      /* dead frame band to -0x68 */
     Gl2BB7CSub *sub;
     s32 r;
     s32 op;
@@ -14376,21 +14401,21 @@ void gl_func_0002C7A4(Gl2C7A4 *o) {
     s32 v2;
     u16 h;
     s32 c;
-    u8 n;
     u8 *q;
     s32 i;
 
-    if (!((u32)*(s32 *)o >> 31)) {
+    if (!o->live) {
         return;
     }
     if (gl2C7A4_probe_a(o->b4) == 0 || gl2C7A4_probe_b(o->b5) == 0) {
-        gl2C7A4_stop_c(o->b4, 2);
+        gl2C7A4_stop_c(o->b4);
         gl2C7A4_stop_d(o->b5);
         gl2C7A4_stop_e(o);
         return;
     }
+    gl2C7A4_go_g(o->b4, 2);
     gl2C7A4_go_f(o->b5, 2);
-    if (*(s32 *)o & 0x20000000) {
+    if (o->stop) {
         if (o->b3 & 0x80) {
             return;
         }
@@ -14402,7 +14427,7 @@ void gl_func_0002C7A4(Gl2C7A4 *o) {
         return;
     }
     o->hA = o->hA - D_2C7A4_2074;
-    if (((u32)(*(s32 *)o << 6) >> 31) == 1) {
+    if (o->f02 == 1) {
         return;
     }
     r = o->h10;
@@ -14410,11 +14435,11 @@ void gl_func_0002C7A4(Gl2C7A4 *o) {
         o->h10 = r - 1;
         goto cleanup;
     }
-    o->b0 |= 4;
+    o->f04 = 1;
     sub = (Gl2BB7CSub *)((u8 *)o + 0x78);
     for (;;) {
         r = gl_func_0003F010(sub);
-        op = r & 0xFF;
+        op = (u8)r;
         if (r >= 0xF2) {
             r = gl_func_0003E6E8(o, sub, op, gl_func_0003E680(sub, (u8)op));
             if (r == 0) {
@@ -14427,8 +14452,9 @@ void gl_func_0002C7A4(Gl2C7A4 *o) {
             o->h10 = r;
             goto cleanup;
         }
-        if ((r & 0xFF) >= 0xC0) {
-            switch (r & 0xFF) {
+        r &= 0xFF;
+        if (r >= 0xC0) {
+            switch (r) {
             case 0xC5:
                 q = (u8 *)o + 0x9C;
                 gl2C7A4_call_a(q);
@@ -14459,42 +14485,47 @@ void gl_func_0002C7A4(Gl2C7A4 *o) {
                 o->hC = (s8)gl_func_0003F010(sub) * 48;
                 continue;
             case 0xCB:  /* fade mode setup */
-                op = gl_func_0003F010(sub) & 0xFF;
+                op = (u8)gl_func_0003F010(sub);
                 v2 = gl_func_0003F024(sub);
-                if (op == 0 || op == 1) {
+                switch (op) {
+                case 0:
+                case 1:
                     if (o->b1 != 2) {
                         o->h14 = v2;
                         o->b1 = op;
                     }
-                } else if (op == 2) {
+                    break;
+                case 2:
                     o->h12 = v2;
                     o->b1 = op;
-                    o->f20 = (0.0f - o->f1C) / (f32)(u16)v2;
+                    o->f20 = (0.0f - o->f1C) / (f32)(s32)(u16)v2;
+                    break;
                 }
                 continue;
             case 0xCC:  /* fade target */
                 v = gl_func_0003F010(sub);
-                c = o->b1;
-                if (c != 0) {
-                    if (c == 1) {
-                        o->b1 = 0;
-                        o->f1C = 0.0f;
-                    } else if (c == 2) {
-                        continue;
-                    } else {
-                        continue;
-                    }
+                switch (o->b1) {
+                case 0:
+                    break;
+                case 1:
+                    o->b1 = 0;
+                    o->f1C = 0.0f;
+                    break;
+                case 2:
+                    continue;
+                default:
+                    continue;
                 }
-                h = o->h14;
-                o->h12 = h;
-                if (h != 0) {
-                    o->f20 = ((f32)v / D_2C7A4_f127a - o->f1C) / (f32)(u16)h;
+                c = o->h14;
+                o->h12 = c;
+                if (c != 0) {
+                    o->f20 = ((f32)v / 127.0f - o->f1C) / (f32)(s32)(u16)c;
                 } else {
-                    o->f1C = (f32)v / D_2C7A4_f127b;
+                    o->f1C = (f32)v / (f32)127;
                 }
                 continue;
             case 0xCD:
-                o->f2C = (f32)(s8)gl_func_0003F010(sub) / D_2C7A4_f127c;
+                o->f2C = (f32)(s8)gl_func_0003F010(sub) / 127.0f;
                 continue;
             case 0xCE:
                 gl_func_0003EC34(o, (u16)gl_func_0003F024(sub));
@@ -14503,20 +14534,21 @@ void gl_func_0002C7A4(Gl2C7A4 *o) {
                 gl_func_0003F024(sub);
                 continue;
             case 0xD0:
-                o->f28 = (f32)(s8)gl_func_0003F010(sub) / D_2C7A4_f127d;
+                o->f28 = (f32)(s8)gl_func_0003F010(sub) / 127.0f;
                 continue;
             case 0xD1:
-                o->b0 |= 0x20;
+                o->stop = 1;
                 continue;
             case 0xD2:
                 o->b3 = gl_func_0003F010(sub);
                 continue;
             case 0xD3:  /* pointer store, op-discriminated */
                 v2 = gl_func_0003F024(sub);
+                q = o->base + (u16)v2;
                 if (op == 0xD2) {
-                    o->w94 = (s32)(o->base + (u16)v2);
+                    o->w94 = (s32)q;
                 } else {
-                    o->w98 = (s32)(o->base + (u16)v2);
+                    o->w98 = (s32)q;
                 }
                 continue;
             case 0xD4:
@@ -14532,15 +14564,17 @@ void gl_func_0002C7A4(Gl2C7A4 *o) {
                 continue;
             case 0xD6:  /* call push via ch-indexed table */
                 v2 = gl_func_0003F024(sub);
-                if (sub->ch == -1) {
+                c = sub->ch;
+                if (c == -1) {
                     continue;
                 }
-                if (sub->sp == 3) {
+                i = sub->sp;
+                if (i == 3) {
                     continue;
                 }
-                sub->stk[sub->sp] = sub->pc;
+                q = o->base + ((u16)v2 + c * 2);
+                sub->stk[i] = sub->pc;
                 sub->sp++;
-                q = o->base + ((u16)v2 + sub->ch * 2);
                 sub->pc = o->base + (u16)(q[1] + (q[0] << 8));
                 continue;
             case 0xD7:
@@ -14555,10 +14589,11 @@ void gl_func_0002C7A4(Gl2C7A4 *o) {
             case 0xDA:  /* byte poke: base[imm16] = ch + x */
                 op = gl_func_0003F010(sub) & 0xFF;
                 v2 = gl_func_0003F024(sub);
-                o->base[(u16)v2] = SUB_CHU(sub) + op;
+                q = o->base + (u16)v2;
+                *q = SUB_CHU(sub) + op;
                 continue;
             case 0xDB:
-                o->b0 |= 2;
+                o->f02 = 1;
                 return;
             case 0xDC:
             case 0xF1:  /* bound-setting label; table is external */
@@ -14570,7 +14605,7 @@ void gl_func_0002C7A4(Gl2C7A4 *o) {
         n = r & 0xF;
         switch (r & 0xF0) {
         case 0x00:  /* ch = slot live bit */
-            sub->ch = (u32)(*o->w38[n] >> 31) ^ 1;
+            sub->ch = ((u32)*o->w38[n] >> 31) ^ 1;
             continue;
         case 0x10:
             continue;
@@ -14593,17 +14628,17 @@ void gl_func_0002C7A4(Gl2C7A4 *o) {
             continue;
         case 0x80:  /* forward to cmd processor, abs */
             v2 = gl_func_0003F024(sub);
-            gl_func_0003EDAC(o, op & 0xF, o->base + (u16)v2);
+            gl_func_0003EDAC(o, (u8)(op & 0xF), o->base + (u16)v2);
             continue;
         case 0x90:  /* forward to cmd processor, pc-rel */
             v2 = gl_func_0003F024(sub);
-            gl_func_0003EDAC(o, op & 0xF, sub->pc + v2);
+            gl_func_0003EDAC(o, (u8)(op & 0xF), sub->pc + v2);
             continue;
         case 0xA0:
         case 0xB0:  /* bound-setting label; table is external */
-            op = gl_func_0003F010(sub) & 0xFF;
-            v2 = gl_func_0003F024(sub);
-            gl2C7A4_call_e(op, o->base + (u16)v2, (u8 *)o + n + 0x158);
+            op = (u8)gl_func_0003F010(sub);
+            r = gl_func_0003F024(sub);
+            gl2C7A4_call_e(op, o->base + (u16)r, (u8 *)o + n + 0x158);
             continue;
         }
     }
@@ -14612,9 +14647,8 @@ cleanup:
     i = 0;
     q = (u8 *)o;
     do {
-        s32 *sl = *(s32 **)(q + 0x38);
-        if ((u32)*sl >> 31) {
-            gl_func_000401E8(sl);
+        if ((u32)**(s32 **)(q + 0x38) >> 31) {
+            gl_func_000401E8(*(s32 **)(q + 0x38));
         }
         i += 4;
         q += 4;
