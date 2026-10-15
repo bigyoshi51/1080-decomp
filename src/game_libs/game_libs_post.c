@@ -1825,37 +1825,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001E134);
 //   inversion). Residual schedule/coloring noise: bne delay sw a3 vs
 //   sw ra + andi-to-v1 vs in-place, pair1 adjacent-store swap,
 //   temp-FIFO +1 (target starts t7), pair2 inc-vs-final-sw order.
-#ifdef NON_MATCHING
+// 2026-10-15 EXACT (83.52 -> 100): (1) `if (!a3)` -- the logical-not test
+//   is what makes uopt narrow the K&R u16 param IN PLACE (`sw a3,44;
+//   andi a3,a3,0xffff`, then `bnez a3`); `a3 == 0` narrows into t0/v1;
+//   (2) the second pair masks a3 again (`a3 & 0xFFFF` -> the use-site
+//   `andi t5,a3`); (3) `arg4 & 0xFFFF` is the folded mask that burns t6
+//   so the ring starts at t7; (4) 8-byte Gfx-pair pointer with `dl++`
+//   post-increments (call arm: increment lands in the jal delay), two
+//   distinct pair cursors (second takes v1), and each pair's three
+//   statements on ONE line (split lines reorder the pair-1 stores and the
+//   pair-2 cursor copy). docs/IDO_CODEGEN.md#knr-u16-not-test-inplace-narrow-1ee78
+typedef struct { int w0, w1; } GfxPair1EE78;
 extern int gl_ref_00031BC8(); /* baked USO jal 0x0C00C6F2 -> 0x31BC8 (shared with 1EF20) */
 int gl_func_0001EE78(dl, a1, a2, a3, arg4, arg5)
-char *dl;
+GfxPair1EE78 *dl;
 int *a1;
 int a2;
 u16 a3;
 u16 arg4;
 int arg5;
 {
-    if (a3 == 0) {
-        char *q;
-        q = dl;
-        dl += 8;
-        gl_ref_00031BC8(q, 0x3C0);
+    GfxPair1EE78 *p;
+    GfxPair1EE78 *r;
+
+    if (!a3) {
+        gl_ref_00031BC8(dl++, 0x3C0);
     } else {
-        char *p;
-        p = dl;
-        dl += 8;
-        *(int *)(p + 0) = arg4 | 0x08000000;
-        *(int *)(p + 4) = (a2 & 0xFFFF) | 0x03C00000;
-        p = dl;
-        dl += 8;
-        *(int *)(p + 0) = ((arg5 & 0xFF) << 16) | 0x05000000 | a3;
-        *(int *)(p + 4) = a1[3] + 0x80000020;
+        p = dl++; p->w0 = (arg4 & 0xFFFF) | 0x08000000; p->w1 = (a2 & 0xFFFF) | 0x03C00000;
+        r = dl++; r->w0 = ((arg5 & 0xFF) << 16) | 0x05000000 | (a3 & 0xFFFF); r->w1 = a1[3] + 0x80000020;
     }
     return (int)dl;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EE78);
-#endif
 
 // gl_func_0001EF20 — STRUCTURAL PASS (0x328 / 202 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
