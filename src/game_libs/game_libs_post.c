@@ -18697,119 +18697,19 @@ s32 arg2;
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030AF4);
 #endif
 
-// gl_func_00031334 — STRUCTURAL PASS (0x1EC / 123 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr $ra)
-// with one INTERNAL computed jump (jr $t8). A 3-arg stepped
-// state-machine driver / jump-table command loop.
-//
-//   void gl_func_00031334(int a, int b, int c) {
-//     ctx_a = a; ctx_b = b; ctx_c = c;       // spill 3 args
-//     callback0(0);                           // jal 0 setup
-//     callback(1);
-//     *(int*)&D_0_flag = 1;                   // mark active
-//     callback(0xFF, 0);                      // clear / reset pass
-//     int i = *(int*)&D_0_step + 1;           // global step index
-//     if (i >= 0xF) return;                   // bounded (0..0xE)
-//     goto *jumptab_1900[i];                  // sll 2; lw; jr $t8
-//   L_step0: if (a == 4) { ... } ...
-//   L_stepN: emit(0x83010000 | ..., 0x50);    // per-step callback
-//     ...
-//   }
-//
-// Struct-typing reference: a per-invocation STEP DRIVER for one of
-//   the subsystem's state machines. It spills its three args into
-//   context slots, runs reset/setup USO-relocated callbacks (jal 0
-//   → resolved at load) and marks a global active flag at &D_0,
-//   then reads a global STEP INDEX (based at &D_0), increments it,
-//   bounds it to [0, 0xE], and dispatches through a jump table at
-//   &D_0+0x1900 (computed `jr $t8` after sll-2 + lw) to ~15 per-step
-//   handler arms. Each arm tests the spilled args (e.g. == 4 via
-//   branch-likely beql) and issues USO-relocated callbacks carrying
-//   command words from the 0x83010000 bank with parameters such as
-//   0x50. The stepped counterpart to the gl_func_0002FB74
-//   interpreter — where that one is opcode-keyed per command, this
-//   one is index-keyed per progression step (the &D_0+0x1900 table
-//   and &D_0 step word are the deferred-symbolization sites).
-// Caps (DEFERRED): raw-word USO + computed jump table
-//   (&D_0+0x1900 unsymbolized) + USO-reloc jal-0 callbacks —
-//   byte-match needs USO mnemonic disasm + step table symbolized.
-//   Real-C STRUCTURAL skeleton below per the analysis. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-extern int D_00000000;
-extern int D_31_x;   // gate read in the a==5 arm
-extern int D_31_y;   // secondary gate in the a==5 arm
-extern int D_31_z;   // mode word read in the v0==13/14 arm
-extern int gl_func_00044F18();   // baked fixed-address callee (jal 0x44f18)
-// Stepped state-machine driver. Spills args (stack-homed), runs reset cbs,
-// marks the &D flag, then dispatches on a global step index (jr-table at
-// &D_0+0x1900, ~15 arms). Each arm tests the spilled arg `a` and emits cbs
-// carrying 0x83010000-bank command words with params (0x50/2000/320/400) or
-// the fixed jal 0x44f18, then falls into a second jr-table dispatch on a
-// (&D_0+0x193c, ~11 arms) whose sole effect sets *(&D+0xC)=256. Reloc-blind
-// jr-tables + jal-0 cbs (deferred); the 0x8301 words / immediates are baked.
+/* gl_func_00031334: stepped cue driver (0x1EC / 123 words). Clears/sets up
+ * via cross-USO calls, then switch (step word) over -1..13 (arms 0, 3, 4, 5,
+ * 7, 10-12 issue 0x83010000-bank cue calls / the baked jal 0x44F18) and
+ * switch (a) over -1..9 (a == 6 sets *(&D + 0xC) = 256).
+ * WIRED via REPLACE_FUNC_BODY donor splice: the real C lives in the IDO 7.1
+ * -O2 donor unit game_libs_o2_31334.c (123/123 word-exact); the splice
+ * renames the two switches' donor-local .rodata jumptable reloc to
+ * gl_func_00031334_rodata (pinned to the USO tables at +0x1900 / +0x193C).
+ * The old wrap's "a+1 switch" / two-arg (0xFF, 0) call were decode errors
+ * (see the donor header). Body below is a placeholder for the splice. */
 void gl_func_00031334(int a, int b, int c) {
-    int i;
-    (void)b;
-    (void)c;
-    gl_func_00000000(0);
-    gl_func_00000000(1);
-    *(int *)&D_00000000 = 1;
-    gl_func_00000000(0xFF, 0);
-    i = *(int *)&D_00000000 + 1;
-    if (i < 0xF) {
-        switch (i) {
-            case 0:
-                if (a != 4 && a != 0) {
-                    gl_func_00000000(0x83010000, 0x50);
-                }
-                break;
-            case 1:
-                gl_func_00000000(0x83010000, 0x50);
-                break;
-            case 2:
-                if (a == 5) {
-                    if (*(int *)&D_31_x == 0) {
-                        gl_func_00000000(0x83010000, 2000);
-                    } else if (*(int *)&D_31_y != 1) {
-                        gl_func_00000000(0x83010000, 0x50);
-                    }
-                } else if (a == 6) {
-                    gl_func_00000000(0x83010000, 2000);
-                } else {
-                    gl_func_00000000(0x83010000, 320);
-                    gl_func_00044F18(0);
-                    gl_func_00000000(0xFF, 0);
-                }
-                break;
-            case 3:
-                if (*(int *)&D_31_z != 13 && *(int *)&D_31_z != 14) {
-                    gl_func_00000000();
-                }
-                break;
-            case 4:
-                if (a != 7) {
-                    gl_func_00000000(0x83010000, 0x50);
-                }
-                break;
-            case 5:
-                gl_func_00000000(0x83010000, 400);
-                break;
-            default:
-                break;
-        }
-    }
-    switch (a + 1) {
-        case 5:
-            *(int *)((char *)&D_00000000 + 0xC) = 256;
-            break;
-        default:
-            break;
-    }
+    volatile int ret = a;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031334);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_00031520() {

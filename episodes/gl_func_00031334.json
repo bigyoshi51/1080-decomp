@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00031334",
+  "project": "1080-agent-c",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T17:27:03.899990+00:00",
+  "end_time": "2026-10-15T17:27:03.900010+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T17:27:03.900005+00:00",
+      "assistant_text": "Manual exact match via IDO 7.1 -O2 donor splice (87.5 -> 100). Two jumptable switches: switch on the step word with cases -1..13 (addiu +1; sltiu 15), arms 0,3,4,5,7,10-12 in source order; switch on param a with every label -1..9 written (mostly empty) so IDO picks a table; a == 6 stores 256 at D+0xC. The (0xFF, 0, 0) call middle zero is li a1,0 = 0.0f float arg to a prototyped (int, float, int) blank alias. if (a != 4 && a != 0) loads a once. Tables pinned via one renamed gl_func_00031334_rodata = 0x1900 (second table rides as the LO16 addend 0x3C).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 123,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 -O2 donor for gl_func_00031334 -- stepped sound/cue driver with two\n * jumptable switches (123/123 words standalone; st_size 0x1EC).\n *\n * WIRED via REPLACE_FUNC_BODY donor splice into game_libs_post.c.o (the\n * 29CCC / 2E290 / 343F4 recipe, docs/MATCHING_WORKFLOW.md#donor-splice-\n * switch-jumptable-rodata-rename). Both tables land in the donor's local\n * .rodata (switch 1 at +0, 15 entries; switch 2 at +0x3C, 11 entries); the\n * splice renames the reloc to gl_func_00031334_rodata, pinned to 0x1900 in\n * undefined_syms_auto.txt, so the %lo words link to 0x1900 / 0x193C exactly\n * as the USO ships them (tables read from bootup.uso RoData with\n * scripts/extract-uso-jumptable.py --shim 0x1466C; that dump starts one\n * entry late, at +0x1904).\n *\n * Load-bearing shapes:\n *  - switch 1 is on the step word itself with cases -1..13 (IDO's\n *    `addiu t8,t7,1; sltiu at,t8,15`); the empty -1 and 13 labels fix the\n *    range, arms in source order 0, 3, 4, 5, 7, 10-12.\n *  - switch 2 is on the reloaded param a with cases -1..9; it needs enough\n *    empty labels for IDO to pick a table over a beq chain.\n *  - the (0xFF, 0, 0) call's middle 0 is `addiu a1,zero,0` = a 0.0f float\n *    arg to a prototyped (int, float, int) callee (the blank alias\n *    gl_func_00000000_fi); the scanner flagged the missing 3rd arg.\n *  - `if (a != 4 && a != 0)` loads a once (t9); two separate early breaks\n *    reload it.\n *  - jal 0x44F18 is a baked in-unit call (gl_ref_00044F18). */\n#include \"common.h\"\n\nextern int gl_func_00000000();\nextern int D_00000000;\nextern int D_31334_st, D_31334_x, D_31334_y, D_31334_z;\nextern void gl_ref_00044F18();\nextern int gl_func_00000000_fi(int, float, int);\n\nvoid gl_func_00031334(int a, int b, int c) {\n    gl_func_00000000(0);\n    gl_func_00000000(1);\n    *(int *)&D_00000000 = 1;\n    gl_func_00000000_fi(0xFF, 0.0f, 0);\n    switch (D_31334_st) {\n        case -1:\n            break;\n        case 0:\n            if (a != 4 && a != 0) {\n                gl_func_00000000(0x83010000, 0x50);\n            }\n            break;\n        case 3:\n            gl_func_00000000(0x83010000, 0x50);\n            break;\n        case 4:\n            if (a == 5) {\n                if (D_31334_x == 0) {\n                    gl_func_00000000(0x83010000, 2000);\n                } else if (D_31334_y != 1) {\n                    gl_func_00000000(0x83010000, 0x50);\n                }\n            } else if (a == 6) {\n                gl_func_00000000(0x83010000, 2000);\n            } else {\n                gl_func_00000000(0x83010000, 320);\n                gl_ref_00044F18(0);\n                gl_func_00000000_fi(0xFF, 0.0f, 0);\n            }\n            break;\n        case 5:\n            if (D_31334_z == 13) break;\n            if (D_31334_z == 14) break;\n            gl_func_00000000();\n            break;\n        case 7:\n            if (a != 7) {\n                gl_func_00000000(0x83010000, 0x50);\n            }\n            break;\n        case 10:\n        case 11:\n        case 12:\n            gl_func_00000000(0x83010000, 400);\n            break;\n        case 13:\n            break;\n    }\n    switch (a) {\n        case -1:\n        case 0:\n        case 1:\n        case 2:\n        case 3:\n        case 4:\n        case 5:\n            break;\n        case 6:\n            *(int *)((char *)&D_00000000 + 0xC) = 256;\n            break;\n        case 7:\n        case 8:\n        case 9:\n            break;\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o2_31334.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_00031334.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Linked ROM byte-identical to baserom; report.json 100.0; .text slice equals expected except the blank-vs-baked jal 0x44F18 (gl_ref_00044F18) and the two renamed gl_func_00031334_rodata LO16 words (0x0/0x3C vs 0x1900/0x193C)."
+  }
+}

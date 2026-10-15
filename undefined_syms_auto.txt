@@ -3637,3 +3637,10 @@ gl_ref_0005166C = 0x0005166C;  /* gl_func_0003E2B0 baked USO jal (0x0C01459B) */
 gl_ref_000516D4 = 0x000516D4;  /* gl_func_0003E2B0 baked USO jal (0x0C0145B5) */
 gl_ref_0003D480 = 0x0003D480;  /* gl_func_000290C8 baked in-unit jal (0x0C00F520) */
 gl_ref_0003D638 = 0x0003D638;  /* gl_func_000290C8 baked in-unit jal (0x0C00F58E) */
+gl_func_00031334_rodata = 0x00001900;  /* gl_func_00031334 two jumptables (15 entries at +0x1900, 11 at +0x193C) in game_libs rodata; donor-local .rodata reloc renamed by replace-function-body.py (game_libs_o2_31334.c) */
+gl_ref_00044F18 = 0x00044F18;  /* gl_func_00031334 baked in-unit jal (0x0C0113C6) */
+gl_func_00000000_fi = 0x00000000;  /* (int, float, int) prototyped blank for gl_func_00031334's (0xFF, 0.0f, 0) calls (li a1,0) */
+D_31334_st = 0x00000000;  /* gl_func_00031334 step word (USO load-resolved) */
+D_31334_x = 0x00000000;  /* gl_func_00031334 gate word, step 4 a==5 arm */
+D_31334_y = 0x00000000;  /* gl_func_00031334 secondary gate word */
+D_31334_z = 0x00000000;  /* gl_func_00031334 mode word, step 5 arm */
