@@ -26973,27 +26973,19 @@ void gl_func_000558A0(int **va_ptr, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000558A0);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0005591C: 88-insn (0x160) — FULLY RE-DECODED 2026-08-22 from the
- * expected/ .o ground truth (53.7 -> 96.7). NOT a circular-buffer walk: the
- * "link-list" middle is TWO 0x4C-byte struct block-copies (IDO 3-word-unrolled
- * copy loops): (1) `if (a3) s = *a3` into the local at sp+0x60, (2) the
- * struct passed BY VALUE (copy into arg-build area sp+0, then lw a0-a3 from
- * 0/4/8/C(sp) + jal). s.unk00 = &a0 (address-of-param forces the a0-a3
- * home-slot saves = the "varargs shape"). Guard logic: v0=0; if (!a0) v0=1;
- * else if (*a0 != 0x3E8) v0=1; if (v0) call(D+0x211C8) — call guarded on v0,
- * NOT nested in the *a0 test. K&R params; `Gl5591CArg *p5591C` dead decl
- * supplies the 8 frame bytes below s (frame 0xA8->0xB0, s at 0x60 exact).
- *
- * RESIDUAL (3.3pp): ONE extra insn `or t2,v0,zero` — uopt refuses to use the
- * guarded a3 home-reload destructively as the copy-loop induction base (makes
- * a fresh copy), which cascades t-reg renumbering through both loops
- * (t5/t6 swap, t9/t0/t2 rotation). Unguarded copy DOES coalesce (destructive
- * lw t9, verified) — the guard branch is what blocks it. NEGATIVE probes, all
- * no-change: top-level ptr local (copy-prop'd), (unsigned)-cast laundering
- * (9B88 lever), `register` class, assignment-inside-guard, member-expr src
- * (a3->inner via outer struct), same-line join, while+break spelling.
- * Every other word matches at the target frame/offsets. */
+/* gl_func_0005591C: 88-insn (0x160) -- EXACT 2026-10-15 (96.7 -> 100).
+ * Two 0x4C-byte struct block-copies (IDO 3-word-unrolled copy loops):
+ * (1) the guarded `if (a3) s = *a3` into the local at sp+0x60, (2) the struct
+ * passed BY VALUE (copy into arg-build area sp+0, lw a0-a3 + jal).
+ * s.unk00 = &a0 forces the a0-a3 home saves. Guard: v0=0; if (!a0) v0=1;
+ * else if (*a0 != 0x3E8) v0=1; if (v0) call(D+0x211C8). `p5591C` dead decl
+ * supplies the 8 frame bytes below s (frame 0xB0, s at 0x60).
+ * The old 1-insn residual (`or t2,v0,zero`: the a3 home reload copied into a
+ * fresh copy-loop base) closed by reading a3 THROUGH the home slot,
+ * `((Gl5591CArg **)&a0)[3]` (a varargs-style read): the reload then is an
+ * expression temp that uopt uses destructively as the induction base (lw t9).
+ * The t5/t6 swap closed by storing s.unk38 = 1 AFTER s.unk14 = a2. See
+ * docs/IDO_CODEGEN.md#param-read-via-home-slot-coalesces-copy-base-5591c. */
 extern int gl_data_00000000;
 typedef struct Gl5591CArg {
     int *unk00;   /* 0x00: &first-arg (address of a0 home slot) */
@@ -27016,12 +27008,11 @@ typedef struct Gl5591CArg {
     int unk44;
     int unk48;
 } Gl5591CArg;   /* 0x4C */
-typedef struct Gl5591COuter { Gl5591CArg inner; } Gl5591COuter;
 int gl_func_0005591C(a0, a1, a2, a3)
 int *a0;
 int a1;
 int a2;
-Gl5591COuter *a3;
+Gl5591CArg *a3;
 {
     Gl5591CArg *p5591C;
     Gl5591CArg s;
@@ -27048,26 +27039,20 @@ Gl5591COuter *a3;
     if (v0 != 0) {
         gl_func_00000000((char*)&gl_data_00000000 + 0x211C8);
     }
-    while (a3 != 0) {
-        s = a3->inner;
-        break;
-    }
+    if (((Gl5591CArg **)&a0)[3] != 0) s = *((Gl5591CArg **)&a0)[3];
     s.unk00 = (int *)&a0;
     s.unk28 = 0;
     s.unk18 = 0;
     s.unk34 = 0;
     s.unk3C = 0;
-    s.unk38 = 1;
     s.unk0C = a1;
     s.unk10 = a1;
     s.unk14 = a2;
+    s.unk38 = 1;
     gl_func_00000000(s);
     gl_func_00000000();
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005591C);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_00055A7C(int *dst) {
