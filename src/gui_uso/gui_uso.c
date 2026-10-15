@@ -1866,16 +1866,38 @@ extern int D_3B80_f0, D_3B80_f1, D_3B80_f2;
  * REMAINING RESIDUAL: +8 frame (128 vs 120, param homes 132/136/140 vs
  * 124/128); s-reg permutation (base s5 vs s7, a0-copy s8 vs s5, cursor s6
  * vs s8); cursor scratch $a0 vs target $a3; switch li-hoist into compare
- * delay slots (target keeps li's in the arms). Coloring/scheduler-tie class. */
-void gui_func_00003B80(int *a0, int a1, int a2, int a3) {
-    int s6;
-    int *s5 = a0;
-    int s8 = 0;
-    int s2, s0, s3, s1, s4;
+ * delay slots (target keeps li's in the arms). Coloring/scheduler-tie class.
+ * 2026-10-15 agent-g (call-shape-scan flags #0/#3): 91.04 -> ~96.1.
+ *  - LOOP-TOP width reload `s2 = a0[1]` (target re-reads it in the
+ *    loop-test branch delay slot) and the else-arm frow 4th arg is
+ *    a0[2] (`lw a3,8(s5)`), not the counter: fixed the whole s-web
+ *    (base s7, a0-copy s5, cursor s8, width s2 now all = target).
+ *  - `s3 = s0;` BEFORE the rows call (target `or s3,s0` pre-jal).
+ *  - `volatile int a1` replaces the if(0) &a1 escape: same lw/addu/sw
+ *    memory-resident x cursor, but no a3 home store.
+ *  - FRAME 128 -> 120: locals get stack slots top-down in DECLARATION
+ *    order and the frame keeps every slot above the lowest used one;
+ *    target = uninit junk slot at frame-4 (116), frow spill at 92, so
+ *    exactly 5 plain locals are declared between them (s8,s2,s0,s3,s1)
+ *    and the rest after frow. The junk is `max` itself: default arm
+ *    leaves it unassigned (lw v0,116 = max's undefined home), no s6 read.
+ *  - a0 used directly (no s5 copy local): same code, cleaner.
+ * NEGATIVES: switch(max = a0[3]) puts cursor/slot in target a3/t0 but
+ *  emits arm li AFTER the frow sw (target li first), net -1.2pp; fresh
+ *  counter local = -0.3; decl order of s0/s1 = no-op; non-volatile a1
+ *  = 94.5; volatile a2 too = 94.0; inlined slot local = 89.
+ * RESIDUAL: s0/s1 swapped (height->counter web vs rows web, pure
+ *  2-colour permutation); switch temp t0 vs target v0 -> max li's
+ *  hoisted into the compare delay slots and the header cursor/slot
+ *  colour a1/a3 vs target a3/t0. */
+void gui_func_00003B80(int *a0, volatile int a1, int a2, int a3) {
     int max;
+    int s8 = 0;
+    int s2, s0, s3, s1;
     void (*frow)();
+    int s4;
+    int s6;
 
-    if (0) { gl_func_00000000(&a1); }
     {
         int *ctx = *(int **)&D_00000000;
         int *dlp = (int *)ctx[0xC / 4];
@@ -1891,34 +1913,35 @@ void gui_func_00003B80(int *a0, int a1, int a2, int a3) {
     case 0:  frow = (void (*)())&D_3B80_f0; max = 4096; break;
     case 1:  frow = (void (*)())&D_3B80_f1; max = 2048; break;
     case 2:  frow = (void (*)())&D_3B80_f2; max = 1024; break;
-    default: max = s6; break;
+    default: break;
     }
-    s2 = s5[4 / 4];   /* width  */
-    s0 = s5[8 / 4];   /* height */
+    s2 = a0[4 / 4];   /* width  */
+    s0 = a0[8 / 4];   /* height */
     if (s2 * s0 > max) {
-        s1 = gl_func_00000000(max / s0);   /* rows per page */
         s3 = s0;                            /* height */
-        s0 = s5[4 / 4];                     /* width as page counter */
+        s1 = gl_func_00000000(max / s0);   /* rows per page */
+        s0 = a0[4 / 4];                     /* width as page counter */
         s6 = (s3 << 10) / s3;
         while (s0 != 0) {
+            s2 = a0[4 / 4];
             if (s1 < s0) {
                 s4 = (s1 << 10) / s1;
-                frow(*(int **)&D_00000000, s5[0], s2, s5[8 / 4], s8, 0, s1, s3, 0);
+                frow(*(int **)&D_00000000, a0[0], s2, a0[8 / 4], s8, 0, s1, s3, 0);
                 gl_func_00000000(*(int **)&D_00000000, a1, a2, s1, s3, s4, s6);
                 s8 += s1;
                 s0 -= s1;
                 a1 += s1;
             } else {
                 s1 = s0;
-                frow(*(int **)&D_00000000, s5[0], s2, s0, s8, 0, s0, s3, 0);
+                frow(*(int **)&D_00000000, a0[0], s2, a0[8 / 4], s8, 0, s0, s3, 0);
                 gl_func_00000000(*(int **)&D_00000000, a1, a2, s0, s3, (s0 << 10) / s0, s6);
                 s0 -= s1;
             }
         }
     } else {
-        frow(*(int **)&D_00000000, s5[0], s2, s0, 0, 0, s2, s0, 0);
-        s2 = s5[4 / 4];
-        s0 = s5[8 / 4];
+        frow(*(int **)&D_00000000, a0[0], s2, s0, 0, 0, s2, s0, 0);
+        s2 = a0[4 / 4];
+        s0 = a0[8 / 4];
         gl_func_00000000(*(int **)&D_00000000, a1, a2, s2, s0, (s2 << 10) / s2, (s0 << 10) / s0);
     }
 }
