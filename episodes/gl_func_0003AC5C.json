@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0003AC5C",
+  "project": "1080-agent-c",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T18:19:12.247339+00:00",
+  "end_time": "2026-10-15T18:19:12.247356+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T18:19:12.247352+00:00",
+      "assistant_text": "Donor-splice exact. 5-entry switch on the token (cases read from the bootup.uso RoData table at file 0x1A94: arms in address order are cases 2, 1, 0, 3, 4). Post-inc temp idiom per stream read; a word used as a call arg goes through a named local (q = arg1; arg1 = q + 1; v = *q;) to get lw before addiu; the flag read before break is q = arg1; arg1 = q + 1; flag = *q; on one line so the addiu fills the b delay. Donor .rodata jumptable renamed to gl_func_0003AC5C_rodata pinned at 0x1A90; message addresses pinned as gl_ref data refs.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 127,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 -O2 donor for gl_func_0003AC5C -- constructor + token-stream loop\n * (0x1FC / 127 words; 127/127 word-exact standalone apart from reloc fields).\n *\n * WIRED via REPLACE_FUNC_BODY donor splice into game_libs_post0b.c.o (the\n * 29CCC / 44B78 / 52CD4 recipe, docs/MATCHING_WORKFLOW.md#post0b-jumptable-\n * donor-52cd4). The C switch over cmd 0..4 puts its 5-entry jumptable in the\n * donor's local .rodata; the splice renames that reloc to\n * gl_func_0003AC5C_rodata, pinned to 0x1A90 in undefined_syms_auto.txt\n * (bootup.uso RoData file offset 0x1A94.. = imm + 4; arms: case 0 -> +0xDC,\n * 1 -> +0xBC, 2 -> +0xA8, 3 -> +0x15C, 4 -> +0x180; raw word - 0x1466C -\n * 0x3AC5C). Arms are written in address (= source) order 2, 1, 0, 3, 4.\n *\n * Decode/levers from the 2026-08-22 agent-g rework (46.1 -> 97.5) kept:\n * plain switch, int stream words converted with (f32), post-increment temp\n * idiom per read, nested-goto alloc guard, args as the persistent regs,\n * if (1) around the loop (cmd/q in v1/v0). The last 4 scheduler words:\n *  - case 3: name the call arg (`q = arg1; arg1 = q + 1; v = *q;`, v passed\n *    in a2) -> `or v0,s0; lw a2,0(v0); addiu s0,4`; with *q inline in the\n *    call the addiu schedules before the lw.\n *  - case 4: skip word, then `q = arg1; arg1 = q + 1; flag = *q;` on one\n *    line -> lw s5 before the b, addiu in the delay; the old\n *    `q = arg1; arg1 += 1;` + `flag = *q;` put the lw in the delay slot.\n * The four baked lui/addiu message addresses are pinned data refs\n * (gl_ref_0001EExx_3AC5C). */\n#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char gl_ref_0001EE18_3AC5C, gl_ref_0001EE24_3AC5C, gl_ref_0001EE3C_3AC5C, gl_ref_0001EE48_3AC5C;\n\nint *gl_func_0003AC5C(int *arg0, int *arg1) {\n    int *q;    /* v0 post-increment temp */\n    int cmd;   /* v1 */\n    int flag;  /* s5 */\n    int v;\n\n    if (arg0 == 0) {\n        arg0 = (int *) gl_func_00000000(0x90);\n        if (arg0 == 0) {\n            goto ret;\n        }\n    }\n    gl_func_00000000(arg0, &gl_ref_0001EE18_3AC5C);\n    *(int **)((char *)arg0 + 0x34) = arg1;\n    flag = 0;\n    gl_func_00000000(&gl_ref_0001EE24_3AC5C);\n    *(int *)((char *)arg0 + 0x30) = 0;\n    if (1) {\n    q = arg1; arg1 = q + 1; cmd = *q;\n    while (cmd != 6) {\n        switch (cmd) {\n        case 2:\n            q = arg1; arg1 = q + 1;\n            *(int *)((char *)arg0 + 0x30) = *q;\n            break;\n        case 1:\n            q = arg1; arg1 = q + 1;\n            *(f32 *)((char *)arg0 + 0x38) = (f32) *q;\n            break;\n        case 0:\n            *(f32 *)((char *)arg0 + 0x3C) = (f32) arg1[0];\n            arg1 += 6;\n            *(f32 *)((char *)arg0 + 0x40) = (f32) arg1[-5];\n            *(f32 *)((char *)arg0 + 0x44) = (f32) arg1[-4];\n            *(f32 *)((char *)arg0 + 0x48) = (f32) arg1[-3];\n            *(f32 *)((char *)arg0 + 0x4C) = (f32) arg1[-2];\n            *(f32 *)((char *)arg0 + 0x50) = (f32) arg1[-1];\n            break;\n        case 3:\n            q = arg1; arg1 = q + 1; v = *q;\n            *(int *)((char *)arg0 + 0x84) = gl_func_00000000(0, &gl_ref_0001EE3C_3AC5C, v, 0);\n            break;\n        case 4:\n            arg1 += 1;\n            q = arg1; arg1 = q + 1; flag = *q;\n            break;\n        default:\n            gl_func_00000000(&gl_ref_0001EE48_3AC5C);\n            break;\n        }\n        q = arg1; arg1 = q + 1; cmd = *q;\n    }\n    }\n    if (flag == 0) {\n        *(int *)((char *)arg0 + 0x88) = 0;\n        *(int *)((char *)arg0 + 0x8C) = 0;\n    }\n    *(f32 *)((char *)arg0 + 0x54) = 0.0f;\n    *(f32 *)((char *)arg0 + 0x58) = 0.0f;\n    *(f32 *)((char *)arg0 + 0x5C) = 0.0f;\n    gl_func_00000000();\nret:\n    return arg0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o2_3AC5C.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0003AC5C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "ROM byte-identical (cmp tenshoe.z64 baserom.z64); report.json 100.0; .text slice vs expected differs only at reloc sites (renamed _rodata LO16, four pinned gl_ref data HI16/LO16 pairs)."
+  }
+}
