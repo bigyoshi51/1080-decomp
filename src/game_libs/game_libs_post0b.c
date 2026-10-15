@@ -24730,205 +24730,24 @@ int gl_func_00052BBC(int *a0, int row1, int row2, int flagX, int flagY) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052BBC);
 #endif
 
-// gl_func_00052CD4 — command-stream decoder (size 0x468 = 282 insns,
-// SINGLE function, NOT a bundle — earlier "5-fn bundle" note was WRONG;
-// the next .text symbol is gl_func_00053... at 0x1ece4 = base+0x468).
-//
-// VERIFIED STRUCTURE (2026-06-22 agent-i, expected objdump):
-//   op = *strm & 0xFFFF; cur = strm + 1; s1 = out;     // op DIRECT, NOT op-2
-//   if (op != 2) do {
-//     if ((u32)op >= 37) cur = default(out, op, cur);  // sltiu 37 bound
-//     else switch (op) { ... }                         // jr t6 via table
-//     op = *cur++ & 0xFFFF;                             // bnel a3,2 loop
-//   } while (op != 2);
-//   ...finalize (dflag/lflag/rflag stack flags + two *0xC allocs)...
-//   return cur;
-// Per-case body: each reads v=*cur++ (one or two words) and stores into
-// out at a case-specific offset; cases 1/4/5/14 call USO callbacks
-// (msg literals 0x20FD4/0x20FDC/0x20FF4); cases 8/12/19 RMW flag bits at
-// out+0x38 (|8, |0x2000/&~0x2000, |0x4000/&~0x4000); cases D/L/R set
-// stack flags sp+48/sp+52/sp+40. Finalize allocs out+0x58 / out+0x54 =
-// CB(out->0x40*0xC) / CB(out->0x44*0xC) when dflag set; tail frees
-// out+0x54 unless (&D_0[0] & 0x100).
-//
-// STRUCTURAL CAP — NOT C-MATCHABLE (external USO jumptable):
-//   Dispatch is `sll t6,op,2; lui at,0x0; addu at,at,t6; lw t6,0x1BE4(at);
-//   jr t6` — an indirect jump through a jumptable living in EXTERNAL USO
-//   data at &D_0+0x1BE4 (the %hi resolves to 0 in the USO, %lo=0x1BE4).
-//   A C `switch` ALWAYS emits its own LOCAL .rodata table referenced by a
-//   `R_MIPS_HI16/LO16 .rodata` reloc pair (build emits `lw 0x90(at)` to a
-//   local table); there is no C construct that does `jr` through an
-//   arbitrary external data symbol at a fixed offset. The 0x1BE4-vs-0x90
-//   table-base word can never match. Knock-on emit-shape diffs that ride
-//   the same non-C dispatch: op held in caller-saved a3 (build forces a
-//   saved reg), out in s1 (build s2), and a per-read `move v1,s0` copy
-//   before every `lw 0(v1)` (build folds to `lw 0(s0)`). Body logic +
-//   per-case offsets + flag RMWs + finalize are reconstructed exactly;
-//   the dispatch prologue + table-base reloc form is the residual cap.
-//   Reconstruction lifted fuzzy 65.37 -> 76.95% (agent-i). Keep INCLUDE_ASM.
-#ifdef NON_MATCHING
-/* PASS-2 2026-06-22 (agent-i): true-structure rebuild. switch(op) [op =
- * *strm & 0xFFFF, op in 0..36, op-DIRECT not op-2], v=*cur++ per case.
- * Dispatch is an EXTERNAL USO jumptable (&D_0+0x1BE4) = structural cap;
- * a C switch emits a local .rodata table (different base + reloc). */
+/* gl_func_00052CD4: command-stream decoder (0x468 / 282 words). op =
+ * *strm & 0xFFFF; loop until op == 2: switch (op) over 0..36 (out-of-range
+ * and cases 2/3/5/13-17/22-24/33 -> default handler cur = cb(out, op, cur)),
+ * each arm reads one or two stream words into out fields / flag bits at
+ * out+0x34+4 / stack flags; then finalize (two n*0xC allocs, attach,
+ * release out+0x54 unless D & 0x100). Returns the stream cursor.
+ * WIRED via REPLACE_FUNC_BODY donor splice: the real C lives in the IDO 7.1
+ * -O2 donor unit game_libs_o2_52CD4.c (282/282 word-exact); the splice
+ * renames the donor-local .rodata reloc (37-entry jumptable + 10000.0f
+ * literal) to gl_func_00052CD4_rodata, pinned to the USO RoData at +0x1BE4.
+ * The old wrap's "external jumptable = structural cap" verdict was the
+ * in-unit one; its case numbering (0..25 in address order) was also wrong --
+ * see the donor header for the table decode. Body below is a placeholder for
+ * the splice. */
 s32 *gl_func_00052CD4(char *arg0, s32 *arg1) {
-    s32 *cur;
-    s32 op;
-    s32 v;
-    s32 v2;
-    s32 n;
-    s32 rflag;
-    s32 dflag;
-    s32 lflag;
-
-    rflag = 0;
-    dflag = 0;
-    lflag = 0;
-    op = *arg1 & 0xFFFF;
-    cur = arg1 + 1;
-    if (op != 2) {
-        do {
-            switch (op) {
-            case 0:
-                *(s32 *)(arg0 + 0xA0) = *cur++;
-                break;
-            case 1:
-                v = *cur++;
-                func_00000000(arg0, v);
-                break;
-            case 2:
-                *(s32 *)(arg0 + 0x40) = *cur++;
-                *(s32 *)(arg0 + 0x60) = *cur++;
-                break;
-            case 3:
-                *(s32 *)(arg0 + 0x44) = *cur++;
-                *(s32 *)(arg0 + 0x68) = *cur++;
-                dflag = 1;
-                break;
-            case 4:
-                func_00000000(0x20FD4, 0);
-                v = *cur++;
-                v2 = *cur++;
-                *(s32 *)(arg0 + 0x90) = 0;
-                *(s32 *)(arg0 + 0x8C) = v;
-                *(s32 *)(arg0 + 0x80) = v2;
-                if (v != 0) {
-                    *(s32 *)(arg0 + 0x84) = func_00000000(v * 4, v);
-                }
-                func_00000000(arg0, *(s32 *)(arg0 + 0x80));
-                func_00000000();
-                break;
-            case 5:
-                func_00000000(0x20FDC);
-                break;
-            case 6:
-                *(s32 *)(arg0 + 0x64) = *cur++;
-                break;
-            case 7:
-                *(s32 *)(arg0 + 0x78) = *cur++;
-                break;
-            case 8:
-                *(s32 *)(arg0 + 0x7C) = *cur++;
-                *(s32 *)(arg0 + 0x38) = *(s32 *)(arg0 + 0x38) | 8;
-                break;
-            case 9:
-                *(s32 *)(arg0 + 0x50) = *cur++;
-                break;
-            case 10:
-                *(s32 *)(arg0 + 0x44) = *cur++;
-                *(s32 *)(arg0 + 0x4C) = *cur++;
-                break;
-            case 11:
-                lflag = 1;
-                break;
-            case 12:
-                v = *cur++;
-                if (v != 0) {
-                    *(s32 *)(arg0 + 0x38) = *(s32 *)(arg0 + 0x38) | 0x2000;
-                } else {
-                    *(s32 *)(arg0 + 0x38) = *(s32 *)(arg0 + 0x38) & ~0x2000;
-                }
-                break;
-            case 14:
-                cur += 3;
-                func_00000000(0x20FF4);
-                break;
-            case 15:
-                *(s32 *)(arg0 + 0x98) = *cur++;
-                break;
-            case 16:
-                v = *cur++;
-                *(f32 *)(arg0 + 0x9C) = (f32) v / *(f32 *)((char *)&D_00000000 + 0x1C78);
-                break;
-            case 17:
-                cur++;
-                break;
-            case 18:
-                rflag = *cur++;
-                break;
-            case 19:
-                v = *cur++;
-                if (v != 0) {
-                    *(s32 *)(arg0 + 0x38) = *(s32 *)(arg0 + 0x38) | 0x4000;
-                } else {
-                    *(s32 *)(arg0 + 0x38) = *(s32 *)(arg0 + 0x38) & ~0x4000;
-                }
-                break;
-            case 21:
-                cur++;
-                break;
-            case 22:
-                *(s32 *)(arg0 + 0x5C) = *cur++;
-                break;
-            case 23:
-                *(s32 *)(arg0 + 0x48) = *cur++;
-                *(s32 *)(arg0 + 0x6C) = *cur++;
-                break;
-            case 24:
-                *(s32 *)(arg0 + 0x58) = *cur++;
-                *(s32 *)(arg0 + 0x54) = *cur++;
-                break;
-            case 25:
-                *(s32 *)(arg0 + 0x74) = *cur++;
-                *(s32 *)(arg0 + 0x70) = *cur++;
-                break;
-            default:
-                cur = func_00000000(arg0, op, cur, op);
-                break;
-            }
-            op = *cur++ & 0xFFFF;
-        } while (op != 2);
-    }
-    if (dflag != 0) {
-        if ((*(s32 *)(arg0 + 0x5C) == 0) && (*(s32 *)(arg0 + 0x58) == 0)) {
-            n = *(s32 *)(arg0 + 0x40);
-            *(s32 *)(arg0 + 0x58) = func_00000000(n * 0xC);
-        }
-        if (*(s32 *)(arg0 + 0x54) == 0) {
-            n = *(s32 *)(arg0 + 0x44);
-            *(s32 *)(arg0 + 0x54) = func_00000000(n * 0xC);
-        }
-        if (*(s32 *)(arg0 + 0x5C) != 0) {
-            func_00000000(arg0, lflag);
-        } else {
-            func_00000000(arg0, 1);
-        }
-    }
-    if (rflag != 0) {
-        func_00000000(arg0);
-    }
-    if (!(*(s32 *)&D_00000000 & 0x100)) {
-        v = *(s32 *)(arg0 + 0x54);
-        if (v != 0) {
-            func_00000000(v);
-            *(s32 *)(arg0 + 0x54) = 0;
-        }
-    }
-    return cur;
+    volatile s32 *ret = arg1;
+    return (s32 *)ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052CD4);
-#endif
 
 /* Nested 6-byte-stride table lookup: entry = tbl60[tbl70 ? tbl70[i].h0 : i].
  * Merged: the v1==0 branch was splat-split off as game_libs_func_00053174
