@@ -9088,46 +9088,38 @@ void gl_func_000271D8(void) {
 //   USO-reloc call takes the constant 0xF9000000 (a segment-tagged /
 //   RDRAM-region pointer). A critical-section-guarded state operation
 //   in the game_libs subsystem.
-// Caps (DEFERRED): CLEAN single jr $ra. Critical-section-guarded
-//   subsystem operation. Real-C STRUCTURAL body below per the
-//   analysis (fixed 0x3B844 used as paired acquire/release lock;
-//   state byte &D_0+0x2CF0 from gl_func_0002119C gates whole op;
-//   sub-state &D_0+0x2CF1 vs op result with <3 check selects act on
-//   global &D_0+0x53C4 obj; tail jal-0 with 0xF9000000 segment-
-//   tagged pointer). Byte-match deferred — placeholder jal-0 ops
-//   need USO reloc infra. Name pre-checked: no extern reuse
-//   (collision-safe). gl_func_00000000 = canonical never-defined
-//   USO placeholder.
-#ifdef NON_MATCHING
+/* gl_func_0002722C: EXACT. Corrections vs the sketch above: returns int
+ * (0 on the two early exits, else the last cb's result); the second cb takes
+ * NO args; the `< 3` test is on the 0x2CF0 STATE byte (spilled across the
+ * cb), not on a call result. Both 0x0C00EE11 jals are the baked in-unit
+ * gl_ref_0003B844. Levers: the arg-less cb is the VOID blank
+ * gl_func_00000000_void so it does not define $v0 and `state` (live across
+ * it) colours v0 like the target (docs/IDO_CODEGEN.md
+ * #void-alias-frees-v0-across-call-37bec); `int state` (not u8) and
+ * `local` block-scoped give the 0x20 frame (state 0x1C, local 0x18). */
 extern int gl_func_00000000();
+extern void gl_func_00000000_void();
 extern int D_00000000;
-/* Whole-body decode 2026-06-01. First call is the resolved gl_func_0003B844,
- * not a placeholder. Guard on *(D+0x2CF0); inside, r=gl(a0), early-return if
- * a0==*(D+0x2CF1) or r>=3, else gl(*(D+0x53C4),&local,1). The tail (3B844 +
- * two F9000000 cmd emits) is OUTSIDE the if — also reached on the ==0 path. */
-extern int gl_func_0003B844();
-void gl_func_0002722C(int a0) {
-    char *g = (char *)&D_00000000;
-    gl_func_0003B844(a0);
-    if (*(unsigned char *)(g + 0x2CF0) != 0) {
+extern void gl_ref_0003B844();
+int gl_func_0002722C(int a0) {
+    int state;
+    gl_ref_0003B844(a0);
+    state = *((unsigned char *)&D_00000000 + 0x2CF0);
+    if (state != 0) {
         int local;
-        int r = gl_func_00000000(a0);
-        unsigned char ss = *(unsigned char *)(g + 0x2CF1);
-        if (a0 == ss) {
-            return;
+        gl_func_00000000_void();
+        if (a0 == *((unsigned char *)&D_00000000 + 0x2CF1)) {
+            return 0;
         }
-        if (r >= 3) {
-            return;
+        if (state >= 3) {
+            return 0;
         }
-        gl_func_00000000(*(void **)(g + 0x53C4), &local, 1);
+        gl_func_00000000(*(void **)((char *)&D_00000000 + 0x53C4), &local, 1);
     }
-    gl_func_0003B844(a0);
-    gl_func_00000000((void *)0xF9000000, a0);
-    gl_func_00000000((void *)0xF9000000);
+    gl_ref_0003B844();
+    gl_func_00000000(0xF9000000, a0);
+    return gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002722C);
-#endif
 
 // gl_func_000272C4 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO bundle
