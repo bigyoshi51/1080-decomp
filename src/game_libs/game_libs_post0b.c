@@ -13178,7 +13178,6 @@ void game_libs_func_00042938(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042938);
 #endif
 
-#ifdef NON_MATCHING
 // Vec3-float-to-signed-byte quantizer (leaf, raw-word USO, no relocs).
 // For arg1[0..2] (-> arg0[8..0xA]) and arg2[0..2] (-> arg0[0x18..0x1A]):
 //   b = (s8)(s32) min(component * 128.0f, 127.0f)
@@ -13198,23 +13197,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042938);
 // insns), coalesced per-site d=arg0 copies — ring is start/stride-invariant
 // under all of them. Needs +1 ring slot before site 1 and +1 per site with
 // zero emitted insns; no C spelling found. Genuine temp-ring cap.
+// 2026-10-15 re-audit (agent-c): EXACT 99/99. The missing ring slot per site
+// is a FOLDED `& 0xFF` on the truncated int, `(s8)((s32)(..) & 0xFF)`: the
+// mask is dropped by the byte store but its temp is numbered first, giving
+// the target's stride-3 ring t8,t1,t4,t7,t0,t3 with zero extra insns
+// (docs/IDO_CODEGEN.md#folded-byte-mask-burns-ring-slot-42f4c).
 void game_libs_func_00042F4C(char *arg0, char *arg1, char *arg2) {
   f32 f128 = 128.0f;
   f32 f127 = 127.0f;
   s32 c = 128;
   f32 t;
   t = (*((f32 *) (arg1 + 0x0))) * f128;
-  *((s8 *) (arg0 + 0x8)) = (s8) (s32) (t < f127 ? t : f127);
+  *((s8 *) (arg0 + 0x8)) = (s8) ((s32) (t < f127 ? t : f127) & 0xFF);
   t = (*((f32 *) (arg1 + 0x4))) * f128;
-  *((s8 *) (arg0 + 0x9)) = (s8) (s32) (t < f127 ? t : f127);
+  *((s8 *) (arg0 + 0x9)) = (s8) ((s32) (t < f127 ? t : f127) & 0xFF);
   t = (*((f32 *) (arg1 + 0x8))) * f128;
-  *((s8 *) (arg0 + 0xA)) = (s8) (s32) (t < f127 ? t : f127);
+  *((s8 *) (arg0 + 0xA)) = (s8) ((s32) (t < f127 ? t : f127) & 0xFF);
   t = (*((f32 *) (arg2 + 0x0))) * f128;
-  *((s8 *) (arg0 + 0x18)) = (s8) (s32) (t < f127 ? t : f127);
+  *((s8 *) (arg0 + 0x18)) = (s8) ((s32) (t < f127 ? t : f127) & 0xFF);
   t = (*((f32 *) (arg2 + 0x4))) * f128;
-  *((s8 *) (arg0 + 0x19)) = (s8) (s32) (t < f127 ? t : f127);
+  *((s8 *) (arg0 + 0x19)) = (s8) ((s32) (t < f127 ? t : f127) & 0xFF);
   t = (*((f32 *) (arg2 + 0x8))) * f128;
-  *((s8 *) (arg0 + 0x1A)) = (s8) (s32) (t < f127 ? t : f127);
+  *((s8 *) (arg0 + 0x1A)) = (s8) ((s32) (t < f127 ? t : f127) & 0xFF);
   *((s8 *) (arg0 + 0x0)) = 0;
   *((s8 *) (arg0 + 0x1)) = 0;
   *((s8 *) (arg0 + 0x2)) = 0;
@@ -13232,9 +13236,6 @@ void game_libs_func_00042F4C(char *arg0, char *arg1, char *arg2) {
   *((s8 *) (arg0 + 0x16)) = 0;
   *((s8 *) (arg0 + 0x17)) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042F4C);
-#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_000430D8 (0x1AC, 107 words; merged with the former gl_func_000430E4
