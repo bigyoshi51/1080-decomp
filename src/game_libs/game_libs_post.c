@@ -12491,20 +12491,24 @@ void gl_func_0002A740(char *base, unsigned char idx, int a2) {
 // Caps (DEFERRED): raw-word USO + jal-0 USO-reloc dispatch + register
 //   coloring (above) — byte-match deferred. STALE 4-jr-bundle comment:
 //   grep -c 03E00008 = 1 (.s now single fn). Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+// re-audited 2026-10-15 with lever kit: EXACT. The "call-return v0/v1
+//   colouring" residual was the flag byte's SPELLING: bit6 set / bit7 clear
+//   are BITFIELD stores (`o->b6 = 1; o->b7 = 0;`, MSB-first u8 bitfield), not
+//   a named `f` + masks -- the named byte took v1 and the bitfield's
+//   zero-emission `& 0xFF` burns the one ring slot (lbu t7, ori t9, andi t0).
+//   Equivalent byte form: `*o = (*o & 0xFF) | 0x40; *o &= 0x7F;`. The arg
+//   `m` is the plain reload *(u8 *)(o + 4) in the call.
 extern int gl_func_00000000();
 extern int gl_func_0003ED2C();
 extern int D_00000000;
+typedef struct { unsigned char b7 : 1; unsigned char b6 : 1; unsigned char rest : 6; } BF2A7D8;
 void gl_func_0002A7D8(char *o) {
-    unsigned char f;
-    int m, r;
+    int r;
     gl_func_0003ED2C(o, 0xFFFF);
     gl_func_00000000(o + 0x9C);
-    f = *(unsigned char *)o;
-    m = *(unsigned char *)(o + 4);
-    *(unsigned char *)o = f | 0x40;
-    *(unsigned char *)o = *(unsigned char *)o & 0x7F;
-    r = gl_func_00000000(m);
+    ((BF2A7D8 *)o)->b6 = 1;
+    ((BF2A7D8 *)o)->b7 = 0;
+    r = gl_func_00000000(*(unsigned char *)(o + 4));
     if (r != 0) {
         gl_func_00000000(*(unsigned char *)(o + 4), 3);
     }
@@ -12517,9 +12521,6 @@ void gl_func_0002A7D8(char *o) {
         *(int *)((char *)&D_00000000 + 0x23DC) = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A7D8);
-#endif
 
 // Doubly-linked-list insert-at-head: link a1 before a0's current head.
 void game_libs_func_0002A884(int *a0, int *a1) {
