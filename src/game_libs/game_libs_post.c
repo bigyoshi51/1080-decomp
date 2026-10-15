@@ -13656,30 +13656,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002BB58);
 //   structure). Byte-match deferred. Name pre-checked: no extern
 //   reuse.
 #ifdef NON_MATCHING
-/* PASS-3 2026-08-22 (agent-g): WHOLESALE REDECODE from expected .o @0xf16c
- * (0xC28), exploiting the 3AC5C/30AF4 reloc-free-expected finding
- * (docs/IDO_CODEGEN.md): game_libs_post.c.o expected is reloc-free, so
- * every lui 0x0 / baked lo16 / jal word / jumptable load sits at a reloc
- * site in OUR build and objdiff scores it matched — the old "external USO
- * jumptable = permanent cap" verdict is retracted for %. The PASS-2 m2c
- * sketch invented case structure; real decode:
- *   command-VM tick. Loop: op = fetch8(sub@o+0x70); ops >= 0xB0 pull 0-3
- *   inline args (per-op count/size byte table D_argtbl, top bits = 16-bit
- *   flags, shifted left per arg); ops >= 0xF2 go to the external handler
- *   3E6E8 (0 = continue, -1 = destroy+stop, else = new timer + stop).
- *   switch1: 56 REAL case bodies, bound 66 (labels 0xB0..0xE7 in stream
- *   order + 0xF1 attached for the sltiu-66 bound; case->body mapping lives
- *   only in the runtime-relocated table, .text-invariant).
- *   ops 0x70..0xAF: switch2 on op&0xF8, 6 bodies at 0x70/78/80/88/90/98
- *   (bound 41), slot ops indexed by op&7.
- *   ops < 0x70: switch3 on op&0xF0, 7 bodies at 0x00..0x60 (bound 97),
- *   channel ops indexed by op&0xF.
- *   Levers: m1 = named -1 const web (s8); sel = int copy of op for the
- *   handler arg + switch selector (s0); s32 op web with explicit &0xFF
- *   (s2); post-inc pointer chains (case 0xD6) fold to one addiu +
- *   negative offsets. Residual: uopt s-reg NUMBERING (o/sub/cmd/m1 land
- *   one reg lower than target's s4/s6/s7/s8) + ~64B frame-slot excess
- *   from named-temp homes — coloring class, not structure. */
+/* PASS-4 2026-10-15 (agent-c): 77.1 -> 95.6. Plain rewrite of the PASS-3
+ * decode (command-VM tick: fetch8 op; ops >= 0xB0 pull 0-3 inline args per
+ * D_2BB7C_argtbl, >= 0xF2 go to the 3E6E8 handler, else a 66-entry switch;
+ * 0x70..0xAF slot ops on op&0xF8; < 0x70 channel ops on op&0xF0).
+ * What closed the gap (all whole-function register / frame effects):
+ *  - one u8 `op` reused for every (u8)args[0] read: op and the per-case byte
+ *    share s2 in the target; separate x/op names gave a different colouring.
+ *  - arg pull as `for (i = 0; i < n; i++) args[i] = ...` (SR'd to the s0/s3
+ *    pointer pair; the dead `or v0,zero,zero` after the loop is i's exit value).
+ *  - args[] declared LAST: the arg block sits at sp+96 like the target (the
+ *    other named homes go ABOVE it; frame 0xB8 vs 0x88 is the only cost).
+ *  - status bits as unsigned:1 bitfields (o->stop, cmd->paused, o->f02/f04,
+ *    o->volSet/panSet/prmSet): the bitfield extract burns one temp number,
+ *    which realigns the t-register sequence for the whole function.
+ *  - args[0] = args[1] through a 1-word struct copy (keeps args[0] in memory
+ *    so every later (u8)args[0] is lbu 99(sp)).
+ *  - call-arg temps: `y = args[0]; f(q, y);` loads a1 first and puts the a0
+ *    copy in the jal delay slot (expression args put a1 in the slot).
+ *  - 0x50/0x60: fetch into r first (r dead after) so n stays in s5 instead of
+ *    being re-derived from r & 0xF (which dragged r into s0).
+ *  - Sub is 0x1C bytes (no pad8A): b8C is at 0x8C, p90 at 0x90.
+ * Residual (~4.4%): r is colored v0 (target copies it to a0 in the slti
+ * delay slot, so the 0x70-path temps are a0 not a1); B5/C8 compute
+ * `op = args[0]` as lw+andi with a second andi for the `- op` operand (target:
+ * lbu t2 + or s2,t2 and subu from t2); B5 tail schedules `or a0,s4` before
+ * the args[1] store; CD loads cmd->base before sub->ch; 0x40 arg order
+ * (target `or a1,s2; andi a1,a1,0xf`); frame 0xB8 vs 0x88. */
 extern int gl_func_0003E6E8();
 extern int gl_func_0003F010();
 extern int gl_func_0003F024();
@@ -13705,6 +13708,13 @@ extern f32 D_2BB7C_ftbl[];     /* float table, cases 0xBC/0xBD */
 extern u8 *D_2BB7C_2028;       /* remap table base, cases 0xB5/0xC7 */
 extern u32 D_2BB7C_2154;       /* modulo source, cases 0xE2/0xE3 */
 
+/* 1-word view of one inline arg: copying args[1] into args[0] through it keeps
+ * args[0] memory-resident (a plain int assignment promotes args[0] and every
+ * (u8)args[0] read becomes lw + andi instead of the target's lbu 3(sp)). */
+typedef struct Gl2BB7CArg {
+    s32 w;
+} Gl2BB7CArg;
+
 typedef struct Gl2BB7CSlot {
     s32 w0;                    /* 0x00: sign<<1 status word */
     u8 pad04[0x50];
@@ -13719,7 +13729,10 @@ typedef struct Gl2BB7CSub {    /* at o+0x70 */
 } Gl2BB7CSub;
 
 typedef struct Gl2BB7CCmd {    /* at o->0x4C */
-    u32 w0;                    /* 0x00 */
+    unsigned c80 : 1;          /* 0x00 status word */
+    unsigned c40 : 1;
+    unsigned paused : 1;       /* 0x20000000 */
+    unsigned clo : 29;
     u8 b4;                     /* 0x04 */
     u8 b5;                     /* 0x05 */
     u8 pad06[0x12];
@@ -13729,8 +13742,18 @@ typedef struct Gl2BB7CCmd {    /* at o->0x4C */
 } Gl2BB7CCmd;
 
 typedef struct Gl2BB7C {
-    u8 b0;                     /* 0x00 (w0 read via *(s32 *) cast) */
-    u8 b1;                     /* 0x01 */
+    unsigned f80 : 1;          /* 0x00 status bits */
+    unsigned f40 : 1;
+    unsigned stop : 1;         /* 0x20: tick disabled */
+    unsigned f10 : 1;
+    unsigned f08 : 1;
+    unsigned f04 : 1;          /* 0x04: set by op 0xD0 */
+    unsigned f02 : 1;          /* 0x02: ops 0xB6/0xB7 */
+    unsigned f01 : 1;
+    unsigned volSet : 1;       /* 0x01:0x80 f38 valid */
+    unsigned panSet : 1;       /* 0x01:0x40 */
+    unsigned prmSet : 1;       /* 0x01:0x20 */
+    unsigned f1lo : 5;
     u8 b2, b3, b4, b5, b6, b7; /* 0x02.. */
     u8 b8, b9, bA, bB, bC, bD, bE, bF;
     u16 h10, h12, h14, h16, h18, h1A, h1C, h1E;
@@ -13745,476 +13768,490 @@ typedef struct Gl2BB7C {
     Gl2BB7CCmd *cmd;           /* 0x4C */
     Gl2BB7CSlot *slots[8];     /* 0x50 */
     Gl2BB7CSub sub;            /* 0x70 */
-    u8 pad8A[2];
     u8 b8C, b8D;
     u8 pad8E[2];
     u8 *p90;                   /* 0x90 */
     u8 x94[0x40];              /* 0x94: embedded sub-object */
     s8 chanD4[8];              /* 0xD4 */
-    u8 padD8[0];
+    
 } Gl2BB7C;
 
-#define O_FLAGS0(o)  ((o)->b0)
 #define O_CHAN(o, i) (*((s8 *)(o) + 0xD4 + (i)))
 #define O_PDC(o)     (*(u8 **)((u8 *)(o) + 0xDC))
 #define O_BE0(o)     (*((u8 *)(o) + 0xE0))
 #define SUB_CHU(s)   (*((u8 *)(s) + 0x19))
 
 void gl_func_0002BB7C(Gl2BB7C *o) {
-    s32 args[10];
     Gl2BB7CCmd *cmd;
     Gl2BB7CSub *sub;
     s32 m1;
     s32 r;
+    u8 op;
     s32 sel;
-    s32 op;
-    s32 t;
-    s32 i;
-    u8 *cp;
-    s32 b;
-    s32 *p;
-    s32 *end;
-    s32 v;
-    u8 x;
+    u8 b;
+    u8 y;
     u8 n;
-    u8 *q;
-    u8 *bp;
     u16 h;
+    u8 *q;
     s32 c;
-    Gl2BB7CSlot *sl;
+    s32 v;
+    s32 i;
+    s32 args[10];
 
-    if (*(s32 *)o & 0x20000000) {
+    if (o->stop) {
         goto cleanup;
     }
     cmd = o->cmd;
-    if (cmd->w0 & 0x20000000) {
+    if (cmd->paused) {
         if (o->b3 & 0x80) {
             return;
         }
     }
-    t = o->h1E;
-    sub = (Gl2BB7CSub *)((u8 *)o + 0x70);
-    if (t >= 2) {
-        o->h1E = t - 1;
+    sub = &o->sub;
+    if (o->h1E >= 2) {
+        o->h1E = o->h1E - 1;
         goto cleanup;
     }
     m1 = -1;
     for (;;) {
-                r = gl_func_0003F010(sub);
-                op = r & 0xFF;
-                if (r >= 0xB0) {
-                    b = D_2BB7C_argtbl[r - 0xB0];
-                    p = args;
-                    n = b & 3;
-                    if (n > 0) {
-                        end = p + n;
-                        do {
-                            if (!(b & 0x80)) {
-                                v = gl_func_0003F010(sub);
-                            } else {
-                                v = gl_func_0003F024(sub);
-                            }
-                            *p = v;
-                            p++;
-                            b = (b << 1) & 0xFF;
-                        } while ((u32)p < (u32)end);
-                    }
-                    sel = op;
-                    if (op >= 0xF2) {
-                        r = gl_func_0003E6E8(cmd, sub, sel, args[0]);
-                        if (r == 0) {
-                            continue;
-                        }
-                        if (r == m1) {
-                            gl2BB7C_destroy(o);
-                            goto done;
-                        }
-                        o->h1E = r;
-                        goto done;
-                    }
-                    switch (sel) {
-                    case 0xB0:  /* set stop flag */
-                        O_FLAGS0(o) |= 0x20;
-                        goto done;
-                    case 0xB1:
-                        cp = (u8 *)o + 0x94;
-                        gl2BB7C_call_a(cp);
-                        gl2BB7C_call_b(cp, (u8)args[0]);
-                        continue;
-                    case 0xB2:
-                        gl2BB7C_call_c((u8 *)o + 0x94);
-                        continue;
-                    case 0xB3:  /* jump abs16 */
-                        o->p3C = cmd->base + (u16)args[0];
-                        continue;
-                    case 0xB4: /* jump via ch-indexed table */
-                        c = sub->ch;
-                        if (c == m1) {
-                            continue;
-                        }
-                        q = o->p3C + c * 2;
-                        o->p3C = cmd->base + (u16)(q[1] + (q[0] << 8));
-                        continue;
-                    case 0xB5: /* remapped set + notify */
-                        x = (u8)args[0];
-                        if (cmd->b5 != 0xFF) {
-                            bp = D_2BB7C_2028;
-                            h = *(u16 *)(bp + cmd->b4 * 2);
-                            x = bp[h + bp[h] - (u8)args[0]];
-                        }
-                        if (gl2BB7C_call_d(1, 2, x) != 0) {
-                            o->b7 = x;
-                        }
-                        args[0] = args[1];
-                        gl_func_00040118(o, (u8)args[0]);
-                        continue;
-                    case 0xB6:
-                        O_FLAGS0(o) &= ~2;
-                        continue;
-                    case 0xB7:
-                        O_FLAGS0(o) |= 2;
-                        continue;
-                    case 0xB8:
-                        gl2BB7C_call_e(o, (u8)args[0]);
-                        o->b1 |= 0x40;
-                        continue;
-                    case 0xB9:
-                        x = (u8)args[0];
-                        o->b1 |= 0x40;
-                        o->f28 = (f32)x * 0.0078125f;
-                        continue;
-                    case 0xBA:
-                        h = (u16)args[0];
-                        o->b1 |= 0x80;
-                        o->f38 = (f32)h / 32768.0f;
-                        continue;
-                    case 0xBB:
-                        x = (u8)args[0];
-                        x = x + 128;
-                        o->b1 |= 0x80;
-                        o->f38 = D_2BB7C_ftbl[x];
-                        continue;
-                    case 0xBC:
-                        x = (u8)args[0];
-                        x = x + 128;
-                        o->b1 |= 0x80;
-                        o->f38 = D_2BB7C_ftbl[x];
-                        continue;
-                    case 0xBD:
-                        o->b1 |= 0x20;
-                        o->bA = (u8)args[0];
-                        continue;
-                    case 0xBE:
-                        o->b1 |= 0x20;
-                        o->bB = (u8)args[0];
-                        continue;
-                    case 0xBF:
-                        o->h26 = (s8)args[0];
-                        continue;
-                    case 0xC0:
-                        o->p90 = cmd->base + (u16)args[0];
-                        continue;
-                    case 0xC1:
-                        o->b8C = (u8)args[0];
-                        continue;
-                    case 0xC2:
-                        x = (u8)args[0];
-                        o->h12 = 0;
-                        o->h1A = 0;
-                        o->h16 = x << 3;
-                        continue;
-                    case 0xC3:
-                        x = (u8)args[0];
-                        o->h18 = 0;
-                        o->h10 = o->h14 = x << 5;
-                        continue;
-                    case 0xC4:
-                        o->h12 = (u8)args[0] << 3;
-                        o->h16 = (u8)args[1] << 3;
-                        o->h1A = (u8)args[2] << 4;
-                        continue;
-                    case 0xC5:
-                        o->h10 = (u8)args[0] << 5;
-                        o->h14 = (u8)args[1] << 5;
-                        o->h18 = (u8)args[2] << 4;
-                        continue;
-                    case 0xC6:
-                        o->h1C = (u8)args[0] << 4;
-                        continue;
-                    case 0xC7:
-                        o->b4 = (u8)args[0];
-                        continue;
-                    case 0xC8: /* remapped set (no notify) */
-                        x = (u8)args[0];
-                        if (cmd->b5 != 0xFF) {
-                            bp = D_2BB7C_2028;
-                            h = *(u16 *)(bp + cmd->b4 * 2);
-                            x = bp[h + bp[h] - (u8)args[0]];
-                        }
-                        if (gl2BB7C_call_d(1, 2, x) != 0) {
-                            o->b7 = x;
-                        }
-                        continue;
-                    case 0xC9:
-                        cmd->base[(u16)args[1]] = SUB_CHU(sub) + (u8)args[0];
-                        continue;
-                    case 0xCA: /* ch arithmetic on op value */
-                        c = (s8)args[0];
-                        if (sel == 0xC8) {
-                            sub->ch = sub->ch - c;
-                        } else if (sel == 0xCC) {
-                            sub->ch = c;
-                        } else {
-                            sub->ch = sub->ch & c;
-                        }
-                        continue;
-                    case 0xCB:
-                        gl2BB7C_call_f(cmd->tbl38[(u8)args[0]]);
-                        continue;
-                    case 0xCC:
-                        o->b1 |= 0x40;
-                        o->b3 = (u8)args[0];
-                        continue;
-                    case 0xCD:
-                        sub->ch = cmd->base[(u16)args[0] + sub->ch];
-                        continue;
-                    case 0xCE:
-                        o->h22 = (u16)args[0];
-                        continue;
-                    case 0xCF:
-                        q = cmd->base + (u16)args[0];
-                        q[0] = o->h22 >> 8;
-                        q[1] = o->h22;
-                        continue;
-                    case 0xD0:
-                        c = (u8)args[0];
-                        if (c & 0x80) {
-                            O_FLAGS0(o) |= 4;
-                        } else {
-                            O_FLAGS0(o) &= ~4;
-                        }
-                        O_BE0(o) = c & 0x7F;
-                        continue;
-                    case 0xD1:
-                        o->b2 = (u8)args[0];
-                        continue;
-                    case 0xD2:
-                        o->b8D = (u8)args[0];
-                        continue;
-                    case 0xD3:
-                        o->b8 = (u8)args[0];
-                        continue;
-                    case 0xD4: /* call push via ch-indexed table */
-                        c = sub->ch;
-                        if (c == m1) {
-                            continue;
-                        }
-                        sub->stk[sub->sp] = sub->pc;
-                        sub->sp++;
-                        q = o->p3C + c * 2;
-                        sub->pc = cmd->base + (u16)(q[1] + (q[0] << 8));
-                        continue;
-                    case 0xD5:
-                        o->b9 = (u8)args[0];
-                        continue;
-                    case 0xD6: /* bulk param load from stream table */
-                        q = cmd->base + (u16)args[0];
-                        o->b3 = *q++;
-                        o->b2 = *q++;
-                        gl_func_00040074(o, *q++);
-                        o->h26 = (s8)*q++;
-                        o->bA = *q++;
-                        o->bB = *q++;
-                        o->b4 = *q++;
-                        o->b8 = *q++;
-                        o->b1 |= 0x20;
-                        continue;
-                    case 0xD7:  /* bulk param load from inline args */
-                        o->b3 = args[0];
-                        o->b2 = args[1];
-                        gl_func_00040074(o, (u8)args[2]);
-                        o->h26 = (s8)gl_func_0003F010(sub);
-                        o->bA = gl_func_0003F010(sub);
-                        o->bB = gl_func_0003F010(sub);
-                        o->b4 = gl_func_0003F010(sub);
-                        o->b8 = gl_func_0003F010(sub);
-                        o->b1 |= 0x20;
-                        continue;
-                    case 0xD8:  /* reset sweep */
-                        o->h16 = 0;
-                        o->h12 = 0;
-                        o->h1A = 0;
-                        o->h14 = 0;
-                        o->h10 = 0;
-                        o->h18 = 0;
-                        O_PDC(o) = 0;
-                        o->bC = 0;
-                        o->b8D = 0;
-                        o->bD = 0;
-                        o->bE = 0;
-                        o->bF = 0;
-                        o->h20 = 0;
-                        o->b9 = 0;
-                        o->f38 = 1.0f;
-                        continue;
-                    case 0xD9:
-                        gl_func_00040074(o, (u8)args[0]);
-                        continue;
-                    case 0xDA:
-                        o->bC = (u8)args[0];
-                        continue;
-                    case 0xDB:
-                        O_PDC(o) = cmd->base + (u16)args[0];
-                        continue;
-                    case 0xDC:
-                        O_PDC(o) = 0;
-                        continue;
-                    case 0xDD:
-                        q = O_PDC(o);
-                        x = (u8)args[0];
-                        if (q == 0) {
-                            continue;
-                        }
-                        c = (x >> 4) & 0xF;
-                        x = x & 0xF;
-                        gl2BB7C_call_g(q, (u8)c, x);
-                        continue;
-                    case 0xDE:
-                        o->h22 = *(u16 *)&cmd->base[(u16)args[0] + sub->ch * 2];
-                        continue;
-                    case 0xDF:
-                        o->p3C = cmd->base + o->h22;
-                        continue;
-                    case 0xE0:
-                        o->h22 = *(u16 *)(o->p3C + sub->ch * 2);
-                        continue;
-                    case 0xE1:
-                        sub->ch = o->p3C[sub->ch];
-                        continue;
-                    case 0xE2:
-                        if (args[0] != 0) {
-                            o->h22 = D_2BB7C_2154 % (u32)args[0];
-                        } else {
-                            o->h22 = D_2BB7C_2154;
-                        }
-                        continue;
-                    case 0xE3:
-                        if (args[0] != 0) {
-                            sub->ch = D_2BB7C_2154 % (u32)args[0];
-                        } else {
-                            sub->ch = D_2BB7C_2154;
-                        }
-                        continue;
-                    case 0xE4:
-                        o->bD = args[0];
-                        continue;
-                    case 0xE5:
-                        o->bE = args[0];
-                        continue;
-                    case 0xE6:
-                        o->bF = args[0];
-                        o->h20 = args[1];
-                        continue;
-                    case 0xE7:
-                    case 0xF1:  /* bound-setting label; table is external */
-                        o->h22 = o->h22 + args[0];
-                        continue;
-                    }
-                } else if (r >= 0x70) {
-                    n = r & 7;
-                    if ((r & 0xF8) != 0x70) {
-                        if (n >= 8) {
-                            n = 0;
-                        }
-                    }
-                    switch (r & 0xF8) {
-                    case 0x70: /* ch = slot status bit */
-                        sl = o->slots[n];
-                        if (sl != 0) {
-                            sub->ch = (u32)(sl->w0 << 1) >> 31;
-                        } else {
-                            sub->ch = m1;
-                        }
-                        continue;
-                    case 0x78: /* slot target = base + imm16 */
-                        h = gl_func_0003F024(sub);
-                        if (gl_func_0003EA18(o, n) != 0) {
-                            continue;
-                        }
-                        o->slots[n]->w54 = cmd->base + h;
-                        continue;
-                    case 0x80:
-                        gl_func_0003EB78(o, n);
-                        continue;
-                    case 0x88: /* slot target via ch-indexed table */
-                        if (sub->ch == m1) {
-                            continue;
-                        }
-                        if (gl_func_0003EA18(o, n) == m1) {
-                            continue;
-                        }
-                        q = o->p3C + sub->ch * 2;
-                        h = q[1] + (q[0] << 8);
-                        o->slots[n]->w54 = cmd->base + h;
-                        continue;
-                    case 0x90:
-                        O_CHAN(o, n) = sub->ch;
-                        continue;
-                    case 0x98: /* slot target = pc-relative */
-                        c = (s16)gl_func_0003F024(sub);
-                        if (gl_func_0003EA18(o, n) != 0) {
-                            continue;
-                        }
-                        o->slots[n]->w54 = sub->pc + c;
-                        continue;
-                    }
+        r = gl_func_0003F010(sub);
+        op = r;
+        if (r >= 0xB0) {
+            b = D_2BB7C_argtbl[r - 0xB0];
+            n = b & 3;
+            for (i = 0; i < n; i++) {
+                if (!(b & 0x80)) {
+                    args[i] = gl_func_0003F010(sub);
                 } else {
-                    n = r & 0xF;
-                    switch (r & 0xF0) {
-                    case 0x00:  /* short wait */
-                        o->h1E = n;
-                        goto done;
-                    case 0x10: /* fire channel */
-                        q = (u8 *)&O_CHAN(o, op & 0xF);
-                        *(s8 *)q = m1;
-                        if (gl2BB7C_call_h(o->b7, SUB_CHU(sub), q) == m1) {
-                        }
-                        continue;
-                    case 0x20:  /* ch = chan (+consume if n<2) */
-                        sub->ch = O_CHAN(o, n);
-                        if (n < 2) {
-                            O_CHAN(o, n) = m1;
-                        }
-                        continue;
-                    case 0x30:
-                        sub->ch = sub->ch - O_CHAN(o, n);
-                        continue;
-                    case 0x40: /* forward to cmd processor */
-                        h = gl_func_0003F024(sub);
-                        gl_func_0003EDAC(cmd, op & 0xF, cmd->base + h);
-                        continue;
-                    case 0x50:  /* store ch into peer chan */
-                        *((s8 *)cmd->tbl38[n] + gl_func_0003F010(sub) + 0xD4) = sub->ch;
-                        continue;
-                    case 0x60:  /* load ch from peer chan */
-                        sub->ch = *((s8 *)cmd->tbl38[n] + gl_func_0003F010(sub) + 0xD4);
-                        continue;
-                    }
+                    args[i] = gl_func_0003F024(sub);
+                }
+                b <<= 1;
+            }
+            sel = op;
+            if (op >= 0xF2) {
+                r = gl_func_0003E6E8(cmd, sub, sel, args[0]);
+                if (r == 0) {
+                    continue;
+                }
+                if (r == m1) {
+                    gl2BB7C_destroy(o);
+                    goto cleanup;
+                }
+                o->h1E = r;
+                goto cleanup;
+            }
+            switch (sel) {
+            case 0xB0:
+                o->stop = 1;
+                goto cleanup;
+            case 0xB1:
+                q = (u8 *)o + 0x94;
+                gl2BB7C_call_a(q);
+                y = args[0];
+                gl2BB7C_call_b(q, y);
+                continue;
+            case 0xB2:
+                gl2BB7C_call_c((u8 *)o + 0x94);
+                continue;
+            case 0xB3:
+                h = args[0];
+                o->p3C = cmd->base + h;
+                continue;
+            case 0xB4:
+                v = sub->ch;
+                if (m1 == v) {
+                    continue;
+                }
+                q = o->p3C + v * 2;
+                h = q[1] + (q[0] << 8);
+                o->p3C = cmd->base + h;
+                continue;
+            case 0xB5:
+                op = args[0];
+                if (cmd->b5 != 0xFF) {
+                    h = *(u16 *)(D_2BB7C_2028 + cmd->b4 * 2);
+                    n = D_2BB7C_2028[h];
+                    op = D_2BB7C_2028[h + n - op];
+                }
+                if (gl2BB7C_call_d(1, 2, op) != 0) {
+                    o->b7 = op;
+                }
+                *(Gl2BB7CArg *)&args[0] = *(Gl2BB7CArg *)&args[1];
+                y = args[0];
+                gl_func_00040118(o, y);
+                continue;
+            case 0xB6:
+                o->f02 = 0;
+                continue;
+            case 0xB7:
+                o->f02 = 1;
+                continue;
+            case 0xB8:
+                y = args[0];
+                gl2BB7C_call_e(o, y);
+                o->panSet = 1;
+                continue;
+            case 0xB9:
+                op = args[0];
+                o->panSet = 1;
+                o->f28 = (f32)(s32)op * 0.0078125f;
+                continue;
+            case 0xBA:
+                h = args[0];
+                o->volSet = 1;
+                o->f38 = (f32)(s32)h / 32768.0f;
+                continue;
+            case 0xBB:
+                op = args[0];
+                op += 128;
+                o->f38 = D_2BB7C_ftbl[op];
+                o->volSet = 1;
+                continue;
+            case 0xBC:
+                op = args[0];
+                op += 128;
+                o->f38 = D_2BB7C_ftbl[op];
+                o->volSet = 1;
+                continue;
+            case 0xBD:
+                op = args[0];
+                o->prmSet = 1;
+                o->bA = op;
+                continue;
+            case 0xBE:
+                op = args[0];
+                o->prmSet = 1;
+                o->bB = op;
+                continue;
+            case 0xBF:
+                o->h26 = (s8)args[0];
+                continue;
+            case 0xC0:
+                h = args[0];
+                o->p90 = cmd->base + h;
+                continue;
+            case 0xC1:
+                op = args[0];
+                o->b8C = op;
+                continue;
+            case 0xC2:
+                op = args[0];
+                o->h12 = 0;
+                o->h1A = 0;
+                o->h16 = op << 3;
+                continue;
+            case 0xC3:
+                op = args[0];
+                o->h18 = 0;
+                o->h10 = o->h14 = op << 5;
+                continue;
+            case 0xC4:
+                op = args[0];
+                o->h12 = op << 3;
+                op = args[1];
+                o->h16 = op << 3;
+                op = args[2];
+                o->h1A = op << 4;
+                continue;
+            case 0xC5:
+                op = args[0];
+                o->h10 = op << 5;
+                op = args[1];
+                o->h14 = op << 5;
+                op = args[2];
+                o->h18 = op << 4;
+                continue;
+            case 0xC6:
+                op = args[0];
+                o->h1C = op << 4;
+                continue;
+            case 0xC7:
+                op = args[0];
+                o->b4 = op;
+                continue;
+            case 0xC8:
+                op = args[0];
+                if (cmd->b5 != 0xFF) {
+                    h = *(u16 *)(D_2BB7C_2028 + cmd->b4 * 2);
+                    n = D_2BB7C_2028[h];
+                    op = D_2BB7C_2028[h + n - op];
+                }
+                if (gl2BB7C_call_d(1, 2, op) != 0) {
+                    o->b7 = op;
+                }
+                continue;
+            case 0xC9:
+                op = args[0];
+                h = args[1];
+                q = cmd->base + h;
+                *q = SUB_CHU(sub) + op;
+                continue;
+            case 0xCA:
+                v = (s8)args[0];
+                if (sel == 0xC8) {
+                    sub->ch = sub->ch - v;
+                } else if (sel == 0xCC) {
+                    sub->ch = v;
+                } else {
+                    sub->ch = sub->ch & v;
+                }
+                continue;
+            case 0xCB:
+                op = args[0];
+                gl2BB7C_call_f(cmd->tbl38[op]);
+                continue;
+            case 0xCC:
+                op = args[0];
+                o->panSet = 1;
+                o->b3 = op;
+                continue;
+            case 0xCD:
+                h = args[0];
+                sub->ch = cmd->base[h + sub->ch];
+                continue;
+            case 0xCE:
+                h = args[0];
+                o->h22 = h;
+                continue;
+            case 0xCF:
+                h = args[0];
+                q = cmd->base + h;
+                q[0] = o->h22 >> 8;
+                q[1] = o->h22;
+                continue;
+            case 0xD0:
+                c = (u8)args[0];
+                if (c & 0x80) {
+                    o->f04 = 1;
+                } else {
+                    o->f04 = 0;
+                }
+                O_BE0(o) = c & 0x7F;
+                continue;
+            case 0xD1:
+                op = args[0];
+                o->b2 = op;
+                continue;
+            case 0xD2:
+                op = args[0];
+                o->b8D = op;
+                continue;
+            case 0xD3:
+                op = args[0];
+                o->b8 = op;
+                continue;
+            case 0xD4:
+                v = sub->ch;
+                if (m1 == v) {
+                    continue;
+                }
+                q = o->p3C + v * 2;
+                sub->stk[sub->sp] = sub->pc;
+                sub->sp++;
+                h = q[1] + (q[0] << 8);
+                sub->pc = cmd->base + h;
+                continue;
+            case 0xD5:
+                op = args[0];
+                o->b9 = op;
+                continue;
+            case 0xD6:
+                h = args[0];
+                q = cmd->base + h;
+                o->b3 = *q++;
+                o->b2 = *q++;
+                gl_func_00040074(o, *q++);
+                o->h26 = (s8)*q++;
+                o->bA = *q++;
+                o->bB = *q++;
+                o->b4 = *q++;
+                o->b8 = *q++;
+                o->prmSet = 1;
+                continue;
+            case 0xD7:
+                o->b3 = args[0];
+                o->b2 = args[1];
+                gl_func_00040074(o, (u8)args[2]);
+                o->h26 = (s8)gl_func_0003F010(sub);
+                o->bA = gl_func_0003F010(sub);
+                o->bB = gl_func_0003F010(sub);
+                o->b4 = gl_func_0003F010(sub);
+                o->b8 = gl_func_0003F010(sub);
+                o->prmSet = 1;
+                continue;
+            case 0xD8:
+                o->h16 = 0;
+                o->h12 = 0;
+                o->h1A = 0;
+                o->h14 = 0;
+                o->h10 = 0;
+                o->h18 = 0;
+                O_PDC(o) = 0;
+                o->bC = 0;
+                o->b8D = 0;
+                o->bD = 0;
+                o->bE = 0;
+                o->bF = 0;
+                o->h20 = 0;
+                o->b9 = 0;
+                o->f38 = 1.0f;
+                continue;
+            case 0xD9:
+                gl_func_00040074(o, (u8)args[0]);
+                continue;
+            case 0xDA:
+                op = args[0];
+                o->bC = op;
+                continue;
+            case 0xDB:
+                h = args[0];
+                q = cmd->base + h;
+                O_PDC(o) = q;
+                continue;
+            case 0xDC:
+                O_PDC(o) = 0;
+                continue;
+            case 0xDD:
+                op = args[0];
+                if (O_PDC(o) == 0) {
+                    continue;
+                }
+                c = op;
+                n = (c >> 4) & 0xF;
+                op = c & 0xF;
+                gl2BB7C_call_g(O_PDC(o), n, op);
+                continue;
+            case 0xDE:
+                v = sub->ch;
+                h = args[0];
+                o->h22 = *(u16 *)&cmd->base[h + v * 2];
+                continue;
+            case 0xDF:
+                o->p3C = cmd->base + o->h22;
+                continue;
+            case 0xE0:
+                o->h22 = *(u16 *)(o->p3C + sub->ch * 2);
+                continue;
+            case 0xE1:
+                sub->ch = o->p3C[sub->ch];
+                continue;
+            case 0xE2:
+                if (args[0] == 0) {
+                    o->h22 = D_2BB7C_2154;
+                } else {
+                    o->h22 = D_2BB7C_2154 % (u32)args[0];
+                }
+                continue;
+            case 0xE3:
+                if (args[0] == 0) {
+                    sub->ch = D_2BB7C_2154;
+                } else {
+                    sub->ch = D_2BB7C_2154 % (u32)args[0];
+                }
+                continue;
+            case 0xE4:
+                o->bD = args[0];
+                continue;
+            case 0xE5:
+                o->bE = args[0];
+                continue;
+            case 0xE6:
+                o->bF = args[0];
+                o->h20 = args[1];
+                continue;
+            case 0xE7:
+            case 0xF1:
+                o->h22 += args[0];
+                continue;
+            }
+        } else if (r >= 0x70) {
+            n = r & 7;
+            if ((r & 0xF8) != 0x70) {
+                if (n >= 8) {
+                    n = 0;
                 }
             }
-done:;
-cleanup:
-    /* release sweep over the 8 slot pointers */
-    i = 0;
-    cp = (u8 *)o;
-    do {
-        sl = *(Gl2BB7CSlot **)(cp + 0x50);
-        if (sl != 0) {
-            gl_func_0003F09C(sl);
+            switch (r & 0xF8) {
+            case 0x70:
+                if (o->slots[n] != 0) {
+                    sub->ch = (u32)(o->slots[n]->w0 << 1) >> 31;
+                } else {
+                    sub->ch = m1;
+                }
+                continue;
+            case 0x78:
+                h = gl_func_0003F024(sub);
+                if (gl_func_0003EA18(o, n) != 0) {
+                    continue;
+                }
+                o->slots[n]->w54 = cmd->base + h;
+                continue;
+            case 0x80:
+                gl_func_0003EB78(o, n);
+                continue;
+            case 0x88:
+                if (m1 == sub->ch) {
+                    continue;
+                }
+                if (gl_func_0003EA18(o, n) == m1) {
+                    continue;
+                }
+                q = o->p3C + sub->ch * 2;
+                h = q[1] + (q[0] << 8);
+                o->slots[n]->w54 = cmd->base + h;
+                continue;
+            case 0x90:
+                O_CHAN(o, n) = sub->ch;
+                continue;
+            case 0x98:
+                c = (s16)gl_func_0003F024(sub);
+                if (gl_func_0003EA18(o, n) != 0) {
+                    continue;
+                }
+                o->slots[n]->w54 = sub->pc + c;
+                continue;
+            }
+        } else {
+            n = r & 0xF;
+            switch (r & 0xF0) {
+            case 0x00:
+                o->h1E = n;
+                goto cleanup;
+            case 0x10:
+                q = (u8 *)&O_CHAN(o, op & 0xF);
+                *(s8 *)q = m1;
+                if (gl2BB7C_call_h(o->b7, SUB_CHU(sub), q) == m1) {
+                }
+                continue;
+            case 0x20:
+                sub->ch = O_CHAN(o, n);
+                if (n < 2) {
+                    O_CHAN(o, n) = m1;
+                }
+                continue;
+            case 0x30:
+                sub->ch = sub->ch - O_CHAN(o, n);
+                continue;
+            case 0x40:
+                gl_func_0003EDAC(cmd, op & 0xF, cmd->base + (u16)gl_func_0003F024(sub));
+                continue;
+            case 0x50:
+                r = gl_func_0003F010(sub);
+                *((s8 *)cmd->tbl38[n] + r + 0xD4) = sub->ch;
+                continue;
+            case 0x60:
+                r = gl_func_0003F010(sub);
+                sub->ch = *((s8 *)cmd->tbl38[n] + r + 0xD4);
+                continue;
+            }
         }
-        i += 4;
-        cp += 4;
-    } while (i != 0x20);
+    }
+cleanup:
+    for (i = 0; i < 8; i++) {
+        if (o->slots[i] != 0) {
+            gl_func_0003F09C(o->slots[i]);
+        }
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BB7C);
