@@ -2182,13 +2182,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035E64);
 
 void game_libs_func_00035FCC(void) {}
 
-/* Caps (DEFERRED): the file's K&R `extern int gl_func_00000000();`
- * makes every call varargs, so a `float` arg promotes to DOUBLE
- * (8-byte, ldc1/2-slot) → +4 insns vs target (34 vs 30). Original
- * prototype was non-varargs single-float; not reproducible with the
- * shared K&R decl. Documented float-vararg single-precision
- * divergence class. Real-C STRUCTURAL body below per the existing
- * decode. Byte-match deferred. Name pre-checked: no extern reuse. */
 /* 2026-05-31 71.3%->91.2%: fixed call args — addresses are address-style
  * (&D+0x1E9F4 / &D+0x1EA00 -> lui+addiu, were literals 0x1E9B4/0x1E9C0 ->
  * lui+ori AND off by 0x40), and call 2's 10.0f/400.0f are 32-bit floats
@@ -2197,17 +2190,18 @@ void game_libs_func_00035FCC(void) {}
  * Residual (2 insns): the cast emits an INDIRECT call (lui t9;jalr) vs the
  * target's direct jal — can't give the reused placeholder callee a direct-
  * call float prototype without the multi-signature conflict. */
-#ifdef NON_MATCHING
+/* 2026-10-15 EXACT (agent-c): the float-prototyped second call goes
+ * through a pinned prototyped alias of the blank (gl_func_00000000_35fd4f
+ * = 0 in undefined_syms_auto.txt) instead of a fn-ptr cast, so it is a
+ * direct jal (the cast was the lui t9; jalr residual). */
+extern int gl_func_00000000_35fd4f(char *, char *, int, float, float, int);
 void gl_func_00035FD4(char *a0) {
     gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x1E9F4, 0);
-    ((int (*)(char *, char *, int, float, float, int))gl_func_00000000)(
-        &D_00000000, (char *)&D_00000000 + 0x1EA00, (int)a0 + 0x44, 10.0f, 400.0f, 0);
+    gl_func_00000000_35fd4f(
+        (char *)&D_00000000, (char *)&D_00000000 + 0x1EA00, (int)a0 + 0x44, 10.0f, 400.0f, 0);
     gl_func_00000000(&D_00000000);
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035FD4);
-#endif
 
 /* 9-insn 1-call wrapper. Target has a dead `sw t6,0x1C(sp)` spill of t6
  * before the jal, with t6 then used directly in the delay slot
