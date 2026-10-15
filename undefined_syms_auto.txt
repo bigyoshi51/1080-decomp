@@ -3610,3 +3610,4 @@ game_libs_func_000273B8_rodata = 0x00000F88;  /* switch(msg[0]) 14-entry jumptab
 gl_func_00000000_dbb0 = 0x00000000;  /* f32(f32) blank sqrt callee for gl_func_0005DBB0 */
 gl_proto_FF44 = 0x00000000;  /* f32-arg prototyped blank (int, void*, f32, f32, f32) for gl_func_0003FF44 */
 gl_func_00000000_ff44v = 0x00000000;  /* void-returning blank (dead-$v0 exclusion) for gl_func_0003FF44 third call (n + 0x10, node) */
+gl_ref_0003DC30 = 0x0003DC30;  /* gl_func_0002978C baked in-unit jal (0x0C00F70C) */

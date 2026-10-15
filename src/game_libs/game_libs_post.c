@@ -11399,21 +11399,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000295BC);
 //   comment: grep -c 03E00008 = 1 (.s now single fn). Real-C
 //   STRUCTURAL body below per the analysis. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
 /* Whole-body decode 2026-06-01 (prior body looped + wrong increment). When
  * obj->0x12 != 0: step obj->0x1C += obj->0x20 (clamp [0,1]), set obj->0|=4, dec
  * obj->0x12; if it hit 0 and obj->1==2, gl(obj) and return. Then if bit26 of
  * obj->0 set, obj->0x30 = obj->0x1C * obj->0x2C. Finally a 16-slot loop: e =
  * *(p+0x38) for p=obj..obj+60 step 4; if *e<0 (sign) call gl_3dc30(e, bit26 of
- * obj->0, obj->0&1). Clear obj->0&~4. */
-extern int gl_func_0003DC30();
+ * obj->0, obj->0&1). Clear obj->0&~4.
+ * EXACT 2026-10-15 (agent-c, was NM 97.06): the flag word at obj+0 is a
+ * bitfield (bit 26 = byte-0 0x04, bit 24 = byte-0 0x01). Writing the set, the
+ * test, both call args and the clear as Fl_2978C members burns the two ring
+ * slots the byte/shift spellings missed (docs IDO_CODEGEN
+ * #bitfield-flags-five-ring-slots-273b8). `+=` and `0x2C * 0x1C` give the
+ * target's FP load order (#commutative-fp-add-reversed-operands-spill-home-5dbb0);
+ * `for (s0 = 0, p = obj; ...)` gives obj s2 / p s1 / s0 counter. The in-unit
+ * callee 0x3DC30 is a baked jal (gl_ref_0003DC30 pin). */
+typedef struct { unsigned int pad:5; unsigned int f4:1; unsigned int p25:1; unsigned int f1:1; unsigned int rest:24; } Fl_2978C;
+extern int gl_ref_0003DC30();
 void gl_func_0002978C(char *obj) {
-    char *p = obj;
+    char *p;
     int s0;
 
     if (*(unsigned short *)(obj + 0x12) != 0) {
-        *(float *)(obj + 0x1C) = *(float *)(obj + 0x1C) + *(float *)(obj + 0x20);
-        *(unsigned char *)obj |= 4;
+        *(float *)(obj + 0x1C) += *(float *)(obj + 0x20);
+        ((Fl_2978C *)obj)->f4 = 1;
         if (1.0f < *(float *)(obj + 0x1C)) {
             *(float *)(obj + 0x1C) = 1.0f;
         }
@@ -11426,21 +11434,18 @@ void gl_func_0002978C(char *obj) {
             return;
         }
     }
-    if ((int)(*(int *)obj << 5) < 0) {
-        *(float *)(obj + 0x30) = *(float *)(obj + 0x1C) * *(float *)(obj + 0x2C);
+    if (((Fl_2978C *)obj)->f4) {
+        *(float *)(obj + 0x30) = *(float *)(obj + 0x2C) * *(float *)(obj + 0x1C);
     }
-    for (s0 = 0; s0 != 64; s0 += 4) {
+    for (s0 = 0, p = obj; s0 != 64; s0 += 4) {
         char *e = *(char **)(p + 0x38);
         if (((unsigned)*(int *)e >> 31) == 1) {
-            gl_func_0003DC30(e, (unsigned)(*(int *)obj << 5) >> 31, *(unsigned char *)obj & 1);
+            gl_ref_0003DC30(e, ((Fl_2978C *)obj)->f4, ((Fl_2978C *)obj)->f1);
         }
         p += 4;
     }
-    *(unsigned char *)obj &= ~4;
+    ((Fl_2978C *)obj)->f4 = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002978C);
-#endif
 
 /* game_libs_func_000298D8 (0x5C, 23 words, BYTE-EXACT 2026-09-06 agent-g):
  * accumulate-and-scale. Adds the two u16 fields at a0+2 and a0+4, stores the

@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0002978C",
+  "project": "1080-agent-c",
+  "model": "claude-manual",
+  "start_time": "2026-10-15T15:54:22.958872+00:00",
+  "end_time": "2026-10-15T15:54:22.958889+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-15T15:54:22.958885+00:00",
+      "assistant_text": "Manual exact match (was NM 97.06). The flag word at obj+0 is a bitfield: bit 26 (byte-0 0x04) is set, tested, passed to the callee and cleared, and bit 24 (byte-0 0x01) is the third call arg. As Fl_2978C members these emit the same instructions as the byte/shift spellings but burn the two temp-ring slots the target has. obj+0x1C += obj+0x20 and 0x2C * 0x1C give the FP load order; for (s0 = 0, p = obj; ...) colours obj s2, p s1, counter s0. The in-unit callee is a baked jal through the gl_ref_0003DC30 pin.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 83,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\ntypedef struct { unsigned int pad:5; unsigned int f4:1; unsigned int p25:1; unsigned int f1:1; unsigned int rest:24; } Fl_2978C;\nextern int gl_ref_0003DC30();\nvoid gl_func_0002978C(char *obj) {\n    char *p;\n    int s0;\n\n    if (*(unsigned short *)(obj + 0x12) != 0) {\n        *(float *)(obj + 0x1C) += *(float *)(obj + 0x20);\n        ((Fl_2978C *)obj)->f4 = 1;\n        if (1.0f < *(float *)(obj + 0x1C)) {\n            *(float *)(obj + 0x1C) = 1.0f;\n        }\n        if (*(float *)(obj + 0x1C) < 0.0f) {\n            *(float *)(obj + 0x1C) = 0.0f;\n        }\n        *(unsigned short *)(obj + 0x12) = *(unsigned short *)(obj + 0x12) - 1;\n        if (*(unsigned short *)(obj + 0x12) == 0 && *(unsigned char *)(obj + 1) == 2) {\n            gl_func_00000000(obj);\n            return;\n        }\n    }\n    if (((Fl_2978C *)obj)->f4) {\n        *(float *)(obj + 0x30) = *(float *)(obj + 0x2C) * *(float *)(obj + 0x1C);\n    }\n    for (s0 = 0, p = obj; s0 != 64; s0 += 4) {\n        char *e = *(char **)(p + 0x38);\n        if (((unsigned)*(int *)e >> 31) == 1) {\n            gl_ref_0003DC30(e, ((Fl_2978C *)obj)->f4, ((Fl_2978C *)obj)->f1);\n        }\n        p += 4;\n    }\n    ((Fl_2978C *)obj)->f4 = 0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0002978C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "make RUN_CC_CHECK=0: tenshoe.z64 cmp byte-identical to baserom; report.json 100.0; raw .text slice of gl_func_0002978C in build/src/game_libs/game_libs_post.c.o equals expected/ except the in-unit jal word at +0x10C (gl_ref_0003DC30 reloc vs baked 0x0C00F70C, resolved identically in the link)."
+  }
+}
