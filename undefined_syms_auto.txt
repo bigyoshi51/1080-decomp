@@ -3646,3 +3646,4 @@ D_31334_y = 0x00000000;  /* gl_func_00031334 secondary gate word */
 D_31334_z = 0x00000000;  /* gl_func_00031334 mode word, step 5 arm */
 gl_ref_0003F010 = 0x0003F010;  /* gl_func_0002A014 baked USO jal (0x0C00FC04) */
 gl_ref_0003F024 = 0x0003F024;  /* gl_func_0002A014 baked USO jal (0x0C00FC09) */
+game_uso_func_0000D5BC_a3 = 0x00000000;  /* (char *, Pair2, char *) alias of game_uso_func_0000D5BC: game_uso_func_0000FC34 passes a3 = base+0x770 */

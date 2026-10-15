@@ -11937,19 +11937,19 @@ extern char D_00000000;
  *   (3) `v*dconst + *field_31C` spelling (mul FIRST) emits target
  *       `add.d f4,f18,f10` (rs=late field-cvt, rt=mul) — commutative-operand
  *       reversal, same family as the |-reversal entry.
- * SOLE RESIDUAL (1 insn, 51 vs 52): target materializes the SINGLE-USE
- * `addiu a3,v1,0x770` + `lwc1 f4,0x10(a3)`; ours folds to `lwc1 f4,0x780(v1)`.
- * Single-use base+K fold is probe-immune here: do-while(0) around the use,
- * if(1) around the def, two-def increment spelling, register kw, and
- * anonymous-struct member read ALL still fold (multi-use is what saved
- * field_31C). Honest NON_MATCHING. */
+ * 2026-10-15 (agent-g, 97.96 -> EXACT): the "single-use" `addiu a3,v1,0x770`
+ * was never single-use -- it is a 4th ARGUMENT word to the D5BC pair-copy
+ * call (a3 set before the jal; call-shape-scan `nm=jal/012 tgt=jal/0123`).
+ * Passing field_770 as a third C arg (after the 2-word Pair2) through the
+ * prototyped zero-address alias game_uso_func_0000D5BC_a3 makes the base a
+ * real multi-use value hoisted above the flag test, in a3. */
 extern char game_uso_D_807FFB68;
 extern char game_uso_D_807FF400;
 extern char game_uso_D_807FF410;
 void game_uso_func_0000D5BC(char *, Pair2);
 void game_uso_func_0000D5F8(char *a0, Pair2 pair, int a3);
+void game_uso_func_0000D5BC_a3(char *, Pair2, char *);  /* alias of D5BC (pinned 0) with the a3 word the target passes */
 extern int import_0010DB28();
-#ifdef NON_MATCHING
 void game_uso_func_0000FC34(int *a0) {
     char *base = (char*)*(int**)((char*)a0 + 0xB4);
     int *flag_loc = *(int**)(base + 0x800);
@@ -11964,16 +11964,13 @@ void game_uso_func_0000FC34(int *a0) {
                 * *(double*)((char*)&game_uso_D_807FFB68 + 0x248)
                 + (double)*field_31C);
         } while (0);
-        game_uso_func_0000D5BC((char*)a0,
-            *(Pair2*)((char*)&game_uso_D_807FF400 + 0xE10));
+        game_uso_func_0000D5BC_a3((char*)a0,
+            *(Pair2*)((char*)&game_uso_D_807FF400 + 0xE10), field_770);
     }
     import_0010DB28(a0, 0x30001, 2, 2, 0x100, 0xA);
     game_uso_func_0000D5F8((char*)a0,
         *(Pair2*)((char*)&game_uso_D_807FF410 + 0xE20), -1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FC34);
-#endif
 
 extern char game_uso_D_807FF408;
 void game_uso_func_0000D5DC(char *a0);
