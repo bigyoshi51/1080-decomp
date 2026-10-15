@@ -9549,38 +9549,35 @@ void gl_func_0003E840(int a0) {
 // arg (short)vt->0xMM + obj) + cb wrap idiom as the factory/registration
 // routines elsewhere in this segment.
 //
-// Caps (DEFERRED): Ctx/obj/vtable structs untyped; cb signature
-//   inferred from call shape. Real-C STRUCTURAL body below.
-//   Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+/* gl_func_0003E868: EXACT. Corrections vs the sketch above: the jal-0 cb
+ * result is unused -- obj IS the stage-1 dispatch result (cb(a1, obj) only
+ * registers it); the return is one `obj` web (0 on the a1==0 path, v1).
+ * Frame: obj home 0x3C, char pad1[4] = the dead word at 0x38, stk at 0x30,
+ * char pad2[0x14] fills 0x18..0x2F. The `if (1) {}` around the stage-2
+ * dispatch is a zero-code BB break: it makes uopt re-store obj's spill
+ * (`sw v1,60(sp)`) before the second jalr, as the target does.
+ * (docs/IDO_CODEGEN.md #bb-break-respill-3e868) */
 char *gl_func_0003E868(void *a0, char *a1, int a2) {
-    char *vt;
-    short k1;
-    int inter;
     char *obj;
+    char pad1[4];
     int stk[2];
-    char *vt2;
-    short k2;
-    int (*fp1)(int);
-    void (*fp2)(int, int *);
-    if (a1 == 0) return 0;
-    vt = *(char **)(a1 + 0x28);
-    k1 = *(short *)(vt + 0x58);
-    fp1 = *(int (**)(int))(vt + 0x5C);
-    inter = fp1(k1 + (int)a1);
-    obj = (char *)gl_func_00000000(a1, inter);
-    *(char **)(obj + 0x0C) = a1 + 0x2C;
-    stk[0] = 7;
-    stk[1] = a2;
-    vt2 = *(char **)(obj + 0x28);
-    k2 = *(short *)(vt2 + 0x28);
-    fp2 = *(void (**)(int, int *))(vt2 + 0x2C);
-    fp2(k2 + (int)obj, stk);
+    char pad2[0x14];
+    char *vt;
+    obj = 0;
+    if (a1 != 0) {
+        vt = *(char **)(a1 + 0x28);
+        obj = ((char *(*)(char *))*(void **)(vt + 0x5C))(*(short *)(vt + 0x58) + a1);
+        gl_func_00000000(a1, obj);
+        *(char **)(obj + 0x0C) = a1 + 0x2C;
+        stk[0] = 7;
+        stk[1] = a2;
+        if (1) {
+            vt = *(char **)(obj + 0x28);
+            ((void (*)(char *, int *))*(void **)(vt + 0x2C))(*(short *)(vt + 0x28) + obj, stk);
+        }
+    }
     return obj;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E868);
-#endif
 
 /* gl_func_0003E904: link-back wrapper.
  *   a1->[0x30] = a0->[0x2C]; a0->[0x2C] = a1;
