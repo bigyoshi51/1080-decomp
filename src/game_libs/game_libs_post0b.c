@@ -29670,28 +29670,14 @@ void gl_func_0005AF64(int *a0, char *a1) {
     gl_func_00000000(a0, a1);
 }
 
-/* 9-insn (0x24) doubly-linked-list insert-before-anchor with leading nop.
- * C-emit produces the 8-insn body (offsets 0x04..0x24, byte-identical).
- * Target has a leading nop at offset 0; C body lacks it (88.89% fuzzy
- * residual). Previously matched via PREFIX_BYTES (single leading-nop
- * injection); PREFIX_BYTES REMOVED 2026-05-27 (was missed by 2026-05-23
- * sweep) per feedback_no_instruction_forcing_matches_policy — leading-
- * nop injection was instruction-appending match-faking. Body stays NM-
- * wrapped (INCLUDE_ASM build path); honest 88.89%. */
-/* 2026-06-10: TRUE BODY IS BYTE-EXACT (8/8 standalone, 0 diffs) as the
- * 3ECDC class -- 1 misattributed leading pad nop + the doubly-linked-
- * list insert below (the fwd reload is natural: the a2[2]=a0 store may
- * alias a0[2], blocking CSE). The pad-split + rename to 5AFB4 was
- * ATTEMPTED and REVERTED: post0b's drift shifts the section even on
- * INCLUDE-space splits (8129 diff words from 0x5AF98; the same class
- * that blocked the net-zero fix). FINAL DISPOSITION 2026-06-10: 12 of
- * the 13 bodies landed via the size-neutral in-place swap; THIS one
- * cannot -- its 1-word leading pad has no legal emission host (1-word
- * GLOBAL_ASM blocks emit +4; both neighbors are matched C, so neither
- * the standalone-orphan recipe nor a fold applies). The INCLUDE
- * [pad+body] is ROM-TRUE as is; the proven C waits here until a
- * 1-word-orphan-between-matches mechanism exists. */
-#ifdef NON_MATCHING
+/* game_libs_func_0005AFB0: 8-insn doubly-linked-list insert-before-anchor
+ * -- EXACT 2026-10-15 (88.89 -> 100). The .s began with a 1-word leading pad
+ * nop (ROM 0x5AFB0; the real entry is 0x5AFB4). The C body was already
+ * byte-exact (2026-06-10); the pad now goes on the predecessor as an all-zero
+ * SUFFIX_BYTES_FORCE word (gl_func_0005AF64=0x00000000, 295BC precedent:
+ * docs/IDO_CODEGEN.md#bitfield-sign-read-shift-chain-ring-295bc), with the
+ * expected/ symtab moved metadata-only. The fwd reload is natural: the
+ * a2[2] = a0 store may alias a0[2], blocking CSE. */
 void game_libs_func_0005AFB0(int *a0, int a1, int *a2) {
     a0[1] = (int)a2;
     a0[2] = a2[2];
@@ -29699,9 +29685,6 @@ void game_libs_func_0005AFB0(int *a0, int a1, int *a2) {
     ((int*)a0[2])[1] = (int)a0;
     a0[0] = a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005AFB0);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005AFD4: 39-insn dual-struct init (likely freelist/pool).
