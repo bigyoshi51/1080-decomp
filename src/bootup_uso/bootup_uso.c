@@ -5319,137 +5319,123 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000076F4);
  * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM
  * (no episode; tautology-trap rule). */
 #ifdef NON_MATCHING
-void func_000077D0(char *arg0, char *arg1, s32 arg2) {
-    s32 sp20;
-    f32 temp_f6;
-    s32 temp_a3;
-    s32 temp_t0;
-    s32 temp_v0;
-    s32 temp_v0_2;
-    s32 var_a0_2;
-    s32 var_a0_3;
-    s32 var_a2;
-    s32 var_a2_2;
-    s32 var_a3;
-    s32 var_a3_2;
-    s32 var_v1_3;
-    u16 temp_t3;
-    u16 temp_t9;
-    char *temp_a0;
-    char *temp_a0_2;
-    char *temp_a1;
-    char *temp_a1_2;
-    char *temp_a1_3;
-    char *temp_a1_4;
-    char *temp_a1_5;
-    char *temp_a1_6;
-    char *temp_a1_7;
-    char *temp_a1_8;
-    char *var_a0;
-    char *var_a1;
-    char *var_v1;
-    char *var_v1_2;
+/* PASS-2 2026-10-16 (agent-c, 0 -> 99.75): source rewrite. 158/158 words,
+ * 8 differ: tbl and the 320 stride swap t0/t1 (target tbl = t0).
+ * - stores go through a copy: `t = dst; dst++; *t = v;` is the target's
+ *   `or v0,a1,zero; addiu a1,a1,2; sh tN,0(v0)` (a plain *dst++ = v gets
+ *   strength-reduced to one +8 bump and sh -8/-6/-4/-2), same for the mode-1
+ *   source pointer (`g = p; p++;`).
+ * - goto loops: `for` / `do` loops get unrolled x4 by IDO again.
+ * - stride is a variable (= 0x140): the target multiplies c * 320 with multu
+ *   and doubles with sll; a literal folds to * 640.
+ * - mode test order 0, 2, 1 as an if-goto chain (`if (mode != 1) return;
+ *   goto m1;`), and `if (j == 0x40) goto next; goto l0;` keeps the mode-0
+ *   copy loop's bne at the bottom.
+ * - mode 1 rereads a float from func_411c_rf() (no args; the regs m2c passed
+ *   are stale). `if (1) {}` before the loop and after the call splits dst and
+ *   c around the call (sw a1,76 / sw a3,32) instead of s-regs.
+ * - separate counters per loop (k, n, m); the 0x58 read goes through `mode`
+ *   before the +0x60 adjust (target lw v0 + or a3,v0). The frame depends on
+ *   the declaration list (every local takes a slot): `s32 pad[5]` and the
+ *   unused `u` give 0x48 with the call spill at 32(sp). */
+#define PUT77(v) { t = dst; dst++; *t = (v); }
+void func_000077D0(char *arg0, u16 *dst, s32 arg2) {
+    s32 pad[5];
+    u16 *tbl;
+    u16 *g;
+    u16 *t;
+    u16 *u;
+    s32 c;
+    s32 mode;
+    s32 i;
+    s32 j;
+    s32 stride;
+    s32 m;
+    s32 n;
+    s32 k;
+    u16 *p;
 
-    var_a0 = arg0;
-    var_a1 = arg1;
-    temp_t0 = *(s32 *)((char *)(var_a0) + 0x64);
-    if (temp_t0 != 0) {
-        temp_v0 = *(s32 *)((char *)(var_a0) + 0x58);
-        var_a3 = temp_v0;
-        if (arg2 != 0) {
-            var_a3 = temp_v0 + 0x60;
-        }
-        temp_v0_2 = *(s32 *)((char *)(var_a0) + 0x5C);
-        var_a2 = 0;
-        if (temp_v0_2 != 0) {
-            if (temp_v0_2 != 2) {
-                var_a3_2 = 0;
-                if (temp_v0_2 != 1) {
-                    return;
-                }
-                do {
-                    arg1 = var_a1;
-                    sp20 = var_a3_2;
-                    temp_f6 = func_00000000(var_a0, var_a1, var_a2, var_a3_2) * 64.0f;
-                    var_a1 = arg1;
-                    var_a2 = 0;
-                    var_a3_2 += 1;
-                    var_a0 = (void *) ((s32) temp_f6 * 2);
-loop_22:
-                    temp_a0 = var_a0 + 2;
-                    *(s32 *)((char *)(var_a1) + 0x0) = (u16) *(s32 *)((char *)(var_a0) + 0x0);
-                    temp_a1 = var_a1 + 2;
-                    temp_a0_2 = temp_a0 + 2;
-                    *(s32 *)((char *)(var_a1) + 0x2) = (u16) *(s32 *)((char *)(var_a0) + 0x2);
-                    temp_a1_2 = temp_a1 + 2;
-                    *(s32 *)((char *)(temp_a1) + 0x2) = (u16) *(s32 *)((char *)(temp_a0) + 0x2);
-                    var_a2 += 4;
-                    var_a1 = temp_a1_2 + 2 + 2;
-                    var_a0 = temp_a0_2 + 2 + 2;
-                    *(s32 *)((char *)(temp_a1_2) + 0x2) = (u16) *(s32 *)((char *)(temp_a0_2) + 0x2);
-                    if (var_a2 != 0x40) {
-                        goto loop_22;
-                    }
-                } while (var_a3_2 != 0x20);
-            } else {
-                var_a2_2 = 0;
-                var_v1 = temp_t0 + (var_a3 * 0x140 * 2);
-                do {
-                    var_a0_2 = 0;
-loop_17:
-                    temp_a1_3 = var_a1 + 2;
-                    *(s32 *)((char *)(var_a1) + 0x0) = (u16) *(s32 *)((char *)(var_v1) + 0x0);
-                    temp_a1_4 = temp_a1_3 + 2;
-                    *(s32 *)((char *)(var_a1) + 0x2) = (u16) *(s32 *)((char *)(var_v1) + 0xA);
-                    *(s32 *)((char *)(temp_a1_3) + 0x2) = (u16) *(s32 *)((char *)(var_v1) + 0x14);
-                    temp_t9 = *(s32 *)((char *)(var_v1) + 0x1E);
-                    var_a0_2 += 4;
-                    var_a1 = temp_a1_4 + 2 + 2;
-                    var_v1 += 0x28;
-                    *(s32 *)((char *)(temp_a1_4) + 0x2) = temp_t9;
-                    if (var_a0_2 != 0x40) {
-                        goto loop_17;
-                    }
-                    var_a2_2 += 1;
-                    var_v1 += 0x500;
-                } while (var_a2_2 != 0x20);
-            }
-        } else {
-            do {
-                temp_a3 = var_a3 & 0xFF;
-                var_a2 += 1;
-                if (temp_a3 < 0xF0) {
-                    var_a0_3 = 0;
-                    var_v1_2 = temp_t0 + (temp_a3 * 0x140 * 2);
-                    do {
-                        temp_a1_5 = var_a1 + 2;
-                        *(s32 *)((char *)(var_a1) + 0x0) = (u16) *(s32 *)((char *)(var_v1_2) + 0x0);
-                        temp_a1_6 = temp_a1_5 + 2;
-                        *(s32 *)((char *)(var_a1) + 0x2) = (u16) *(s32 *)((char *)(var_v1_2) + 0xA);
-                        *(s32 *)((char *)(temp_a1_5) + 0x2) = (u16) *(s32 *)((char *)(var_v1_2) + 0x14);
-                        temp_t3 = *(s32 *)((char *)(var_v1_2) + 0x1E);
-                        var_a0_3 += 4;
-                        var_a1 = temp_a1_6 + 2 + 2;
-                        var_v1_2 += 0x28;
-                        *(s32 *)((char *)(temp_a1_6) + 0x2) = temp_t3;
-                    } while (var_a0_3 != 0x40);
-                } else {
-                    var_v1_3 = 0;
-                    do {
-                        *(s32 *)((char *)(var_a1) + 0x0) = 0;
-                        temp_a1_7 = var_a1 + 2;
-                        *(s32 *)((char *)(var_a1) + 0x2) = 0;
-                        temp_a1_8 = temp_a1_7 + 2;
-                        *(s32 *)((char *)(temp_a1_7) + 0x2) = 0;
-                        var_v1_3 += 4;
-                        *(s32 *)((char *)(temp_a1_8) + 0x2) = 0;
-                        var_a1 = temp_a1_8 + 2 + 2;
-                    } while (var_v1_3 != 0x40);
-                }
-                var_a3 = temp_a3 + 3;
-            } while (var_a2 != 0x20);
-        }
+    tbl = *(u16 **)(arg0 + 0x64);
+    if (tbl == NULL) {
+        return;
     }
+    mode = *(s32 *)(arg0 + 0x58);
+    c = mode;
+    if (arg2 != 0) {
+        c = mode + 0x60;
+    }
+    mode = *(s32 *)(arg0 + 0x5C);
+    i = 0;
+    stride = 0x140;
+    if (mode == 0) goto m0;
+    if (mode == 2) goto m2;
+    if (mode != 1) return;
+    goto m1;
+m0:
+    do {
+        c &= 0xFF;
+        i++;
+        if (c < 0xF0) {
+            g = tbl;
+            g += c * stride;
+            j = 0;
+        l0:
+            PUT77(g[0]);
+            PUT77(g[5]);
+            PUT77(g[10]);
+            PUT77(g[15]);
+            j += 4;
+            g += 20;
+            if (j == 0x40) goto next;
+            goto l0;
+        } else {
+            k = 0;
+        l1:
+            PUT77(0);
+            PUT77(0);
+            PUT77(0);
+            PUT77(0);
+            k += 4;
+            if (k != 0x40) goto l1;
+        }
+    next:
+        c += 3;
+    } while (i != 0x20);
+    return;
+m2:
+    g = tbl;
+    g += c * stride;
+    n = 0;
+    do {
+        j = 0;
+    l2:
+        PUT77(g[0]);
+        PUT77(g[5]);
+        PUT77(g[10]);
+        PUT77(g[15]);
+        j += 4;
+        g += 20;
+        if (j != 0x40) goto l2;
+        n++;
+        g += 0x280;
+    } while (n != 0x20);
+    return;
+m1:
+    c = 0;
+    if (1) {}
+    do {
+        p = (u16 *)&D_00000000 + (s32)(func_411c_rf() * 64.0f);
+        if (1) {}
+        m = 0;
+        c++;
+    l3:
+        g = p; p++; PUT77(*g);
+        g = p; p++; PUT77(*g);
+        g = p; p++; PUT77(*g);
+        g = p; p++; PUT77(*g);
+        m += 4;
+        if (m != 0x40) goto l3;
+    } while (c != 0x20);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000077D0);
