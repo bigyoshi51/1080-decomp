@@ -10483,8 +10483,8 @@ int gl_func_0003F8B0(int a0) {
 //   unused-param home; (3) de-name the status read (inline `if (*(int*)
 //   &bufB[8] == -1)`) so it stays a ring temp t7 (named local was v1) and
 //   inline r (`D_g1 = cb5(a0);`) — a named r reserved a dead frame slot
-//   (+8 frame). Stays NM: placeholder jal-0 callees + D_* placeholder globals.
-#ifdef NON_MATCHING
+//   (+8 frame). EXACT (unwrapped run 95): gl_func_00000000 is a real symbol
+//   at 0; D_f8e8_g1/g2 are pinned to 0 in undefined_syms_auto.txt.
 extern int D_f8e8_g1, D_f8e8_g2;
 int gl_func_0003F8E8(void *a0, int a1, int a2) {
     char bufB[0x58];
@@ -10500,9 +10500,6 @@ int gl_func_0003F8E8(void *a0, int a1, int a2) {
     D_f8e8_g2 = 1;
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F8E8);
-#endif
 
 /* gl_func_0003F96C: 22-insn (0x58) two-call wrapper with stack buffer.
  *
