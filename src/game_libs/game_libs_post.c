@@ -2336,11 +2336,11 @@ s32 game_libs_func_0001F6A8(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001F6A8);
 #endif
 
-#ifdef NON_MATCHING
 /* Reset 3 byte-arrays in the global D struct: entries in D+0x2C40[48],
  * D+0x2C10[48], D+0x2C70[128]; if entry != 5 set it to 0 (beql 5,entry).
- * BYTE-EXACT (50/50 words) — stays an NM wrap because gl_d_1fa20_a/b/c are
- * base-0 PLACEHOLDER externs (real symbols unknown; USO reloc-blind).
+ * EXACT (unwrapped 2026-10-16; 50 words). gl_d_1fa20_a/b/c are base-0
+ * placeholder externs (real symbols unknown), pinned to 0 in
+ * undefined_syms_auto.txt; the ROM has lui 0 / addiu 0 for each.
  * Levers: distinct placeholder extern per loop busts the cross-loop base CSE
  * (each loop re-materializes cursor AND end as independent lui/addiu pairs);
  * loops 1-2 pointer `p < e` form keeps sltu + bnezl (no counted-conversion, no
@@ -2377,9 +2377,6 @@ void game_libs_func_0001FA20(void) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FA20);
-#endif
 
 /* gl_func_0001FAE8: "reactivate records of group a0" sweep (exported, section
  * 0x34154). Same sym1255 block and 0xD0 record table as game_libs_func_0001CC98

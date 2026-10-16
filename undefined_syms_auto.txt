@@ -3786,3 +3786,7 @@ gl_func_00034458_4F85C = 0x00000000;
 gl_func_00034458_5185C = 0x00000000;
 /* gl_func_0005CB68 blank alias for the in-unit callee gl_func_00034458 (ROM word is jal 0) */
 gl_func_00034458_5CB68 = 0x00000000;
+/* game_libs_func_0001FA20 base-0 byte-array placeholders, one per loop (target lui 0 / addiu 0 each) */
+gl_d_1fa20_a = 0x00000000;
+gl_d_1fa20_b = 0x00000000;
+gl_d_1fa20_c = 0x00000000;
