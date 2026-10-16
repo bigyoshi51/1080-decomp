@@ -3787,3 +3787,5 @@ D_2D788_a = 0x00000000;
 D_2D788_b = 0x00000000;
 /* timproc_uso_b1_func_00002838 blank callee alias (target jal 0 at every call site) */
 glv_2838 = 0x00000000;
+/* func_000038C0 D_z placeholder alias (array-typed, target lui 0 / addiu 0) */
+D_38c0_z = 0x00000000;

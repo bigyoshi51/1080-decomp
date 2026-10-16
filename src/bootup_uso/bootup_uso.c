@@ -2639,9 +2639,8 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003734);
  * the temp region) gets a VOID-returning alias func_00000000_38C0_v — its
  * dead $v0 def was excluding $v0 from the CSE temps (cfg stole v1, Dz fell
  * to ring t0); with it gone Dz=v1/cfg=v0 as in target (082F8/102CC lever).
- * STAYS NM WRAP: all callees + data are USO placeholders (func_00000000 /
- * D_00000000) — objdiff-100, not landable. */
-#ifdef NON_MATCHING
+ * Unwrapped EXACT 2026-10-16 (run 96): every callee/data name resolves to 0
+ * (D_38c0_z pinned at the end of undefined_syms_auto.txt). */
 /* typed-float proto (0x0-alias): args 7,8 are single floats on the stack
  * (target swc1 0x18); K&R func_00000000 double-promotes them. */
 extern char *func_38c0_r(void *, int, int, int, void *, int, float, float, int, int);
@@ -2669,9 +2668,6 @@ void func_000038C0(char *s1, int a1) {
     res = (char*)func_00000000(s1, row, r2);
     *(char**)(r + 0x8DC) = res;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000038C0);
-#endif
 
 /* func_000039D8 - verified structural decode (0x1A0, 104 insns,
  * multi-stage builder chain). MEMBER of the func_000038C0 /
