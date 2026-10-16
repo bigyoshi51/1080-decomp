@@ -23933,7 +23933,6 @@ s32 *gl_func_0005231C(char *arg0, s32 arg1, s32 *arg2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005231C);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0005256C: 33-insn op-code dispatch (set/clear bits) (0x84, frame 0x18).
  *
  * Decoded structure (raw-word disasm):
@@ -23955,7 +23954,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005231C);
  * processor (cf. gl_func_000558A0 sibling va_list walker).
  *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * feedback_doc_marker_is_bail.md.
  *
  * 2026-07-15 wave 3: BYTE-EXACT 33/33 in ONE edit. The switch form already
  * matched the beq/beql dispatch shape (the old "1 insn short / bnel" note
@@ -23964,8 +23963,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005231C);
  * into `op` itself (`op = *p; a0[0xC] |= op;`) instead of deref-inline
  * `|= *p`. Reusing op extends its $v0 web across both arms (val = v0,
  * target), which pushes p to $v1 and un-shifts the whole t6-t9 ring
- * (or->t8, nor->t1/and->t2 chain). Un-landable (jal-0 placeholder
- * callee); stays as objdiff-100 NM wrap. */
+ * (or->t8, nor->t1/and->t2 chain). EXACT: unwrapped 2026-10-16 (the
+ * jal-0 placeholder links to gl_func_00000000 = 0). */
 void gl_func_0005256C(int *a0, int **a1) {
     int op = *(int*)a1;
     int *p;
@@ -23987,9 +23986,6 @@ void gl_func_0005256C(int *a0, int **a1) {
         break;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005256C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000525F0: 33-insn lazy-init + register w/ back-link (0x84, frame 0x20).
