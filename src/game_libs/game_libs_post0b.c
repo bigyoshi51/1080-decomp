@@ -23385,45 +23385,181 @@ void gl_func_000519A4(char *self) {
     }
 }
 
-// gl_func_00051AD8 — STRUCTURAL PASS (0x3C0 / 240 words, no episode).
-// Raw-.word USO. realjr=1 (epilogue), regjr=1 = the JUMP-TABLE
-// DISPATCH at insn 13 (jr t6 after lw t6, 0x1BB4(at); ADDENDUM-18c
-// register-indirect jump, NOT a 2nd function) → ONE clean function.
-// Frame 0x48, saves ra only. 7 jal-0 = USO-relocated callbacks.
-// Jump-table command-stream decoder. Shape:
-//   void gl_func_00051AD8(void *out, int *strm) {
-//     op = *strm;                         // command word
-//     i  = op - 0xC8;
-//     if ((u32)i >= 0xC) goto bulk_copy;  // sltiu default guard
-//     switch (i) {                        // table at &D_0+0x1BB4
-//       // each case advances the stream cursor with the idiom
-//       //   p = strm[1]; strm[1] = p + 4; v = *p;
-//       // and stores v into out at a case-specific offset
-//       // (out->0x1C / 0x20 / 0x22 / 0x24 / 0x28 / 0x2C / 0x2E /
-//       //  0x30 / 0x32 / 0x34 / 0x38 / 0x44 / 0x48 / 0x58 ...);
-//       // some cases pull a byte field (lbu/sb out->0x32) or call
-//       // a USO sub-decoder/allocator: cb_n(out, strm); a few set
-//       // out->0x34/0x38 from a fetched record triple.
-//       ...
-//     }
-//     return;
-//   bulk_copy:                            // default: copy the whole
-//     // struct window out->0x34..0x58 from the stream record, then
-//     cb_err("str_0x20F20", v0);          // unknown-opcode report
-//   }
-// Family: jump-table command/parameter decoder (recurring game_libs
-// family — sibling of the GBI/RDP-style stream decoders). The frame,
-// the single ra save, the (op - 0xC8) normalize + sltiu 0xC bound +
-// &D_0+0x1BB4 12-entry table + jr-t6 dispatch, the
-// cursor-advance (p = strm[1]; strm[1] += 4; v = *p) per-case read
-// idiom, the per-case out-struct field offsets, the 7 USO callback
-// sites and the default bulk-copy + cb_err(0x20F20) tail are exact;
-// the individual case bodies, the cb prototypes and the exact field
-// map are representative (deferred FULL-DECODE node — needs the
-// 12-entry jump table resolved and the out/stream structs typed).
-// Caps: out + stream structs untyped, jump table + 7 cb prototypes
-// not symbolized (USO-relocated). Full body INCLUDE_ASM-preserved.
+/* gl_func_00051AD8: draw-state command decoder (0x3C0 / 240 words).
+ * switch (s->op) over 200..211 (12-entry USO jumptable at RoData +0x1BB4,
+ * read from file offset 0x1BB8: arms in address order = cases 200, 209,
+ * 204, 210, 208, 207, 206, 205, 202, 201, 203, 211, then the default
+ * err(msg 0x20F20, op)). Every stream read is the cursor idiom
+ * q = s->cur; s->cur = q + 1; x = *q; with s = {op, cur}.
+ * NM 2026-10-16 agent-g: the standalone IDO 7.1 -O2 body is 240/240 words,
+ * every word equal except (a) the jumptable lw %lo (a donor splice would
+ * pin it as gl_func_00051AD8_rodata = 0x1BB4) and (b) ONE delay-slot fill:
+ * as1 steals the default arm's lui a0,2 into the bound-check beqz delay
+ * (as1 rule 2, exclusive target) where the target keeps sll t6,t6,2 there
+ * and lui a0 at the default head, i.e. the original default block had a
+ * second predecessor in as1's view. Probed without effect: default
+ * position (all 12 slots), default after the switch with returning arms,
+ * goto-default, if(1)/do-while wrappers, prototyped/varargs/fn-ptr callee,
+ * string/constant/pinned message, -g3 (moves the a0 setup into the head),
+ * IDO 5.3, and the 202 else arm as goto/fallthrough into case 201 (merges
+ * the duplicated call block).
+ * Load-bearing, all found this pass: the default arg op = s->op assigned
+ * INSIDE the call (a plain f(msg, op) makes uopt spill the selector in the
+ * beqz delay; a separate op = s->op statement steals or a1,v0 instead);
+ * ONE pointer var q is both the cursor (arms 200/209/210/207/203/202/211)
+ * and the read value (204/208/206/205, whose cursor is p), so the value
+ * web inherits the 208 call-arg a1 precolor; the 202/211 index is a
+ * separate v; 208 copies a Pair from r + 1 (struct copy fixes the t1/t9
+ * order); 0x58 is a 1-word struct (its struct copy burns the t5 ring slot
+ * so the load lands in t6); the high byte of 0x30 is a u8[1] array (word
+ * aligned sb slot); the unused x and the decl order set the 72-byte frame
+ * and the 0x1C/0x28/0x2C slots.
+ * Draft: /home/danjs/decomp-drafts/gl_func_00051AD8_donor_draft.c. */
+#ifdef NON_MATCHING
+typedef struct { s32 w[4]; } Quad_51AD8;
+typedef struct { s32 a, b; } Pair_51AD8;
+
+typedef struct {
+    Quad_51AD8 q;      /* 0x00 */
+    f32 f10;           /* 0x10 */
+    s32 w14;           /* 0x14 */
+    s32 w18;           /* 0x18 */
+    s32 w1C;           /* 0x1C */
+    s16 h20;           /* 0x20 */
+    s16 h22;           /* 0x22 */
+    s32 w24;           /* 0x24 */
+    s32 w28;           /* 0x28 */
+    s16 h2C;           /* 0x2C */
+    s16 h2E;           /* 0x2E */
+    s16 h30;           /* 0x30 */
+    u8 b32;            /* 0x32 */
+    Pair_51AD8 m;      /* 0x34 */
+    s32 w3C;           /* 0x3C */
+    s32 w40;           /* 0x40 */
+    s32 w44;           /* 0x44 */
+    s32 *w48;          /* 0x48 */
+    s32 w4C;           /* 0x4C */
+    s32 w50;           /* 0x50 */
+    s32 w54;           /* 0x54 */
+    struct { s32 v; } w58;           /* 0x58 */
+} State_51AD8;
+
+extern State_51AD8 *gl_ref_00000148_51AD8[];
+extern State_51AD8 *gl_ref_00000160_51AD8[];
+
+typedef struct {
+    s32 op;
+    s32 *cur;
+} Strm_51AD8;
+
+void gl_func_00051AD8(State_51AD8 *out, Strm_51AD8 *s) {
+    s32 *r;
+    s32 op;
+    State_51AD8 **pp;
+    s32 *x;
+    State_51AD8 *src;
+    s32 v;
+    u8 *b;
+    u8 hi[1];
+    s32 *p;
+    s32 *q;
+
+    switch (s->op) {
+    case 200:
+        q = s->cur; s->cur = q + 1;
+        break;
+    case 209:
+        q = s->cur; s->cur = q + 1; out->w44 = *q;
+        break;
+    case 204:
+        p = s->cur; s->cur = p + 1; q = (s32 *)*p;
+        out->m.a = 0;
+        out->m.b = (s32)q;
+        break;
+    case 210:
+        q = s->cur; s->cur = q + 1; b = (u8 *)*q;
+        out->w58.v = *(s32 *)b;
+        out->b32 = b[0];
+        hi[0] = gl_func_00000000(b[1]);
+        out->h30 = (hi[0] << 8) | gl_func_00000000(b[2]);
+        break;
+    case 208:
+        p = s->cur; s->cur = p + 1; q = (s32 *)*p;
+        r = (s32 *)gl_func_00000000(&D_00000000, q);
+        out->w48 = r;
+        out->m = *(Pair_51AD8 *)(r + 1);
+        break;
+    case 207:
+        q = s->cur; s->cur = q + 1; out->m.a = *q;
+        break;
+    case 206:
+        p = s->cur; s->cur = p + 1; q = (s32 *)*p;
+        out->m.b &= ~(s32)q;
+        break;
+    case 205:
+        p = s->cur; s->cur = p + 1; q = (s32 *)*p;
+        out->m.b |= (s32)q;
+        break;
+    case 202:
+        q = s->cur; s->cur = q + 1; v = *q;
+        pp = &gl_ref_00000160_51AD8[v];
+        if (*pp != 0) {
+            s->cur += 4;
+            out->q = (*pp)->q;
+        } else {
+            gl_func_00000000(s, out);
+        }
+        break;
+    case 201:
+        gl_func_00000000(s, out);
+        break;
+    case 203:
+        q = s->cur; s->cur = q + 1; out->w24 = *q;
+        q = s->cur; s->cur = q + 1; out->w1C = *q;
+        q = s->cur; s->cur = q + 1; out->h20 = *q;
+        q = s->cur; s->cur = q + 1; out->h22 = *q;
+        q = s->cur; s->cur = q + 1; out->w28 = (s16)*q;
+        q = s->cur; s->cur = q + 1; out->h2C = *q;
+        q = s->cur; s->cur = q + 1; out->h2E = *q;
+        break;
+    case 211:
+        q = s->cur; s->cur = q + 1; v = *q;
+        pp = &gl_ref_00000148_51AD8[v];
+        if (*pp == 0) {
+            gl_func_00000000((char *)&D_00000000 + 0x20F14);
+        }
+        src = *pp;
+        out->q = src->q;
+        out->f10 = src->f10;
+        out->w14 = src->w14;
+        out->w18 = src->w18;
+        out->w1C = src->w1C;
+        out->h20 = src->h20;
+        out->h22 = src->h22;
+        out->w24 = src->w24;
+        out->w28 = src->w28;
+        out->h2C = src->h2C;
+        out->h2E = src->h2E;
+        out->h30 = src->h30;
+        out->b32 = src->b32;
+        out->m = src->m;
+        out->w3C = src->w3C;
+        out->w40 = src->w40;
+        out->w44 = src->w44;
+        out->w48 = src->w48;
+        out->w4C = src->w4C;
+        out->w50 = src->w50;
+        out->w54 = src->w54;
+        out->w58 = src->w58;
+        break;
+    default:
+        gl_func_00000000((char *)&D_00000000 + 0x20F20, op = s->op);
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051AD8);
+#endif
 
 extern int gl_func_00000000();
 
