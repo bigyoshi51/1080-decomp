@@ -14645,7 +14645,6 @@ void game_libs_func_00045394(int a0, int a1, int a2, int a3) {
 //   decoded under their own symbols. Real-C STRUCTURAL body below — the
 //   named fn (int→float trampoline) only. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
-#ifdef NON_MATCHING
 /* 2026-07-18 WORD-EXACT (12/12; was 22.4%; twin-scan lead vs exact
  * gl_func_00024330, 3-word delta = the two float-arg moves + a2 home).
  * The old cap verdict misread the SIGNATURE: the fn is ANSI-prototyped
@@ -14657,16 +14656,13 @@ void game_libs_func_00045394(int a0, int a1, int a2, int a3) {
  * home-store `sw a0,0x18(sp)` (same lever as sibling gl_func_0004D05C).
  * Callee proto via blank-extern alias gl_func_00000000_f
  * (undefined_syms_auto = 0, same mechanism as _42338/_c43c).
- * Placeholder callee -> stays NM wrap, no episode. */
+ * EXACT (unwrapped run 95): the alias is pinned to 0, ROM words are jal 0. */
 extern void gl_func_00000000_f(float);
 void gl_func_000453A8(int a0, float b, float c) {
     gl_func_00000000_f(b);
     gl_func_00000000_f(c);
     (void)a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000453A8);
-#endif
 
 /* game_libs_func_000453D8 (+ splat's game_libs_func_00045418 merged: the
  * bc1fl lands one word into 45418 with that word in the likely slot; oracle
