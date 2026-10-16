@@ -17584,6 +17584,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049DBC);
 //   representative sub-field extraction skeleton. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+/* PASS 2026-10-16 (agent-c, 31.85 -> 76.89): the three colour bytes are (u32)
+ * float conversions (target cfc1/ctc1 rounding-mode sequence, 9 cfc1; the
+ * old (s8)(int) spelling emitted trunc.w.s and dropped ~90 words), and the
+ * calls' first argument is the base-0 symbol address &D_00000000 (target
+ * lui a0,0 / addiu a0,0), not literal 0; the 0x20030 one is &D + 0x20030.
+ * Residual: t0 * 6 as multu (every spelling gives shift-add), call arg
+ * decode for the two 6-arg calls, the v0 = 0 / arg1 tail. */
 s32 gl_func_0004A308(char *arg0, int arg1, int arg2, int arg3, char *arg4) {
     char *entry = *(char **)(arg0 + 0x6C) + arg3 * 8;
     char *v60 = *(char **)(arg0 + 0x60);
@@ -17603,19 +17610,19 @@ s32 gl_func_0004A308(char *arg0, int arg1, int arg2, int arg3, char *arg4) {
         sp6C = 0xFF;
     }
     if (*(char **)(arg0 + 0x50) != 0) {
-        gl_func_00034458(0, sp74, *(char **)(arg0 + 0x50) + t0 * 4);
-        gl_func_00034458(0, sp70, *(char **)(arg0 + 0x50) + *(unsigned short *)(*(char **)(arg0 + 0x6C) + arg3 * 8 + 6) * 4);
-        gl_func_00034458(0x20030, sp74, sp74[1], sp74[2]);
+        gl_func_00034458(&D_00000000, sp74, *(char **)(arg0 + 0x50) + t0 * 4);
+        gl_func_00034458(&D_00000000, sp70, *(char **)(arg0 + 0x50) + *(unsigned short *)(*(char **)(arg0 + 0x6C) + arg3 * 8 + 6) * 4);
+        gl_func_00034458((char *)&D_00000000 + 0x20030, sp74, sp74[1], sp74[2]);
     } else {
         unsigned char col[4];
-        col[0] = (s8)(int)(*(float *)(arg4 + 0) * 255.0f);
-        col[1] = (s8)(int)(*(float *)(arg4 + 4) * 255.0f);
-        col[2] = (s8)(int)(*(float *)(arg4 + 8) * 255.0f);
-        gl_func_00034458(0, sp74, col);
-        gl_func_00034458(0, sp70, col);
+        col[0] = (u32)(*(float *)(arg4 + 0) * 255.0f);
+        col[1] = (u32)(*(float *)(arg4 + 4) * 255.0f);
+        col[2] = (u32)(*(float *)(arg4 + 8) * 255.0f);
+        gl_func_00034458(&D_00000000, sp74, col);
+        gl_func_00034458(&D_00000000, sp70, col);
     }
-    gl_func_00034458(0, sp48, sp7C, 0, (s32) sp6C, sp74);
-    gl_func_00034458(0, sp58, sp78, 0, (s32) sp6E, sp70);
+    gl_func_00034458(&D_00000000, sp48, sp7C, 0, (s32) sp6C, sp74);
+    gl_func_00034458(&D_00000000, sp58, sp78, 0, (s32) sp6E, sp70);
     v0 = 0;
     if (arg1 != 0) {
         v0 = gl_func_00034458(arg2, sp48);
