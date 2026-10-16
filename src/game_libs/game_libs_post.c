@@ -2739,45 +2739,13 @@ void gl_func_0001FEC8(int arg) {
     *(int *)(D + 0x2178) = 0;
 }
 
-// game_libs_func_0001FF28 (MERGED 2026-07-23: orphan 1FF28 3-insn
-// lui/addiu v0 + lw t6,0x2168(v0) is this fn's own hoisted head-store
-// load, IDO hoists it above the sp adjust; was gl_func_0001FF34;
-// 0xC+0x78=0x84; hoisted-prologue mis-split family, same shape as
-// sibling 1FFB8's in-body head store) — STRUCTURAL PASS (0x84 / 33
-// words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). Sibling of gl_func_0001FEC8: a multi-step diagnostic /
-// status-print sequence.
-//
-//   void gl_func_0001FF34(int arg) {
-//     *(int*)(&D_0 + 0x216C) = ...;             // stash a value
-//     (*pr)(&D_2168, *(int*)reg);                // jal 0 USO-reloc
-//     (*pr)(&D_2198, arg);                        // jal 0 USO-reloc
-//     (*pr)(&D_2168, *(int*)(reg2 + 0xC));        // jal 0 USO-reloc
-//     (*pr)(&D_21C8, arg);                        // jal 0 USO-reloc
-//   }
-//
-// Struct-typing reference: &D_2168 / &D_2198 / &D_21C8 are fixed
-//   format-string / descriptor blobs (same &D_21xx descriptor pool
-//   used by the gl_func_0001FEC8 register helper). The `jal 0` slots
-//   are a USO-relocated printf-like reporter, resolved at load, each
-//   invoked with a format pointer and a value pulled from a global
-//   register/struct (word at reg+0, word at reg2+0xC) or the caller
-//   arg (preserved across the calls via sp+0x18). Word &D_0+0x216C
-//   is written once before the prints (a captured handle/value).
-//   This is the "report/dump state" entry of the same game_libs
-//   support family as gl_func_0001FD98 / gl_func_0001FEC8.
-// Caps (DEFERRED): single jr $ra. Sibling of gl_func_0001FEC8 —
-//   report/dump-state sequence (same &D_21xx descriptor pool /
-//   support family as gl_func_0001FD98/FEC8). Real-C STRUCTURAL
-//   body below per the analysis (stash handle to &D_0+0x216C, then
-//   four jal-0 USO-reloc printf-like reporter calls with fixed
-//   format blobs &D_2168/0x2198/0x21C8 and values from globals or
-//   the preserved arg). Byte-match deferred — placeholder jal-0
-//   reporter needs USO reloc infra. Name pre-checked: no extern
-//   reuse (collision-safe). gl_func_00000000 = canonical
-//   never-defined USO placeholder for the reporter.
-#ifdef NON_MATCHING
+// game_libs_func_0001FF28 -- report/dump-state helper (sibling of
+// gl_func_0001FEC8): stash *(D+0x2168) at D+0x216C, then four calls to the
+// printf-like USO reporter (jal 0 placeholder) with descriptor blobs
+// D+0x2168 / 0x2198 / 0x2168 / 0x21C8 and arg[0] / arg[3]. The 3-insn orphan
+// at 1FF28 (hoisted lui/addiu v0 + lw t6,0x2168(v0)) was merged 2026-07-23.
+// EXACT (unwrapped 2026-10-16): every reloc is gl_func_00000000 /
+// D_00000000, both absolute 0, so the default build links to the ROM bytes.
 extern int gl_func_00000000();
 extern int D_00000000;
 /* Post-merge body (2026-07-23): the head store's source is the merged-in
@@ -2792,9 +2760,6 @@ void game_libs_func_0001FF28(int *arg) {
     r = gl_func_00000000(D + 0x2168, arg[3]);
     gl_func_00000000(D + 0x21C8, r, arg[3]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FF28);
-#endif
 
 
 // game_libs_func_0001FFAC (MERGED 2026-07-23: orphan 1FFAC 3-insn
