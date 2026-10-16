@@ -2808,44 +2808,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FFAC);
 #endif
 
 
-// game_libs_func_00020030 (MERGED 2026-07-23: orphan 20030 3-insn
-// lui/addiu v0 + lw t6,0x21D8(v0) is this fn's own hoisted head-store
-// load, same mis-split family as 1FF28/1FFAC; was gl_func_0002003C;
-// 0xC+0xB8=0xC4) — STRUCTURAL PASS (0xC4 / 49 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). A longer member of the gl_func_0001FF34 diagnostic-dump
-// family: a multi-field struct reporter.
-//
-//   void gl_func_0002003C(S *obj) {
-//     *(int*)(&D_0 + 0x21DC) = ...;             // stash a value
-//     (*pr)(&D_21D8, *(int*)reg);                // jal 0 USO-reloc
-//     (*pr)(&D_21FC, obj->w_0);
-//     (*pr)(&D_21D8, *(int*)reg2);
-//     (*pr)(&D_230C, obj->w_4);
-//     (*pr)(&D_21D8, *(int*)reg3);
-//     (*pr)(&D_241C, obj->w_8);
-//     (*pr)(&D_21F8, ...);                        // trailing pair(s)
-//     (*pr)(&D_2308, ...);
-//   }
-//
-// Struct-typing reference: same USO-reloc printf-like reporter `jal 0`
-//   slots as gl_func_0001FF34 / gl_func_0001FFB8. `obj` (saved in s0
-//   from a0) is dumped field by field — words obj->0, obj->4, obj->8
-//   — each preceded by a &D_21D8 label line and followed by a
-//   value-format line from the &D_21xx/&D_23xx/&D_24xx descriptor
-//   pool (&D_21FC / &D_230C / &D_241C / &D_21F8 / &D_2308). Handle
-//   stashed at &D_0+0x21DC. The fullest "dump this object" variant of
-//   the game_libs report support family.
-// Caps (DEFERRED): single jr $ra. Fullest "dump this object" variant
-//   of the gl_func_0001FF34 report support family. Real-C STRUCTURAL
-//   body below per the analysis (stash handle &D_0+0x21DC, then a
-//   chain of jal-0 USO-reloc reporter calls: a label line from
-//   &D_21D8 then a value line from the &D_21FC/&D_230C/&D_241C/
-//   &D_21F8/&D_2308 pool, fed from obj->0/4/8). Byte-match deferred —
-//   placeholder jal-0 reporter needs USO reloc infra. Name
-//   pre-checked: no extern reuse (collision-safe). gl_func_00000000
-//   = canonical never-defined USO placeholder for the reporter.
-#ifdef NON_MATCHING
+// game_libs_func_00020030 -- "dump this object" report helper, fullest
+// member of the gl_func_0001FF28 family: stash *(D+0x21D8) at D+0x21DC, then
+// label/value reporter pairs (D+0x21D8 then D+0x21FC / 0x230C / 0x241C) fed
+// from obj[0..2], chaining the reporter's return value as arg1 of each value
+// line, then three footer lines (D+0x21F8 / 0x2308 / 0x2418). The reporter is
+// the USO placeholder gl_func_00000000. Orphan 3-insn head merged 2026-07-23.
+// EXACT (unwrapped 2026-10-16): every reloc is gl_func_00000000 /
+// D_00000000, both absolute 0.
 extern int gl_func_00000000();
 extern int D_00000000;
 /* Post-merge body (2026-07-23): head store sources the merged-in hoisted
@@ -2866,9 +2836,6 @@ void game_libs_func_00020030(int *obj) {
     gl_func_00000000(D + 0x2308);
     gl_func_00000000(D + 0x2418);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020030);
-#endif
 
 
 // game_libs_func_000200F4 (MERGED 2026-07-23: orphan 200F4 3-insn
