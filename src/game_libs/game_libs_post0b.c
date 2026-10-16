@@ -15493,8 +15493,8 @@ int gl_func_00046B44() {
  * 0x240-read v1->v0, vtable a1->v1, saved-a0 a2->a1, ring t6/t7/t9);
  * unnamed, the toggle rides ring t6/t7 like the target. (2) addu operand
  * commute: writing `(int)a0[0x240/4] + *(short*)(vtable+0x60)` (ptr-value
- * textually FIRST) emits the target's `addu a0,t0,v0` (short-first). */
-#ifdef NON_MATCHING
+ * textually FIRST) emits the target's `addu a0,t0,v0` (short-first).
+ * EXACT (unwrapped run 95): func_00000000 is a real symbol at 0. */
 void gl_func_00046B64(int *a0) {
     int *vtable;
     int rv;
@@ -15505,9 +15505,6 @@ void gl_func_00046B64(int *a0) {
     func_00000000(rv);
     func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046B64);
-#endif
 
 /* gl_func_00046BC4: 34-insn cleanup helper. Named base pointers lift the C
  * body from the old 84.68% direct-offset RMW shape to same-size 89.68%.
