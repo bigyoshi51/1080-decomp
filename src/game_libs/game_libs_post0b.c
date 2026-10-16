@@ -8068,7 +8068,6 @@ void gl_func_0003D620(int *a0, int *a1) {
  * USO convention: intra-USO call -> func_00000000 (per gl_func_0003D5BC).
  * 26-word INSN_PATCH closes register/imm-only residuals (op-mismatch=0,
  * SAME-LEN 36) per docs/POST_CC_RECIPES.md#feedback-insn-patch-screen-by-opmismatch-count. */
-#ifdef NON_MATCHING
 /* gl_func_0003D68C — BEST: 34/36 words (94.4% raw; objdiff 99.25), 2026-07-03 agent-e.
  * Improved from committed body (14/36 raw words at same positions).
  * WORKING LEVERS (all required):
@@ -8088,8 +8087,10 @@ void gl_func_0003D620(int *a0, int *a1) {
  * tie-break): `s.tag = 7; s.pf = &f[0];` written on ONE source line keeps the temp
  * order (li t6,7 first) but emits sw t7(pf,0x58) BEFORE sw t6(tag,0x54) as in target.
  * The 18-variant 2026-07-03 probe set never varied LINE placement.
- * NOT LANDABLE: 3 intra-USO calls are func_00000000 placeholders (jal 0x51708 baked
- * in target); stays NM wrap until the callee is symbolized. */
+ * Unwrapped EXACT 2026-10-16 (run 96): the 3 baked in-unit jal words go through
+ * gl_func_0003D68C_51708, pinned to 0x51708 in undefined_syms_auto.txt, so the
+ * link writes the ROM's 0x0C0145C2 at each site. */
+extern int gl_func_0003D68C_51708();
 void gl_func_0003D68C(int *a0) {
   struct
   {
@@ -8105,9 +8106,9 @@ void gl_func_0003D68C(int *a0) {
   int t;
   int u;
   int w;
-  func_00000000(&i0);
-  func_00000000(&i1);
-  func_00000000(&i2);
+  gl_func_0003D68C_51708(&i0);
+  gl_func_0003D68C_51708(&i1);
+  gl_func_0003D68C_51708(&i2);
   t = i0;
   u = i1;
   w = i2;
@@ -8120,9 +8121,6 @@ void gl_func_0003D68C(int *a0) {
   w = u + (*((short *) (t + 0x28)));
   (*((void (**)(int, int *)) (t + 0x2C)))(w, (int *) (&s));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D68C);
-#endif
 
 /* gl_func_0003D71C: 55-insn — guarded by a 7-arg call, then struct-copy
  * D+0xE8 -> D+0xA0 (0x40 bytes), 3 float products into D+0xD0/D4/D8,

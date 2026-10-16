@@ -3794,3 +3794,5 @@ gl_ref_00029B6C_3DF44 = 0x0003DF44;
 gl_ref_00029B6C_3DFE4 = 0x0003DFE4;
 /* gl_func_0003D3C4 baked in-unit jal target (ROM word 0x0C01458C) */
 gl_func_0003D3C4_51630 = 0x00051630;
+/* gl_func_0003D68C baked in-unit jal target, 3 sites (ROM word 0x0C0145C2) */
+gl_func_0003D68C_51708 = 0x00051708;
