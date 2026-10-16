@@ -32850,28 +32850,26 @@ end:
 void game_libs_func_00060DBC(int a0) {
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00060DC4: 67-insn flag-bit cascade dispatcher (0x10C, frame 0x20).
- *
- * RE-DECODED 2026-05-31: 7.8%->86.9%. The old decode had the WRONG flag source
- * (self->0x2C) and a flat structure. Correct: s0 = self->0x2C (null-checked, also a
- * call arg); v0 = self->0x34 (the FLAG object). Structure is a 0x800-gated branch:
- *   if (v0->0x10 & 0x800) { if(v0->0x18&1) func(self),reload v0; if(v0->0x18&2) func(self); }
+ * s0 = self->0x2C (null-checked, also a call arg); v0 = self->0x34 (the FLAG
+ * object):
+ *   if (v0->0x10 & 0x800) { if(v0->0x18&1) func(), reload v0; if(v0->0x18&2) func(self); }
  *   else { for bit in {0x4,0x8,0x1,0x2}: if(v0->0x10&bit) func(s0), reload s0+v0; }
  *   func(s0, self->0x38);     // shared tail
- * v0->0x10 is reloaded between tests (callees may modify it). Residual ~13%: the
- * flag word reloads into fresh $t-regs (target) vs $v1-collapse (mine) + the beql
- * branch-likely preloads — the documented regalloc/scheduling cap (cf. 00000268).
- */
+ * EXACT 2026-10-16 (agent-g, 89.0 -> 100): the flag object is a pointer to
+ * VOLATILE -- every flag test re-loads the word into a fresh $t (the old
+ * "fresh-$t reload vs $v1 collapse" residual), and the beql preloads fall out
+ * of it. The first 0x800-arm call passes NO argument: the target's `jal; nop`
+ * leaves a0 = self from entry (an explicit `self` arg emits `or a0,s1`). */
 void gl_func_00060DC4(int *self) {
     int *s0 = (int*)self[0x2C / 4];
-    int *v0;
+    volatile int *v0;
     if (s0 == 0) return;
-    v0 = (int*)self[0x34 / 4];
+    v0 = (volatile int*)self[0x34 / 4];
     if (v0[0x10 / 4] & 0x800) {
         if (v0[0x18 / 4] & 0x1) {
-            gl_func_00000000(self);
-            v0 = (int*)self[0x34 / 4];
+            gl_func_00000000();
+            v0 = (volatile int*)self[0x34 / 4];
         }
         if (v0[0x18 / 4] & 0x2) {
             gl_func_00000000(self);
@@ -32881,17 +32879,17 @@ void gl_func_00060DC4(int *self) {
         if (v0[0x10 / 4] & 0x4) {
             gl_func_00000000(s0);
             s0 = (int*)self[0x2C / 4];
-            v0 = (int*)self[0x34 / 4];
+            v0 = (volatile int*)self[0x34 / 4];
         }
         if (v0[0x10 / 4] & 0x8) {
             gl_func_00000000(s0);
             s0 = (int*)self[0x2C / 4];
-            v0 = (int*)self[0x34 / 4];
+            v0 = (volatile int*)self[0x34 / 4];
         }
         if (v0[0x10 / 4] & 0x1) {
             gl_func_00000000(s0);
             s0 = (int*)self[0x2C / 4];
-            v0 = (int*)self[0x34 / 4];
+            v0 = (volatile int*)self[0x34 / 4];
         }
         if (v0[0x10 / 4] & 0x2) {
             gl_func_00000000(s0);
@@ -32900,9 +32898,6 @@ void gl_func_00060DC4(int *self) {
     }
     gl_func_00000000(s0, self[0x38 / 4]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060DC4);
-#endif
 
 /* gl_func_00060ED0: walk a circular list (head a0->0x30, next at node->0x38),
  * call gl_func(a0, node) for each node whose node->0x44 == a1; stop when next
