@@ -659,6 +659,11 @@ void mgrproc_uso_func_00001594(int *a0) {
  * if(1) wraps, dead-def rank boost, same-name family with case-4 base: family
  * unites on v1) + gut-probe of the v0-owning case-4 web (hdr STAYS v1 with v0
  * completely free): uopt intrinsically avoids v0 for this spilled web class.
+ * 2026-10-16 (agent-g): the body had drifted back to decl order hdr,node
+ * (spill slots swapped, 8 raw words, 99.65). node,hdr restores hdr@32 /
+ * node@36: 6 raw words left, all the hdr v1-vs-v0 web (99.69). Assign-in-
+ * call-arg (`07ACE0(hdr + 0x10, node = ...)`), hdr as the 2940 result var,
+ * block-scoped hdr, if(1) and one-line joins do not move it.
  * NON_MATCHING. */
 extern int gl_func_00000000();
 extern int mgrproc_uso_func_0139B0();
@@ -671,8 +676,8 @@ extern int mgrproc_uso_func_00F954();
 extern int mgrproc_uso_func_00001BD4();
 extern void *mgrproc_uso_func_00002940(char *, int, int);
 void mgrproc_uso_func_00001614(char *arg0) {
-    char *hdr;
     void *node;
+    char *hdr;
     int state = *(int *)(arg0 + 0x504);
 
     switch (state) {
