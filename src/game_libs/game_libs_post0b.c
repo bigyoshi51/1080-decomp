@@ -1535,7 +1535,6 @@ void game_libs_func_0003582C(int *a0, int a1) {
  * param to hold r regresses (99.08%). Permuter/INSN_PATCH-class. */
 extern int func_00000000();
 extern int D_00000000;
-#ifdef NON_MATCHING
 /* gl_func_00035834: indirect-call wrapper (D->0x48)(a1,a2); if <0, call
  * func_00000000(&D+0x1E64C, a1); return r. 99.38% — residual is a register-renumber:
  * `r` (the return, spilled across the 2nd call + reloaded) lands in $v1, target uses
@@ -1572,7 +1571,7 @@ extern int D_00000000;
  * really passed r (error-report callee reads (fmt, arg, code)). Lesson: an
  * "unnatural" arg-reg carrier of a saved value = suspect an extra trailing
  * call argument before writing an allocator-cap note.
- * NOT LANDABLE: func_00000000 placeholder callee + baked USO %hi/%lo. NM. */
+ * EXACT (unwrapped run 95): func_00000000 and D_00000000 are real symbols at 0. */
 int gl_func_00035834(int a0, int a1, int a2) {
     int r = ((int(*)(int,int))(*(int**)&D_00000000)[0x48/4])(a1, a2);
     if (r < 0) {
@@ -1581,9 +1580,6 @@ int gl_func_00035834(int a0, int a1, int a2) {
     (void)a0;
     return r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035834);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_00035894(int *a0) {
