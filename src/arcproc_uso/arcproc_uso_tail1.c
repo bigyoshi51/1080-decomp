@@ -626,7 +626,7 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000FA
 #endif
 
 /* arcproc_uso_func_00001170: F1 (32-insn dispatcher + indirect call) only.
- * NATURAL CEILING: 97.03% NM. The 2026-05-07 SUFFIX_BYTES recipe (28 words
+ * EXACT 2026-10-16 (was a "natural ceiling" 97.03% NM). The 2026-05-07 SUFFIX_BYTES recipe (28 words
  * / 0x70 bytes absorbing F2 + F3) was REMOVED 2026-05-23 as match-faking.
  * Symbol is now 0x80 / 32 insns (F1 only); F2 and F3 are separate symbols.
  * Sibling family of arcproc_uso_func_00000EBC, gl_func_000070A0,
@@ -663,26 +663,27 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000FA
  * (typedef char[0x28]; emits IDENTICAL li+multu insns), swapped-term
  * R-first form — all invariant. The 21130 array-IXA base-first escape only
  * works for shift-scaled indexing; multu-scaled addu stays mul-first in
- * ugen. Genuine commute-order cap; still NM. */
+ * ugen. Genuine commute-order cap; still NM.
+ * 2026-10-16 (agent-g) EXACT: the entry is a TYPED STRUCT indexed off the
+ * +0x90 base, `((Ent1170 *)((char *)p + 0x90))[p->0x7C].fn` with
+ * `struct { void (*fn)(void); char pad[0x24]; }` -- base-first addu with the
+ * 0x28 multiplier CSE'd into v1 (no named stride needed). Same lever as
+ * timproc_uso_b5_func_0000024C (docs/IDO_CODEGEN.md
+ * #assign-in-call-arg-spill-before-copy-0478, 024C paragraph). */
 extern int gl_func_00000000();
 extern char D_00000000;
-#ifdef NON_MATCHING
+typedef struct { void (*fn)(void); char pad[0x24]; } Ent1170;
 void arcproc_uso_func_00001170(int *a0) {
     int *table_root = *(int**)((char*)&D_00000000 + 0x190);
     int *p;
-    int stride;
 
     if (gl_func_00000000(table_root, a0) == 0) return;
     p = (int*)a0[0x48 / 4];
-    stride = 0x28;
-    if (*(int*)(*(int*)((char*)p + 0x7C) * stride + (int)p + 0x90) == 0) return;
+    if (((Ent1170 *)((char *)p + 0x90))[p[0x7C / 4]].fn == 0) return;
     *(int*)&D_00000000 = (int)a0;
     p = (int*)a0[0x48 / 4];
-    ((void(*)())*(int*)(*(int*)((char*)p + 0x7C) * stride + (int)p + 0x90))();
+    ((Ent1170 *)((char *)p + 0x90))[p[0x7C / 4]].fn();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001170);
-#endif
 
 /* arcproc_uso_func_000011F0: 14-insn dual-field bit-clear, RECOVERED
  * 2026-05-28 from the 00001170 bundle gap. Clears bit 2 of the 0x18 field
