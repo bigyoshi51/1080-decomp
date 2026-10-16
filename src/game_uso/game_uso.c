@@ -8688,7 +8688,6 @@ void game_uso_func_0000C3F8(int *a0) {
     }
 }
 
-#ifdef NON_MATCHING
 /* 2026-06-24 (agent-e) BIG-SWING decode lever: add the per-stage s2-scratch
  * round-trip. GT (expected .o) shows EVERY one of the 32 sub-init stages does
  *   lw t,OFF(global); sw t,SLOT(sp); lw t,SLOT(sp); sw t,0(s2); ...; lw a2,0(s2)
@@ -8706,10 +8705,58 @@ extern int game_uso_func_055750();
 extern int game_uso_func_04A188();
 extern int import_0010D33C();
 void game_uso_func_0000D458(s32);
-extern char gu_c48c_tf0, gu_c48c_tf1, gu_c48c_tf2, gu_c48c_tf3, gu_c48c_tf4, gu_c48c_tf5, gu_c48c_tf6, gu_c48c_tf7, gu_c48c_tf8, gu_c48c_tf9, gu_c48c_tf10, gu_c48c_tf11, gu_c48c_tf12, gu_c48c_tf13, gu_c48c_tf14, gu_c48c_tf15, gu_c48c_ti0, gu_c48c_ti1, gu_c48c_ti2, gu_c48c_ti3, gu_c48c_ti4, gu_c48c_ti5, gu_c48c_ti6, gu_c48c_ti7, gu_c48c_ti8, gu_c48c_ti9, gu_c48c_ti10, gu_c48c_ti11, gu_c48c_ti12, gu_c48c_ti13, gu_c48c_ti14, gu_c48c_ti15, gu_c48c_fv0, gu_c48c_fv1;
+extern char gu_c48c_tf0, gu_c48c_tf1, gu_c48c_tf2, gu_c48c_tf3, gu_c48c_tf4, gu_c48c_tf5, gu_c48c_tf6, gu_c48c_tf7, gu_c48c_tf8, gu_c48c_tf9, gu_c48c_tf10, gu_c48c_tf11, gu_c48c_tf12, gu_c48c_tf13, gu_c48c_tf14, gu_c48c_tf15, gu_c48c_ti0, gu_c48c_ti1, gu_c48c_ti2, gu_c48c_ti3, gu_c48c_ti4, gu_c48c_ti5, gu_c48c_ti6, gu_c48c_ti7, gu_c48c_ti8, gu_c48c_ti9, gu_c48c_ti10, gu_c48c_ti11, gu_c48c_ti12, gu_c48c_ti13, gu_c48c_ti14, gu_c48c_ti15;
+/* game_uso_func_0000C48C: EXACT 2026-10-16 (agent-g), from 99.7 NM. Three levers:
+ * (1) the 12 int-0x10 stages put `obj[0xC/4] = tmpl; obj[0x10/4] = K;` on ONE
+ *     source line (as1 then emits the 0x10 store first, the target order);
+ * (2) the per-stage 1-word scratch structs are function-scope u1..u32 declared
+ *     BEFORE the shared `t` (s2 = &t lands at the bottom, sp+0x2C), with one
+ *     pointer above them and `v1, obj` + a 3-word volatile pad between u32 and t
+ *     (frame 0xC8, u1 at 0xC0);
+ * (3) plain C now; no cfront/NCC donor needed. See docs/IDO_CODEGEN.md
+ *     #same-line-store-pair-and-scratch-decl-order-c48c.
+ * (4) the two float stages spell plain `0.7f` / `1.72f` literals (RoData
+ *     +0x1EC/+0x1F0, the words the old .s carried as .late_rodata); the D204
+ *     donor placeholder below emits D204's 28555.0f at +0x1F4. Extern-symbol
+ *     spellings emitted no rodata and shifted every later %lo by 12 bytes. */
 struct C48CArg { int v; };
 void *game_uso_func_0000C48C(char *p, int a1, int a2) {
-    int *s1, *v1, *obj;
+    int *s1;
+    struct C48CArg u1;
+    struct C48CArg u2;
+    struct C48CArg u3;
+    struct C48CArg u4;
+    struct C48CArg u5;
+    struct C48CArg u6;
+    struct C48CArg u7;
+    struct C48CArg u8;
+    struct C48CArg u9;
+    struct C48CArg u10;
+    struct C48CArg u11;
+    struct C48CArg u12;
+    struct C48CArg u13;
+    struct C48CArg u14;
+    struct C48CArg u15;
+    struct C48CArg u16;
+    struct C48CArg u17;
+    struct C48CArg u18;
+    struct C48CArg u19;
+    struct C48CArg u20;
+    struct C48CArg u21;
+    struct C48CArg u22;
+    struct C48CArg u23;
+    struct C48CArg u24;
+    struct C48CArg u25;
+    struct C48CArg u26;
+    struct C48CArg u27;
+    struct C48CArg u28;
+    struct C48CArg u29;
+    struct C48CArg u30;
+    struct C48CArg u31;
+    struct C48CArg u32;
+    int *v1;
+    int *obj;
+    volatile int pd[3];
     struct C48CArg t;
     if (p == 0) { p = (char *)game_uso_func_055750(0x444); if (p == 0) goto end; }
     import_0010D33C(p, a1);
@@ -8722,81 +8769,70 @@ void *game_uso_func_0000C48C(char *p, int a1, int a2) {
     v1[1] = 0;
 stage0:;
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF81C + 0x122c);
-        t = u;
+        u1.v = *(int *)((char *)&game_uso_D_807FF81C + 0x122c);
+        t = u1;
         obj = (int *)((char *)s1 + 0x8);
         if (s1 != (int *)-0x8 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
         obj[0xC / 4] = (int)((char *)&gu_c48c_tf0 + 0xf78);
         obj[0x14 / 4] = 0;
-        *(float *)((char *)obj + 0x10) = *(float *)((char *)&gu_c48c_fv0 + 0x1ec);
+        *(float *)((char *)obj + 0x10) = 0.7f;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF820 + 0x1230);
-        t = u;
+        u2.v = *(int *)((char *)&game_uso_D_807FF820 + 0x1230);
+        t = u2;
         obj = (int *)((char *)s1 + 0x20);
         if (s1 != (int *)-0x20 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
-        obj[0xC / 4] = (int)((char *)&gu_c48c_ti0 + 0xfc0);
-        obj[0x10 / 4] = 20;
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti0 + 0xfc0); obj[0x10 / 4] = 20;
         obj[0x14 / 4] = 0;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF824 + 0x1234);
-        t = u;
+        u3.v = *(int *)((char *)&game_uso_D_807FF824 + 0x1234);
+        t = u3;
         obj = (int *)((char *)s1 + 0x38);
         if (s1 != (int *)-0x38 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
-        obj[0xC / 4] = (int)((char *)&gu_c48c_ti1 + 0xfc0);
-        obj[0x10 / 4] = 60;
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti1 + 0xfc0); obj[0x10 / 4] = 60;
         obj[0x14 / 4] = 0;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF828 + 0x1238);
-        t = u;
+        u4.v = *(int *)((char *)&game_uso_D_807FF828 + 0x1238);
+        t = u4;
         obj = (int *)((char *)s1 + 0x50);
         if (s1 != (int *)-0x50 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
-        obj[0xC / 4] = (int)((char *)&gu_c48c_ti2 + 0xfc0);
-        obj[0x10 / 4] = 5;
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti2 + 0xfc0); obj[0x10 / 4] = 5;
         obj[0x14 / 4] = 0;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF82C + 0x123c);
-        t = u;
+        u5.v = *(int *)((char *)&game_uso_D_807FF82C + 0x123c);
+        t = u5;
         obj = (int *)((char *)s1 + 0x68);
         if (s1 != (int *)-0x68 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
         obj[0xC / 4] = (int)((char *)&gu_c48c_tf1 + 0xf78);
         obj[0x14 / 4] = 0;
-        *(float *)((char *)obj + 0x10) = *(float *)((char *)&gu_c48c_fv1 + 0x1f0);
+        *(float *)((char *)obj + 0x10) = 1.72f;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF830 + 0x1240);
-        t = u;
+        u6.v = *(int *)((char *)&game_uso_D_807FF830 + 0x1240);
+        t = u6;
         obj = (int *)((char *)s1 + 0x80);
         if (s1 != (int *)-0x80 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
-        obj[0xC / 4] = (int)((char *)&gu_c48c_ti3 + 0xfc0);
-        obj[0x10 / 4] = 20;
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti3 + 0xfc0); obj[0x10 / 4] = 20;
         obj[0x14 / 4] = 0;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF834 + 0x1244);
-        t = u;
+        u7.v = *(int *)((char *)&game_uso_D_807FF834 + 0x1244);
+        t = u7;
         obj = (int *)((char *)s1 + 0x98);
         if (s1 != (int *)-0x98 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8806,9 +8842,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF838 + 0x1248);
-        t = u;
+        u8.v = *(int *)((char *)&game_uso_D_807FF838 + 0x1248);
+        t = u8;
         obj = (int *)((char *)s1 + 0xb0);
         if (s1 != (int *)-0xb0 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8818,21 +8853,18 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF83C + 0x124c);
-        t = u;
+        u9.v = *(int *)((char *)&game_uso_D_807FF83C + 0x124c);
+        t = u9;
         obj = (int *)((char *)s1 + 0xc8);
         if (s1 != (int *)-0xc8 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
-        obj[0xC / 4] = (int)((char *)&gu_c48c_ti4 + 0xfc0);
-        obj[0x10 / 4] = 3;
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti4 + 0xfc0); obj[0x10 / 4] = 3;
         obj[0x14 / 4] = 0;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF840 + 0x1250);
-        t = u;
+        u10.v = *(int *)((char *)&game_uso_D_807FF840 + 0x1250);
+        t = u10;
         obj = (int *)((char *)s1 + 0xe0);
         if (s1 != (int *)-0xe0 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8842,9 +8874,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF844 + 0x1254);
-        t = u;
+        u11.v = *(int *)((char *)&game_uso_D_807FF844 + 0x1254);
+        t = u11;
         obj = (int *)((char *)s1 + 0xf8);
         if (s1 != (int *)-0xf8 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8854,9 +8885,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF848 + 0x1258);
-        t = u;
+        u12.v = *(int *)((char *)&game_uso_D_807FF848 + 0x1258);
+        t = u12;
         obj = (int *)((char *)s1 + 0x110);
         if (s1 != (int *)-0x110 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8866,9 +8896,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF84C + 0x125c);
-        t = u;
+        u13.v = *(int *)((char *)&game_uso_D_807FF84C + 0x125c);
+        t = u13;
         obj = (int *)((char *)s1 + 0x128);
         if (s1 != (int *)-0x128 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8878,9 +8907,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF850 + 0x1260);
-        t = u;
+        u14.v = *(int *)((char *)&game_uso_D_807FF850 + 0x1260);
+        t = u14;
         obj = (int *)((char *)s1 + 0x140);
         if (s1 != (int *)-0x140 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8890,9 +8918,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF854 + 0x1264);
-        t = u;
+        u15.v = *(int *)((char *)&game_uso_D_807FF854 + 0x1264);
+        t = u15;
         obj = (int *)((char *)s1 + 0x158);
         if (s1 != (int *)-0x158 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8902,9 +8929,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF858 + 0x1268);
-        t = u;
+        u16.v = *(int *)((char *)&game_uso_D_807FF858 + 0x1268);
+        t = u16;
         obj = (int *)((char *)s1 + 0x170);
         if (s1 != (int *)-0x170 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8914,9 +8940,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF85C + 0x126c);
-        t = u;
+        u17.v = *(int *)((char *)&game_uso_D_807FF85C + 0x126c);
+        t = u17;
         obj = (int *)((char *)s1 + 0x188);
         if (s1 != (int *)-0x188 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8926,9 +8951,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF860 + 0x1270);
-        t = u;
+        u18.v = *(int *)((char *)&game_uso_D_807FF860 + 0x1270);
+        t = u18;
         obj = (int *)((char *)s1 + 0x1a0);
         if (s1 != (int *)-0x1a0 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8938,9 +8962,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF864 + 0x1274);
-        t = u;
+        u19.v = *(int *)((char *)&game_uso_D_807FF864 + 0x1274);
+        t = u19;
         obj = (int *)((char *)s1 + 0x1b8);
         if (s1 != (int *)-0x1b8 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8950,9 +8973,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF868 + 0x1278);
-        t = u;
+        u20.v = *(int *)((char *)&game_uso_D_807FF868 + 0x1278);
+        t = u20;
         obj = (int *)((char *)s1 + 0x1d0);
         if (s1 != (int *)-0x1d0 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8962,9 +8984,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF86C + 0x127c);
-        t = u;
+        u21.v = *(int *)((char *)&game_uso_D_807FF86C + 0x127c);
+        t = u21;
         obj = (int *)((char *)s1 + 0x1e8);
         if (s1 != (int *)-0x1e8 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8974,9 +8995,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF870 + 0x1280);
-        t = u;
+        u22.v = *(int *)((char *)&game_uso_D_807FF870 + 0x1280);
+        t = u22;
         obj = (int *)((char *)s1 + 0x200);
         if (s1 != (int *)-0x200 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8986,9 +9006,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF874 + 0x1284);
-        t = u;
+        u23.v = *(int *)((char *)&game_uso_D_807FF874 + 0x1284);
+        t = u23;
         obj = (int *)((char *)s1 + 0x218);
         if (s1 != (int *)-0x218 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -8998,9 +9017,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF878 + 0x1288);
-        t = u;
+        u24.v = *(int *)((char *)&game_uso_D_807FF878 + 0x1288);
+        t = u24;
         obj = (int *)((char *)s1 + 0x230);
         if (s1 != (int *)-0x230 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -9010,9 +9028,8 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF87C + 0x128c);
-        t = u;
+        u25.v = *(int *)((char *)&game_uso_D_807FF87C + 0x128c);
+        t = u25;
         obj = (int *)((char *)s1 + 0x248);
         if (s1 != (int *)-0x248 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
@@ -9022,86 +9039,72 @@ stage0:;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF880 + 0x1290);
-        t = u;
+        u26.v = *(int *)((char *)&game_uso_D_807FF880 + 0x1290);
+        t = u26;
         obj = (int *)((char *)s1 + 0x260);
         if (s1 != (int *)-0x260 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
-        obj[0xC / 4] = (int)((char *)&gu_c48c_ti9 + 0xfc0);
-        obj[0x10 / 4] = 1;
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti9 + 0xfc0); obj[0x10 / 4] = 1;
         obj[0x14 / 4] = 0;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF884 + 0x1294);
-        t = u;
+        u27.v = *(int *)((char *)&game_uso_D_807FF884 + 0x1294);
+        t = u27;
         obj = (int *)((char *)s1 + 0x278);
         if (s1 != (int *)-0x278 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
-        obj[0xC / 4] = (int)((char *)&gu_c48c_ti10 + 0xfc0);
-        obj[0x10 / 4] = 1;
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti10 + 0xfc0); obj[0x10 / 4] = 1;
         obj[0x14 / 4] = 0;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF888 + 0x1298);
-        t = u;
+        u28.v = *(int *)((char *)&game_uso_D_807FF888 + 0x1298);
+        t = u28;
         obj = (int *)((char *)s1 + 0x290);
         if (s1 != (int *)-0x290 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
-        obj[0xC / 4] = (int)((char *)&gu_c48c_ti11 + 0xfc0);
-        obj[0x10 / 4] = 1;
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti11 + 0xfc0); obj[0x10 / 4] = 1;
         obj[0x14 / 4] = 0;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF88C + 0x129c);
-        t = u;
+        u29.v = *(int *)((char *)&game_uso_D_807FF88C + 0x129c);
+        t = u29;
         obj = (int *)((char *)s1 + 0x2a8);
         if (s1 != (int *)-0x2a8 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
-        obj[0xC / 4] = (int)((char *)&gu_c48c_ti12 + 0xfc0);
-        obj[0x10 / 4] = 1;
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti12 + 0xfc0); obj[0x10 / 4] = 1;
         obj[0x14 / 4] = 0;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF890 + 0x12a0);
-        t = u;
+        u30.v = *(int *)((char *)&game_uso_D_807FF890 + 0x12a0);
+        t = u30;
         obj = (int *)((char *)s1 + 0x2c0);
         if (s1 != (int *)-0x2c0 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
-        obj[0xC / 4] = (int)((char *)&gu_c48c_ti13 + 0xfc0);
-        obj[0x10 / 4] = 1;
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti13 + 0xfc0); obj[0x10 / 4] = 1;
         obj[0x14 / 4] = 0;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF894 + 0x12a4);
-        t = u;
+        u31.v = *(int *)((char *)&game_uso_D_807FF894 + 0x12a4);
+        t = u31;
         obj = (int *)((char *)s1 + 0x2d8);
         if (s1 != (int *)-0x2d8 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
-        obj[0xC / 4] = (int)((char *)&gu_c48c_ti14 + 0xfc0);
-        obj[0x10 / 4] = 30;
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti14 + 0xfc0); obj[0x10 / 4] = 30;
         obj[0x14 / 4] = 0;
         }
     }
     {
-        struct C48CArg u;
-        u.v = *(int *)((char *)&game_uso_D_807FF898 + 0x12a8);
-        t = u;
+        u32.v = *(int *)((char *)&game_uso_D_807FF898 + 0x12a8);
+        t = u32;
         obj = (int *)((char *)s1 + 0x2f0);
         if (s1 != (int *)-0x2f0 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
         game_uso_func_04A188(obj, s1, t, 1);
-        obj[0xC / 4] = (int)((char *)&gu_c48c_ti15 + 0xfc0);
-        obj[0x10 / 4] = 100;
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti15 + 0xfc0); obj[0x10 / 4] = 100;
         obj[0x14 / 4] = 0;
         }
     }
@@ -9111,9 +9114,6 @@ tail:
 end:
     return p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C48C);
-#endif
 
 /* game_uso_func_0000D204 (0x214 / 133 words): per-frame update. Gate on
  * import->0x64: clamp self->0xB4->0xBC against D+0x1F4 (reset self->0x120)
@@ -9128,9 +9128,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C48C);
  * delta/index/vptr dispatch are edg-only codegen; cfe capped at 85.8%.
  * docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe. The
  * 0xD210 alias label of the old .s is not a real entry (nothing references
- * it). Body below is a placeholder for the splice. */
+ * it). Body below is a placeholder for the splice; its 28555.0f literal
+ * reserves D204's RoData word +0x1F4 (the splice drops the placeholder's
+ * own relocs, the .rodata word stays). */
 void game_uso_func_0000D204(int *a0) {
-    volatile int *ret = a0;
+    *(volatile float *)a0 = 28555.0f;
 }
 
 void game_uso_func_0000D418(char *a0) {
