@@ -434,7 +434,6 @@ int mgrproc_uso_func_00001324(char *arg0) {
     return 1;
 }
 
-#ifdef NON_MATCHING
 /* mgrproc_uso_func_000013C8: 75-insn (0x12C) post-init state dispatcher.
  * BYTE-EXACT 75/75, objdiff 100.0 (2026-07-15 agent-g, 82.4 -> 100). The
  * 2026-06-20 "LO16/address-remat + branch-likely tie" cap note was WRONG on
@@ -452,8 +451,10 @@ int mgrproc_uso_func_00001324(char *arg0) {
  *     sequence. Plus `spill = 1;` moved BEFORE the D8=DC copy (ugen numbers
  *     temps in statement order: t1=1, t2=DC load, t3=7).
  * The branch-likely "tie" disappeared once the temp pool was in phase.
- * NOT LANDED: USO baked-reloc class (alias syms would also need
- * undefined_syms wiring); NM wrap, INCLUDE_ASM default keeps ROM exact.
+ * 2026-10-16 (agent-g): UNWRAPPED EXACT. The three alias syms are pinned to
+ * 0 (the base imports' value) at the end of undefined_syms_auto.txt, which
+ * bake-data-relocs.py reads; the mgrproc Yay0 block is cut from the unlinked
+ * .o. docs/MATCHING_WORKFLOW.md#yay0-block-unlinked-in-unit-jal-f360.
  *
  * Real symbols re-derived 2026-06-20 from the resolved .s. Correct callees:
  * mgrproc_uso_func_00000140 / _00000170 / _01FA1C / import_000A8114.
@@ -530,9 +531,6 @@ storestate:
     s0[0x504 / 4] = (spill != 0) ? 0 : 4;
     return;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000013C8);
-#endif
 
 /* mgrproc_uso_func_000014F4: 40-insn 3-way switch on a0->[0x4D8] (v):
  *   v == 2: func_0139B0(D[0x190], 3, 1, a0); a0->[0x7D4] = 1;

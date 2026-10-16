@@ -3741,3 +3741,6 @@ D_2DA4_cfg = 0x00000000;  /* func_00002DA4 base-0 config word load (+4), distinc
 D_00000538 = 0x00000538;  /* func_000034E8 source float 0 (== func_000003F8+0x140; target lui at / lwc1 0x538(at)) */
 D_0000053C = 0x0000053C;  /* func_000034E8 source float 1 (== func_000003F8+0x144), distinct so its lui is not CSE'd */
 D_00000540 = 0x00000540;  /* func_000034E8 source float 2 (== func_000003F8+0x148) */
+import_800200DC_b = 0x00000000;
+import_800200DC_c = 0x00000000;
+import_80020100_b = 0x00000000;
