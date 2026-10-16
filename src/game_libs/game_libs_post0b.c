@@ -4108,82 +4108,59 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003829C);
 //   body below — representative report-cb sequence; precise per-line
 //   format / field selection deferred to FP-pool symbolization.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
-// gl_func_00038360 — FULL m2c DECODE (70.70% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
-#ifdef NON_MATCHING
-
-
-
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00038360)();
-void gl_func_00038360(s32 arg0) {
-    s32 *sp28;
-    s32 *sp24;
-    s32 *sp20;
-    s32 *sp18;
-    s32 *temp_a2;
-    s32 *temp_v0;
-    s32 *temp_v0_2;
-    s32 *temp_v0_3;
-    s32 *temp_v0_4;
-    s32 *temp_v0_5;
-    s32 *temp_v0_6;
-    s32 *temp_v0_7;
-    s32 *var_a1;
-    s32 *var_a1_2;
-    s32 *var_a2;
-    s32 *var_a2_2;
-    s32 *var_v1;
-    s32 *var_v1_2;
-    s32 *var_v1_3;
-
-    gl_func_00034458(0, (s32 *)0x1EC34, 0);
-    gl_func_00034458(0, (s32 *)0x1EC3C, (int)arg0 + 0x1C, 0);
-    gl_func_00034458(0, (s32 *)0x1EC40, (int)arg0 + 0x20, 0);
-    temp_a2 = (int)arg0 + 0x18;
-    sp18 = temp_a2;
-    gl_func_00034458(0, (s32 *)0x1EC44, temp_a2, 8);
-    gl_func_00034458(0, (s32 *)0x1EC50, temp_a2, 4);
-    temp_v0 = gl_func_00034458(0x10);
-    var_a2 = temp_v0;
-    if (temp_v0 != 0) {
-        var_v1 = temp_v0;
-        if ((temp_v0 != 0) || (sp28 = temp_v0, temp_v0_2 = gl_func_00034458(0x10), var_a2 = sp28, var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
-            var_a1 = var_v1;
-            if ((var_v1 != 0) || (sp24 = var_v1, sp28 = var_a2, temp_v0_3 = gl_func_00034458(4, var_a1, var_a2), var_a1 = temp_v0_3, (temp_v0_3 != 0))) {
-                *var_a1 = 0x1EB10;
+// gl_func_00038360 EXACT (2026-10-16, lui-count sweep: target 6 more luis
+//   than the 80.1% m2c wrap). Every serializer call's first arg is the
+//   stream object &D_00000000 (`lui a0,0; addiu a0,0`), not the literal 0 the
+//   wrap passed. The two allocations are the alloc-or-reuse ctor protocol of
+//   gl_func_0003829C (base sub-object at +0: `v1 = a2; if (v1 != 0 ||
+//   (v1 = alloc(16)) != 0)`), the second one two levels deep, and the
+//   descriptor copy is an 8-byte struct copy (519A4 lever). Declaring the
+//   innermost pointer `v1b` FIRST shifts the spill homes of a2/v1/a1 to the
+//   target's sp+40/36/32 (declared last they took 44/40/36).
+typedef struct { int a, b; } Pair38360;
+void gl_func_00038360(char *arg0) {
+    int *v1b, *a2, *v1, *a1;
+    char *p18;
+    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x1EC34, 0);
+    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x1EC3C, arg0 + 0x1C, 0);
+    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x1EC40, arg0 + 0x20, 0);
+    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x1EC44, p18 = arg0 + 0x18, 8);
+    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x1EC50, p18, 4);
+    a2 = (int *)gl_func_00000000(0x10);
+    if (a2 != 0) {
+        v1 = a2;
+        if (v1 != 0 || (v1 = (int *)gl_func_00000000(0x10)) != 0) {
+            a1 = v1;
+            if (a1 != 0 || (a1 = (int *)gl_func_00000000(4)) != 0) {
+                *a1 = (int)((char *)&D_00000000 + 0x1EB10);
             }
-            FW(var_v1, 0x4) = arg0;
-            FW(var_v1, 0x8) = (s32) (char *)FW(0x1EA38, 0x0);
-            FW(var_v1, 0xC) = (s32) (char *)FW(0x1EA38, 0x4);
+            v1[1] = (int)arg0;
+            *(Pair38360 *)(v1 + 2) = *(Pair38360 *)((char *)&D_00000000 + 0x1EA38);
         }
-        *var_a2 = 0x1EB40;
+        *a2 = (int)((char *)&D_00000000 + 0x1EB40);
     }
-    gl_func_00034458(0, (s32 *)0x1EC5C, var_a2, 1);
-    temp_v0_4 = gl_func_00034458(0x18);
-    var_a2_2 = temp_v0_4;
-    if (temp_v0_4 != 0) {
-        var_v1_2 = temp_v0_4;
-        if (((temp_v0_4 != 0) || (sp28 = temp_v0_4, temp_v0_5 = gl_func_00034458(0x10), var_a2_2 = sp28, var_v1_2 = temp_v0_5, (temp_v0_5 != 0))) && ((var_a1_2 = var_v1_2, (var_v1_2 != 0)) || (sp28 = var_a2_2, temp_v0_6 = gl_func_00034458(0x10, var_a1_2, var_a2_2), var_a1_2 = temp_v0_6, (temp_v0_6 != 0)))) {
-            var_v1_3 = var_a1_2;
-            if ((var_a1_2 != 0) || (sp20 = var_a1_2, sp28 = var_a2_2, temp_v0_7 = gl_func_00034458(4, var_a1_2, var_a2_2), var_v1_3 = temp_v0_7, (temp_v0_7 != 0))) {
-                *var_v1_3 = 0x1EB10;
+    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x1EC5C, a2, 1);
+    a2 = (int *)gl_func_00000000(0x18);
+    if (a2 != 0) {
+        v1 = a2;
+        if (v1 != 0 || (v1 = (int *)gl_func_00000000(0x10)) != 0) {
+            a1 = v1;
+            if (a1 != 0 || (a1 = (int *)gl_func_00000000(0x10)) != 0) {
+                v1b = a1;
+                if (v1b != 0 || (v1b = (int *)gl_func_00000000(4)) != 0) {
+                    *v1b = (int)((char *)&D_00000000 + 0x1EB10);
+                }
+                a1[1] = (int)arg0;
+                *(Pair38360 *)(a1 + 2) = *(Pair38360 *)((char *)&D_00000000 + 0x1EA40);
             }
-            FW(var_a1_2, 0x4) = arg0;
-            FW(var_a1_2, 0x8) = (s32) (char *)FW(0x1EA40, 0x0);
-            FW(var_a1_2, 0xC) = (s32) (char *)FW(0x1EA40, 0x4);
         }
-        FW(var_a2_2, 0x0) = 0x1EB58;
-        FW(var_a2_2, 0x10) = 0;
-        FW(var_a2_2, 0x14) = 0;
+        a2[0] = (int)((char *)&D_00000000 + 0x1EB58);
+        a2[4] = 0;
+        a2[5] = 0;
     }
-    gl_func_00034458(0, (s32 *)0x1EC64, var_a2_2, 1);
-    gl_func_00034458(0);
+    gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x1EC64, a2, 1);
+    gl_func_00000000(&D_00000000);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038360);
-#endif
 
 // gl_func_00038598 — STRUCTURAL PASS (0xA4 / 41 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
