@@ -23325,7 +23325,6 @@ void gl_func_0005185C(char *arg0) {
     gl_func_00034458_5185C((char *)&D_00000000);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_000519A4 — W5 2026-07-03: IMPROVED 63/77 -> 71/77 words (in-tree
  * verified; wrap body updated in src/game_libs/game_libs_post0b.c).
  *
@@ -23350,7 +23349,8 @@ void gl_func_0005185C(char *arg0) {
  * dead home take 0x38, dropping a2->0x34 and v1->0x30 as in target. The
  * 2026-07-03 sweep added pads (shifts buffer/frame) but never REORDERED the
  * existing decls. `o` carries no home (web coalesced with a2) so its position
- * is inert. NOT LANDABLE: placeholder gl_func_00000000 callees. Stays NM. */
+ * is inert. EXACT (unwrapped run 95): gl_func_00000000 / D_00000000 are
+ * real symbols at 0, so every reloc in the slice resolves to 0. */
 extern int gl_func_00000000();
 extern int D_00000000;
 typedef struct { int a, b; } Pair519A4;
@@ -23386,9 +23386,6 @@ void gl_func_000519A4(char *self) {
         gl_func_00000000(&D_00000000, name, a2);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000519A4);
-#endif
 
 // gl_func_00051AD8 — STRUCTURAL PASS (0x3C0 / 240 words, no episode).
 // Raw-.word USO. realjr=1 (epilogue), regjr=1 = the JUMP-TABLE
