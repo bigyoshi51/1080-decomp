@@ -22878,90 +22878,62 @@ s32 gl_func_0005062C(volatile s32 arg0, volatile s32 arg1, volatile s32 arg2, vo
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005062C);
 #endif
 
-// gl_func_000510F0 — STRUCTURAL PASS (0x2DC / 183 words, no episode).
-// Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Frame 0xD8,
-// saves ra + s0. ONE jal-0 = USO-relocated emit callback. FP
-// int->float vertex gather + multi-vec marshalling. Shape:
-//   void *gl_func_000510F0(void *self, int sel) {
-//     // args spilled: self -> sp+0xD8, sel -> sp+0xDC
-//     // For each of 4 packed sub-records, walk the directory triple
-//     // dir0=self->field_60, dir1=self->field_64, dir2=self->field_68
-//     // (entry indexed by a sel-derived scaled offset; lhu the i16
-//     // field), mtc1 + cvt.s.w each to float, and stage a Vec3-ish
-//     // float triple into stack scratch:
-//     //   recs[0] -> sp+0xA8/0xAC/0xB0
-//     //   recs[1] -> sp+0x90/0x94/0x98
-//     //   recs[2] -> sp+0xCC/0xD0/0xD4
-//     //   recs[3] -> sp+0xB4/0xB8/0xBC  (via field_60/0x64/0x68)
-//     // Then marshal three 12-byte vec blocks fetched through buffer
-//     // pointers (lw base; lw +0/+4/+8) into the consecutive
-//     // stack-arg window sp+0x10..0x60 and emit:
-//     //   cb(self, ..., <all spilled vec args>);   // USO geometry/DL
-//     return self;                                  // reload sp+0xD8
-//   }
-// Family: FP vertex-decode/int->float gather + multi-vec emit-marshal
-// (sibling of the FP geometry/transform-emit orchestrator
-// gl_func_0005062C and the FP-quantize family gl_func_00050444). The
-// frame, saved-reg set, the field_60/0x64/0x68 directory-triple gather,
-// the per-field mtc1 + cvt.s.w int->float conversion, the four
-// Vec3-triple stack-scratch stages, the 12-byte buffer-pointer vec
-// fetch, the consecutive sp+0x10.. spilled-arg marshalling for the
-// single USO emit callback and the return-self are exact; the cb
-// prototype and the exact directory-index arithmetic are
-// representative. Caps: self struct + cb prototype untyped
-// (USO-relocated). Full body INCLUDE_ASM-preserved.
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_000510F0)();
-typedef struct { f32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_000510F0;
-s32 gl_func_000510F0(s32 arg0, s32 arg1, char *arg2, s32 arg3, char *arg4, s32 arg5, s32 arg6) {
-    Q_000510F0 sp90;
-    Q_000510F0 sp9C;
-    Q_000510F0 spA8;
-    Q_000510F0 spB4;
-    Q_000510F0 spC0;
-    Q_000510F0 spCC;
-    s32 temp_v1;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v0_5;
-    char *temp_v0_6;
+/* gl_func_000510F0: triangle -> 3 positions + 3 texcoords, passed BY VALUE
+ * to a USO emit callback (0x2DC / 183 words). EXACT 2026-10-16 agent-g.
+ * o->tri[idx] = {h0, a, b, c}; each corner reads o->uv[i] (2 x s16, z = 0)
+ * and o->pos[i] (3 x s16), converted with cvt.s.w into six 12-byte stack
+ * Vec3s that the call copies into its stack-arg window. Load-bearing:
+ * `(o->tri + idx)->a` (pointer-add deref puts the uv/pos base FIRST in the
+ * addu and numbers it t6; `o->tri[idx].a` and char-arith give index-first);
+ * ONE char *q for all six corner pointers (separate uv/pos pointers colour
+ * v0/v1 and push idx*8 off v1); Vec3 decls in target stack order (first
+ * declared = highest slot) plus an unused s32 pad[4] for the 216-byte
+ * frame; x, y, z store order; and `volatile s32 arg1`: the target passes
+ * arg1 by reloading its home slot (lw a0,220(sp)) instead of a move from
+ * a1 -- a plain, char *, K&R or (&arg0)[1] param all give `or a0,a1`. */
+typedef struct { f32 x, y, z; } V3_510F0;
+typedef struct { s16 x, y; } UV_510F0;
+typedef struct { s16 x, y, z; } P_510F0;
+typedef struct { u16 h0, a, b, c; } Tri_510F0;
+typedef struct { char pad[0x60]; P_510F0 *pos; UV_510F0 *uv; Tri_510F0 *tri; } Obj_510F0;
 
-    temp_v1 = arg3 * 8;
-    temp_v0 = FW(arg2, 0x64) + (*(u16*)((char*)(FW(arg2, 0x68) + temp_v1) + 0x2) * 4);
-    spA8.unk0 = (f32)*(s16*)((char*)temp_v0 + 0x0);
-    spA8.unk8 = 0.0f;
-    spA8.unk4 = (f32)*(s16*)((char*)temp_v0 + 0x2);
-    temp_v0_2 = FW(arg2, 0x64) + (*(u16*)((char*)(FW(arg2, 0x68) + temp_v1) + 0x4) * 4);
-    sp9C.unk0 = (f32)*(s16*)((char*)temp_v0_2 + 0x0);
-    sp9C.unk8 = 0.0f;
-    sp9C.unk4 = (f32)*(s16*)((char*)temp_v0_2 + 0x2);
-    temp_v0_3 = FW(arg2, 0x64) + (*(u16*)((char*)(FW(arg2, 0x68) + temp_v1) + 0x6) * 4);
-    sp90.unk0 = (f32)*(s16*)((char*)temp_v0_3 + 0x0);
-    sp90.unk8 = 0.0f;
-    sp90.unk4 = (f32)*(s16*)((char*)temp_v0_3 + 0x2);
-    temp_v0_4 = FW(arg2, 0x60) + (*(u16*)((char*)(FW(arg2, 0x68) + temp_v1) + 0x2) * 6);
-    spCC.unk0 = (f32)*(s16*)((char*)temp_v0_4 + 0x0);
-    spCC.unk4 = (f32)*(s16*)((char*)temp_v0_4 + 0x2);
-    spCC.unk8 = (f32)*(s16*)((char*)temp_v0_4 + 0x4);
-    temp_v0_5 = FW(arg2, 0x60) + (*(u16*)((char*)(FW(arg2, 0x68) + temp_v1) + 0x4) * 6);
-    spC0.unk0 = (f32)*(s16*)((char*)temp_v0_5 + 0x0);
-    spC0.unk4 = (f32)*(s16*)((char*)temp_v0_5 + 0x2);
-    spC0.unk8 = (f32)*(s16*)((char*)temp_v0_5 + 0x4);
-    temp_v0_6 = FW(arg2, 0x60) + (*(u16*)((char*)(FW(arg2, 0x68) + temp_v1) + 0x6) * 6);
-    spB4.unk0 = (f32)*(s16*)((char*)temp_v0_6 + 0x0);
-    spB4.unk4 = (f32)*(s16*)((char*)temp_v0_6 + 0x2);
-    spB4.unk8 = (f32)*(s16*)((char*)temp_v0_6 + 0x4);
-    gl_func_00034458(arg1, FW(arg4, 0x40), arg0, arg4, arg5, arg6, (s32) *(int*)(FW(arg2, 0x68) + temp_v1), spCC.unk0, spCC.unk4, spCC.unk8, spC0.unk0, spC0.unk4, spC0.unk8, spB4.unk0, spB4.unk4, spB4.unk8, spA8.unk0, spA8.unk4, spA8.unk8, sp9C.unk0, sp9C.unk4, sp9C.unk8, sp90.unk0, sp90.unk4, sp90.unk8);
+s32 gl_func_000510F0(s32 arg0, volatile s32 arg1, Obj_510F0 *o, s32 idx, char *arg4, s32 arg5, s32 arg6) {
+    V3_510F0 p0;
+    V3_510F0 p1;
+    V3_510F0 p2;
+    V3_510F0 t0;
+    V3_510F0 t1;
+    V3_510F0 t2;
+    s32 pad[4];
+    char *q;
+
+    q = (char *)o->uv + (o->tri + idx)->a * 4;
+    t0.x = ((UV_510F0 *)q)->x;
+    t0.y = ((UV_510F0 *)q)->y;
+    t0.z = 0.0f;
+    q = (char *)o->uv + (o->tri + idx)->b * 4;
+    t1.x = ((UV_510F0 *)q)->x;
+    t1.y = ((UV_510F0 *)q)->y;
+    t1.z = 0.0f;
+    q = (char *)o->uv + (o->tri + idx)->c * 4;
+    t2.x = ((UV_510F0 *)q)->x;
+    t2.y = ((UV_510F0 *)q)->y;
+    t2.z = 0.0f;
+    q = (char *)o->pos + (o->tri + idx)->a * 6;
+    p0.x = ((P_510F0 *)q)->x;
+    p0.y = ((P_510F0 *)q)->y;
+    p0.z = ((P_510F0 *)q)->z;
+    q = (char *)o->pos + (o->tri + idx)->b * 6;
+    p1.x = ((P_510F0 *)q)->x;
+    p1.y = ((P_510F0 *)q)->y;
+    p1.z = ((P_510F0 *)q)->z;
+    q = (char *)o->pos + (o->tri + idx)->c * 6;
+    p2.x = ((P_510F0 *)q)->x;
+    p2.y = ((P_510F0 *)q)->y;
+    p2.z = ((P_510F0 *)q)->z;
+    gl_func_00000000(arg1, *(s32 *)(arg4 + 0x40), arg0, arg4, arg5, arg6, (o->tri + idx)->h0, p0, p1, p2, t0, t1, t2);
     return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000510F0);
-#endif
 
 /* gl_func_000513CC: 31-insn 3-call linked-list insertion init.
  *   gl_func_00000000(a0);
