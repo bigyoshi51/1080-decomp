@@ -29799,16 +29799,29 @@ void game_libs_func_0005BDC0(float *src, float *dst) {
  * objdiff fuzzy 0.00 -> 99.42%. Residual (frame -160 vs target -168, 8-byte /
  * two-extra spill-home delta): IDO spill-slot numbering over the all-live 16-elem
  * set, not source-controllable (load-order permutation drops below target size).
- * Same instruction stream + order; only swc1/lwc1 stack offsets differ. */
-#ifdef NON_MATCHING
+ * Same instruction stream + order; only swc1/lwc1 stack offsets differ.
+ * 2026-10-16: EXACT. The spill-slot layout is the DECLARATION order, not the
+ * load order: IDO hands out one home per float local in decl order from the
+ * top of the frame down (register-colored locals keep their unused home, so
+ * the target's slot gaps at 0x98/0x94/0x88/0x78 are m12/m1/m13/m14). The
+ * target's homes walk the matrix COLUMN-wise (m0,m4,m8,m12, m1,m5,...), so
+ * the decls are transposed while the assignments stay separate statements
+ * (the load schedule is the reverse of the assignment order within each run:
+ * m4,m6,m7,m5 / m8,m10,m11,m9 gives the target's M5,M7,M6 / M9,M11,M10
+ * loads). The last 8 frame bytes were the two pointer locals declared before
+ * the floats: declaring M/O AFTER the 16 floats drops the frame 176 -> 168. */
 extern float gl_func_00000000_5be20(float, float, float, float, float, float, float, float, float);
 void gl_func_0005BE20(void *arg0, void *arg1) {
+    float m0, m4, m8, m12;
+    float m1, m5, m9, m13;
+    float m2, m6, m10, m14;
+    float m3, m7, m11, m15;
     float *M = (float *)arg0;
     float *O = (float *)arg1;
-    float m0 = M[0], m1 = M[1], m2 = M[2], m3 = M[3];
-    float m4 = M[4], m5 = M[5], m6 = M[6], m7 = M[7];
-    float m8 = M[8], m9 = M[9], m10 = M[10], m11 = M[11];
-    float m12 = M[12], m13 = M[13], m14 = M[14], m15 = M[15];
+    m0 = M[0]; m1 = M[1]; m2 = M[2]; m3 = M[3];
+    m4 = M[4]; m6 = M[6]; m7 = M[7]; m5 = M[5];
+    m8 = M[8]; m10 = M[10]; m11 = M[11]; m9 = M[9];
+    m12 = M[12]; m13 = M[13]; m14 = M[14]; m15 = M[15];
 #define H gl_func_00000000_5be20
     O[0]  =  H(m5, m9, m13, m6,  m10, m14, m7,  m11, m15);
     O[4]  = -H(m4, m8, m12, m6,  m10, m14, m7,  m11, m15);
@@ -29828,9 +29841,6 @@ void gl_func_0005BE20(void *arg0, void *arg1) {
     O[15] =  H(m0, m4, m8,  m1,  m5,  m9,  m2,  m6,  m10);
 #undef H
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BE20);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C284);
 
