@@ -3752,3 +3752,5 @@ D_gl66850_h2 = 0x00000000;
 D_gl66850_h3 = 0x00000000;
 D_gl66850_h4 = 0x00000000;
 D_gl66850_h5 = 0x00000000;
+/* gl_func_000652D8: blank USO jal alias of the in-unit gl_func_00062F64 */
+gl_func_00062F64_652D8 = 0x00000000;

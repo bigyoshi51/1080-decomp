@@ -1744,7 +1744,6 @@ void gl_func_00065250(int a0, Vec3_f *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065250);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_000652D8: 34-insn Vec3-diff + buf-copy chain + dispatch (0x88, frame 0x60).
  *
  * 2026-07-17 (agent-h): EXACT SIBLING of gl_func_00065250 — the two
@@ -1757,7 +1756,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065250);
  * Body is a verbatim mirror of 65250's proven-exact C (all 5 levers:
  * named-diff FP pool coloring, decl-order frame, leading/trailing empty
  * `if (sub) {}` BB splits, one-line triple-sub grouping) with only
- * 0x294 -> 0x2C8. 34/34 words vs .s. */
+ * 0x294 -> 0x2C8. 34/34 words vs .s.
+ * 2026-10-16 agent-g: UNWRAPPED. The in-unit gl_func_00062F64 goes through the
+ * blank alias gl_func_00062F64_652D8 (= 0 in undefined_syms_auto.txt): the USO word
+ * is a load-time reloc, a direct in-unit call would bake 0x0C018BD9. */
+extern int gl_func_00062F64_652D8();
 void gl_func_000652D8(int a0, Vec3_f *a1) {
     Vec3_f f;
     volatile int pad2;
@@ -1776,11 +1779,8 @@ void gl_func_000652D8(int a0, Vec3_f *a1) {
     if (sub) {}
     e = d;
     f = e;
-    gl_func_00062F64(a0 + 0x2C8, &f);
+    gl_func_00062F64_652D8(a0 + 0x2C8, &f);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000652D8);
-#endif
 
 /* gl_func_00065360: transform-object reset (58 words, BYTE-EXACT 2026-10-14 agent-g).
  * a0->0xDC = *a1 and a0->0xB4 = *a1 (each staged through the same stack Vec3 copy),
