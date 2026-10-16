@@ -15660,30 +15660,28 @@ void game_libs_func_0002DDEC(int a0) {
     (void)p;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0002DE24: 28-insn (0x80) F3DEX2-microcode setter.
- *
- *   D_0_global1 = a0 & 0xFF;
- *   D_0_global2 = 0;
- *   gl_func(0x4D010000, 0x3F800000);              ; SET_TEXTURE op + 1.0f bits
- *   gl_func(((a0 & 0xFF) << 8) | 0x82010000, a1); ; SETTILESIZE w/ index
- *   gl_func(0x90010000, 0xFFFF);                   ; SETCOMBINE simple
- *   gl_func(0x0101FF00, D_0_global3);              ; SETOTHERMODE_L w/ depth
- *
- * Reads lowest byte of caller's a0 (via lbu sp+0x1B in big-endian a0 spill).
- * Initial structural pass; alt-entry call shape caps expected. */
-void gl_func_0002DE24(int a0, int a1) {
-    char *base = &D_00000000;
-    *(int*)(base + 0) = a0 & 0xFF;
-    *(int*)(base + 0xC) = 0;
+/* gl_func_0002DE24 (0x80, 30 insns): F3DEX2-style setter called (baked jal)
+ * by game_libs_func_0002DDEC with (a0 & 0xFF, 0).
+ *   G_a = (u8)a0;  G_b[3] = 0;
+ *   gl_func(0x4D010000, 0x3F800000);  gl_func((a0 << 8) | 0x82010000, a1);
+ *   gl_func(0x90010000, 0xFFFF);      gl_func(0x0101FF00, G_c);
+ * EXACT 2026-10-16 (76.07 -> 100). lui-count sweep: target 8 luis vs 7, the
+ * two stores and the final read were one &D_00000000 (CSE'd into v1); three
+ * base-0 externs (D_2DE24_a/_b/_c) give one lui each. The `sw a0,24(sp);
+ * lbu t6,27(sp)` home-and-byte-reload is an `unsigned char` param whose
+ * address is taken (`unsigned char *p = &a0;`, the 2DDEC &param lever); a
+ * plain u8 param emits `andi a2,a0,0xff` and a 32-byte frame instead. */
+extern int D_2DE24_a, D_2DE24_b, D_2DE24_c;
+void gl_func_0002DE24(unsigned char a0, int a1) {
+    unsigned char *p = &a0;
+    D_2DE24_a = a0;
+    *(int *)((char *)&D_2DE24_b + 0xC) = 0;
     gl_func_00000000(0x4D010000, 0x3F800000);
-    gl_func_00000000(((a0 & 0xFF) << 8) | 0x82010000, a1);
+    gl_func_00000000((a0 << 8) | 0x82010000, a1);
     gl_func_00000000(0x90010000, 0xFFFF);
-    gl_func_00000000(0x0101FF00, *(int*)base);
+    gl_func_00000000(0x0101FF00, D_2DE24_c);
+    (void)p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DE24);
-#endif
 
 
 /* game_libs_func_0002DE9C: sign-bit-gated call. The orphan game_libs_func_0002DE9C

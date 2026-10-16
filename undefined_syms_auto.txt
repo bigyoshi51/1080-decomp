@@ -3728,3 +3728,6 @@ D_0001E21C = 0x0001E21C;  /* gl_func_00034240 config table (lui 2; addiu -7652),
 D_53C04_tbl = 0x00000000;  /* gl_func_00053C04 base-0 face->vertex s16 table (address hoisted to s6) */
 D_53C04_n = 0x00000000;  /* gl_func_00053C04 base-0 scalar vertex count (lui; lw 0, re-read per test) */
 D_53C04_map = 0x00000000;  /* gl_func_00053C04 base-0 u16 remap table (lui v1; addiu v1) */
+D_2DE24_a = 0x00000000;  /* gl_func_0002DE24 base-0 store target (u8 a0 -> sw 0(at)) */
+D_2DE24_b = 0x00000000;  /* gl_func_0002DE24 base-0 store target (sw zero,0xC(at)), distinct so its lui is not CSE'd */
+D_2DE24_c = 0x00000000;  /* gl_func_0002DE24 base-0 final call arg (lui a1; lw a1,0(a1)) */
