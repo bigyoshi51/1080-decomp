@@ -34176,17 +34176,24 @@ int gl_func_0006280C(int *self, int a1) {
  * swap (mine 0.0f->f2/1.0f->f0, target f0/f2 — IDO assigns the lui-loaded 1.0 vs
  * free 0.0 opposite to use order, not C-drivable); (d) self->0x110 dead blocks +
  * prologue s0=arg0-move-vs-test scheduling tie. Caps: self struct + 2 cb
- * prototypes untyped (USO-reloc). Kept NON_MATCHING. */
+ * prototypes untyped (USO-reloc). Kept NON_MATCHING.
+ * 2026-10-16 (agent-g): 89.5 -> 22 word diffs, all from (c). (d) and the
+ * frame/slot residual were the `self = arg0` COPY: reassigning the param
+ * moves `move s0,a0` to the top of the prologue and drops the copy's home,
+ * so the pad grows 96 -> 104 to keep the 0x98 frame and the arg homes at
+ * 0x9C-0xA8. Writing the 0x54=arg1 store BEFORE the |= 0x1000 RMW fixes
+ * the t6/t7/t8/t9 ring. RESIDUAL = only the FP constant pair: target 0.0
+ * -> f0, 1.0 -> f2; ours is the reverse. Tried and no effect: (float)0.0 /
+ * (float)1.0 / int 0,1 / double literals, named zero/one locals in both
+ * decl and init orders, and while(0) dead-ref boosts of either web. */
 extern int gl_func_00000000();
-void *gl_func_000628EC(char *arg0, int arg1, int arg2, int arg3, int arg4) {
-    volatile char _pad[96];
-    char *self;
+void *gl_func_000628EC(char *self, int arg1, int arg2, int arg3, int arg4) {
+    volatile char _pad[104];
     int *a1p;
     int *v1p;
     int *a0p;
 
-    self = arg0;
-    if ((arg0 != 0) || (self = (char *)gl_func_00000000(0x130), (self != 0))) {
+    if ((self != 0) || (self = (char *)gl_func_00000000(0x130), (self != 0))) {
         gl_func_00000000(self, (char *)&D_00000000 + 0x22128);
         a1p = (int *)(self + 0x110);
         v1p = a1p;
@@ -34195,8 +34202,8 @@ void *gl_func_000628EC(char *arg0, int arg1, int arg2, int arg3, int arg4) {
             *a0p = 0;
         }
         *(int *)(self + 0x10C) = arg4;
-        *(int *)(self + 8) |= 0x1000;
         *(int *)(self + 0x54) = arg1;
+        *(int *)(self + 8) |= 0x1000;
         *(int *)(self + 0x48) = arg3;
         *a1p &= ~1;
         *(float *)(self + 0xF0) = 0.0f;
