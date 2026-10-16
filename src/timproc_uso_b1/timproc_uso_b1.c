@@ -462,8 +462,8 @@ void timproc_uso_b1_func_00000EC0(int a0) {
  * this one site (`*(int*)((int)base + 0x64)`) — the loop site keeps the
  * volatile spelling. Named-n-as-arg2 also colors a1 but FREES the ring
  * slot (whole downstream ring shifts -1 = worse).
- * USO placeholder callees: stays NM wrap, no episode. */
-#ifdef NON_MATCHING
+ * Unwrapped EXACT 2026-10-16 (run 96): the block is cut from the unlinked
+ * .o, so the placeholder callees/data stay 0 like the ROM. */
 void timproc_uso_b1_func_00000EE8(char *a0arg) {
     volatile int *base;
     char *s2 = a0arg;
@@ -520,9 +520,6 @@ state1:
     created[0x14 / 4] = (int)link;
     gl_func_00000000(base[0x190 / 4], 1, 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000EE8);
-#endif
 
 void timproc_uso_b1_func_000010C0(int a0) {
     *(int *)((char *)&D_00000000 + 0x40) = 9;
