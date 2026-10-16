@@ -2408,52 +2408,14 @@ void gl_func_0001FAE8(int a0) {
 }
 
 
-// game_libs_func_0001FBCC (MERGED 2026-07-23: orphan 1FBCC 2-insn
-// lui v0 + lh v0,0x2048(v0) is this fn's own hoisted loop-bound load —
-// the blez v0 entry gate reads the GLOBAL count *(s16*)(D+0x2048), not
-// arg a0; 10th retraction, hoisted-prologue family; was gl_func_0001FBD4;
-// 0x8+0x7C=0x84) — STRUCTURAL PASS (no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). Sibling of gl_func_0001FAE8: a record-array sweep firing
-// a per-record USO-reloc callback. -0x28 frame, s0-s2/ra saved.
-//
-//   void gl_func_0001FBD4(int n) {
-//     if (n <= 0) return;
-//     S *rec = &D_0 + 0x2D00;                       // record table base
-//     for (int i = 0; ; ) {
-//       int w = rec->w_0;                            // &D_0+0x2D00
-//       if (w >> 31) {                                // sign-bit gate
-//         byte f = rec->b_4;                          // &D_0+0x2D04
-//         if (f == ...) {
-//           (*cb)(rec);                                // jal 0 USO reloc
-//         }
-//       }
-//       i++;
-//       short lim = *(short*)(&D_x + 0x2048);          // global bound
-//       if (i >= lim) break;
-//       rec += 0x160;                                  // record stride
-//     }
-//   }
-//
-// Struct-typing reference: a second sprite-subsystem record table
-//   distinct from gl_func_0001FAE8's — base &D_0 + 0x2D00, fixed
-//   stride 0x160 per record. Record word R->0 carries an active flag
-//   in its sign bit (srl 31); byte R->4 (i.e. &D_0+0x2D04 for index 0)
-//   is a secondary gate. The loop iterates until a running counter
-//   reaches a global limit halfword at &D_x + 0x2048, invoking the
-//   USO-relocated callback (the `jal 0` slot, resolved at load) with
-//   the record pointer. Same sweep family as gl_func_0001FAE8.
-// Caps (DEFERRED): CLEAN single jr $ra. Sibling of gl_func_0001FAE8
-//   — a second sprite-subsystem record-array sweep firing a
-//   per-record USO-reloc callback. Real-C STRUCTURAL body below per
-//   the analysis (record table &D_0+0x2D00, stride 0x160, sign-bit
-//   gate on rec->0, secondary byte gate rec->4 != a0, loop bound =
-//   short at &D_0+0x2048, jal-0 callback with the record ptr).
-//   Byte-match deferred — placeholder jal-0 callback needs USO
-//   reloc infra + beql/bnel s0-s2 schedule. Name pre-checked: no
-//   extern reuse (collision-safe). gl_func_00000000 = canonical
-//   never-defined USO placeholder for the callback.
-#ifdef NON_MATCHING
+// game_libs_func_0001FBCC -- record-array sweep, sibling of gl_func_0001FAE8:
+// for i < *(s16*)(D+0x2048), records of stride 0x160 at base+0x2D00 whose
+// word +0 has the sign bit set and whose byte +4 == key get a jal-0 USO
+// callback with the record pointer. The 2-insn orphan at 1FBCC (hoisted
+// lui v0 / lh v0,0x2048(v0) loop-bound load) was merged 2026-07-23.
+// EXACT (unwrapped 2026-10-16): the callback is gl_func_00000000 (absolute 0)
+// and the wrap-only record base gl_d_1fbcc is pinned to 0 in
+// undefined_syms_auto.txt (ROM: lui s0,0 / addiu s0,s0,0).
 extern int gl_func_00000000();
 extern int D_00000000;
 extern u8 gl_d_1fbcc[];
@@ -2480,9 +2442,6 @@ void game_libs_func_0001FBCC(int key) {
         } while (i < *(short *)((char *)&D_00000000 + 0x2048));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FBCC);
-#endif
 
 void gl_func_0001FC50(void) {
     gl_func_00000000();

@@ -3790,3 +3790,5 @@ gl_func_00034458_5CB68 = 0x00000000;
 gl_d_1fa20_a = 0x00000000;
 gl_d_1fa20_b = 0x00000000;
 gl_d_1fa20_c = 0x00000000;
+/* game_libs_func_0001FBCC base-0 record-table placeholder held in s0 (target lui s0,0 / addiu s0,s0,0) */
+gl_d_1fbcc = 0x00000000;
