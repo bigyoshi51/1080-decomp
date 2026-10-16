@@ -33075,95 +33075,70 @@ int gl_func_00061458() {
 }
 
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00061478)();
-void gl_func_00061478(u8 *arg0, s8 arg1, int arg2, int arg3) {
-    s32 sp38;
-    s32 sp28;
-    s32 *var_s0_2;
-    s32 var_s0;
-    s32 var_v0_2;
-    u8 *temp_t1;
-    u8 *temp_t9;
-    u8 *temp_t9_2;
-    u8 temp_v0;
-    u8 var_v0;
+/* gl_func_00061478: fatal-error printer (osSyncPrintf-style panic). Prints a
+ * header, then walks fmt: '%d' '%f' '%s' '%c' '%x' consume a vararg (old IRIX
+ * stdarg: int-class (ap+7)&-4 / [-1], double (ap+15)&-8 / [-8,-4]), '%r'
+ * prints a name-table entry indexed by a global count, '\\' / '\n' / other
+ * chars go through their own one-char formats; then dumps the count-long value
+ * table, prints the footer and spins calling the (placeholder) halt fn.
+ * NM 2026-10-16 (agent-g; was a 14% m2c stub): frame + all blocks in target
+ * order. Learned: the dispatch is an UNSORTED if-goto chain with the LAST
+ * test inverted (#unsorted-dispatch-if-goto-plus-switch-54aec); a switch
+ * sorts or jump-tables. The int-class va_arg's `ap` update has to be its own
+ * statement BEFORE the call (the target computes ap+7 ahead of the format
+ * string); the comma-expression macro does the same but adds a temp home
+ * (frame 0x48). Residual: outer char c colours a1 directly (target v0 +
+ * `or a1,v0` copy in the first beq delay), the 'd' block's string/ap+7
+ * pre-hoist into the chain, and the count-loop i spill slot (52 vs 56). */
+#define VA61478_ADV(ap) (ap = (char *)(((int)ap + 7) & -4))
+extern int gl_func_00000000();
+extern int D_00000000_61478cnt;       /* placeholder (USO import) */
+extern char *D_00000000_61478tbl[];   /* placeholder (USO import) */
+extern int D_00000000_61478vals[];    /* placeholder (USO import) */
+void gl_func_00061478(char *fmt, ...) {
+    char *ap;
+    char *ap0;
+    s32 i;
+    u8 c;
 
-    gl_func_00034458(0x21E14);
-    temp_t9 = arg0;
-    var_s0 = (s32) &arg1 & ~3;
-    sp28 = var_s0;
-    arg0 = temp_t9 + 1;
-    var_v0 = *(int*)temp_t9;
-    if (var_v0 != 0) {
-        do {
-            switch (var_v0) {                       /* switch 1; irregular */
-            case 0x25:                              /* switch 1 */
-                temp_t1 = arg0;
-                arg0 = temp_t1 + 1;
-                temp_v0 = *(int*)temp_t1;
-                switch (temp_v0) {                  /* switch 2; irregular */
-                case 0x64:                          /* switch 2 */
-                    var_s0 = (var_s0 + 7) & ~3;
-                    gl_func_00034458(0x21E48, (u8) FW(var_s0, -0x4));
-                    break;
-                case 0x66:                          /* switch 2 */
-                    var_s0 = (var_s0 + 0xF) & ~7;
-                    gl_func_00034458(0x21E4C, temp_v0, FW(var_s0, -0x8), FW(var_s0, -0x4));
-                    break;
-                case 0x73:                          /* switch 2 */
-                    var_s0 = (var_s0 + 7) & ~3;
-                    gl_func_00034458(0x21E50, (u8) FW(var_s0, -0x4));
-                    break;
-                case 0x63:                          /* switch 2 */
-                    var_s0 = (var_s0 + 7) & ~3;
-                    gl_func_00034458(0x21E54, FW(var_s0, -0x1));
-                    break;
-                case 0x78:                          /* switch 2 */
-                    var_s0 = (var_s0 + 7) & ~3;
-                    gl_func_00034458(0x21E58, (u8) FW(var_s0, -0x4));
-                    break;
-                case 0x72:                          /* switch 2 */
-                    gl_func_00034458(FW((*(int*)0 * 4), -0x4), temp_v0);
-                    break;
-                default:                            /* switch 2 */
-                    gl_func_00034458(0x21E5C, temp_v0);
-                    break;
-                }
-                break;
-            case 0x5C:                              /* switch 1 */
-                gl_func_00034458(0x21E60, var_v0);
-                break;
-            case 0xA:                               /* switch 1 */
-                gl_func_00034458(0x21E64, var_v0);
-                break;
-            default:                                /* switch 1 */
-                gl_func_00034458(0x21E68, var_v0);
-                break;
-            }
-            temp_t9_2 = arg0;
-            arg0 = temp_t9_2 + 1;
-            var_v0 = *(int*)temp_t9_2;
-        } while (var_v0 != 0);
+    gl_func_00000000((char *)&D_00000000 + 0x21E14);
+    ap = (char *)(((int)&fmt + 7) & -4);
+    ap0 = ap;
+    while ((c = *fmt++) != 0) {
+        if (c == '%') goto pct;
+        if (c == '\\') goto bs;
+        if (c != '\n') goto other;
+        goto nl;
+    pct:
+        c = *fmt++;
+        if (c == 'd') goto cd;
+        if (c == 'f') goto cf;
+        if (c == 's') goto cs;
+        if (c == 'c') goto cc;
+        if (c == 'x') goto cx;
+        if (c != 'r') goto cdef;
+        goto cr;
+    cd: VA61478_ADV(ap); gl_func_00000000((char *)&D_00000000 + 0x21E48, ((int *)ap)[-1]); continue;
+    cf: ap = (char *)(((int)ap + 15) & -8); gl_func_00000000((char *)&D_00000000 + 0x21E4C, ((double *)ap)[-1]); continue;
+    cs: VA61478_ADV(ap); gl_func_00000000((char *)&D_00000000 + 0x21E50, ((char **)ap)[-1]); continue;
+    cc: VA61478_ADV(ap); gl_func_00000000((char *)&D_00000000 + 0x21E54, ((char *)ap)[-1]); continue;
+    cx: VA61478_ADV(ap); gl_func_00000000((char *)&D_00000000 + 0x21E58, ((int *)ap)[-1]); continue;
+    cr: gl_func_00000000(D_00000000_61478tbl[D_00000000_61478cnt - 1]); continue;
+    cdef: gl_func_00000000((char *)&D_00000000 + 0x21E5C, c); continue;
+    bs: gl_func_00000000((char *)&D_00000000 + 0x21E60, c); continue;
+    nl: gl_func_00000000((char *)&D_00000000 + 0x21E64, c); continue;
+    other: gl_func_00000000((char *)&D_00000000 + 0x21E68, c);
     }
-    gl_func_00034458(0x21E6C);
-    var_s0_2 = 0;
-    var_v0_2 = 0;
-    if (*(int*)0 > 0) {
-        do {
-            sp38 = var_v0_2;
-            gl_func_00034458(0x21E70, (u8) *var_s0_2);
-            var_s0_2 += 4;
-            var_v0_2 += 1;
-        } while (var_v0_2 < *(int*)0);
+    gl_func_00000000((char *)&D_00000000 + 0x21E6C);
+    for (i = 0; i < D_00000000_61478cnt; i++) {
+        gl_func_00000000((char *)&D_00000000 + 0x21E70, D_00000000_61478vals[i]);
     }
-    gl_func_00034458(0x21E7C);
-    gl_func_00034458(0x21E80);
-loop_26:
-    gl_func_00034458();
-    goto loop_26;
+    gl_func_00000000((char *)&D_00000000 + 0x21E7C);
+    ap = ap0;
+    gl_func_00000000((char *)&D_00000000 + 0x21E80);
+    for (;;) {
+        gl_func_00000000();
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061478);
