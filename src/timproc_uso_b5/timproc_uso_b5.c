@@ -399,24 +399,18 @@ done:
  * in delay slot. Same recipe as game_libs_func_0000E044/E050. */
 void timproc_uso_b5_func_00000770(int a0) { (void)a0; }
 
-#ifdef NON_MATCHING
-/* timproc_uso_b5_func_00000778 — flat bulk-registration: 76 back-to-back
+/* timproc_uso_b5_func_00000778 -- flat bulk-registration: 76 back-to-back
  * import_0024F228 / import_0024F278 calls binding the b5 registration
  * table (timproc_uso_b5_D_807FF4xx..Bxx) to packed ids derived from
  * arg0->0x50 (n) and *(int*)&import_8002022C (g). Two `if (g != 0)`
- * blocks gate the 0xB00000-group and 0x110000-group entries. Reconstructed
- * 2026-06-21 from resolved .s with REAL reloc callees + per-call symbol+addend.
- * Structure/arithmetic exact: 603 words (target 605, 2-word short). vs expected:
- * 127 non-reloc diffs, of which 95 are PURE register-rename (coloring) and 32
- * are structural — but those 32 are themselves regalloc/scheduling artifacts:
- *   - 0x70000 const hoisted to saved $s1 once + reused (calls 2-4); IDO later
- *     repurposes $s1 for &import_8002022C. Cross-statement const-CSE into a
- *     callee-saved reg — not C-controllable.
- *   - calls 51-55: expected reads n (arg0->0x50) before g; build reads g first
- *     (| operand-eval order). calls 69-70: expected keeps g in $a1 and does
- *     g*12 in place (addu at,a1,0; sll; subu; sll); build uses temps.
- * CAP CLASS: genuine ugen register-coloring + as1 scheduler-tie. Down from 248
- * non-reloc diffs (old placeholder body). Default build is INCLUDE_ASM. */
+ * blocks gate the 0xB00000-group and 0x110000-group entries.
+ * EXACT. Matching notes: multiplies are written as the constant
+ * multiply (n*3, n*9, g*12 -> IDO's in-place shift/add expansion, not
+ * n*4-n); each |/+ is spelled with the operand whose subtree the target
+ * evaluates FIRST on the RIGHT (IDO emits the right subtree first); the
+ * s1-resident 0x70000 (calls 2-4) is pinned as the or's rs with
+ * `x | (k = 0x70000)` (docs/IDO_CODEGEN.md commutative-operand
+ * assignment lever). */
 extern int import_0024F228();
 extern int import_0024F278();
 extern int import_8002022C;
@@ -497,24 +491,25 @@ extern char timproc_uso_b5_D_807FFB68;
 extern char timproc_uso_b5_D_807FFB80;
 extern char timproc_uso_b5_D_807FFB98;
 void timproc_uso_b5_func_00000778(char *arg0) {
+    int k;
     import_0024F228((char *)&timproc_uso_b5_D_807FF490 + 0x10, ((*(int *)((char *)arg0 + 0x50))*9) | 0x70000);
-    import_0024F228((char *)&timproc_uso_b5_D_807FF4A8 + 0x28, 0x70000 | ((*(int *)((char *)arg0 + 0x50))*9 + 1));
-    import_0024F228((char *)&timproc_uso_b5_D_807FF5B0 + 0x130, 0x70000 | ((*(int *)((char *)arg0 + 0x50))*2 + 3));
-    import_0024F228((char *)&timproc_uso_b5_D_807FF5C8 + 0x148, 0x70000 | ((*(int *)((char *)arg0 + 0x50))*2 + 4));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF4A8 + 0x28, ((*(int *)((char *)arg0 + 0x50))*9 + 1) | (k = 0x70000));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF5B0 + 0x130, ((*(int *)((char *)arg0 + 0x50))*2 + 3) | (k = 0x70000));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF5C8 + 0x148, ((*(int *)((char *)arg0 + 0x50))*2 + 4) | (k = 0x70000));
     import_0024F228((char *)&timproc_uso_b5_D_807FF5E0 + 0x160, (((*(int *)&import_8002022C) + 8) << 16) | 2);
-    import_0024F228((char *)&timproc_uso_b5_D_807FF5F8 + 0x178, (((*(int *)&import_8002022C) + 8) << 16) | (((*(int *)((char *)arg0 + 0x50))*4 - (*(int *)((char *)arg0 + 0x50))) + 3));
-    import_0024F228((char *)&timproc_uso_b5_D_807FF610 + 0x190, (((*(int *)&import_8002022C) + 8) << 16) | (((*(int *)((char *)arg0 + 0x50))*4 - (*(int *)((char *)arg0 + 0x50))) + 4));
-    import_0024F228((char *)&timproc_uso_b5_D_807FF628 + 0x1a8, (((*(int *)&import_8002022C) + 8) << 16) | (((*(int *)((char *)arg0 + 0x50))*4 - (*(int *)((char *)arg0 + 0x50))) + 5));
-    import_0024F228((char *)&timproc_uso_b5_D_807FF4C0 + 0x40, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x14) << 16) | 1);
-    import_0024F228((char *)&timproc_uso_b5_D_807FF4D8 + 0x58, (((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x14) << 16);
-    import_0024F228((char *)&timproc_uso_b5_D_807FF4F0 + 0x70, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x14) << 16) | 2);
-    import_0024F228((char *)&timproc_uso_b5_D_807FF508 + 0x88, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x14) << 16) | 4);
-    import_0024F228((char *)&timproc_uso_b5_D_807FF520 + 0xa0, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x14) << 16) | 3);
-    import_0024F228((char *)&timproc_uso_b5_D_807FF538 + 0xb8, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x18) << 16) | 2);
-    import_0024F228((char *)&timproc_uso_b5_D_807FF550 + 0xd0, (((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x18) << 16);
-    import_0024F228((char *)&timproc_uso_b5_D_807FF568 + 0xe8, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x18) << 16) | 1);
-    import_0024F228((char *)&timproc_uso_b5_D_807FF580 + 0x100, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x18) << 16) | 4);
-    import_0024F228((char *)&timproc_uso_b5_D_807FF598 + 0x118, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x18) << 16) | 3);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF5F8 + 0x178, (((*(int *)((char *)arg0 + 0x50))*3) + 3) | (((*(int *)&import_8002022C) + 8) << 16));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF610 + 0x190, (((*(int *)((char *)arg0 + 0x50))*3) + 4) | (((*(int *)&import_8002022C) + 8) << 16));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF628 + 0x1a8, (((*(int *)((char *)arg0 + 0x50))*3) + 5) | (((*(int *)&import_8002022C) + 8) << 16));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF4C0 + 0x40, ((((*(int *)&import_8002022C) + (*(int *)((char *)arg0 + 0x50))*2) + 0x14) << 16) | 1);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF4D8 + 0x58, (((*(int *)&import_8002022C) + (*(int *)((char *)arg0 + 0x50))*2) + 0x14) << 16);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF4F0 + 0x70, ((((*(int *)&import_8002022C) + (*(int *)((char *)arg0 + 0x50))*2) + 0x14) << 16) | 2);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF508 + 0x88, ((((*(int *)&import_8002022C) + (*(int *)((char *)arg0 + 0x50))*2) + 0x14) << 16) | 4);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF520 + 0xa0, ((((*(int *)&import_8002022C) + (*(int *)((char *)arg0 + 0x50))*2) + 0x14) << 16) | 3);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF538 + 0xb8, ((((*(int *)&import_8002022C) + (*(int *)((char *)arg0 + 0x50))*2) + 0x18) << 16) | 2);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF550 + 0xd0, (((*(int *)&import_8002022C) + (*(int *)((char *)arg0 + 0x50))*2) + 0x18) << 16);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF568 + 0xe8, ((((*(int *)&import_8002022C) + (*(int *)((char *)arg0 + 0x50))*2) + 0x18) << 16) | 1);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF580 + 0x100, ((((*(int *)&import_8002022C) + (*(int *)((char *)arg0 + 0x50))*2) + 0x18) << 16) | 4);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF598 + 0x118, ((((*(int *)&import_8002022C) + (*(int *)((char *)arg0 + 0x50))*2) + 0x18) << 16) | 3);
     import_0024F278((char *)&timproc_uso_b5_D_807FF640 + 0x1c0, 0xA << 16);
     import_0024F278((char *)&timproc_uso_b5_D_807FF658 + 0x1d8, (0xA << 16) | 1);
     import_0024F228((char *)&timproc_uso_b5_D_807FF670 + 0x1f0, (0xA << 16) | 2);
@@ -551,11 +546,11 @@ void timproc_uso_b5_func_00000778(char *arg0) {
         import_0024F228((char *)&timproc_uso_b5_D_807FF910 + 0x490, (((*(int *)((char *)arg0 + 0x50))*2 + 0x11) << 16) | 6);
         import_0024F228((char *)&timproc_uso_b5_D_807FF928 + 0x4a8, (((*(int *)((char *)arg0 + 0x50))*2 + 0x11) << 16) | 7);
     }
-    import_0024F228((char *)&timproc_uso_b5_D_807FF940 + 0x4c0, (((*(int *)((char *)arg0 + 0x50))*2 + 0xC) << 16) | ((*(int *)&import_8002022C)*5));
-    import_0024F228((char *)&timproc_uso_b5_D_807FF958 + 0x4d8, (((*(int *)((char *)arg0 + 0x50))*2 + 0xC) << 16) | ((*(int *)&import_8002022C)*5 + 1));
-    import_0024F228((char *)&timproc_uso_b5_D_807FF970 + 0x4f0, (((*(int *)((char *)arg0 + 0x50))*2 + 0xC) << 16) | ((*(int *)&import_8002022C)*5 + 2));
-    import_0024F228((char *)&timproc_uso_b5_D_807FF988 + 0x508, (((*(int *)((char *)arg0 + 0x50))*2 + 0xC) << 16) | ((*(int *)&import_8002022C)*5 + 3));
-    import_0024F228((char *)&timproc_uso_b5_D_807FF9A0 + 0x520, (((*(int *)((char *)arg0 + 0x50))*2 + 0xC) << 16) | ((*(int *)&import_8002022C)*5 + 4));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF940 + 0x4c0, ((*(int *)&import_8002022C)*5) | (((*(int *)((char *)arg0 + 0x50))*2 + 0xC) << 16));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF958 + 0x4d8, ((*(int *)&import_8002022C)*5 + 1) | (((*(int *)((char *)arg0 + 0x50))*2 + 0xC) << 16));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF970 + 0x4f0, ((*(int *)&import_8002022C)*5 + 2) | (((*(int *)((char *)arg0 + 0x50))*2 + 0xC) << 16));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF988 + 0x508, ((*(int *)&import_8002022C)*5 + 3) | (((*(int *)((char *)arg0 + 0x50))*2 + 0xC) << 16));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF9A0 + 0x520, ((*(int *)&import_8002022C)*5 + 4) | (((*(int *)((char *)arg0 + 0x50))*2 + 0xC) << 16));
     import_0024F228((char *)&timproc_uso_b5_D_807FF9B8 + 0x538, ((*(int *)((char *)arg0 + 0x50))*2 + 0xD) << 16);
     import_0024F228((char *)&timproc_uso_b5_D_807FF9D0 + 0x550, (((*(int *)((char *)arg0 + 0x50))*2 + 0xD) << 16) | 1);
     import_0024F228((char *)&timproc_uso_b5_D_807FF9E8 + 0x568, (((*(int *)((char *)arg0 + 0x50))*2 + 0xD) << 16) | 2);
@@ -569,8 +564,8 @@ void timproc_uso_b5_func_00000778(char *arg0) {
     import_0024F278((char *)&timproc_uso_b5_D_807FFB38 + 0x6b8, (((*(int *)&import_8002022C) + 0x23) << 16) | 2);
     import_0024F228((char *)&timproc_uso_b5_D_807FFAC0 + 0x640, (0x7 << 16) | 8);
     import_0024F228((char *)&timproc_uso_b5_D_807FFAA8 + 0x628, (0x7 << 16) | 7);
-    import_0024F228((char *)&timproc_uso_b5_D_807FFA78 + 0x5f8, (((*(int *)&import_8002022C)*4 - (*(int *)&import_8002022C)) * 4) | 0x80000);
-    import_0024F228((char *)&timproc_uso_b5_D_807FFA90 + 0x610, ((((*(int *)&import_8002022C)*4 - (*(int *)&import_8002022C)) * 4) + 1) | 0x80000);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFA78 + 0x5f8, ((*(int *)&import_8002022C)*12) | 0x80000);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFA90 + 0x610, (((*(int *)&import_8002022C)*12) + 1) | 0x80000);
     import_0024F228((char *)&timproc_uso_b5_D_807FFAD8 + 0x658, ((*(int *)((char *)arg0 + 0x50))*2) | 0x1C0000);
     import_0024F228((char *)&timproc_uso_b5_D_807FFAF0 + 0x670, ((*(int *)((char *)arg0 + 0x50))*2 + 1) | 0x1C0000);
     import_0024F278((char *)&timproc_uso_b5_D_807FFB50 + 0x6d0, (0x2F << 16) | 0x10);
@@ -579,9 +574,6 @@ void timproc_uso_b5_func_00000778(char *arg0) {
     import_0024F228((char *)&timproc_uso_b5_D_807FFB98 + 0x718, (((*(int *)&import_8002022C) + 8) << 16) | 0xB);
 
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000778);
-#endif
 
 int timproc_uso_b5_func_000010EC(int a0) {
     if (a0 != 0) goto init;
