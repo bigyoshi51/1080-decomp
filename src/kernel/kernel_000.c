@@ -1739,7 +1739,110 @@ void func_800014A8(void) {
  * two functions (14A8 ends jr ra at 0x158C; 1594 opens its own sp -0x20
  * prologue). USO loader init: fills the D_80012BC0 dispatch table, clears
  * the D_80012D60/D_800130A0 slot arrays, copies 16 segment records. */
+#ifdef NON_MATCHING
+/* NM 95.79% 2026-10-16 (agent-g, was bare 0%): size-exact (136/136 insns).
+ * Body is complete:
+ * install the USO loader callback table at D_80012BC0 (cb, held in a3 via the
+ * int-cast base -- a plain `s32 *cb` gets folded to $at-macro stores and loses
+ * a3), clear the 135 0x9C-stride D_800130A0 slots' name byte + D_80012D60
+ * words, then copy up to 16 0x14-byte segment descriptors into D_80012C70
+ * (0xC stride), failing with cb->unk8 = -0x17 when a segment end passes
+ * arg1 + 0x80000000. The store ORDER matters for the a0/a2 CSE'd addends and
+ * the as1 schedule (the target's emission order is NOT the source order).
+ * Residual: loop-2 colouring (target ptr=v1 i=a1 e=v0 c=t6 lim=t7; this gives
+ * ptr=v0 i=v1 e=a0 c=a1 lim=a2 under every spelling tried: decl order (all
+ * 5040 perms), index vs pointer walk, while/goto/&&, u32 i, assignment-in-
+ * condition), one sltu-vs-sw swap in loop 1, and three no-reloc words in the
+ * target: 0x3C = lui 0x8000/addiu 0x1994 with NO reloc (a literal gives
+ * ori; func_80001994 gives the addiu but adds a reloc), and %hi/%lo of the
+ * local labels .L80000C5C / .L800007A8 (spelled D_80000C5C / D_800007A8),
+ * plus the _a alias names. A function-typed (char *)func_80000A98 + 0x1C4
+ * for .L80000C5C drops it to 82.8 (base CSE again). */
+typedef struct { s32 unk0; s32 unk4; s32 unk8; s32 unkC; u32 unk10; } UsoSegDesc;
+typedef struct { s32 unk0; s32 unk4; s32 unk8; } UsoSegEnt;
+extern void *D_8001309C;
+extern void func_80001584(void *, u32);
+extern void func_80000874(void *);
+extern void func_800018A8(void);
+extern char func_80001994[], func_80000DEC[], D_80000CF0[], func_80001088[];
+extern char D_80001258[], D_8000128C[], D_80000BD4[], D_800016BC[];
+extern char D_80001814[], D_80001894[], D_80001870[], D_80001748[];
+extern char D_80000C5C[], D_800007A8[], D_800016AC[], D_80001860[], D_8000189C[];
+/* char-typed aliases of TU-defined functions: a function-typed base gets one
+ * CSE'd lui/addiu plus per-use `addiu rX,base,K`, while the target folds each
+ * addend into its own %hi/%lo pair (array-typed extern behaviour). */
+extern char func_800014A8_a[], func_800010E8_a[], func_80000480_a[];
+
+void func_80001594(UsoSegDesc *arg0, u32 arg1) {
+    s32 cb;
+    s32 *p;
+    u8 *q;
+    s32 i;
+    UsoSegEnt *e;
+    s32 c;
+    u32 lim;
+
+    func_80001584(arg0, arg1);
+    D_8001309C = &D_800130A0;
+    func_80000874(arg0);
+    cb = (s32)&D_80012BC0;
+    *(s32 *)(cb + 0x3C) = (s32)func_80001994;
+    *(s32 *)(cb + 0x84) = (s32)(func_800014A8_a + 0x24);
+    *(s32 *)(cb + 0x40) = (s32)func_80000DEC;
+    *(s32 *)(cb + 0x8) = 0;
+    *(s32 *)(cb + 0x88) = (s32)(func_800014A8_a + 0x24);
+    *(s32 *)(cb + 0x30) = (s32)(func_80000480_a + 0x30);
+    *(s32 *)(cb + 0x44) = (s32)D_80000CF0;
+    *(s32 *)(cb + 0x64) = (s32)func_80001088;
+    *(s32 *)(cb + 0x68) = (s32)(func_800010E8_a + 0x44);
+    *(s32 *)(cb + 0x6C) = (s32)D_80001258;
+    *(s32 *)(cb + 0x70) = (s32)D_8000128C;
+    *(s32 *)(cb + 0x74) = (s32)func_80001584;
+    *(s32 *)(cb + 0x78) = (s32)(func_800014A8_a + 0x40);
+    *(s32 *)(cb + 0x7C) = (s32)D_80000BD4;
+    *(s32 *)(cb + 0x34) = (s32)(func_80000480_a + 0x30);
+    *(s32 *)(cb + 0x38) = 0;
+    *(s32 *)(cb + 0x4C) = (s32)D_800016BC;
+    *(s32 *)(cb + 0x50) = (s32)D_80001814;
+    *(s32 *)(cb + 0x58) = (s32)D_80001894;
+    *(s32 *)(cb + 0x54) = (s32)D_80001870;
+    *(s32 *)(cb + 0x48) = (s32)D_80001748;
+    *(s32 *)(cb + 0xA0) = (s32)D_80000C5C;
+    *(s32 *)(cb + 0x8C) = (s32)(func_800014A8_a + 0x24);
+    *(s32 *)(cb + 0x90) = (s32)(func_800014A8_a + 0x18);
+    *(s32 *)(cb + 0x80) = (s32)D_800007A8;
+    *(s32 *)(cb + 0x5C) = (s32)D_800016AC;
+    *(s32 *)(cb + 0x60) = (s32)D_80001860;
+    *(s32 *)(cb + 0x94) = (s32)D_8000189C;
+    q = (u8 *)&D_800130A0;
+    p = D_80012D60;
+    do {
+        q += 0x9C;
+        *p = 0;
+        q[-0x2A] = 0;
+        p++;
+    } while (q < (u8 *)&D_800182E4);
+    for (i = 0; i < 16; i++) {
+        if (arg0[i].unk0 == 0) break;
+        e = (UsoSegEnt *)D_80012C70 + i;
+        c = arg0[i].unkC;
+        e->unk0 = c;
+        if (c != 0) {
+            lim = arg0[i].unk10;
+            e->unk8 = c;
+            e->unk4 = lim;
+            if (arg1 + 0x80000000 < lim) {
+                *(s32 *)(cb + 0x8) = -0x17;
+                *(s32 *)(cb + 0x10) = lim;
+                break;
+            }
+        }
+    }
+    func_800018A8();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001594);
+#endif
 
 
 
