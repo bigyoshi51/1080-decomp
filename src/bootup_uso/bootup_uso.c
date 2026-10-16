@@ -1428,40 +1428,46 @@ end:
  * call). D_00006E48..D_00006EC4 (and the .L00006EA8 entry) = ~10
  * property/field descriptor data blobs registered into o via the
  * reg helper (a property-table builder; arg3 = 0 default).
- * Caps <80: get-or-create + ~13 reloc calls + ~12 &D descriptor
- * relocs. INCLUDE_ASM remains build path. */
+ * EXACT 2026-10-16 agent-c (run 97): arg3 is NOT 0 but a per-site
+ * base-0 address (lui/addiu 0 each; one shared name would CSE into an
+ * s-reg) -> D_1E08_a..j, o->0x28 = D_1E08_d, all pinned 0; the param is
+ * reused as `o` (prologue or s0 / bnez / sw ra delay, as in the exact
+ * 8F18 sibling) and an unused `pad` local gives frame 0x30 + the 0x24
+ * spill slot for `sub`; .L00006EA8 -> D_00006EA8 pinned to 0x6EA8. */
 extern char D_00006E30, D_00006E38;
 extern char D_00006E48, D_00006E54, D_00006E60, D_00006E70, D_00006E80;
 extern char D_00006E8C, D_00006E98, D_00006EA8, D_00006EB8, D_00006EC4;
-#ifdef NON_MATCHING
-void *func_00001E08(char *a0) {
-    char *o = a0;
+/* per-site base-0 placeholders (target lui 0 / addiu 0 each, no CSE) */
+extern char D_1E08_d, D_1E08_a, D_1E08_b, D_1E08_c, D_1E08_e, D_1E08_f;
+extern char D_1E08_g, D_1E08_h, D_1E08_i, D_1E08_j;
+void *func_00001E08(char *o) {
+    char *pad;
+    char *sub;
     if (o == 0) {
         o = (char*)func_00000000(0x118);
-        if (o == 0) return 0;
+        if (o == 0) goto end;
     }
     func_00000000(o, &D_00006E30);
-    *(void**)(o + 0x28) = &D_00000000;
-    func_00000000(o + 0x2C);
+    *(void**)(o + 0x28) = &D_1E08_d;
+    sub = o + 0x2C;
+    func_00000000(sub);
     *(void**)(o + 0xC) = &D_00006E38;
     *(int*)(o + 0x70) = 0;
     *(int*)(o + 0x78) = 0;
-    *(char**)(o + 0x74) = o + 0x2C;
-    func_00000000(o, &D_00006E48, 0);
-    func_00000000(o, &D_00006E54, 0);
-    func_00000000(o, &D_00006E60, 0);
-    func_00000000(o, &D_00006E70, 0);
-    func_00000000(o, &D_00006E80, 0);
-    func_00000000(o, &D_00006E8C, 0);
-    func_00000000(o, &D_00006E98, 0);
-    func_00000000(o, &D_00006EA8, 0);
-    func_00000000(o, &D_00006EB8, 0);
-    func_00000000(o, &D_00006EC4, 0);
+    *(char**)(o + 0x74) = sub;
+    func_00000000(o, &D_00006E48, &D_1E08_a);
+    func_00000000(o, &D_00006E54, &D_1E08_b);
+    func_00000000(o, &D_00006E60, &D_1E08_c);
+    func_00000000(o, &D_00006E70, &D_1E08_d);
+    func_00000000(o, &D_00006E80, &D_1E08_e);
+    func_00000000(o, &D_00006E8C, &D_1E08_f);
+    func_00000000(o, &D_00006E98, &D_1E08_g);
+    func_00000000(o, &D_00006EA8, &D_1E08_h);
+    func_00000000(o, &D_00006EB8, &D_1E08_i);
+    func_00000000(o, &D_00006EC4, &D_1E08_j);
+end:
     return o;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001E08);
-#endif
 
 // Linked-list insert-head: alloc node via func_00000000(0), splice after
 // obj->0x74 (head), advance head, bump obj->0x78 count. Body byte-matches at

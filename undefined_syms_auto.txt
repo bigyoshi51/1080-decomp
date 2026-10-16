@@ -3836,3 +3836,15 @@ timproc_uso_b1_func_0000083C_jal = 0x0000083C;
 timproc_uso_b1_func_00000878_jal = 0x00000878;
 timproc_uso_b1_func_000008B4_jal = 0x000008B4;
 timproc_uso_b1_func_0000090C_jal = 0x0000090C;
+/* func_00001E08 per-site base-0 placeholders (target lui 0 / addiu 0 each) and its .L00006EA8 descriptor */
+D_1E08_a = 0x00000000;
+D_1E08_b = 0x00000000;
+D_1E08_c = 0x00000000;
+D_1E08_d = 0x00000000;
+D_1E08_e = 0x00000000;
+D_1E08_f = 0x00000000;
+D_1E08_g = 0x00000000;
+D_1E08_h = 0x00000000;
+D_1E08_i = 0x00000000;
+D_1E08_j = 0x00000000;
+D_00006EA8 = 0x00006EA8;
