@@ -3744,3 +3744,11 @@ D_00000540 = 0x00000540;  /* func_000034E8 source float 2 (== func_000003F8+0x14
 import_800200DC_b = 0x00000000;
 import_800200DC_c = 0x00000000;
 import_80020100_b = 0x00000000;
+/* gl_func_00066850: blank USO jal alias of the in-unit gl_func_00062F64, and six distinct base-0 store addresses (lui;addiu 0 each) */
+gl_func_00062F64_66850 = 0x00000000;
+D_gl66850_h0 = 0x00000000;
+D_gl66850_h1 = 0x00000000;
+D_gl66850_h2 = 0x00000000;
+D_gl66850_h3 = 0x00000000;
+D_gl66850_h4 = 0x00000000;
+D_gl66850_h5 = 0x00000000;

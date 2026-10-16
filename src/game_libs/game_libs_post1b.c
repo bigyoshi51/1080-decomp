@@ -2811,7 +2811,6 @@ void gl_func_00066810(int a0) {
     }
 }
 
-#ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -2819,40 +2818,42 @@ void gl_func_00066810(int a0) {
  * (its address is kept in a callee-saved s0 across the gl_func_00062F64
  * calls, but the loaded object is reloaded because each call clobbers it).
  * The format/string args and the six tail stores are relocated symbol
- * addresses (lui;addiu), not bare immediates / zero. */
+ * addresses (lui;addiu), not bare immediates / zero.
+ * 2026-10-16 (agent-g): UNWRAPPED EXACT. The callee goes through the blank
+ * alias gl_func_00062F64_66850 (= 0; a direct in-unit call would bake the
+ * address) and D_gl66850_h0..h5 are pinned to 0 (distinct names keep six
+ * lui/addiu pairs), all at the end of undefined_syms_auto.txt. */
+extern int gl_func_00062F64_66850();
 extern int D_gl66850_h0, D_gl66850_h1, D_gl66850_h2, D_gl66850_h3, D_gl66850_h4, D_gl66850_h5;
 void gl_func_00066850(s32 arg0) {
     u32 temp_a1;
     u32 temp_a1_2;
 
-    gl_func_00062F64(0xFE);
-    gl_func_00062F64(0x96, (char*)&D_00000000 + 0x41688, (char*)&D_00000000 + 0x415C0, 0x32);
-    gl_func_00062F64();
-    gl_func_00062F64((char*)&D_00000000 + 0xA0);
-    gl_func_00062F64(0x42);
-    gl_func_00062F64(1);
+    gl_func_00062F64_66850(0xFE);
+    gl_func_00062F64_66850(0x96, (char*)&D_00000000 + 0x41688, (char*)&D_00000000 + 0x415C0, 0x32);
+    gl_func_00062F64_66850();
+    gl_func_00062F64_66850((char*)&D_00000000 + 0xA0);
+    gl_func_00062F64_66850(0x42);
+    gl_func_00062F64_66850(1);
     temp_a1 = FW(*(int**)&D_00000000, 0xC);
     if (temp_a1 != 0) {
-        gl_func_00062F64((char*)&D_00000000 + 0x2114, temp_a1, FW(*(int**)&D_00000000, 0x14), FW(*(int**)&D_00000000, 0x1C));
+        gl_func_00062F64_66850((char*)&D_00000000 + 0x2114, temp_a1, FW(*(int**)&D_00000000, 0x14), FW(*(int**)&D_00000000, 0x1C));
     }
     temp_a1_2 = FW(*(int**)&D_00000000, 0x8);
     if (temp_a1_2 != 0) {
-        gl_func_00062F64((char*)&D_00000000 + 0x2138, temp_a1_2, FW(*(int**)&D_00000000, 0x10));
+        gl_func_00062F64_66850((char*)&D_00000000 + 0x2138, temp_a1_2, FW(*(int**)&D_00000000, 0x10));
     }
-    gl_func_00062F64(FW(*(int**)&D_00000000, 0x0), FW(*(int**)&D_00000000, 0x4));
-    gl_func_00062F64((char*)&D_00000000 + 0x2154, (u32) (FW(*(int**)&D_00000000, 0x0) + 0x80000000) >> 0xA);
+    gl_func_00062F64_66850(FW(*(int**)&D_00000000, 0x0), FW(*(int**)&D_00000000, 0x4));
+    gl_func_00062F64_66850((char*)&D_00000000 + 0x2154, (u32) (FW(*(int**)&D_00000000, 0x0) + 0x80000000) >> 0xA);
     FW(*(int**)&D_00000000, 0x80) = (int)&D_gl66850_h0;
     FW(*(int**)&D_00000000, 0x34) = (int)&D_gl66850_h1;
     FW(*(int**)&D_00000000, 0x84) = (int)&D_gl66850_h2;
     FW(*(int**)&D_00000000, 0x98) = (int)&D_gl66850_h3;
     FW(*(int**)&D_00000000, 0x9C) = (int)&D_gl66850_h4;
     FW(*(int**)&D_00000000, 0x94) = (int)&D_gl66850_h5;
-    gl_func_00062F64((char*)&D_00000000 + 0x216C);
-    gl_func_00062F64();
+    gl_func_00062F64_66850((char*)&D_00000000 + 0x216C);
+    gl_func_00062F64_66850();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066850);
-#endif
 
 /* game_libs_func_000669AC (0xC orphan, no jr ra: lui $v1,%hi(D); addiu
  * $v1; lw $v0,0($v1)) was the HOISTED HEAD of gl_func_000669B8 — absorbed
