@@ -91,3 +91,27 @@ glabel timproc_uso_b5_func_00001DB0
     /* 001F0C 00001F0C 03E00008 */  .word 0x03E00008
     /* 001F10 00001F10 00000000 */  .word 0x00000000
 endlabel timproc_uso_b5_func_00001DB0
+
+/* timproc_uso_b5 RoData words (offsets past the USO RoData marker word). */
+/* Emitted here so every C fn literal/jumptable lands at its ROM %lo; */
+/* layout order = text order (docs/MATCHING_WORKFLOW.md */
+/* #game-uso-rodata-relayout-late-rodata). */
+.rdata
+/* +0x0..+0xb8: state-name strings (referenced from the Data section name table) */
+.word 0x4C6F6F6B, 0x41726F75, 0x6E640000, 0x5A6F6F6D
+.word 0x696E6755, 0x70000000, 0x5A6F6F6D, 0x696E6755
+.word 0x704C6576, 0x656C0000, 0x5A6F6F6D, 0x65644368
+.word 0x61720000, 0x5A6F6F6D, 0x65644861, 0x6E646943
+.word 0x68617200, 0x5A6F6F6D, 0x65645375, 0x70657243
+.word 0x68617200, 0x5A6F6F6D, 0x6564426F, 0x61726400
+.word 0x5A6F6F6D, 0x6564426F, 0x61726454, 0x79706500
+.word 0x5A6F6F6D, 0x6564436F, 0x75727365, 0x00000000
+.word 0x5A6F6F6D, 0x65644C65, 0x76656C00, 0x5A6F6F6D
+.word 0x696E6744, 0x6F776E00, 0x43727973, 0x74616C47
+.word 0x75790000, 0x4D657461, 0x6C477579, 0x00000000
+.word 0x50616E64, 0x61000000
+.late_rodata
+/* +0xb8..+0xc8: own 2 doubles */
+.word 0x3FF55532, 0x617C1BDA, 0x3FF553F7, 0xC0000000
+
+.text

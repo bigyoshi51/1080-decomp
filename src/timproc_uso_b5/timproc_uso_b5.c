@@ -5749,11 +5749,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * chain; the explicit `case 3: case 5: case 6: case 7:` on default cross IDO's
  * 5-label jumptable threshold and give the target's 1..8 table range
  * (docs/IDO_CODEGEN.md#empty-trailing-case-jumptable-threshold-76f0). Arms lay
- * out in source order (return 0 / 1 / 2 / 3, then the default). The shipped
- * table content lives in a Yay0 data block (not extracted; irrelevant to the
- * .text bytes) -- the 1->0, 2->1, 4->2, 8->3 mapping is inferred from the
+ * out in source order (return 0 / 1 / 2 / 3, then the default). The ROM
+ * table (genproc RoData +0x1D4) confirms it; the
+ * 1->0, 2->1, 4->2, 8->3 mapping also follows from the
  * callers (0x3C8 = 87F4/88A0 result, 0x3C4 indexes the 0x3D0 slot array). The
- * jumptable `lw t6,%lo(.rodata)` word is the unit's usual reloc-class lo16
+ * jumptable `lw t6,%lo(.rodata)` %lo now equals the ROM's 0x1D4 via the
  * diff in verify-blocks (target bakes 0x1D4). */
 int timproc_uso_b5_func_000087A0(char *a0, int a1) {
     switch (a1) {
@@ -5798,7 +5798,7 @@ int timproc_uso_b5_func_000087A0(char *a0, int a1) {
  * funnel is required — a per-case `return 0` makes IDO hoist `move v0,zero`
  * between lw and addiu, shifting the whole body. Multi-tick infra. */
 /* timproc_uso_b5_func_000087F4 [0x87F4..0x88A0), 0xAC (43 words): bit-priority
- * encoder, 8-entry jumptable on a0->0x3C8, THREE case bodies (1,2,4 / 2,4 / 4),
+ * encoder, 8-entry jumptable on a0->0x3C8, THREE case bodies (8 / 1 / 2 per the ROM table),
  * cases 4..8 stacked onto the goto-z funnel. BYTE-EXACT 2026-09-05 (agent-c)
  * after absorbing the mis-split "8894" symbol -- the exact sibling of 88A0+8940:
  * the 3-word `move v0,zero; jr ra; nop` at 0x8894 is this fn's own shared
@@ -5811,30 +5811,30 @@ int timproc_uso_b5_func_000087A0(char *a0, int a1) {
  * so the -g3 carve (timproc_uso_b5_g3_8894.c) encoded the wrong model and is
  * dropped. The 2026-06-10 "branch-into-adjacent-leaf cap" retraction was right
  * about expected/ poisoning and wrong about the boundary: the C body below is
- * unchanged from that NM body. The jumptable `lw t7,%lo(.rodata)` word is the
- * unit's usual reloc-class lo16 diff in verify-blocks (target bakes 0x1F4). */
+ * unchanged from that NM body except the case labels: the ROM table at RoData
+ * +0x1F4 maps 8->881C, 1->8854, 2->887C (labels fixed 2026-10-16). */
 int timproc_uso_b5_func_000087F4(char *a0) {
     int v0;
     switch (*(int *)(a0 + 0x3C8)) {
-    case 1:
+    case 8:
         v0 = *(int *)(a0 + 0x3C0);
         if (v0 & 1) return 1;
         if (v0 & 2) return 2;
         if (v0 & 4) return 4;
         goto z;
-    case 2:
+    case 1:
         v0 = *(int *)(a0 + 0x3C0);
         if (v0 & 2) return 2;
         if (v0 & 4) return 4;
         goto z;
-    case 3:
+    case 2:
         if (*(int *)(a0 + 0x3C0) & 4) return 4;
         goto z;
+    case 3:
     case 4:
     case 5:
     case 6:
     case 7:
-    case 8:
         goto z;
     }
 z:
@@ -5842,7 +5842,8 @@ z:
 }
 /* timproc_uso_b5_func_000088A0 [0x88A0..0x894C), 0xAC (43 words): 87F4's
  * mirror bit-priority encoder, 8-entry jumptable on a0->0x3C8, THREE case
- * bodies (8 / 1,8 / 2,1,8), cases 4..8 stacked onto the goto-z funnel.
+ * bodies (cases 1 / 2 / 4 per the ROM table at RoData +0x214), the rest
+ * stacked onto the goto-z funnel.
  * BYTE-EXACT 2026-09-05 (agent-c) after absorbing the mis-split "8940"
  * symbol: the 3-word `move v0,zero; jr ra; nop` at 0x8940 is this fn's own
  * shared return-0 block -- the default `beqz at` (0x88AC) lands ON 0x8940
@@ -5854,8 +5855,8 @@ z:
  * target, so the -g3 carve (timproc_uso_b5_g3_8940.c) encoded the wrong
  * model and is dropped; the 2026-06-10 "branch-into-adjacent cap"
  * retraction was itself wrong about the boundary (the C was already
- * exact). The jumptable `lw t7,%lo(.rodata)` word is the unit's usual
- * reloc-class lo16 diff in verify-blocks (target bakes 0x214). */
+ * exact). The jumptable %lo now equals the ROM's 0x214 (.rodata relayout,
+ * case 3/4 labels fixed from the ROM table 2026-10-16). */
 int timproc_uso_b5_func_000088A0(char *a0) {
     int v0;
     switch (*(int *)(a0 + 0x3C8)) {
@@ -5867,13 +5868,13 @@ int timproc_uso_b5_func_000088A0(char *a0) {
         if (v0 & 1) return 1;
         if (v0 & 8) return 8;
         goto z;
-    case 3:
+    case 4:
         v0 = *(int *)(a0 + 0x3C0);
         if (v0 & 2) return 2;
         if (v0 & 1) return 1;
         if (v0 & 8) return 8;
         goto z;
-    case 4:
+    case 3:
     case 5:
     case 6:
     case 7:
@@ -5890,10 +5891,9 @@ int timproc_uso_b5_func_0000894C() {
     func_00000000();
 }
 
-extern float D_b5_896C_234;
 extern float D_b5_896C_2A0;
 void timproc_uso_b5_func_0000896C(char *a0) {
-    D_b5_896C_2A0 = *(float *)(a0 + 0x480) * D_b5_896C_234;
+    D_b5_896C_2A0 = *(float *)(a0 + 0x480) * 0.4f;
 }
 
 /* timproc_uso_b5_func_00008988: 37-insn (0x94) array-scan loop. BOUNDARY
@@ -7958,8 +7958,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  *   s = a0->p_2B8; if (s->i_138 != 0) target = 1.0f;
  *   if (s->f_130 < target) { s->f_130 += STEP_UP; if (target < s->f_130) s->f_130 = target; }
  *   else { s->f_130 -= STEP_DOWN; if (s->f_130 < target) s->f_130 = target; }
- * STEP_UP/STEP_DOWN are reloc'd USO f32 globals D_B850_up/dn (in-USO
- * 0x358/0x35C via undefined_syms). Same family as C710/CB40/CD24.
+ * STEP_UP/STEP_DOWN are 0.1f literals (RoData +0x358/+0x35C; were
+ * externs D_B850_up/dn before the 2026-10-16 relayout). Same family as C710/CB40/CD24.
  * BYTE-EXACT 2026-07-07 (agent-e), retracting the 2026-06-21 "genuine
  * first-temp/address-reg coloring cap" verdict: the pre-gate
  * addiu v1,v0,0x130 is NOT a hoisted shared local -- it is the ELSE
@@ -7968,8 +7968,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * materializes its own v via the if(1){} pointer-mutation lever; v
  * then colors $v1 with no move, and the then-arm re-materializes at
  * +0x58. 49/49 words + reloc sites verified vs target. */
-extern float D_B850_up;
-extern float D_B850_dn;
 void timproc_uso_b5_func_0000B850(char *a0, float target) {
     char *st;
     float *v;
@@ -7983,7 +7981,7 @@ void timproc_uso_b5_func_0000B850(char *a0, float target) {
     if (*(float *)(st + 0x130) < target) {
         v = (float *)st;
         if (1) { v = (float *)((char *)v + 0x130); }
-        *v += D_B850_up;
+        *v += 0.1f;
         st = *(char **)(a0 + 0x2B8);
         if (target < *(float *)(st + 0x130)) {
             *(float *)(st + 0x130) = target;
@@ -7991,7 +7989,7 @@ void timproc_uso_b5_func_0000B850(char *a0, float target) {
     } else {
         v = (float *)st;
         if (1) { v = (float *)((char *)v + 0x130); }
-        *v -= D_B850_dn;
+        *v -= 0.1f;
         st = *(char **)(a0 + 0x2B8);
         if (*(float *)(st + 0x130) < target) {
             *(float *)(st + 0x130) = target;
@@ -8364,10 +8362,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * materialization of v -> colors $v1 with no move; per-arm st reload).
  * The old body's named `v = s+0x124` head local coalesced into dead $a1
  * (arg reg freed by the mtc1) -- the B850 form gives each arm its own
- * v web which colors $v1 like the target. Steps via D_C044_up/_dn
- * (=0x360/0x364 undefined_syms, D_B850 pattern). 49/49 words. */
-extern float D_C044_up;
-extern float D_C044_dn;
+ * v web which colors $v1 like the target. Steps are 0.1f literals
+ * (RoData +0x360/+0x364). 49/49 words. */
 void timproc_uso_b5_func_0000C044(char *a0, float target) {
     char *st;
     float *v;
@@ -8381,7 +8377,7 @@ void timproc_uso_b5_func_0000C044(char *a0, float target) {
     if (*(float *)(st + 0x124) < target) {
         v = (float *)st;
         if (1) { v = (float *)((char *)v + 0x124); }
-        *v += D_C044_up;
+        *v += 0.1f;
         st = *(char **)(a0 + 0x2B8);
         if (target < *(float *)(st + 0x124)) {
             *(float *)(st + 0x124) = target;
@@ -8389,7 +8385,7 @@ void timproc_uso_b5_func_0000C044(char *a0, float target) {
     } else {
         v = (float *)st;
         if (1) { v = (float *)((char *)v + 0x124); }
-        *v -= D_C044_dn;
+        *v -= 0.1f;
         st = *(char **)(a0 + 0x2B8);
         if (*(float *)(st + 0x124) < target) {
             *(float *)(st + 0x124) = target;
@@ -8694,15 +8690,12 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * 2026-06-10 post-merge progress (boundary fixed; now one 0xD8 symbol):
  * distinct float externs (D_C710_dflt/up/dn) FOLD into lwc1 %lo (the
  * &D+offset cast-arith form materializes la instead); their
- * undefined_syms values are set to the in-USO offsets 0x368/36C/370 so
- * the LINKED %lo fields match.
+ * 2026-10-16: now the literals 0.3f/0.03f/0.03f at RoData +0x368/36C/370,
+ * which fold into lwc1 %lo exactly like the externs did.
  * BYTE-EXACT 2026-07-07 (agent-e): direct sibling transfer of the CD24
  * crack (see CD24's comment) -- compare derefs st+0x124 directly, each
  * arm materializes its own v via the if(1){} pointer-mutation lever.
  * 54/54 words + reloc sites verified vs target. */
-extern float D_C710_dflt;
-extern float D_C710_up;
-extern float D_C710_dn;
 void timproc_uso_b5_func_0000C710(char *a0, float a1u) {
     float target;
     char *st;
@@ -8711,13 +8704,13 @@ void timproc_uso_b5_func_0000C710(char *a0, float a1u) {
         target = 0.0f;
     } else {
         st = *(char **)(a0 + 0x2B8);
-        target = (*(int *)(st + 0x130) != 0) ? 1.0f : D_C710_dflt;
+        target = (*(int *)(st + 0x130) != 0) ? 1.0f : 0.3f;
     }
     st = *(char **)(a0 + 0x2B8);
     if (*(float *)(st + 0x124) < target) {
         v = (float *)st;
         if (1) { v = (float *)((char *)v + 0x124); }
-        *v += D_C710_up;
+        *v += 0.03f;
         st = *(char **)(a0 + 0x2B8);
         if (target < *(float *)(st + 0x124)) {
             *(float *)(st + 0x124) = target;
@@ -8725,7 +8718,7 @@ void timproc_uso_b5_func_0000C710(char *a0, float a1u) {
     } else {
         v = (float *)st;
         if (1) { v = (float *)((char *)v + 0x124); }
-        *v -= D_C710_dn;
+        *v -= 0.03f;
         st = *(char **)(a0 + 0x2B8);
         if (*(float *)(st + 0x124) < target) {
             *(float *)(st + 0x124) = target;
@@ -9008,15 +9001,13 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * target 0); a0->0x2B8 (696) ptr to slew-state; state->0x124 (292)
  * f32 = the slewed/current value; state->0x134 (308) s32 = force-to-
  * 1.0 gate (nonzero -> target clamps to 1.0). Step magnitudes are
- * two global f32 constants D_CB40_up/dn (in-USO 0x37C/0x380 via
+ * 0.1f literals at RoData +0x37C/+0x380 (were externs D_CB40_up/dn via
  * undefined_syms; the old &D+0x892/0x896 guesses were wrong -- linked
  * lo16s are 0x37C/0x380). Per call the current value moves one step
  * toward the resolved target then clamps so it never overshoots.
  * BYTE-EXACT 2026-07-07 (agent-e): direct sibling transfer of the
  * B850/CD24 crack -- compare derefs st+0x124 directly, per-arm if(1){}
  * pointer materialization. 49/49 words + reloc sites verified. */
-extern float D_CB40_up;
-extern float D_CB40_dn;
 void timproc_uso_b5_func_0000CB40(char *a0, float target) {
     char *st;
     float *v;
@@ -9030,7 +9021,7 @@ void timproc_uso_b5_func_0000CB40(char *a0, float target) {
     if (*(float *)(st + 0x124) < target) {
         v = (float *)st;
         if (1) { v = (float *)((char *)v + 0x124); }
-        *v += D_CB40_up;
+        *v += 0.1f;
         st = *(char **)(a0 + 0x2B8);
         if (target < *(float *)(st + 0x124)) {
             *(float *)(st + 0x124) = target;
@@ -9038,7 +9029,7 @@ void timproc_uso_b5_func_0000CB40(char *a0, float target) {
     } else {
         v = (float *)st;
         if (1) { v = (float *)((char *)v + 0x124); }
-        *v -= D_CB40_dn;
+        *v -= 0.1f;
         st = *(char **)(a0 + 0x2B8);
         if (*(float *)(st + 0x124) < target) {
             *(float *)(st + 0x124) = target;
@@ -9146,7 +9137,7 @@ void timproc_uso_b5_func_0000CCC8(int *a0, int a1, int a2, int a3) {
 /* timproc_uso_b5_func_0000CD24 (0xD8, 54 insns) - BYTE-EXACT 2026-07-07
  * (agent-e). FP slew-limiter, INSTRUCTION-IDENTICAL SIBLING of
  * timproc_uso_b5_func_0000C710; the only difference is the constant
- * triple (D_CD24_dflt/up/dn = in-USO 0x384/0x388/0x38C vs C710's
+ * triple (now literals 0.3f/0.1f/0.1f = in-USO 0x384/0x388/0x38C vs C710's
  * 0x368/36C/370; undefined_syms carries the linked %lo values).
  * Struct-typing: a0->0x2A4 f32 enable, a0->0x2B8 slew-state ptr,
  * state->0x124 f32 slewed value, state->0x130 s32 force-1.0 gate.
@@ -9159,9 +9150,6 @@ void timproc_uso_b5_func_0000CCC8(int *a0, int a1, int a2, int a3) {
  * every previous shared-v variant). (2) distinct float externs fold
  * into lwc1 %lo (the &D+offset form materializes la). Reloc sites and
  * split dn HI16(+0x58)/LO16(+0xA8) pair verified against target. */
-extern float D_CD24_dflt;
-extern float D_CD24_up;
-extern float D_CD24_dn;
 void timproc_uso_b5_func_0000CD24(char *a0, float a1u) {
     float target;
     char *st;
@@ -9170,13 +9158,13 @@ void timproc_uso_b5_func_0000CD24(char *a0, float a1u) {
         target = 0.0f;
     } else {
         st = *(char **)(a0 + 0x2B8);
-        target = (*(int *)(st + 0x130) != 0) ? 1.0f : D_CD24_dflt;
+        target = (*(int *)(st + 0x130) != 0) ? 1.0f : 0.3f;
     }
     st = *(char **)(a0 + 0x2B8);
     if (*(float *)(st + 0x124) < target) {
         v = (float *)st;
         if (1) { v = (float *)((char *)v + 0x124); }
-        *v += D_CD24_up;
+        *v += 0.1f;
         st = *(char **)(a0 + 0x2B8);
         if (target < *(float *)(st + 0x124)) {
             *(float *)(st + 0x124) = target;
@@ -9184,7 +9172,7 @@ void timproc_uso_b5_func_0000CD24(char *a0, float a1u) {
     } else {
         v = (float *)st;
         if (1) { v = (float *)((char *)v + 0x124); }
-        *v -= D_CD24_dn;
+        *v -= 0.1f;
         st = *(char **)(a0 + 0x2B8);
         if (*(float *)(st + 0x124) < target) {
             *(float *)(st + 0x124) = target;

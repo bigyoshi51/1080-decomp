@@ -424,3 +424,17 @@ glabel timproc_uso_b5_func_0000DF14
     /* 00E5A4 0000E5A4 03E00008 */  .word 0x03E00008
     /* 00E5A8 0000E5A8 27BD0060 */  .word 0x27BD0060
 endlabel timproc_uso_b5_func_0000DF14
+
+/* timproc_uso_b5 RoData words (offsets past the USO RoData marker word). */
+/* Emitted here so every C fn literal/jumptable lands at its ROM %lo; */
+/* layout order = text order (docs/MATCHING_WORKFLOW.md */
+/* #game-uso-rodata-relayout-late-rodata). */
+.late_rodata
+/* +0x3fc..+0x440: own floats + jumptable at +0x400 + tail pad */
+.word 0x4B189680, 0x0000E268, 0x0000E2A8, 0x0000E2E8
+.word 0x0000E330, 0x0000E378, 0x0000E3C0, 0x0000E408
+.word 0x0000E450, 0x0000E490, 0x0000E490, 0x0000E490
+.word 0x0000E1A8, 0x0000E1E8, 0x0000E228, 0x3E8F5C29
+.word 0x00000000
+
+.text
