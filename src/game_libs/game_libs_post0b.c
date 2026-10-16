@@ -32125,17 +32125,16 @@ int game_libs_func_0005FDC4(int a0, int a1) {
  * `if (*(int*)(p+0x8) <= (count = *(int*)(p+0xC)))` puts the unnamed capacity
  * load in the LEFT operand (evaluated first) with count's def as an assignment
  * expression on the right; `cap <= count` emits the identical
- * slt at,count,cap. Un-landable (baked-USO D_/jal-0 placeholders); stays as
- * objdiff-100 NM wrap.
+ * slt at,count,cap. EXACT: unwrapped 2026-10-16 (D_00000000 and
+ * gl_func_00000000 are both symbols at 0).
  * 2026-06-21 (agent-e base-pin vein): fixed TWO real C bugs that were inflating
  * the diff — (1) capacity was read UNINITIALIZED (declared, never assigned
  * before `count >= capacity`); now `capacity = p[0x34]` read first, `count =
  * p[0x38]` second, matching target lw order (52(v1) then 56(v1)). (2) the grow
  * call arg was `(&D)+0x21C40` with D typed `int` -> 4x-scaled to 0x87100 (lui
  * a0,0x8); now `(char*)(&D)+0x21C40` (lui a0,0x2). 99.77->down to 9 register-
- * only diffs (capacity v0-vs-t6 lowest-free tie + cascade). Genuine coloring
- * residual; not landed. */
-#ifdef NON_MATCHING
+ * only diffs (capacity v0-vs-t6 lowest-free tie + cascade); the later
+ * notes above resolved them. */
 char *game_libs_func_0005FE14(int a0) {
   char *p = *((char **) (&D_00000000));
   int capacity;
@@ -32150,9 +32149,6 @@ char *game_libs_func_0005FE14(int a0) {
   *((int *) (p + 0xC)) = count + 1;
   return (*((char **) (p + 0))) + (count * 68);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005FE14);
-#endif
 
 /* gl_func_0005FE7C: resource-load helper (frame 0x90). The 0x68-byte
  * scratch buffer is passed as &local_buf[2] (data at sp+0x2C, 8 dead
