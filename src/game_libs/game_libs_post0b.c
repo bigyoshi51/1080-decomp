@@ -3329,51 +3329,78 @@ int *gl_func_000378D0(int *a0, int a1, float a2) {
 //   top-placed escape keeps 0xD8 but loses the a reloads); `addiu v0,v0,112`
 //   for the t+0x70 sub-block base (folded into the lwc1 offsets here);
 //   pointer-reg naming for the copy chain (t7/t0/t3/t6 + late v0 vs t8/t1..).
+// 2026-10-16 agent-c: 82.4 -> 93.7 (frame 0xD8 + every slot exact, 86 words
+//   vs 85). Levers: (1) the frame-top 0x10 came from the mid-body if(0) escape
+//   carrying &s; escape only &a,&b (a/b memory-homed + reloaded) and read s
+//   back through `char **ps = &s` (#addr-taken-param-home-reload-t6-51714).
+//   (2) the sub and mul results are FP CANDIDATES (f0/f2/f12, f2/f12/f14):
+//   named dx..dz / mx..mz, a do{}while(0) BB boundary before their stores
+//   (else uopt forward-substitutes the single-use expression), the d stores
+//   through `Vec3 *pd = &d` (a plain d.x store still lets uopt re-derive
+//   b.x - a.x), and a second boundary AFTER the d stores so dx..dz do not
+//   interfere with k (per-BB interference; else dx..dz take f2/f12/f14).
+//   (3) the scalar homes sit at DECL POSITION: mx..mz / dx..dz / pd replace
+//   12 + 16 bytes of the old pad1/pad2 arrays (#scalar-homes-are-the-holes-3cbb4).
+//   (4) arg copied x,y,z on ONE line = target's f18/f16/f10 desc ring.
+//   RESIDUAL: int ring +1 from the first copy-address hoist (t8/t1/t4 vs
+//   t7/t0/t3: the homed s burns one extra ugen slot; a non-address-taken s
+//   colours v1 with no home and no slot), `addiu a1,sp,164` hoist position,
+//   and the final s reload lands in a0 directly (target `lw v1,200; addiu
+//   a0,v1,48` = s as a split candidate: t6 + home at entry, v1 at the end).
 #ifdef NON_MATCHING
-/* s=o->0x14, t=o->0x2C. a={s->0xA0,0xA4,0xA8}, b={t->0xA0,(t+0x70)->0x34,0x38}.
- * d = b - a; sc = d * o->0x30; gl_func_00034458(s+0x30, &sc). Every Vec3 step
- * goes through struct temps (memberwise float build -> two lw/sw struct copies
- * -> memberwise compute), i.e. macro-style (tmp = (v), out.x = f(tmp.x), ..., out). */
 void gl_func_00037938(char *o) {
     Vec3 c2;
-    char *s = *(char **)(o + 0x14);
-    Vec3 a, b, arg;
-    char pad1[20];
+    char *s;
+    Vec3 a;
+    Vec3 b;
+    Vec3 arg;
+    char pad1[8];
+    f32 mx, my, mz;
     Vec3 c1, d;
-    char pad2[24];
+    char pad2[8];
+    f32 dx, dy, dz;
+    Vec3 *pd = &d;
     Vec3 c3;
     char pad2b[4];
     Vec3 sc;
     char pad3[20];
     Vec3 c4;
-    char *t, *t2;
-    Vec3 *pa, *pb, *pd;
+    char **ps = &s;
+    char *t;
     f32 k;
 
+    s = *(char **)(o + 0x14);
     a.x = *(f32 *)(s + 0xA0);
     a.y = *(f32 *)(s + 0xA4);
     a.z = *(f32 *)(s + 0xA8);
     t = *(char **)(o + 0x2C);
     b.x = *(f32 *)(t + 0xA0);
-    t2 = t + 0x70;
-    b.y = *(f32 *)(t2 + 0x34);
-    b.z = *(f32 *)(t2 + 0x38);
-    if (0) { gl_func_00034458(&s, &a, &b); }   /* escape point: s/a/b memory-homed + reloaded after it */
-    d.x = b.x - a.x;
-    d.y = b.y - a.y;
-    d.z = b.z - a.z;
+    t += 0x70;
+    b.y = *(f32 *)(t + 0x34);
+    b.z = *(f32 *)(t + 0x38);
+    if (0) { gl_func_00000000(&a, &b); }
+    dx = b.x - a.x;
+    dy = b.y - a.y;
+    dz = b.z - a.z;
+    do {} while (0);
+    pd->x = dx;
+    pd->y = dy;
+    pd->z = dz;
+    do {} while (0);
     c1 = d;
     c2 = c1;
     k = *(f32 *)(o + 0x30);
-    sc.x = c2.x * k;
-    sc.y = c2.y * k;
-    sc.z = c2.z * k;
+    mx = c2.x * k;
+    my = c2.y * k;
+    mz = c2.z * k;
+    do {} while (0);
+    sc.x = mx;
+    sc.y = my;
+    sc.z = mz;
     c3 = sc;
     c4 = c3;
-    arg.z = c4.z;
-    arg.y = c4.y;
-    arg.x = c4.x;
-    gl_func_00034458(s + 0x30, &arg);
+    arg.x = c4.x; arg.y = c4.y; arg.z = c4.z;
+    gl_func_00000000(*ps + 0x30, &arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037938);
