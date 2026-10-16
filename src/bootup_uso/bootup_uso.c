@@ -9905,67 +9905,53 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E270);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0000E2D0)();
-void func_0000E2D0(char *arg0, s32 arg1, char *arg2, char *arg3, f32 arg4) {
-    f32 sp6C;
-    f32 sp68;
-    f32 sp64;
-    f32 sp60;
-    f32 sp5C;
-    f32 sp58;
-    f32 sp44;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f0_3;
-    f32 temp_f10;
-    f32 temp_f10_2;
-    f32 temp_f12;
-    f32 temp_f18;
-    f32 temp_f2;
-    f32 temp_f2_2;
-    f32 temp_f2_3;
-    f32 temp_f4;
-    f32 temp_f8;
-    f32 var_f0;
+/* PASS-2 2026-10-16 (agent-c, 34.24 -> 96.75): source rewrite. The two
+ * reflected vectors are ONE `Vec3 v[2]` (v[0] at sp+0x58 goes to the calls, so
+ * the whole array stays in memory: target swc1 then lwc1 of every component;
+ * two separate Vec3 locals get promoted to registers). m2c's calls went
+ * through fn-pointer casts (jalr) with invented float args: they are a
+ * f32(f32) sqrt alias, normalize(&v[0], arg3) and (arg0, arg1, &v[0]); arg4 is
+ * a stack f32 (1.0f + arg4), not an int. Sums written z + (y + x) (x,y first).
+ * Residual: d and the arg3->x load colour f2/f0 swapped, the dot/scale tail
+ * colours, frame 0x50 vs 0x70. */
+extern f64 bu_e2d0_k9a0;  /* rodata f64 (target func_0000098C + 0x14) */
+void func_0000E2D0(char *arg0, s32 arg1, Vec3 *arg2, Vec3 *arg3, f32 arg4) {
+    Vec3 v[2];
+    f32 d;
+    f32 dot;
+    f32 lim;
+    f32 s;
 
-    temp_f4 = (*(f32*)((char*)arg2 + 0x0));
-    sp64 = temp_f4;
-    sp68 = (*(f32*)((char*)arg2 + 0x4));
-    sp6C = (*(f32*)((char*)arg2 + 0x8));
-    temp_f2 = (*(f32*)((char*)arg3 + 0x0));
-    temp_f0 = (temp_f4 * temp_f2) + (sp68 * (*(f32*)((char*)arg3 + 0x4))) + (sp6C * (*(f32*)((char*)arg3 + 0x8)));
-    sp64 = (temp_f0 * temp_f2) - temp_f4;
-    sp68 = (temp_f0 * (*(f32*)((char*)arg3 + 0x4))) - sp68;
-    sp6C = (temp_f0 * (*(f32*)((char*)arg3 + 0x8))) - sp6C;
-    temp_f10 = (*(f32*)((char*)arg0 + 0x3BC));
-    sp58 = temp_f10;
-    sp5C = (*(f32*)((char*)arg0 + 0x3C0));
-    sp60 = (*(f32*)((char*)arg0 + 0x3C4));
-    temp_f2_2 = (*(f32*)((char*)arg3 + 0x0));
-    temp_f0_2 = (temp_f10 * temp_f2_2) + (sp5C * (*(f32*)((char*)arg3 + 0x4))) + (sp60 * (*(f32*)((char*)arg3 + 0x8)));
-    temp_f8 = (temp_f0_2 * temp_f2_2) - temp_f10;
-    sp58 = temp_f8;
-    temp_f10_2 = (temp_f0_2 * (*(f32*)((char*)arg3 + 0x4))) - sp5C;
-    sp5C = temp_f10_2;
-    temp_f18 = (temp_f0_2 * (*(f32*)((char*)arg3 + 0x8))) - sp60;
-    sp60 = temp_f18;
-    if ((*(f64*)((char*)&D_00000000 + 0x14)) < (f64) ((f32(*)())func_00000000)((temp_f8 * temp_f8) + (temp_f10_2 * temp_f10_2) + (temp_f18 * temp_f18))) {
-        sp44 = (sp64 * sp58) + (sp68 * temp_f10_2) + (sp6C * sp60);
-        ((GP_0000E2D0)func_00000000)(&sp58);
-        temp_f2_3 = (*(f32*)((char*)arg0 + 0x9FC));
-        var_f0 = sp44 * (*(f32*)((char*)arg0 + 0x9F8));
-        temp_f12 = -temp_f2_3;
-        if (var_f0 < temp_f12) {
-            var_f0 = temp_f12;
+    v[1].x = arg2->x;
+    v[1].y = arg2->y;
+    v[1].z = arg2->z;
+    d = v[1].z * arg3->z + (v[1].y * arg3->y + v[1].x * arg3->x);
+    v[1].x = d * arg3->x - v[1].x;
+    v[1].y = d * arg3->y - v[1].y;
+    v[1].z = d * arg3->z - v[1].z;
+    v[0].x = *(f32 *)(arg0 + 0x3BC);
+    v[0].y = *(f32 *)(arg0 + 0x3C0);
+    v[0].z = *(f32 *)(arg0 + 0x3C4);
+    d = v[0].z * arg3->z + (v[0].y * arg3->y + v[0].x * arg3->x);
+    v[0].x = d * arg3->x - v[0].x;
+    v[0].y = d * arg3->y - v[0].y;
+    v[0].z = d * arg3->z - v[0].z;
+    if (bu_e2d0_k9a0 < (f64)func_00000000_4948_ff(v[0].z * v[0].z + (v[0].y * v[0].y + v[0].x * v[0].x))) {
+        dot = v[1].z * v[0].z + (v[1].y * v[0].y + v[1].x * v[0].x);
+        func_00000000(&v[0], arg3);
+        lim = *(f32 *)(arg0 + 0x9FC);
+        s = dot * *(f32 *)(arg0 + 0x9F8);
+        if (s < -lim) {
+            s = -lim;
         }
-        if (temp_f2_3 < var_f0) {
-            var_f0 = temp_f2_3;
+        if (lim < s) {
+            s = lim;
         }
-        temp_f0_3 = var_f0 * (1.0f + (int)arg4);
-        sp58 *= temp_f0_3;
-        sp5C *= temp_f0_3;
-        sp60 *= temp_f0_3;
-        ((GP_0000E2D0)func_00000000)(temp_f12, arg0, arg1, &sp58);
+        s *= 1.0f + arg4;
+        v[0].x *= s;
+        v[0].y *= s;
+        v[0].z *= s;
+        func_00000000(arg0, arg1, &v[0]);
     }
 }
 #else
