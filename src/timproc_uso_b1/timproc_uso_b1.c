@@ -1138,22 +1138,32 @@ void timproc_uso_b1_func_00001BCC(char *arg0) {
     gl_func_00000000(arg0);
 }
 
+/* In-unit jal aliases (agent-c 2026-10-16): the ROM ships these four callers'
+ * jal fields pre-filled with the module-relative targets 0x83C/0x878/0x8B4/
+ * 0x90C. Each alias is pinned to its target in undefined_syms_auto.txt and the
+ * b1 block rule bakes it (bake-data-relocs.py --bake-jal-pinned), as the
+ * linker does for the same convention in linked units. A `static` callee
+ * does not work here: the TU starts at block 0xB0 (region-0 -O0 .o first). */
+extern void timproc_uso_b1_func_0000083C_jal(int *dst);
+extern void timproc_uso_b1_func_00000878_jal(float *dst);
+extern void timproc_uso_b1_func_000008B4_jal(Quad4 *dst);
+extern void timproc_uso_b1_func_0000090C_jal(Vec3 *dst);
 void timproc_uso_b1_func_00001E44(char *dst) {
     int tmp;
-    timproc_uso_b1_func_0000083C(&tmp);
-    timproc_uso_b1_func_0000083C((int*)(dst + 0x10));
+    timproc_uso_b1_func_0000083C_jal(&tmp);
+    timproc_uso_b1_func_0000083C_jal((int*)(dst + 0x10));
 }
 
 void timproc_uso_b1_func_00001E74(char *dst) {
     int tmp;
-    timproc_uso_b1_func_0000083C(&tmp);
-    timproc_uso_b1_func_00000878((float*)(dst + 0x10));
+    timproc_uso_b1_func_0000083C_jal(&tmp);
+    timproc_uso_b1_func_00000878_jal((float*)(dst + 0x10));
 }
 
 void timproc_uso_b1_func_00001EA4(char *dst) {
     int tmp;
-    timproc_uso_b1_func_0000083C(&tmp);
-    timproc_uso_b1_func_000008B4((Quad4*)(dst + 0x10));
+    timproc_uso_b1_func_0000083C_jal(&tmp);
+    timproc_uso_b1_func_000008B4_jal((Quad4*)(dst + 0x10));
 }
 
 /* timproc_uso_b1_func_00001ED4: 36-insn (0x90) constructor — BYTE-IDENTICAL
@@ -1190,8 +1200,8 @@ void *timproc_uso_b1_func_00001ED4(int *arg0) {
 
 void timproc_uso_b1_func_00001F64(char *dst) {
     int tmp;
-    timproc_uso_b1_func_0000083C(&tmp);
-    timproc_uso_b1_func_0000090C((Vec3*)(dst + 0x10));
+    timproc_uso_b1_func_0000083C_jal(&tmp);
+    timproc_uso_b1_func_0000090C_jal((Vec3*)(dst + 0x10));
 }
 /* 3-word trailing pad sidecar (emits exactly; >=2-word blocks are safe).
  * The old P0 "LEN -0xC" triage blamed this region incorrectly: the real

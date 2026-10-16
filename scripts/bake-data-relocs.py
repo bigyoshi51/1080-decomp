@@ -21,13 +21,21 @@ linker symbol file (undefined_syms_auto.txt: `NAME = 0xVALUE;`). This is a
 no-op for %lo=0 refs (e.g. &D_00000000), so it does not disturb existing
 splits whose data refs all resolve to 0.
 
-Usage: bake-data-relocs.py <elf.o> <text.bin> <undefined_syms.txt>
+Usage: bake-data-relocs.py <elf.o> <text.bin> <undefined_syms.txt> [--bake-jal-pinned]
 The .text binary is modified in place.
+
+--bake-jal-pinned (opt-in, per block rule): also fill R_MIPS_26 fields whose
+symbol is UNDEFINED in the .o and pinned in undefined_syms (the in-unit jal
+alias convention: an alias pinned to the module-relative target the ROM ships
+pre-filled, e.g. timproc b1 `timproc_uso_b1_func_0000083C_jal = 0x83C`). This
+is what the linker does for the same alias in a directly linked unit. Defined
+symbols and unpinned names (imports, jal 0) stay raw.
 """
 import sys, struct
 from elftools.elf.elffile import ELFFile
 from elftools.elf.constants import SH_FLAGS
 
+R_MIPS_26 = 4
 R_MIPS_HI16 = 5
 R_MIPS_LO16 = 6
 
@@ -56,6 +64,7 @@ def sext16(x):
 
 def main():
     elf_path, bin_path, syms_path = sys.argv[1], sys.argv[2], sys.argv[3]
+    bake_jal = "--bake-jal-pinned" in sys.argv[4:]
     linker_syms = parse_syms_file(syms_path)
 
     with open(elf_path, "rb") as f:
@@ -96,6 +105,10 @@ def main():
             val = None
             if rtype in (R_MIPS_HI16, R_MIPS_LO16):
                 val = symval(r["r_info_sym"])
+            elif rtype == R_MIPS_26 and bake_jal:
+                sym = symtab.get_symbol(r["r_info_sym"])
+                if sym["st_shndx"] == "SHN_UNDEF" and sym.name in linker_syms:
+                    val = linker_syms[sym.name]
             relocs.append((r["r_offset"], rtype, val))
 
     data = bytearray(open(bin_path, "rb").read())
@@ -122,7 +135,11 @@ def main():
             pending_hi = []
             v = val + sext16(lo_imm)
             wr(off, v & 0xFFFF)
-        # R_MIPS_26 and everything else: leave raw (USO load-time relocs)
+        elif rtype == R_MIPS_26 and val is not None:
+            w = struct.unpack(">I", data[off : off + 4])[0]
+            field = ((w & 0x03FFFFFF) + (val >> 2)) & 0x03FFFFFF
+            data[off : off + 4] = struct.pack(">I", (w & 0xFC000000) | field)
+        # other R_MIPS_26 and everything else: leave raw (USO load-time relocs)
 
     if pending_hi:
         raise SystemExit(

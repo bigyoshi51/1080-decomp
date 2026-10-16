@@ -1808,10 +1808,15 @@ build/assets/game_uso_block1_yay0.bin: build/src/game_uso/game_uso.c.o
 # timproc_uso code blocks (1: 55 fn, 3: 55 fn, 5: 99 fn). Blocks 1 and 3 each
 # open with a contiguous -O0 run (0x0..0xB0) carved into a region-0 sub-unit;
 # concatenated with the -O2 main object before compression (Yay0 split infra).
-build/assets/timproc_uso_block1_yay0.bin: build/src/timproc_uso_b1/timproc_uso_b1_o0_0.c.o build/src/timproc_uso_b1/timproc_uso_b1.c.o
+# b1: both regions bake HI16/LO16 data relocs (pins in undefined_syms_auto.txt =
+# the module's Data/BSS offsets). Region 1 also bakes R_MIPS_26 against pinned
+# in-unit jal aliases (--bake-jal-pinned); other jals stay raw (agent-c 2026-10-16).
+build/assets/timproc_uso_block1_yay0.bin: build/src/timproc_uso_b1/timproc_uso_b1_o0_0.c.o build/src/timproc_uso_b1/timproc_uso_b1.c.o undefined_syms_auto.txt
 	@mkdir -p $(dir $@)
 	$(OBJCOPY) -O binary --only-section=.text $(word 1,$^) $(@:.bin=.text0.bin)
+	python3 scripts/bake-data-relocs.py $(word 1,$^) $(@:.bin=.text0.bin) undefined_syms_auto.txt
 	$(OBJCOPY) -O binary --only-section=.text $(word 2,$^) $(@:.bin=.text1.bin)
+	python3 scripts/bake-data-relocs.py $(word 2,$^) $(@:.bin=.text1.bin) undefined_syms_auto.txt --bake-jal-pinned
 	cat $(@:.bin=.text0.bin) $(@:.bin=.text1.bin) > $(@:.bin=.text.bin)
 	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert d[n:]==b'\x00'*len(d[n:]), ('nonzero discarded tail', hex(len(d)), d[n:].hex()); d=d[:n]+b'\x00'*(n-len(d)); open(f,'wb').write(d)" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@

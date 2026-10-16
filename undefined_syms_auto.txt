@@ -2691,7 +2691,8 @@ D_7507C_acc = 0x00000000;
 D_7507C_prev = 0x00000000;
 gl_dref_00045290 = 0x00045290;
 D_1DB0_dbls = 0x00000000;
-D_arg_b1_1130 = 0x00000190;
+/* D_arg_b1_1130: 0, the C already spells [0x190/4] (the b1 block bake would double it) */
+D_arg_b1_1130 = 0x00000000;
 D_cur_b1_1130 = 0x00000000;
 /* timproc b3 10E4: C indexes [0x190/4], so the base is 0 (block bake) */
 D_arg_b3_10E4 = 0x00000000;
@@ -3824,3 +3825,14 @@ D_b3_23E4_d8 = 0x00000000;
 D_b3_23E4_d9 = 0x00000000;
 gl_func_00034458_55C34 = 0x00000000;
 game_libs_func_00062F08_55C34 = 0x0006A620;
+/* timproc_uso_b1 block bake: names with no pin yet, 0 = the raw addend the ROM already has */
+D_b1_1FE4_a = 0x00000000;
+D_b1_1FE4_b = 0x00000000;
+D_b1_1FE4_c = 0x00000000;
+D_00000000_raw = 0x00000000;
+timproc_uso_b1_func_000000B0_rodata = 0x00000000;
+/* timproc_uso_b1 in-unit jal aliases, baked by the b1 block rule (ROM words 0x0C00020F/21E/22D/243) */
+timproc_uso_b1_func_0000083C_jal = 0x0000083C;
+timproc_uso_b1_func_00000878_jal = 0x00000878;
+timproc_uso_b1_func_000008B4_jal = 0x000008B4;
+timproc_uso_b1_func_0000090C_jal = 0x0000090C;
