@@ -10393,8 +10393,8 @@ int gl_func_0003F730(int *a0, int a1, int a2) {
 //       untouched in $a1 by the first call -> no home store, zero insns
 //       (an unused named int param always gets a dead `sw a1` home; only a
 //       first-call pass-through erases it).
-//   Stays NM: all 7 callees are placeholder jal 0x0 USO relocs.
-#ifdef NON_MATCHING
+//   EXACT: unwrapped 2026-10-16 (all 7 callees are gl_func_00000000, a
+//   real symbol at 0, so each jal links to the ROM word).
 extern int gl_func_00000000();
 int gl_func_0003F7A8(void *a0, int a1, int a2, int a3, int a4) {
     char buf[0x98];
@@ -10412,9 +10412,6 @@ int gl_func_0003F7A8(void *a0, int a1, int a2, int a3, int a4) {
     }
     return *(int *)&buf[0x48];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F7A8);
-#endif
 
 /* gl_func_0003F82C: 21-insn 3-call helper with large stack buffer. */
 int gl_func_0003F82C(int a0, int a1) {
