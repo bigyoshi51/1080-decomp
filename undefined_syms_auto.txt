@@ -3756,3 +3756,6 @@ D_gl66850_h5 = 0x00000000;
 gl_func_00062F64_652D8 = 0x00000000;
 /* gl_func_00068B04: base-0 dispatch table placeholder (lui 0; addiu 0) */
 D_gl68B04 = 0x00000000;
+/* gl_func_000695F4: blank USO jal alias of the in-unit gl_func_00062F64, and the base-0 vtable store address */
+gl_func_00062F64_695F4 = 0x00000000;
+D_sym_695F4 = 0x00000000;

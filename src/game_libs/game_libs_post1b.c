@@ -5246,7 +5246,6 @@ void gl_func_000693A4(char *arg0, char *arg1, s32 arg2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000693A4);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_000695F4: 37-insn alloc-or-init + sym-store + sentinel-branch (0x94, frame 0x18).
  *
  * Decoded structure (raw-word disasm):
@@ -5289,20 +5288,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000693A4);
  *     `bne a3,at,store` with the addiu in the delay (was beq+b, +2 insns).
  * (3) tail store order `a0[0x90]=a2; a0[0x38]=0;` -> as1 re-emits the
  *     target order sw zero,0x38 / sw t7,0x90 but hoists the a2 home
- *     reload to the label head (source order only moves the lw). */
+ *     reload to the label head (source order only moves the lw).
+ * 2026-10-16 agent-g: UNWRAPPED. The three in-unit gl_func_00062F64 calls go
+ * through the blank alias gl_func_00062F64_695F4 and D_sym_695F4 is pinned to 0
+ * (both in undefined_syms_auto.txt); every ROM word is a base-0 load-time reloc. */
+extern int gl_func_00062F64_695F4();
 int* gl_func_000695F4(int *a0, int a1, int a2) {
     extern int D_00000000;
     extern int D_sym_695F4;
     int *v1;
     if (a0 == 0) {
-        a0 = (int*)gl_func_00062F64(0x98);
+        a0 = (int*)gl_func_00062F64_695F4(0x98);
         if (a0 == 0) goto end;
     }
-    gl_func_00062F64(a0, (char*)&D_00000000 + 0x2C5A8);
+    gl_func_00062F64_695F4(a0, (char*)&D_00000000 + 0x2C5A8);
     a0[0x28 / 4] = (int)&D_sym_695F4;
     v1 = (int*)((char*)a0 + 0x48);
     if (a0 != (int*)-72) goto store;
-    v1 = (int*)gl_func_00062F64(4);
+    v1 = (int*)gl_func_00062F64_695F4(4);
     if (v1 == 0) goto after_store;
 store:
     *v1 = 0;
@@ -5312,9 +5315,6 @@ after_store:
 end:
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000695F4);
-#endif
 
 /* gl_func_00069688: constructor — stores arg1 at self->0x38 (logs via cb(0x2C5B0)
  * if already set), allocates 3 buffers sized n*6/n*6/n*2 (n=arg2->0x40) into
