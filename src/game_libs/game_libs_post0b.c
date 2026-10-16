@@ -30158,12 +30158,15 @@ int game_libs_func_0005CA78(Aabb_5CA78 *a, Aabb_5CA78 *b) {
     return 0;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0005CB68: plane from 3 points. out[0..2] = normalize(cross(b-a, c-a))
- * (normalize = USO-relocated jal 0, spelled gl_func_00034458), out[3] = dot(n, a).
+ * (normalize = USO-relocated jal 0), out[3] = dot(n, a).
+ * EXACT (unwrapped 2026-10-16): normalize is called through the blank alias
+ * gl_func_00034458_5CB68 (= 0 in undefined_syms_auto.txt); calling the in-unit
+ * gl_func_00034458 directly would link 0x34458 into the ROM's `jal 0`.
  * Vec3 struct locals stay memory-homed (IDO never registerizes aggregates):
  * v1@0x74 v2@0x68, cross result n@0x38, then two whole-struct copies
  * n->t1@0x4C->t2@0x24 (int lw/sw) and a memberwise float store-out. */
+extern int gl_func_00034458_5CB68(); /* blank alias (= 0): ROM jal word is jal 0 */
 typedef struct { f32 x, y, z; } Vec3_5CB68;
 typedef struct { Vec3_5CB68 n; f32 d; } Plane_5CB68;
 void gl_func_0005CB68(Plane_5CB68 *pl, Vec3_5CB68 *a, Vec3_5CB68 *b, Vec3_5CB68 *c) {
@@ -30193,12 +30196,9 @@ void gl_func_0005CB68(Plane_5CB68 *pl, Vec3_5CB68 *a, Vec3_5CB68 *b, Vec3_5CB68 
     pl->n.x = t2.x;
     pl->n.y = t2.y;
     pl->n.z = t2.z;
-    gl_func_00034458(pl);
+    gl_func_00034458_5CB68(pl);
     pl->d = pl->n.x * a->x + pl->n.y * a->y + pl->n.z * a->z;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CB68);
-#endif
 
 void game_libs_func_0005CCC4(float *a0, float *a1) {
     a1[0] = -a0[0];
