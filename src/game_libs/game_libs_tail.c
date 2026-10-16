@@ -2196,7 +2196,6 @@ end:
     return 0;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0000CB9C: 22-insn bounds-check + dispatch. Body:
  *   if (a0[0x30] < a0[0x34]) return 0;
  *   if (a0[0x78]) { func(a0[0x78]); a0[0x30] = a0[0x34] - 8; }
@@ -2216,7 +2215,11 @@ end:
  * bnezl-merged-into-epilogue idiom. ALSO target has a DEAD `move v0,zero`
  * at +0x40, between the b's delay (li v0,1) and the epilogue — vestigial
  * from an optimizer-tail-merged null-ptr return-0 path that no clean C
- * source reproduces. Both caps stack; documented NM only. */
+ * source reproduces. Both caps stack; documented NM only.
+ * 2026-10-16 agent-g: the analysis above is STALE. The body below compiles
+ * word-identical to the target (21/21 words, no-alias disasm equal, including
+ * the bnezl-to-epilogue and the dead `move v0,zero`); the only reloc is the
+ * jal to gl_func_00000000 (real fn at game_libs VRAM 0). UNWRAPPED. */
 extern int gl_func_00000000();
 int gl_func_0000CB9C(int *a0) {
     int p;
@@ -2235,9 +2238,6 @@ int gl_func_0000CB9C(int *a0) {
 retzero:
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CB9C);
-#endif
 
 
 #ifdef NON_MATCHING
