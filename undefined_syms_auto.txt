@@ -3776,3 +3776,7 @@ func_00000000_2F90_f = 0x00000000;  /* func_00002F90 prototyped (char*,char*,flo
 gl_func_00000000_d9e4b = 0x00000000;
 /* game_libs_func_0001FFAC blank alias for the in-unit reporter gl_func_0001CA10 (ROM word is jal 0) */
 gl_func_0001CA10_1FFAC = 0x00000000;
+/* gl_func_0004EB54 blank alias for the in-unit callee gl_func_00034458 (ROM words are jal 0) */
+gl_func_00034458_4EB54 = 0x00000000;
+/* gl_func_0004EB54 register-self slot, per-site alias of D_00000000 (target lui at / sw s0,0(at)) */
+D_g_0004EB54 = 0x00000000;

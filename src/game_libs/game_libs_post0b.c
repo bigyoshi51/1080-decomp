@@ -21329,8 +21329,11 @@ void game_libs_func_0004EB28(int *a0) {
 /* Split off from gl_func_0004E96C bundle 2026-05-08: 2-insn save-arg sentinel. */
 void game_libs_func_0004EB4C(int a0) {}
 
-// gl_func_0004EB54 — BYTE-EXACT under NM build (0x190 / 100 words; placeholder
-// callees/symbols so stays NM wrap, no episode). Raw-.word
+// gl_func_0004EB54 — EXACT (unwrapped 2026-10-16; 0x190 / 100 words).
+// Every `jal` in the ROM is `jal 0`, but gl_func_00034458 is defined in this
+// directly linked unit, so the body calls it through the blank alias
+// gl_func_00034458_4EB54 (= 0 in undefined_syms_auto.txt). The &D_00000000+K
+// HI/LO pairs and D_g_0004EB54 resolve to absolute 0 + K. Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
 // (saves ra, s0). Flag-gated init + diagnostic + vtable-dispatch (cbN =
 // jal 0 USO-relocated; diag strings &D_0002 05D0 / 05D4).
@@ -21370,11 +21373,11 @@ void game_libs_func_0004EB4C(int a0) {}
 // the 5-lane scale is a for(i=0;i<5;i++) loop — IDO peels i=0 (constant s0
 // offsets) then 4x-unrolls with the induction base li 1/sll/addu kept
 // (word-scaled-arithmetic shape).
-#ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_0004EB54)();
+extern int gl_func_00034458_4EB54(); /* blank alias (= 0): ROM jal words are jal 0 */
 extern char *D_g_0004EB54; /* per-site alias of D_00000000 (lo16 0): register-self slot; separate name keeps the sw off the call-arg la CSE */
 void gl_func_0004EB54(char *arg0) {
     f32 temp_f0;
@@ -21386,12 +21389,12 @@ void gl_func_0004EB54(char *arg0) {
     FW(arg0, 0x11C) = 0;
     FW(arg0, 0x120) = 0;
     if (FW(arg0, 0x78) & 0x20) {
-        gl_func_00034458(((char*)&D_00000000 + 0x205D0));
-        gl_func_00034458(((char*)&D_00000000 + 0x205D4));
+        gl_func_00034458_4EB54(((char*)&D_00000000 + 0x205D0));
+        gl_func_00034458_4EB54(((char*)&D_00000000 + 0x205D4));
     }
-    gl_func_00034458(FW(arg0, 0x108));
+    gl_func_00034458_4EB54(FW(arg0, 0x108));
     D_g_0004EB54 = arg0;
-    gl_func_00034458((char*)&D_00000000);
+    gl_func_00034458_4EB54((char*)&D_00000000);
     temp_v1 = (char*)FW(arg0, 0x70);
     if (temp_v1 != 0) {
         temp_v0 = (char*)FW(temp_v1, 0x28);
@@ -21401,24 +21404,21 @@ void gl_func_0004EB54(char *arg0) {
             *(f32*)(arg0 + 0x98 + i * 4) = *(f32*)(arg0 + 0x84 + i * 4) * temp_f0;
         }
     }
-    gl_func_00034458((char*)&D_00000000, 0);
-    gl_func_00034458((char*)&D_00000000);
-    gl_func_00034458(arg0);
-    gl_func_00034458((char*)&D_00000000, arg0 + 0x30);
-    gl_func_00034458((char*)&D_00000000, 1);
-    gl_func_00034458((char*)&D_00000000);
-    gl_func_00034458((char*)&D_00000000);
-    gl_func_00034458((char*)&D_00000000);
+    gl_func_00034458_4EB54((char*)&D_00000000, 0);
+    gl_func_00034458_4EB54((char*)&D_00000000);
+    gl_func_00034458_4EB54(arg0);
+    gl_func_00034458_4EB54((char*)&D_00000000, arg0 + 0x30);
+    gl_func_00034458_4EB54((char*)&D_00000000, 1);
+    gl_func_00034458_4EB54((char*)&D_00000000);
+    gl_func_00034458_4EB54((char*)&D_00000000);
+    gl_func_00034458_4EB54((char*)&D_00000000);
     temp_v0_3 = (char*)FW(arg0, 0x28);
     ((GP_0004EB54)FW(temp_v0_3, 0x6C))(*(s16*)(temp_v0_3 + 0x68) + (int)arg0);
     if (FW(arg0, 0x78) & 0x20) {
-        gl_func_00034458(((char*)&D_00000000 + 0x205E0));
-        gl_func_00034458(((char*)&D_00000000 + 0x205E4));
+        gl_func_00034458_4EB54(((char*)&D_00000000 + 0x205E0));
+        gl_func_00034458_4EB54(((char*)&D_00000000 + 0x205E4));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004EB54);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_0004ECE4(int a0) {
