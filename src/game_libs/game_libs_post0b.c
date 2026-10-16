@@ -33895,7 +33895,6 @@ void game_libs_func_00062444(int *a0) {
     }
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00062484: 26-insn alloc-empty-slot + 21-insn lookup-by-key BUNDLE (0xBC declared).
  *
  * 2-function bundle. Real fn 1 ends at jr ra @0x68 (26 insns). Fn 2 starts
@@ -33917,7 +33916,9 @@ void game_libs_func_00062444(int *a0) {
  * with [0x0C] = in-use flag.
  *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * feedback_doc_marker_is_bail.md. The bundle split is done (the symbol is
+ * 0x68 now). EXACT: unwrapped 2026-10-16 (callee and data symbols are both
+ * at 0, so the jal and HI/LO words link to the ROM words).
  */
 int gl_func_00062484(int *self) {
     extern int D_00000000;
@@ -33939,9 +33940,6 @@ fail:
     gl_func_00000000((char *)&D_00000000 + 0x220C4);
     return -1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062484);
-#endif
 
 
 /* game_libs_func_000624EC: find the slot index whose (key1, key2) pair
