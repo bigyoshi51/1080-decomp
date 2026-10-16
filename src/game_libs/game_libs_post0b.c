@@ -25892,7 +25892,6 @@ int gl_func_000551B0(char *a0) {
     return gl_ref_00065C68(a0 + 0x10);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_000551E0: 2026-07-18 WORD-EXACT (31/31; was 65.3%). Twin-scan
  * +/-1-word extension: raw-word IDENTICAL to the exact gl_func_00035A18
  * dispatcher family (35A18/3A044/3EBDC/3EC5C, agent-f 2026-07-15) except
@@ -25907,7 +25906,10 @@ int gl_func_000551B0(char *a0) {
  * compiled fn emits its own delay nop (0x80) but expected region is
  * fn+2 zeros = 0x84 with the next fn at a non-8-aligned 0x20e0c; both
  * pad-kept (0x88) and pad-dropped (0x80) linked layouts shift the ROM.
- * Stays NM wrap at word-exact, no episode. */
+ * Stays NM wrap at word-exact, no episode.
+ * Unwrapped EXACT 2026-10-16 (run 97): the C5B0 recipe -- the _pad.s block is
+ * gone and the trailing alignment nop is an all-zero SUFFIX_BYTES_FORCE word
+ * (both builds, Makefile), so the region is C 0x80 + 4 = 0x84 as in the ROM. */
 int gl_func_000551E0(char *a0) {
     char *arg;
     char *v1;
@@ -25927,10 +25929,6 @@ int gl_func_000551E0(char *a0) {
     }
     return fnptr(arg);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000551E0);
-#endif
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000551E0_pad.s")
 
 extern int gl_func_00000000();
 void gl_func_00055264(char *a0) {
