@@ -19805,9 +19805,9 @@ void game_libs_func_0004CFC4(int a0, int a1, int a2) {
  *  4. SAME-LINE JOIN `pb = ...; pa = ...;` on ONE line: as1's debug-line
  *     tie-break emits pa's addu before pb's (C8AC lever) while keeping
  *     pb's sll first (t8/t9 ring order).
- * NOT LANDABLE: gl_func_00000000 placeholder callee. Stays NM. */
+ * EXACT: unwrapped 2026-10-16 (gl_func_00000000 is a real symbol at 0, so
+ * the placeholder jal links to the ROM word). */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
 void gl_func_0004CFD4(int *a0, int a1, int a2, int *pa) {
     volatile int **vparg0 = (volatile int **)&a0;
     volatile int *vparg1 = (volatile int *)&a1;
@@ -19820,9 +19820,6 @@ void gl_func_0004CFD4(int *a0, int a1, int a2, int *pa) {
     (void)vparg0;
     (void)vparg1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CFD4);
-#endif
 
 /* 6-insn indexed read leaf. BYTE-EXACT C FOUND 2026-06-10 (6/6, 0
  * diffs): the "register-rename cap" falls to the ARRAY-INDEX form --
