@@ -3996,8 +3996,7 @@ void game_libs_func_00038294(int a0) {
 //   descriptor-copy — not exact-matchable without proper USO
 //   mnemonic disasm + the structs/templates typed; structural
 //   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
-#ifdef NON_MATCHING
+// (Superseded: the C body below is now the build path, EXACT.)
 /* gl_func_0003829C — 49 words, 8 diffs (was 14). VERIFIED vs
  * asm/nonmatchings/game_libs/game_libs/gl_func_0003829C.s
  *
@@ -4023,7 +4022,9 @@ void game_libs_func_00038294(int a0) {
  * Two scalar-copy statements let uopt CSE the address into $v0 instead.
  * Raw residual = reloc-masked lui/addiu immediates only (D_3829C_1EA30 baked
  * 0x1EA30 in target; = 0x0001EA30 via undefined_syms). objdiff 100.
- * NOT LANDABLE: gl_func_00000000 placeholder callees + baked USO addends. */
+ * Unwrapped EXACT 2026-10-16 (run 96): the only .o words that differ from
+ * expected/ are the lui/addiu pair against D_3829C_1EA30, pinned to its real
+ * offset 0x1EA30, so the link reproduces the ROM's 0x0002 / 0xEA30. */
 typedef struct { int a, b; } Pair3829C;
 void gl_func_0003829C(int *arg0) {
     int saved = arg0[3];
@@ -4047,9 +4048,6 @@ void gl_func_0003829C(int *arg0) {
     }
     gl_func_00000000((char *)&D_00000000, saved, a2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003829C);
-#endif
 
 // gl_func_00038360 — STRUCTURAL PASS (0x238 / 142 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
