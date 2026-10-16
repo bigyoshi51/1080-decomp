@@ -7265,8 +7265,7 @@ end:
     return (int)a0;
 }
 
-// gl_func_0003C86C — BYTE-EXACT under NM build (objdiff 100, 2026-07-17;
-//   placeholder-typed FW/SH body so it stays an NM wrap, no episode).
+// gl_func_0003C86C — EXACT (objdiff 100 since 2026-07-17; unwrapped 2026-10-16).
 //   Decode keys: the sp+0x80/sp+0x40 scratches are ONE 0x40-byte contact
 //   struct each (normal f32[3] at +0, partner ptr at +0x28 — the 0xC0 frame
 //   tiles exactly as two of them); mask-AND operands must be spelled in
@@ -7313,8 +7312,8 @@ end:
 //   old "not exact-matchable" claim was wrong — the blockers were the
 //   separate-f32 scratch locals letting IDO cache y/z in f22/f24, plus
 //   mask-AND operand order.)
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
-#ifdef NON_MATCHING
+// Unwrapped 2026-10-16 (agent-c): the C body is the build path (raw .text slice word-identical
+//   to expected/, no relocs).
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -7393,9 +7392,6 @@ void gl_func_0003C86C(char *arg0) {
         } while (var_s1 != 0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C86C);
-#endif
 
 void game_libs_func_0003CA80(int *a0, int *a1) { *(int*)((char*)a1 + 4) = *(int*)((char*)a0 + 0x2C); *(int*)((char*)a0 + 0x2C) = (int)a1; }
 
