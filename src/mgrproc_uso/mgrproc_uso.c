@@ -1051,7 +1051,6 @@ void mgrproc_uso_func_00001C90(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001C90);
 #endif
 
-#ifdef NON_MATCHING
 /* mgrproc_uso_func_00001F30: physics/bounce animation step (gated on arg0->0x4F0
  * bit-16). By state arg0->0x4E0: state 1 integrates 0x7A8 with dbl-precision vel
  * 0x7B8 (+&D+0x5E0), bounce off 36.0 floor; state 3 (sub-state 0x4F8) integrates
@@ -1077,7 +1076,11 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001C9
  * call's arg0 is &import_8024CAF8, not 0 (+1.3pp, also restores the bc1f+nop
  * form). Residual 0.26% = USO placeholder reloc names only (ldc1 %lo vs baked
  * import_802643xx words; jal placeholders) — at the placeholder ceiling.
- * Structs + cb proto untyped (USO-reloc). NON_MATCHING. */
+ * Structs + cb proto untyped (USO-reloc).
+ * Unwrapped 2026-10-16 (agent-g): the residual was only the four ldc1 %lo
+ * immediates; D_dbl_5E0/5E8/5F8/600 are pinned to their real pool offsets
+ * in undefined_syms_auto.txt, and bake-data-relocs.py writes them into the
+ * Yay0 block, so the block equals the ROM. */
 extern int gl_func_00000000();
 extern char import_8024CAF8;
 extern double D_dbl_5E0, D_dbl_5E8, D_dbl_5F8, D_dbl_600;
@@ -1153,9 +1156,6 @@ void mgrproc_uso_func_00001F30(char *arg0) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001F30);
-#endif
 
 /* mgrproc_uso_func_00002294: 36-insn (0x90) FPU-gated state-update. MATCHED
  * 2026-05-31 (78.2 -> 100%). Three fixes over the prior cap-wrap: (1) the &D FP
