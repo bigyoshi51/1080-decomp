@@ -1736,111 +1736,108 @@ end:
 //   classic coloring/two-saved-reg barrier. Genuine type/value/CSE bugs all fixed.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 #ifdef NON_MATCHING
+/* 2026-10-16 agent-c rewrite: gate read through D_00000064 (pinned 0x64 ==
+ * func_00000044+0x20, folds into the lw like the target); the two cfg->0x10
+ * reads stay separate because the second is read as u32 (one type CSEs them);
+ * D_00007324 is passed as a 4-byte struct by value (`tb.w = D; f(.., tb, ..)`
+ * gives the target `sw a1,56(sp); sw a1,4(sp)`); ONE reused `s0` pointer var
+ * for cfg / vtable desc / FP field pointers (the target keeps it in s0 and
+ * does not fold `&cam->f` into the lwc1/swc1). Residual: that var colours a3
+ * here (target s0, second saved reg) and the FP pointers fold; the `r`
+ * latch slot lands at sp+0x30 (target 0x4C). Decl order p/pad/tb/r/t0/k
+ * puts p, tb and the k spill at the target 0x40/0x38/0x2C. 80.6 -> 90.0. */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_000024B8)();
 #ifndef FF
 #define FF(p, o) (*(f32 *)((char *)(p) + (o)))
 #endif
 #ifndef FH
 #define FH(p, o) (*(s16 *)((char *)(p) + (o)))
 #endif
+extern int D_00000064;
+extern int D_24B8_tbl;
+typedef struct { int w; } W24B8;
+typedef void (*VF_24B8)();
 void func_000024B8(char *arg0) {
-    s32 sp4C;
-    char *sp40;
-    s32 sp38;
-    u32 sp2C;
-    s32 temp_a1;
-    s32 temp_s0_3;
-    s32 var_t0;
-    u32 temp_a3;
-    char *temp_s0;
-    char *temp_s0_2;
-    char *temp_s0_4;
-    char *temp_s0_5;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v0_5;
-    char *temp_v1;
-    char *var_v1;
+    char *s0;
+    char *v0;
+    char *v1;
+    char *p;
+    volatile int pad;
+    W24B8 tb;
+    int r;
+    int t0;
+    int k;
 
-    var_t0 = 0;
-    if (FW(&func_00000044, 0x20) == 1) {
-        temp_v0 = FW(arg0, 0x38);
-        sp4C = 0;
-        (char*)func_00000000((FW(temp_v0, 0x10) & 0x400) != 0, (FW(temp_v0, 0x10) & 0x1000) != 0, (s8)temp_v0[0x8], (s8)temp_v0[0x9]);
-        var_t0 = sp4C;
+    t0 = 0;
+    if (D_00000064 == 1) {
+        v0 = (char *)FW(arg0, 0x38);
+        r = 0;
+        func_00000000((FW(v0, 0x10) & 0x400) != 0, (*(u32 *)(v0 + 0x10) & 0x1000) != 0, (s8)v0[8], (s8)v0[9]);
+        t0 = r;
     }
-    if (FW(FW(arg0, 0x38), 0x18) & 0x40) {
-        var_t0 = 1;
-        FW(arg0, 0x4C) = (s32) ((FW(arg0, 0x4C) != 0) == 0);
+    s0 = (char *)FW(arg0, 0x38);
+    if (FW(s0, 0x18) & 0x40) {
+        t0 = 1;
+        FW(arg0, 0x4C) = (FW(arg0, 0x4C) != 0) == 0;
     }
     if (FW(arg0, 0x4C) != 0) {
-        char *cfg;
-        char *cam;
-        f32 *fp;
         f32 two = 2.0f;
-        if (var_t0 != 0) {
-            (char*)func_00000000((s32) arg0, 0);
-            temp_v0_2 = FW(arg0, 0x30);
-            temp_s0 = FW(temp_v0_2, 0x28);
-            ((GP_000024B8)FW(temp_s0, 0x6C))(FH(temp_s0, 0x68) + temp_v0_2, 3, 0);
+        if (t0 != 0) {
+            func_00000000(arg0, 0);
+            v0 = (char *)FW(arg0, 0x30);
+            s0 = (char *)FW(v0, 0x28);
+            ((VF_24B8)FW(s0, 0x6C))(FH(s0, 0x68) + v0, 3, 0);
             FF(FW(FW(arg0, 0x2C), 0x70), 0x14C) = 85.0f;
         }
-        cfg = FW(arg0, 0x38);
-        if (FW(cfg, 0x10) & 8) {
-            cam = FW(FW(arg0, 0x2C), 0x70);
-            if (FF(cam, 0x14C) < 120.0f) {
-                fp = (f32 *)(cam + 0x14C);
-                *fp = *fp + two;
+        s0 = (char *)FW(arg0, 0x38);
+        if (FW(s0, 0x10) & 8) {
+            v1 = (char *)FW(FW(arg0, 0x2C), 0x70);
+            if (FF(v1, 0x14C) < 120.0f) {
+                s0 = v1 + 0x14C;
+                *(f32 *)s0 = *(f32 *)s0 + two;
             }
         }
-        cfg = FW(arg0, 0x38);
-        if (FW(cfg, 0x10) & 4) {
-            cam = FW(FW(arg0, 0x2C), 0x70);
-            if (FF(cam, 0x14C) > 45.0f) {
-                fp = (f32 *)(cam + 0x14C);
-                *fp = *fp - two;
+        s0 = (char *)FW(arg0, 0x38);
+        if (FW(s0, 0x10) & 4) {
+            v1 = (char *)FW(FW(arg0, 0x2C), 0x70);
+            if (FF(v1, 0x14C) > 45.0f) {
+                s0 = v1 + 0x14C;
+                *(f32 *)s0 = *(f32 *)s0 - two;
             }
         }
-        cam = FW(FW(arg0, 0x2C), 0x70);
-        fp = (f32 *)(cam + 0x134);
-        *fp = *fp + (FF(FW(arg0, 0x38), 0x4) * two);
-        cam = FW(FW(arg0, 0x2C), 0x70);
-        fp = (f32 *)(cam + 0x138);
-        *fp = *fp + (FF(FW(arg0, 0x38), 0x0) * two);
+        v1 = (char *)FW(FW(arg0, 0x2C), 0x70);
+        s0 = v1 + 0x134;
+        *(f32 *)s0 = *(f32 *)s0 + FF(FW(arg0, 0x38), 4) * two;
+        s0 = (char *)FW(FW(arg0, 0x2C), 0x70);
+        s0 += 0x138;
+        *(f32 *)s0 = *(f32 *)s0 + FF(FW(arg0, 0x38), 0) * two;
         return;
     }
-    if (var_t0 != 0) {
-        FW(arg0, 0x48) = 0x2710;
+    if (t0 != 0) {
+        FW(arg0, 0x48) = 10000;
     }
-    temp_s0_3 = FW(arg0, 0x48);
-    FW(arg0, 0x48) = (s32) (temp_s0_3 + 1);
-    if (temp_s0_3 >= 0x3C) {
-        temp_a1 = D_00007324;
-        sp38 = temp_a1;
-        temp_v0_3 = (char*)func_00000000(*(int*)0, temp_a1, FW(arg0, 0x40) + 0xB4, 0);
-        sp40 = temp_v0_3;
-        if ((temp_v0_3 != 0) && ((int)temp_v0_3 != FW(arg0, 0x44))) {
-            temp_a3 = FW(temp_v0_3, 0x3C);
-            if ((temp_a3 >= 3U) && (temp_a3 < 0x13U)) {
-                sp2C = temp_a3;
-                (char*)func_00000000((s32) arg0, 0);
-                temp_v0_4 = FW(arg0, 0x30);
-                temp_s0_4 = FW(temp_v0_4, 0x28);
-                ((GP_000024B8)FW(temp_s0_4, 0x6C))(FH(temp_s0_4, 0x68) + temp_v0_4, sp2C, sp40);
+    s0 = (char *)FW(arg0, 0x48);
+    FW(arg0, 0x48) = (int)s0 + 1;
+    if ((int)s0 >= 0x3C) {
+        tb.w = D_00007324;
+        p = (char *)func_00000000(D_24B8_tbl, tb, FW(arg0, 0x40) + 0xB4, 0);
+        if (p != 0 && (int)p != FW(arg0, 0x44)) {
+            k = FW(p, 0x3C);
+            if ((u32)k >= 3 && (u32)k < 0x13) {
+                func_00000000(arg0, 0);
+                v0 = (char *)FW(arg0, 0x30);
+                s0 = (char *)FW(v0, 0x28);
+                ((VF_24B8)FW(s0, 0x6C))(FH(s0, 0x68) + v0, k, p);
             } else {
-                sp2C = temp_a3;
-                (char*)func_00000000((s32) arg0, 1);
-                temp_v0_5 = FW(arg0, 0x34);
-                temp_s0_5 = FW(temp_v0_5, 0x28);
-                ((GP_000024B8)FW(temp_s0_5, 0x6C))(FH(temp_s0_5, 0x68) + temp_v0_5, sp2C, sp40);
+                func_00000000(arg0, 1);
+                v0 = (char *)FW(arg0, 0x34);
+                s0 = (char *)FW(v0, 0x28);
+                ((VF_24B8)FW(s0, 0x6C))(FH(s0, 0x68) + v0, k, p);
             }
             FW(arg0, 0x48) = 0;
-            FW(arg0, 0x44) = sp40;
+            FW(arg0, 0x44) = (int)p;
         }
     }
 }
