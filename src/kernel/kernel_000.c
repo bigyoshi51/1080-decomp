@@ -1217,22 +1217,9 @@ s32 func_80000C88(void) {
  * +0x72) into out and return 2. Else iterate the D_8000A2E0 list (0x14 stride):
  * for each entry, enumerate via func_80000880/func_80000A98; on an entry whose
  * +0x4 field == id, copy its name (func_800005DC, src=entry+0xC) and return 1;
- * func_80000B34<0 aborts with D_80013004. Logic-complete, size-exact NM wrap
- * (75/75 insns, ~83%). The merged-TU 2-arg-call-vs-4-arg-def conflict on
- * func_800005DC (which forced a cast emitting lui+addiu+jalr) is solved via an
- * alias symbol (DSC, below) → direct jal. Residual (not yet matched): frame is
- * 0x98 vs target 0x90 (an 8-byte spill/temp slot this C structure allocates and
- * the target doesn't), the entry+0x4==id test canonicalizes to swapped bne
- * operands, and the list-continue flag lands in v1 vs target t3.
- * 2026-05-31 TOOL ATTEMPTS (all failed, don't repeat): (1) permuter 28k iters
- * "improved" to score 15 but its scorer NORMALIZES sp-offsets, so it's BLIND to
- * the frame-size diff (the dominant blocker) and actually GREW the frame to 0xA0
- * — permuter cannot crack a frame-size cap here; (2) `c = tbl[i+0x72]` in the
- * strcpy (vs re-reading D_80012D60[id]) REGRESSES to 72 diffs — the target
- * genuinely re-reads, original is correct; (3) swapping the bne operands
- * (`id == *(entry+4)`) is a NO-OP — IDO normalizes operand order ($s-first),
- * same cap as uso_skip_to_end. So this fn is IDO-emit-blocked from C regardless
- * of the frame; not permuter-crackable (scorer blind spot). */
+ * func_80000B34<0 aborts with D_80013004. (Old 83% NM history: the frame
+ * excess was the byte-array locals, not an IDO cap -- see the note above the
+ * definition below; the bne operand order and t3 flag resolved with it.) */
 extern s32 func_8000098C(void*);
 extern s32 func_80000B34(void*);
 /* func_800005DC is defined 4-arg earlier in this merged TU; call it 2-arg here
@@ -1241,73 +1228,57 @@ extern s32 func_80000B34(void*);
  * See docs/MATCHING_WORKFLOW.md#feedback-alias-extern-via-undefined-syms. */
 extern s32 func_800005DC_d2c(void*, void*);
 #define DSC func_800005DC_d2c
-#ifdef NON_MATCHING
+typedef struct { u8 pad_00[0x72]; u8 name[0x22]; s32 unk94; u8 pad_98[4]; } UsoLoadSlot;
+typedef struct { s32 unk0; s32 idx; s32 unk8; } UsoLoadRec;
+typedef struct { s32 unk0; s32 unk4; s32 pad[8]; } UsoLoadIter;
+typedef struct { s32 head; s32 pad[4]; } UsoLoadReq;
+/* USO directory entry yielded by func_80000A98 (record + name). */
+typedef struct { s32 unk0; s32 idx; s32 unk8; u8 name[0x18]; } UsoLoadEnt;
+
+/* func_80000D2C: EXACT 2026-10-16 (agent-g). Typed stack aggregates fix the
+ * 8-byte frame excess the byte-array body had (0x98 vs 0x90): iterator 0x28
+ * (same UsoLoadIter as func_800014A8) + entry 0x24, declared req, it, slot,
+ * i, ent, c -- IDO maps the frame top-down in declaration order and the
+ * scalar homes fill the holes, so both the aggregate sizes and the decl order
+ * matter (found by a small size x order sweep; 3 of ~150 combos are exact). */
 s32 func_80000D2C(u8 *out, s32 id) {
-  u8 iter[0x2C];
-  s32 new_var3;
-  u8 entry[0x2C];
-  u8 *new_var;
-  s32 *list;
-  u8 *tbl;
-  s32 i;
-  u8 new_var2;
-  u8 c;
-  tbl = (u8 *) D_80012D60[id];
-  new_var = tbl;
-  list = (s32 *) D_8000A2E0;
-  if (new_var != ((void *) 0))
-  {
-    c = new_var[0x72];
-    i = 0;
-    out[0] = c;
-    if (c != 0)
-    {
-      do
-      {
-        i++;
-        c = ((u8 *) D_80012D60[id])[i + 0x72];
-        out[i] = (new_var2 = c);
-      }
-      while (c != 0);
-    }
-    return 2;
-  }
-  if ((*list) != 0)
-  {
-    do
-    {
-      func_80000880(iter, list);
-      if (func_80000A98(iter, entry) != 0)
-      {
-        do
-        {
-          if (1)
-          {
-            new_var3 = *((s32 *) (entry + 0x4));
-          }
-          if (new_var3 == id)
-          {
-            func_800005DC_d2c(out, entry + 0xC);
-            return 1;
-          }
-          if (func_80000B34(iter) < 0)
-          {
-            return D_80013004;
-          }
+    UsoLoadReq *req;
+    UsoLoadIter it;
+    u8 *slot;
+    s32 i;
+    UsoLoadEnt ent;
+    u8 c;
+
+    slot = (u8 *)D_80012D60[id];
+    req = (UsoLoadReq *)D_8000A2E0;
+    if (slot != NULL) {
+        c = slot[0x72];
+        i = 0;
+        out[0] = c;
+        if (c != 0) {
+            do {
+                i++;
+                c = ((u8 *)D_80012D60[id])[i + 0x72];
+                out[i] = c;
+            } while (c != 0);
         }
-        while (func_80000A98(iter, entry) != 0);
-      }
-      func_8000098C(iter);
-      i = *((s32 *) (((u8 *) list) + 0x14));
-      list = (s32 *) (((u8 *) list) + 0x14);
+        return 2;
     }
-    while (i != 0);
-  }
-  return 0;
+    for (; req->head != 0; req++) {
+        func_80000880(&it, req);
+        while (func_80000A98(&it, &ent) != 0) {
+            if (ent.idx == id) {
+                func_800005DC_d2c(out, ent.name);
+                return 1;
+            }
+            if (func_80000B34(&it) < 0) {
+                return D_80013004;
+            }
+        }
+        func_8000098C(&it);
+    }
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80000D2C);
-#endif
 
 void func_80000E58(void) {
     D_80012C44(&D_8000A32C, &D_8000A340);
@@ -1710,10 +1681,6 @@ float func_8000149C(void) {
  * bundled .s: the old 30% NM body used raw byte arrays + an explicit
  * do/while; typed stack structs + for/while give the 0x98 frame and the
  * s3=base / s4=0x9C coloring. */
-typedef struct { u8 pad_00[0x72]; u8 name[0x22]; s32 unk94; u8 pad_98[4]; } UsoLoadSlot;
-typedef struct { s32 unk0; s32 idx; s32 unk8; } UsoLoadRec;
-typedef struct { s32 unk0; s32 unk4; s32 pad[8]; } UsoLoadIter;
-typedef struct { s32 head; s32 pad[4]; } UsoLoadReq;
 
 void func_800014A8(void) {
     UsoLoadIter it;
