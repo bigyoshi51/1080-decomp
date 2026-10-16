@@ -3795,3 +3795,6 @@ gl_d_1fbcc = 0x00000000;
 /* gl_func_000272C4 base-0 placeholders, one per store site (target lui 0 / addiu 0 each) */
 gl_d_23f98 = 0x00000000;
 gl_d_272c4 = 0x00000000;
+/* gl_func_0002D788 store / load-array base-0 placeholders (target lui 0 each) */
+D_2D788_a = 0x00000000;
+D_2D788_b = 0x00000000;

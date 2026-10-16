@@ -14961,16 +14961,12 @@ extern int D_2D788_b;
  * 2026-07-17 WORD-EXACT (agent-h): same decode fix as 2D710/2D74C —
  * one-param fn, arg passed as 3rd call arg; leading `or a2,a0,zero`
  * pulled in from 2D74C.s tail (the old "alt-entry tail" words had
- * already been re-attributed to 2D7D0.s). 15/15 words exact. Stays NM
- * wrap (jal-0 placeholder callee) — no episode. */
-#ifdef NON_MATCHING
+ * already been re-attributed to 2D7D0.s). 15/15 words exact. EXACT
+ * (unwrapped run 95): D_2D788_a/_b pinned to 0 (ROM words lui 0). */
 void gl_func_0002D788(int a0) {
     D_2D788_a = a0;
     gl_func_00000000(0x41020000, (&D_2D788_b)[a0], a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D788);
-#endif
 
 /* gl_func_0002D7D0: 24-insn 4-call wrapper that does a leading store to
  * D_0 (size 8, set up by predecessor 0x2D788's tail) then 4 sequential
