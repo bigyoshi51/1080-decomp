@@ -5022,8 +5022,8 @@ void timproc_uso_b5_func_000077D8(char *scr) {
     }
 }
 
-// timproc_uso_b5_func_000079A4 — STRUCTURAL PASS (0x188 / 98 words,
-// no episode). Raw-.word USO form (genuine code). Hand-decoded.
+// timproc_uso_b5_func_000079A4 — EXACT (0x188 / 98 words, 2026-10-16).
+// Raw-.word USO form (genuine code). Hand-decoded.
 //
 // Timing-screen fade-out / teardown + next-phase re-init handler.
 //
@@ -5058,71 +5058,60 @@ void timproc_uso_b5_func_000077D8(char *scr) {
 //     see docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C);
 //   D_000003E0 = USO static phase/handler table. func_00000000 = USO
 //   placeholder dispatcher (gate / hide / re-init).
-// 2026-05-20 Codex pass: corrected the mode gate (`D+0x34`, not
-// `scr+0x34`), countdown gate polarity, post-deactivate branch polarity,
-// vtable call arg shape (`a1 = 0`), and the re-init tail's local phase
-// table / `func(scr, phase)` chain. NATURAL CEILING: 98.32% NM (IDO CSEs
-// the fade-step base load one insn shorter than target). The historical
-// SUFFIX_BYTES + INSN_PATCH promotion was REMOVED 2026-05-23 as
-// match-faking (docs/POST_CC_RECIPES.md is DEPRECATED).
-// 2026-05-28: the CSE-bust-via-distinct-externs lever (that landed 39C8C)
-// was tried here — `&D_79A4_eps + 0x1D0` for the fade-step load — and
-// REGRESSED to 75 diffs / +2 insns. This fn references &D_00000000 in 3
-// spots (0x34 gate, 0x1D0 fade, 0xA4+slot array); splitting one base
-// shatters the shared-base CSE web and reshuffles the whole allocation.
-// The lever only works for ISOLATED single-&D loads (39C8C), not entangled
-// multi-ref ones. Stays a permanent 98.32% cap.
-#ifdef NON_MATCHING
+// 2026-10-16 (agent-g): EXACT. The "permanent 98.32% cap" was the
+// placeholder symbols, not codegen. With the real reloc names (gate =
+// import_80020098 + 0x34, slot table = import_8002013C + 0xA4) and the
+// 0x1D0 fade step left on a DIFFERENT symbol (D_00000000: the target's
+// `lui at` is not CSE'd with the a2 gate base), all 98 words line up. The
+// tail is the timproc_uso_b5_func_000080F4 sequence (8A90 / 8ABC / 87F4 /
+// 866C / 8988 / 87A0 / 6D30 / 8688). The slot index is array-indexed
+// (`((int *)(scr + 0x3E0))[i]`) because `scr + i * 4` emits the addu operands
+// reversed.
+int timproc_uso_b5_func_00008A90(int *a0);
+void timproc_uso_b5_func_00008ABC(int *a0);
+int timproc_uso_b5_func_000087F4(char *a0);
+void timproc_uso_b5_func_0000866C(int *a0);
+void timproc_uso_b5_func_00006D30(int *self);
+void timproc_uso_b5_func_00008688(char *scr, int mode);
+extern char import_8002013C;
+typedef char *(*GP_79A4)();
 void timproc_uso_b5_func_000079A4(char *scr) {
-    char *obj;
-    char *node;
-    int idx;
-    int slot;
-    int phase;
-    int next;
+    char *e;
+
     *(int *)(scr + 0x400) -= 1;
-    if (*(int *)((char *)&D_00000000 + 0x34) == 2) {
+    if (*(int *)(&import_80020098 + 0x34) == 2) {
         if (*(float *)(scr + 0x4A0) > 0.0f) {
-            *(float *)(scr + 0x4A0) -= *(float *)((char *)&D_00000000 + 0x000001D0);
+            *(float *)(scr + 0x4A0) -= *(float *)((char *)&D_00000000 + 0x1D0);
             if (*(float *)(scr + 0x4A0) < 0.0f) {
                 *(float *)(scr + 0x4A0) = 0.0f;
             }
         }
     }
     if (*(int *)(scr + 0x400) != 0) {
-        if (func_00000000(&D_00000000, 0x100) == 0) {
+        if (timproc_uso_b5_func_011E00(&import_80020098, 0x100) == 0) {
             return;
         }
     }
-
-    obj = (char *)func_00000000(scr);
-    node = *(char **)(obj + 0x28);
-    (*(void (**)(int, int))(node + 0x8C))(*(short *)(node + 0x88) + (int)obj, 0);
-    func_00000000(scr);
-    obj = (char *)func_00000000(scr);
-    node = *(char **)(obj + 0x28);
-    (*(void (**)(int, int))(node + 0x84))(*(short *)(node + 0x80) + (int)obj, 0);
-    if (func_00000000(scr) == 0) {
-        func_00000000(*(char **)(scr + 0x41C));
+    e = (char *) timproc_uso_b5_func_00008A90((int *) scr);
+    ((GP_79A4)FW(FW(e, 0x28), 0x8C))(*(s16*)((char *)FW(e, 0x28) + 0x88) + e, 0);
+    timproc_uso_b5_func_00008ABC((int *) scr);
+    e = (char *) timproc_uso_b5_func_00008A90((int *) scr);
+    ((GP_79A4)FW(FW(e, 0x28), 0x84))(*(s16*)((char *)FW(e, 0x28) + 0x80) + e, 0);
+    if (timproc_uso_b5_func_000087F4(scr) == 0) {
+        timproc_uso_b5_func_00001C08((char *) FW(scr, 0x41C));
         return;
     }
-
-    func_00000000(scr);
-    idx = *(int *)(scr + 0x3C4);
-    slot = *(int *)(scr + 0x3E0 + idx * 4);
-    *(int *)(scr + 0x3D4) = func_00000000(scr, 1, ((int *)&D_00000000)[0xA4 / 4 + slot]);
-    phase = func_00000000(scr);
-    *(int *)(scr + 0x3C8) = phase;
-    next = func_00000000(scr, phase);
-    *(int *)(scr + 0x3C4) = next;
-    *(int *)(scr + 0x3CC) = 6;
-    func_00000000(scr);
-    *(float *)(scr + 0x484) = 1.0f;
-    func_00000000(scr, 0);
+    timproc_uso_b5_func_0000866C((int *) scr);
+    FW(scr, 0x3D4) = timproc_uso_b5_func_00008988(scr, 1,
+        ((int *)(&import_8002013C + 0xA4))[((int *)(scr + 0x3E0))[FW(scr, 0x3C4)]]);
+    e = (char *) timproc_uso_b5_func_000087F4(scr);
+    FW(scr, 0x3C8) = (int) e;
+    FW(scr, 0x3C4) = timproc_uso_b5_func_000087A0(scr, e);
+    FW(scr, 0x3CC) = 6;
+    timproc_uso_b5_func_00006D30((int *) scr);
+    *(f32 *)(scr + 0x484) = 1.0f;
+    timproc_uso_b5_func_00008688(scr, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000079A4);
-#endif
 
 // timproc_uso_b5_func_00007B2C — STRUCTURAL PASS (0x308 / 194 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
@@ -9013,7 +9002,7 @@ void timproc_uso_b5_func_0000C98C(char *arg0, char *arg1, volatile int arg2, int
         *(int *)(arg0 + 0x1AC) * 24 + (int)(&timproc_uso_b5_D_807FF640 + 0x1C0), 0xFF);
     if (*(int *)&import_8002022C != 0) {
         timproc_uso_b5_func_00003FF8((int)arg0, *(int *)(arg0 + 0x74) + *(int *)(arg0 + 0x44),
-            *(int *)(arg0 + 0x8C) + a2v,
+            a2v + *(int *)(arg0 + 0x8C),
             *(int *)(arg0 + 0x1AC) * 24 + (int)(&timproc_uso_b5_D_807FF700 + 0x280), 0xFF);
     }
     sp30 = 0;
