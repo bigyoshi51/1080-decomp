@@ -24476,7 +24476,6 @@ int game_libs_func_0005318C(int *a0, int a1) {
     return a0[0x64 / 4] + a1 * 4;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_000531C0: element-offset computer. BYTE-EXACT 31/31 (2026-07-15,
  * retracts the 'not C-lever crackable' regalloc-cap verdict). Four coupled levers:
  * (1) `i = arg1; arg1 = 0;` e-split after the call -> arg1's home-slot reload
@@ -24486,7 +24485,8 @@ int game_libs_func_0005318C(int *a0, int a1) {
  * lands in recycled $t6, addu base-second); (4) FLAT halfword deref
  * `*(u16*)((char*)p + i*6)` not p[i*3] IXA -> the *6 is one strength-reduced
  * in-place chain (sll t7/subu t7/sll t7), no fresh temp at the halfword scale.
- * Stays NM: placeholder callee gl_func_00000000 (jal 0x0) + &D_00000000 data. */
+ * EXACT: unwrapped 2026-10-16 (gl_func_00000000 and D_00000000 are both
+ * symbols at 0, so the jal and HI/LO words link to the ROM words). */
 extern int gl_func_00000000();
 int gl_func_000531C0(void *arg0, int arg1) {
     unsigned short *p;
@@ -24501,9 +24501,6 @@ int gl_func_000531C0(void *arg0, int arg1) {
     }
     return i * 0xC + *(int *)((char *)arg0 + 0x58);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000531C0);
-#endif
 
 /* RGB888 palette lookup-copy (+ splat's game_libs_func_00053294 merged: the
  * "cross-jump to a shared epilogue past this fn's end" was the else arm,
