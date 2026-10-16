@@ -3731,3 +3731,4 @@ D_53C04_map = 0x00000000;  /* gl_func_00053C04 base-0 u16 remap table (lui v1; a
 D_2DE24_a = 0x00000000;  /* gl_func_0002DE24 base-0 store target (u8 a0 -> sw 0(at)) */
 D_2DE24_b = 0x00000000;  /* gl_func_0002DE24 base-0 store target (sw zero,0xC(at)), distinct so its lui is not CSE'd */
 D_2DE24_c = 0x00000000;  /* gl_func_0002DE24 base-0 final call arg (lui a1; lw a1,0(a1)) */
+import_80263D60_30 = 0x00000030;

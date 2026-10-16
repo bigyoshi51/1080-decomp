@@ -110,70 +110,42 @@ void mgrproc_uso_func_00000B5C(void) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000B5C);
 #endif
 
-#ifdef NON_MATCHING
 /* mgrproc_uso_func_00000C14: 44-insn (0xB0) state-update with conditional
- * branch. state = *(int**)(&import_80263D60 + 0x30) (global state ptr);
- * queries import_01FA1C(state->[0x6AC]->[0x4C]) and based on result either:
- *   - cond TRUE: clear state[0x504], state[0x4E0]=7, other[0x40]=5,
- *                other[0x44]=7, state[0x7D8]=1, call import_000A5938(state)
- *   - cond FALSE: other[0x40]=7, call mgrproc_uso_func_00F954(state, 0, 0)
- *   where other = &import_80020098.
- *
- * SYMBOLS RE-DERIVED 2026-06-20: the prior body used gl_func_00000000 /
- * D_C14_state / D_00000000 placeholders (relocs all WRONG). The four calls
- * are DISTINCT real targets (import_000A5A1C, import_01FA1C, import_000A5938,
- * mgrproc_uso_func_00F954) and the two bases are DISTINCT imports
- * (import_80263D60+0x30 = state-storage, import_80020098 = `other`). Body
- * below now emits the correct relocs + the 6 fresh `lw 0(v1)` state reloads
- * IDO uses (no CSE across the call/if boundaries) — front + reload count + all
- * struct offsets are byte-exact except for the cap below.
- *
- * 2026-07-03 (agent-e): 40/44 raw words (was 17/44). Both prior "caps" CRACKED:
- *  (1) LO16-FOLD on the state slot — target `lui v1,%hi; addiu v1,v1,0x30;
- *      lw 0(v1)` (form-a, 0x30 in the addiu). At -O2 `&sym+0x30` ALWAYS folds
- *      to form-b (`addiu %lo; lw 0x30`). FIX: pointer MUTATION in an `if(1)`
- *      barrier — `pp=(int**)&import_80263D60; if(1){pp+=0xC;}` per region.
- *      Mutation commits +0x30 to the addiu (form-a); the `if(1)` blocks IDO's
- *      cross-call CSE so pp rematerializes (lui+addiu) each region instead of
- *      spilling. (Plain mutation spills; struct/array/`&sym+K` all fold.)
- *  (2) `other` base held in $a3 + const-7 CSE — FIX: declare import_80020098
- *      as `extern int[]` and index it DIRECTLY (array-decay holds the base in
- *      one reg; the scalar `int *other=&sym` form refolds `lui at` per store).
- *  RESIDUAL (4 words = genuine as1/uopt SCHEDULING cap, coupled to form-a):
- *  the `if(1)` barrier introduces basic-block boundaries that perturb the
- *  scheduler in exactly 2 spots — (A) region-1 `sw ra` lands between lui/addiu
- *  (bb-split; target puts it after the addiu); (B) the 0x7D8 state reload
- *  (`lw t2`) schedules after the two `other` stores (target hoists it before).
- *  The struct/natural-global form schedules BOTH perfectly but folds to form-b
- *  (10 words + wrong baked bytes). Can't have form-a AND the natural schedule.
- *  Default build INCLUDE_ASM. */
-extern int import_80263D60;
+ * branch. state = the global state pointer at import_80263D60 + 0x30;
+ * queries mgrproc_uso_func_01FA1C(state->[0x6AC]->[0x4C]) and then either
+ *   - TRUE: state[0x504]=0, state[0x4E0]=7, other[0x40]=5, other[0x44]=7,
+ *           state[0x7D8]=1, import_000A5938(state)
+ *   - FALSE: other[0x40]=7, mgrproc_uso_func_00F954(state, 0, 0)
+ *   where other = import_80020098.
+ * 2026-10-16 EXACT: the state pointer is its OWN global. The target's
+ * `lui v1; addiu v1,v1,0x30; lw 0(v1)` is the natural held-address form of a
+ * plain `int *` global whose address is import_80263D60 + 0x30 (symbol
+ * import_80263D60_30, pinned to 0x30 in undefined_syms_auto.txt, baked by
+ * bake-data-relocs.py). Spelling it as `&import_80263D60 + 0x30` puts the
+ * 0x30 into every lw; the old if(1) pointer-mutation workaround got the
+ * offset right but split basic blocks and left two as1 schedule swaps. */
 extern int import_80020098[];
 extern int import_000A5A1C();
 extern int import_000A5938();
 extern int mgrproc_uso_func_01FA1C();
 extern int mgrproc_uso_func_00F954();
+extern int *import_80263D60_30;
 void mgrproc_uso_func_00000C14(void) {
-    int **pp;
     int v0;
-    pp = (int **)&import_80263D60; if (1) { pp += 0xC; }
-    import_000A5A1C(*pp);
-    pp = (int **)&import_80263D60; if (1) { pp += 0xC; }
-    v0 = mgrproc_uso_func_01FA1C(*(int *)((char *)((int **)*pp)[0x6AC / 4] + 0x4C));
-    pp = (int **)&import_80263D60; if (1) { pp += 0xC; }
+    import_000A5A1C(import_80263D60_30);
+    v0 = mgrproc_uso_func_01FA1C(*(int *)((char *)((int **)import_80263D60_30)[0x6AC / 4] + 0x4C));
     if (v0 != 0) {
-        (*pp)[0x504 / 4] = 0;
-        (*pp)[0x4E0 / 4] = 7;
-        (*pp)[0x7D8 / 4] = (import_80020098[0x40 / 4] = 5, import_80020098[0x44 / 4] = 7, 1);
-        import_000A5938(*pp);
+        import_80263D60_30[0x504 / 4] = 0;
+        import_80263D60_30[0x4E0 / 4] = 7;
+        import_80020098[0x40 / 4] = 5;
+        import_80020098[0x44 / 4] = 7;
+        import_80263D60_30[0x7D8 / 4] = 1;
+        import_000A5938(import_80263D60_30);
     } else {
         import_80020098[0x40 / 4] = 7;
-        mgrproc_uso_func_00F954(*pp, 0, 0);
+        mgrproc_uso_func_00F954(import_80263D60_30, 0, 0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000C14);
-#endif
 
 void mgrproc_uso_func_00000CC4(int *dst) {
     int buf[2];
