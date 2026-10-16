@@ -3725,3 +3725,6 @@ D_34240_X = 0x00000000;  /* gl_func_00034240 base-0 cb arg (cb(&X, 1)), distinct
 D_34240_Y = 0x00000000;  /* gl_func_00034240 base-0 cb arg (cb(&Y, 0)) */
 D_34240_P = 0x00000000;  /* gl_func_00034240 base-0 poll arg (s3, both poll loops) */
 D_0001E21C = 0x0001E21C;  /* gl_func_00034240 config table (lui 2; addiu -7652), real address so the first test reads lw 0(s2) */
+D_53C04_tbl = 0x00000000;  /* gl_func_00053C04 base-0 face->vertex s16 table (address hoisted to s6) */
+D_53C04_n = 0x00000000;  /* gl_func_00053C04 base-0 scalar vertex count (lui; lw 0, re-read per test) */
+D_53C04_map = 0x00000000;  /* gl_func_00053C04 base-0 u16 remap table (lui v1; addiu v1) */

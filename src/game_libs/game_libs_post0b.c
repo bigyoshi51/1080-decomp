@@ -24963,105 +24963,117 @@ void gl_func_00053A2C(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053A2C);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_00053C04: per-vertex face-normal accumulator (vertex normals).
- * Decode-corrected 2026-07 from raw .word target: the three face vertices are
- * STACK-HOMED f32[3] arrays (swc1 after each cvt, lwc1 per use; no $f20-$f30
- * callee saves), the post-cross-product call takes ONE arg, vertex-index *12 /
- * *6 scaling is UNSIGNED (multu by reg-held const), the per-vertex counts are
- * a u8 array read as (f32)(u32) (bgez+0x4f80 cvt), loop 4 walks a u16 extern
- * table and copies through a 12-byte struct carrier (lw/sw in, lwc1/swc1 out).
+ * Face vertices are stack-homed f32[3] arrays; per-vertex counts are a u8
+ * array read as (f32)(u32); loop 4 copies through a 12-byte struct carrier.
+ * EXACT 2026-10-16 (92.15 -> 100), see IDO_CODEGEN #lui-count-placeholder-sweep-44de4:
+ *  - lui-count sweep: target 6 luis vs 4. The face->vertex table, the vertex
+ *    count and the remap table were one &D_00000000 placeholder. Split into
+ *    three base-0 externs (D_53C04_tbl / _n / _map). _n is a scalar, so each
+ *    test re-reads it with its own lui (lw 0(a0)).
+ *  - frame: 10 scalar homes above counts[] (j1..j3 hold the three index-call
+ *    results), the vertex pointers inline (named ones block $a0 for the BB of
+ *    the 4th call's arg), v reused for loop 1, n for loop 4, sp4C block-scoped.
+ *  - cross product: write each SECOND product as (c - b) * (b - a); IDO swaps it.
+ *  - off = 0 inside the 2nd if (lw count before or s0; lui s6 in the delay slot).
+ *  - dead `if (i2) {}` + `if (i3) {}` after the 3rd n: index s-regs i2>i3>i1
+ *    (s3/s4/s5) and the three count addresses hoist into a1/a2.
+ *  - blocks 2/3: v and n assignments on ONE line (as1 tie: lw 0x54 first).
+ *    The line joins are load-bearing.
  */
 typedef struct { f32 x, y, z; } Vec3_53C04;
+extern s16 D_53C04_tbl[];
+extern u32 D_53C04_n;
+extern u16 D_53C04_map[];
 void gl_func_00053C04(char *arg0, s32 arg1) {
     f32 va[3];
     f32 vb[3];
     f32 vc[3];
-    u8 counts[276];
-    Vec3_53C04 sp4C;
     u32 i;
     s32 off;
     s32 i2;
     s32 i3;
     s32 i1;
-    s32 tbl;
-    s16 *p1;
-    s16 *p2;
-    s16 *p3;
     f32 *v;
     f32 *n;
+    s32 j1;
+    s32 j2;
+    s32 j3;
+    u8 counts[276];
     u8 *p;
     u16 *m;
 
     if ((FW(arg0, 0x58) == 0) || (FW(arg0, 0x54) == 0)) {
-        gl_func_00034458((char *)&D_00000000 + 0x2104C);
+        gl_func_00000000((char *)&D_00000000 + 0x2104C);
     }
-    gl_func_00034458(arg0);
+    gl_func_00000000(arg0);
     i = 0;
     off = 0;
     if (FW(arg0, 0x40) != 0) {
         p = counts;
         do {
-            char *z;
             i += 1;
             p += 1;
-            z = (char *)FW(arg0, 0x58) + off;
-            *(f32 *)(z + 0) = 0.0f;
-            *(f32 *)(z + 4) = 0.0f;
-            *(f32 *)(z + 8) = 0.0f;
+            v = (f32 *)(FW(arg0, 0x58) + off);
+            v[0] = 0.0f;
+            v[1] = 0.0f;
+            v[2] = 0.0f;
             p[-1] = 0;
             off += 12;
         } while (i < (u32)FW(arg0, 0x40));
         i = 0;
     }
-    off = 0;
     if (FW(arg0, 0x44) != 0) {
-        tbl = (s32)&D_00000000;
+        off = 0;
         do {
-            i1 = *(s16 *)(tbl + gl_func_00034458(arg0, i, 0) * 2);
-            i2 = *(s16 *)(tbl + gl_func_00034458(arg0, i, 1) * 2);
-            i3 = *(s16 *)(tbl + gl_func_00034458(arg0, i, 2) * 2);
-            p1 = (s16 *)(arg1 + (u32)i1 * 6);
-            p2 = (s16 *)(arg1 + (u32)i2 * 6);
-            p3 = (s16 *)(arg1 + (u32)i3 * 6);
-            va[0] = p1[0];
-            va[1] = p1[1];
-            va[2] = p1[2];
-            vb[0] = p2[0];
-            vb[1] = p2[1];
-            vb[2] = p2[2];
-            vc[0] = p3[0];
-            vc[1] = p3[1];
-            vc[2] = p3[2];
-            *(f32 *)(FW(arg0, 0x54) + off) = ((vb[1] - va[1]) * (vc[2] - vb[2])) - ((vb[2] - va[2]) * (vc[1] - vb[1]));
-            *(f32 *)((char *)FW(arg0, 0x54) + off + 4) = ((vb[2] - va[2]) * (vc[0] - vb[0])) - ((vb[0] - va[0]) * (vc[2] - vb[2]));
-            *(f32 *)((char *)FW(arg0, 0x54) + off + 8) = ((vb[0] - va[0]) * (vc[1] - vb[1])) - ((vb[1] - va[1]) * (vc[0] - vb[0]));
-            gl_func_00034458((char *)FW(arg0, 0x54) + off);
+            u8 *c1, *c2, *c3;
+            j1 = gl_func_00000000(arg0, i, 0);
+            i1 = D_53C04_tbl[j1];
+            j2 = gl_func_00000000(arg0, i, 1);
+            i2 = D_53C04_tbl[j2];
+            j3 = gl_func_00000000(arg0, i, 2);
+            i3 = D_53C04_tbl[j3];
+            va[0] = ((s16 *)(arg1 + (u32)i1 * 6))[0];
+            va[1] = ((s16 *)(arg1 + (u32)i1 * 6))[1];
+            va[2] = ((s16 *)(arg1 + (u32)i1 * 6))[2];
+            vb[0] = ((s16 *)(arg1 + (u32)i2 * 6))[0];
+            vb[1] = ((s16 *)(arg1 + (u32)i2 * 6))[1];
+            vb[2] = ((s16 *)(arg1 + (u32)i2 * 6))[2];
+            vc[0] = ((s16 *)(arg1 + (u32)i3 * 6))[0];
+            vc[1] = ((s16 *)(arg1 + (u32)i3 * 6))[1];
+            vc[2] = ((s16 *)(arg1 + (u32)i3 * 6))[2];
+            *(f32 *)(FW(arg0, 0x54) + off) = ((vb[1] - va[1]) * (vc[2] - vb[2])) - ((vc[1] - vb[1]) * (vb[2] - va[2]));
+            *(f32 *)((char *)FW(arg0, 0x54) + off + 4) = ((vb[2] - va[2]) * (vc[0] - vb[0])) - ((vc[2] - vb[2]) * (vb[0] - va[0]));
+            *(f32 *)((char *)FW(arg0, 0x54) + off + 8) = ((vb[0] - va[0]) * (vc[1] - vb[1])) - ((vc[0] - vb[0]) * (vb[1] - va[1]));
+            gl_func_00000000((char *)FW(arg0, 0x54) + off);
+            c1 = &counts[i1];
+            c2 = &counts[i2];
+            c3 = &counts[i3];
             v = (f32 *)(FW(arg0, 0x58) + (u32)i1 * 12);
             n = (f32 *)(FW(arg0, 0x54) + off);
             v[0] += n[0];
             v[1] += n[1];
             v[2] += n[2];
-            v = (f32 *)(FW(arg0, 0x58) + (u32)i2 * 12);
-            n = (f32 *)(FW(arg0, 0x54) + off);
+            v = (f32 *)(FW(arg0, 0x58) + (u32)i2 * 12); n = (f32 *)(FW(arg0, 0x54) + off);
             v[0] += n[0];
             v[1] += n[1];
             v[2] += n[2];
-            v = (f32 *)(FW(arg0, 0x58) + (u32)i3 * 12);
-            n = (f32 *)(FW(arg0, 0x54) + off);
+            v = (f32 *)(FW(arg0, 0x58) + (u32)i3 * 12); n = (f32 *)(FW(arg0, 0x54) + off);
+            if (i2) {}
+            if (i3) {}
             v[0] += n[0];
             v[1] += n[1];
             v[2] += n[2];
-            counts[i1] += 1;
-            counts[i2] += 1;
-            counts[i3] += 1;
+            *c1 += 1;
+            *c2 += 1;
+            *c3 += 1;
             i += 1;
             off += 12;
         } while (i < (u32)FW(arg0, 0x44));
         i = 0;
     }
     p = counts;
-    if (*(u32 *)&D_00000000 != 0) {
+    if (D_53C04_n != 0) {
         do {
             f32 f = (f32)(u32)*p;
             if (f != (float)0) {
@@ -25072,28 +25084,25 @@ void gl_func_00053C04(char *arg0, s32 arg1) {
             }
             i += 1;
             p += 1;
-        } while (i < *(u32 *)&D_00000000);
+        } while (i < D_53C04_n);
         i = 0;
     }
     if (FW(arg0, 0x40) != 0) {
-        m = (u16 *)&D_00000000;
+        m = D_53C04_map;
         do {
-            u16 idx = *m;
-            if (i != idx) {
-                f32 *dst = (f32 *)(FW(arg0, 0x58) + i * 12);
-                sp4C = *(Vec3_53C04 *)(FW(arg0, 0x58) + (u32)idx * 12);
-                dst[0] = sp4C.x;
-                dst[1] = sp4C.y;
-                dst[2] = sp4C.z;
+            if (i != *m) {
+                Vec3_53C04 sp4C;
+                n = (f32 *)(FW(arg0, 0x58) + i * 12);
+                sp4C = ((Vec3_53C04 *)FW(arg0, 0x58))[*m];
+                n[0] = sp4C.x;
+                n[1] = sp4C.y;
+                n[2] = sp4C.z;
             }
             i += 1;
             m += 1;
         } while (i < (u32)FW(arg0, 0x40));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053C04);
-#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_00054144: triangle-centroid (average of 3 vertices).
