@@ -30452,85 +30452,68 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CCF4);
 typedef char *(*GP_0005CE68)();
 extern float gl_func_00000000_5ce68a(float); /* acos-slot USO callee */
 extern float gl_func_00000000_5ce68s(float); /* sin-slot USO callee */
-/* PASS 2026-07-18 (agent-f): 66.33 -> 84.30. Quaternion slerp (Shoemake).
- * Decode-error fixes over the old m2c lift:
- *  - calls were `((f32(*)())gl_func_00034458)(...)` fn-ptr casts -> jalr via
- *    s0 + K&R f64 promotion (cvt.d.s before every call). Target uses direct
- *    jal with SINGLE-float ANSI-prototyped callees (acos/sin slots); typed
- *    per-site extern aliases restore jal + single-precision arg passing and
- *    drop 7 insns (130 -> 123 = exact insn count).
- *  - call1/call3 had a bogus 2nd arg (t): target's acos(cos) and
- *    sin(theta - t*theta2) are single-arg.
- *  - dot w-term now uses the spilled re-read (sp1C) + w-first sum assoc;
- *    spin*PI and theta+spin*PI operand orders flipped (rs=second-C-operand).
- * RESIDUAL (~16%): t (arg2, float in $a2 int reg) — target captures via
- * `mtc1 $6,$f14` (register web + own spill slot 0x50); ours coalesces the
- * `var_f14 = arg2` copy into the incoming arg home (sw $6 + lwc1 reloads),
- * which shifts the FP temp ring (f16/f18 swap, f6/f10 zero-web) and frame
- * (-104 vs -72). No C spelling found for the mtc1 capture (plain copy
- * coalesces; volatile/register negative on sibling 4D688 class). */
-void gl_func_0005CE68(char *arg0, char *arg1, f32 arg2, s32 arg3) {
-    f32 sp44;
-    f32 sp40;
-    f32 sp3C;
-    f32 sp34;
-    s32 sp30;
-    f32 sp2C;
-    f32 sp24;
-    f32 sp20;
-    f32 sp1C;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f2;
-    f32 temp_f2_2;
-    f32 temp_f8;
-    f32 var_f12;
-    f32 var_f14;
-    f32 var_f16;
-    f32 var_f18;
-    f32 var_f2;
+/* Quaternion slerp (Shoemake) with extra spins: q1 = scale0*q1 + t*q2 (flip t
+ * when the dot is negative). NM 96.6 (2026-10-16 agent-c; was 84.3 under the
+ * 2026-07-18 m2c-lift pass, 66.3 before). Frame 0x48, 123/123 words.
+ * Levers: (1) the float param t is REUSED as scale1 (`t = sin(tt)/sinom`), not
+ * copied into a local: the copy coalesced into t's incoming home (entry
+ * `sw a2` + lwc1 reloads), the reuse gives the target's `mtc1 a2,f14` capture
+ * with the swc1 spill to its home only on the call path. (2) named x = q1[0]
+ * and bx = q2[0], both re-read after the calls, colour f16/f18 (de-naming
+ * either leaves a CSE temp spilled to a frame home). (3) y/z/w named = spill
+ * homes reloaded per use; natural x,y,z,w dot order; per-site prototyped
+ * (float)->float acos/sin blank aliases (direct jal, single precision).
+ * RESIDUAL: home layout -- the target homes tt (t*theta) at 0x2C between flip
+ * and y, with y/z/w at 0x24/0x20/0x1C; here tt is unnamed (its CSE spill goes
+ * to 0x18) and y/z/w sit one slot higher. Naming tt makes 12 names (frame
+ * 0x50); folding cosom into scale0/sinom/theta/omega or de-naming x/bx all
+ * cost more than they fix. Plus f16/f18 swapped for x/bx at entry. */
+void gl_func_0005CE68(f32 *q1, f32 *q2, f32 t, s32 spin) {
+    f32 scale0;
+    f32 omega;
+    f32 sinom;
+    f32 cosom;
+    f32 theta;
+    s32 flip;
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 w;
+    f32 bx;
 
-    var_f18 = (*(f32*)((char*)arg1 + 0x0));
-    var_f16 = (*(f32*)((char*)arg0 + 0x0));
-    sp24 = (*(f32*)((char*)arg0 + 0x4));
-    sp20 = (*(f32*)((char*)arg0 + 0x8));
-    temp_f8 = (*(f32*)((char*)arg0 + 0xC));
-    var_f14 = arg2;
-    sp1C = temp_f8;
-    var_f12 = ((*(f32*)((char*)arg1 + 0xC)) * sp1C) + ((var_f16 * var_f18) + (sp24 * (*(f32*)((char*)arg1 + 0x4))) + (sp20 * (*(f32*)((char*)arg1 + 0x8))));
-    if ((f64) var_f12 < 0.0) {
-        var_f12 = -var_f12;
-        sp30 = 1;
+    bx = q2[0];
+    x = q1[0];
+    y = q1[1];
+    z = q1[2];
+    w = q1[3];
+    cosom = x * bx + y * q2[1] + z * q2[2] + w * q2[3];
+    if (cosom < 0.0) {
+        cosom = -cosom;
+        flip = 1;
     } else {
-        sp30 = 0;
+        flip = 0;
     }
-    if ((f64) (1.0f - var_f12) < (*(f64*)((char*)&D_00000000 + 0x2038))) {
-        var_f2 = 1.0f - var_f14;
+    if ((1.0f - cosom) < *(f64 *)((char *)&D_00000000 + 0x2038)) {
+        scale0 = 1.0f - t;
     } else {
-        temp_f0 = gl_func_00000000_5ce68a(var_f12);
-        sp40 = temp_f0;
-        sp34 = ((*(f32*)((char*)&D_00000000 + 0x2040)) * (f32) arg3) + temp_f0;
-        sp3C = gl_func_00000000_5ce68s(temp_f0);
-        temp_f2 = var_f14 * sp34;
-        sp2C = temp_f2;
-        temp_f2_2 = gl_func_00000000_5ce68s(sp40 - temp_f2) / sp3C;
-        sp44 = temp_f2_2;
-        temp_f0_2 = gl_func_00000000_5ce68s(sp2C);
-        var_f16 = (*(f32*)((char*)arg0 + 0x0));
-        var_f18 = (*(f32*)((char*)arg1 + 0x0));
-        sp24 = (*(f32*)((char*)arg0 + 0x4));
-        var_f2 = temp_f2_2;
-        var_f14 = temp_f0_2 / sp3C;
-        sp20 = (*(f32*)((char*)arg0 + 0x8));
-        sp1C = (*(f32*)((char*)arg0 + 0xC));
+        omega = gl_func_00000000_5ce68a(cosom);
+        theta = omega + *(f32 *)((char *)&D_00000000 + 0x2040) * (f32)spin;
+        sinom = gl_func_00000000_5ce68s(omega);
+        scale0 = gl_func_00000000_5ce68s(omega - t * theta) / sinom;
+        t = gl_func_00000000_5ce68s(t * theta) / sinom;
+        bx = q2[0];
+        x = q1[0];
+        y = q1[1];
+        z = q1[2];
+        w = q1[3];
     }
-    if (sp30 != 0) {
-        var_f14 = -var_f14;
+    if (flip) {
+        t = -t;
     }
-    (*(f32*)((char*)arg0 + 0x0)) = (f32) ((var_f2 * var_f16) + (var_f14 * var_f18));
-    (*(f32*)((char*)arg0 + 0x4)) = (f32) ((var_f2 * sp24) + (var_f14 * (*(f32*)((char*)arg1 + 0x4))));
-    (*(f32*)((char*)arg0 + 0x8)) = (f32) ((var_f2 * sp20) + (var_f14 * (*(f32*)((char*)arg1 + 0x8))));
-    (*(f32*)((char*)arg0 + 0xC)) = (f32) ((var_f2 * sp1C) + (var_f14 * (*(f32*)((char*)arg1 + 0xC))));
+    q1[0] = scale0 * x + t * bx;
+    q1[1] = scale0 * y + t * q2[1];
+    q1[2] = scale0 * z + t * q2[2];
+    q1[3] = scale0 * w + t * q2[3];
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CE68);
