@@ -15908,6 +15908,17 @@ int game_libs_func_0002E290(unsigned char *o) {
  * 0x80 (the target has 13 register-only locals in the slot gaps; we still
  * declare ~16 words), the ||-chain constant reuse (li a0,1 / beql), and FP
  * colouring. */
+/* PASS-6 2026-10-16 (agent-c, 73.94 -> 80.50 fuzzy): three more DECODE fixes.
+ * (1) o->0x8 is an f32 (target lwc1/add.s/swc1 8(s0) and `lw a3,8(s0)` straight
+ * into the float 4th arg); m2c had it as s32, adding cvt.s.w/trunc pairs.
+ * (2) the 0x0102xxxx / 0x04010900 calls pass ONE float in a1 (target mfc1 a1,
+ * no cvt.d.s): prototyped alias gl_E354_setf; the old `0x3F000000, 0x04010900,
+ * f` call had an invented first arg. (3) both jump tables re-read from the
+ * RoData relocs (scripts/extract-uso-jumptable.py --shim 0x1466C): o->0x22 is a
+ * 1..5 switch (3,4 -> event 8, else 0xC; the old `v - 1 < 5` if + inner switch
+ * emitted a compare chain), and the sp6B table is 0..10 with 0,2 -> 8, 4,6 ->
+ * 0xC, 8 -> 0x10, 10 -> 0x38, odd -> the 0x29 chain (m2c's reading was shifted
+ * by one entry). Frame/slot offsets do not affect objdiff's fuzzy score. */
 extern int gl_func_000428FC();
 extern void gl_E354_emitf(s32, s32, s32, f32, s32, s32);  /* 4th arg is a single float passed in a3 (target lw a3,120(sp)) */
 extern int gl_func_00043824(float, ...);
@@ -15928,6 +15939,7 @@ extern s32 D_raceB_E354;    /* race-mode word (v0 @123d4): 4|10 gate (distinct f
 extern s32 D_raceC_E354;    /* race word (t1 @125d8): ==0 -> increment 0x38 (switch6 case0) */
 extern s32 D_raceD_E354;    /* race word (v1 @12618): !=0,!=1,!=8 gate (distinct fresh lui) */
 extern f32 D_E354_1C330[], D_E354_1C3B0[], D_E354_1C310[];  /* per-table float arrays: target lui %hi(tbl)+addu idx+lwc1 %lo */
+extern s32 gl_E354_setf(s32, f32);  /* (cmd, single float in a1): target mfc1 a1 / lw a1, no cvt.d.s; blank jal (NM-only, like gl_E354_emitf) */
 void gl_func_0002E354(char *arg0, s32 arg1) {
     u8 sp7D;
     f32 sp78;
@@ -16063,13 +16075,13 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
                 sp78 *= *(f32 *)((char *)(arg0) + 0x58);
                 *(u8 *)((char *)(arg0) + 0x28) = (u8) ((s32) (*(u8 *)((char *)(arg0) + 0x28) + *(u8 *)((char *)(arg0) + 0x60)) >> 1);
                 if (*(u8 *)((char *)(arg0) + 0x21) == 0) {
-                    func_00000000(0x01020000, temp_f0);
+                    gl_E354_setf(0x01020000, temp_f0);
                     func_00000000(0x03020000, (s8) *(u8 *)((char *)(arg0) + 0x28));
                     func_00000000(0x90000000, 0x806);
                     func_00000000(0x0C00FF00, *(s8 *)((char *)(arg0) + 0x63));
                     temp_f10_2 = func_00000000(0x0D00FF00, 0x3000);
                 } else {
-                    func_00000000(0x01020100, temp_f0);
+                    gl_E354_setf(0x01020100, temp_f0);
                     func_00000000(0x03020100, (s8) *(u8 *)((char *)(arg0) + 0x28));
                     func_00000000(0x90000000, 0x1060);
                     func_00000000(0x0C00FF00, *(s8 *)((char *)(arg0) + 0x63));
@@ -16098,8 +16110,8 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
                 }
             }
             if (*(u8 *)((char *)(arg0) + 0x16) & 1) {
-                *(s32 *)((char *)(arg0) + 0x8) = (f32) (*(s32 *)((char *)(arg0) + 0x8) + 50.0f);
-                gl_func_00043BE4(arg0, 0, *(u8 *)((char *)(arg0) + 0x2C) - 1, *(s32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
+                *(f32 *)((char *)(arg0) + 0x8) = (f32) (*(f32 *)((char *)(arg0) + 0x8) + 50.0f);
+                gl_func_00043BE4(arg0, 0, *(u8 *)((char *)(arg0) + 0x2C) - 1, *(f32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
                 temp_f10_2 = func_00000000(arg0, (*(u32 *)((char *)&D_00000000 + 0x2154) & 7) + 0x20);
                 *(u8 *)((char *)(arg0) + 0x16) = (u8) (*(u8 *)((char *)(arg0) + 0x16) & ~1);
             }
@@ -16112,7 +16124,7 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
                     var_v0 = 3;
                     *(f32 *)((char *)(arg0) + 0x8) = (f32) ((f32) temp_v1 * 3.0f);
                     if (temp_v1 < 0xA) {
-                        *(s32 *)((char *)(arg0) + 0x8) = 0.0f;
+                        *(f32 *)((char *)(arg0) + 0x8) = 0.0f;
                     }
                     var_v0_2 = 1;
                     if (*(u8 *)((char *)(arg0) + 0x14) == 1) {
@@ -16127,25 +16139,16 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
                             var_v0 = 0;
                         }
                     }
-                    temp_v1_3 = *(u8 *)((char *)(arg0) + 0x22);
-                    temp_t9_2 = temp_v1_3 - 1;
-                    if (temp_t9_2 < 5U) {
-                        /* jtbl @data+0x16E4: byte 4,5 -> a1=8; byte 2,3 -> a1=0xC */
-                        switch (temp_v1_3) {
-                        case 4:
-                        case 5:
-                            gl_func_00043BE4(arg0, 8, var_v0, *(s32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
-                            goto block_78;
-                        case 2:
-                        case 3:
-                            gl_func_00043BE4(arg0, 0xC, var_v0, *(s32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
-                            goto block_78;
-                        }
-                    } else {
-                        gl_func_00043BE4(arg0, 0xC, var_v0, *(s32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
-block_78:
-                        goto block_81;
+                    switch (*(u8 *)((char *)(arg0) + 0x22)) {
+                    case 3: case 4:
+                        gl_func_00043BE4(arg0, 8, var_v0, *(f32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
+                        break;
+                    case 1: case 2: case 5:
+                    default:
+                        gl_func_00043BE4(arg0, 0xC, var_v0, *(f32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
+                        break;
                     }
+                    goto block_81;
                 } else {
                 /* case 3 (switch 3, flattened) */
                     if (temp_v1_2 == 0) {
@@ -16223,18 +16226,21 @@ block_83:
                         }
                     }
                     switch ((u8) sp6B) {            /* switch 5; jtbl @data+0x16F8 */
-                    case 1:                         /* switch 5 */
-                    case 3:                         /* switch 5 */
+                    case 0:
+                    case 2:
+                        var_v0_2 = 8;
+                        break;
+                    case 4:
+                    case 6:
                         var_v0_2 = 0xC;
                         break;
-                    case 5:                         /* switch 5 */
-                    case 7:                         /* switch 5 */
+                    case 8:
                         var_v0_2 = 0x10;
                         break;
-                    case 9:                         /* switch 5 */
+                    case 10:
                         var_v0_2 = 0x38;
                         break;
-                    default:                        /* switch 5 (cases 0,2,4,6,8,10) */
+                    default:                        /* odd cases */
                         temp_v1_6 = *(u8 *)((char *)(arg0) + 0x29);
                         var_v0_2 = 0x10;
                         if (temp_v1_6 != 0) {
@@ -16295,7 +16301,7 @@ block_83:
                             }
                             *(s32 *)((char *)&D_00000000 + 0x14) = 0x20;
                             *(f32 *)((char *)&D_00000000 + 0x1C73C) = temp_f10_2;
-                            func_00000000(0x3F000000, 0x04010900, temp_f10_2);
+                            gl_E354_setf(0x04010900, temp_f10_2);
                         }
                     } else {
                         temp_v0_2 = *(s32 *)((char *)&D_00000000 + 0x14);
@@ -16311,9 +16317,9 @@ block_83:
                             }
                             *(s32 *)((char *)&D_00000000 + 0x14) = (s32) (temp_v0_2 - 1);
                             *(f32 *)((char *)&D_00000000 + 0x1C73C) = temp_f14;
-                            func_00000000(0x04010900, temp_f14);
+                            gl_E354_setf(0x04010900, temp_f14);
                         } else {
-                            func_00000000(0x04010900, 0x3F800000);
+                            gl_E354_setf(0x04010900, 1.0f);
                         }
                     }
                 }
