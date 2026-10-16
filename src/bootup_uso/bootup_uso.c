@@ -9111,96 +9111,122 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CCE0);
 //   placeholder offsets — see the cap note above for the true blocker.)
 //   Real-C STRUCTURAL body below. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+/* func_0000CFA0 2026-10-16 agent-c (run 97) REWRITE, mnemonic/slot-exact except
+ * colouring. Levers: the folded func_0000023C+0x18 / func_00000080+0x64 /
+ * func_00000940+0x30,+0x38 refs are data names pinned to 0x254/0xE4/0x970/0x978
+ * (D_bu_*, need pins on unwrap); the four func_00000000 calls with a lui/addiu-0
+ * first arg take per-site D_CFA0_a..f (pin 0); `changed` is VOLATILE (target
+ * sw/lw 0x80 around every test); decl order out, changed, 3 scalars, c[4],
+ * 5 scalars, dp[3] reproduces frame 0x88 and every slot (unused scalars still
+ * take slots; the dispatch o/vt are function-level, not block-scoped); the
+ * changed&&(8B8&4) arm is the ELSE (placed at the end); `t = st+0x8E0` is set
+ * per path and spilled at 0x30 (build 0x34); the three colour halves are u8
+ * locals before the unsigned cvt. RESIDUAL: CTX temp a0 (build v1), dst / vt /
+ * flg / 8B8 v-reg swaps, dot-product load order, FP reg cycle. */
 extern char *func_cfa0(char *, int, int, int, float, float *, float);
-#define CTX (*(char **)((char *)&func_0000023C + 0x18))
+extern char D_CFA0_a, D_CFA0_b, D_CFA0_c, D_CFA0_d, D_CFA0_e, D_CFA0_f;
+/* folded func_0000023C+0x18 / func_00000080+0x64 / func_00000940+0x30,+0x38
+ * refs: data names pinned to their real addresses 0x254 / 0xE4 / 0x970 / 0x978 */
+extern char *D_bu_254_ctx;
+extern int D_bu_E4_flag;
+extern float D_bu_970_f;
+extern double D_bu_978_d;
+#define CTX D_bu_254_ctx
+#define DISPATCH_CFA0(off) { o = *(char **)(st + (off)); vt = *(char **)(o + 0x28); \
+    (*(void (**)(char *))(vt + 0x1C))(o + *(short *)(vt + 0x18)); }
 void func_0000CFA0(char *st) {
-    char *ctx;
+    float out;
+    volatile int changed;
     char *r;
-    float out_at_sp84;
-    int changed;
+    char *ctx;
+    char *p;
+    float c[4];
+    char *dst;
+    int flg;
+    char *o;
+    char *vt;
+    char *t;
     float dp[3];
-    int sp30;
+
     if ((*(int *)(st + 0xA58) & 0x2000) && CTX == *(char **)(st + 0x8DC)) return;
-    r = (char *)func_cfa0(CTX, 2,
-                          *(int *)(st + 0xB4), *(int *)(st + 0xB8),
-                          *(float *)(st + 0xBC), &out_at_sp84, 0.0f);
-    if (!r) return;
+    r = func_cfa0(CTX, 2, *(int *)(st + 0xB4), *(int *)(st + 0xB8),
+                  *(float *)(st + 0xBC), &out, 0.0f);
     *(char **)(st + 0xA40) = r;
+    if (r == 0) return;
     ctx = CTX;
-    changed = (*(float *)(ctx + 0x98) < out_at_sp84) ? 1
-              : (((int)ctx ^ *(int *)(st + 0x8DC)) != 0);
+    changed = (*(float *)(ctx + 0x98) < out) || (ctx != *(char **)(st + 0x8DC));
     if ((*(int *)(st + 0xA58) & 0x10000) && *(short *)(st + 0x9A0) == 0x61 &&
         *(short *)(st + 0x904) != 9 && *(int *)(st + 0x938) != 0) {
-        char *p, *dst, *o, *vt;
-        float c[4];
-        p = (char *)func_00000000(0, 0xD);
+        p = (char *)func_00000000(&D_CFA0_a, 0xD);
         dst = *(char **)(st + 0x8FC);
         *(int *)(dst + 0) = *(int *)(p + 0);
         *(int *)(dst + 4) = *(int *)(p + 4);
         *(int *)(dst + 8) = *(int *)(p + 8);
         func_00000000(0x10);
         c[0] = 1.0f; c[1] = 1.0f; c[2] = 1.0f;
-        c[3] = *(float *)((char *)&func_00000940 + 0x30);
-        func_00000000(0, c);
+        c[3] = D_bu_970_f;
+        func_00000000(&D_CFA0_b, c);
         func_00000000(0x10);
-        o = *(char **)(st + 0x824); vt = *(char **)(o + 0x28);
-        (*(void (**)(char *))(vt + 0x1C))(o + *(short *)(vt + 0x18));
-        p = (char *)func_00000000(0, 6);
+        DISPATCH_CFA0(0x824);
+        p = (char *)func_00000000(&D_CFA0_c, 6);
         dst = *(char **)(st + 0x8FC);
         *(int *)(dst + 0) = *(int *)(p + 0);
         *(int *)(dst + 4) = *(int *)(p + 4);
         *(int *)(dst + 8) = *(int *)(p + 8);
     }
-    if (changed && (*(int *)(st + 0x8B8) & 4)) {
-        func_00000000(st);
-        *(int *)(st + 0xA44) = 0;
-        return;
-    }
-    *(int *)(st + 0xA44) = 1;
-    if ((*(int *)(st + 0x9A8) & 2) && (*(int *)(st + 0xA58) & 0x1000) &&
-        *(int *)(st + 0xA4C)) {
-        func_00000000(*(int *)(st + 0x850), st + 0x9D8);
-        func_00000000(st);
-        func_00000000(0x11);
-        func_00000000(0, st + 0x8E0);
-        func_00000000(st);
-        func_00000000(st);
-        *(int *)((char *)&func_00000080 + 0x64) = 0;
-    } else {
-        if ((*(int *)(st + 0x8B8) & 0xA) && *(int *)(st + 0xA4C) &&
-            !(*(int *)(st + 0x9A8) & 0x400)) {
+    if (!changed || !(*(int *)(st + 0x8B8) & 4)) {
+        flg = *(int *)(st + 0x9A8);
+        *(int *)(st + 0xA44) = 1;
+        if ((flg & 2) && (*(int *)(st + 0xA58) & 0x1000) && *(int *)(st + 0xA4C)) {
+            func_00000000(*(int *)(st + 0x850), st + 0x9D8);
+            func_00000000(st);
+            func_00000000(0x11);
+            t = st + 0x8E0;
+            func_00000000(&D_CFA0_d, t);
+            func_00000000(st);
+            func_00000000(st);
+            D_bu_E4_flag = 0;
+        } else {
+          if ((*(int *)(st + 0x8B8) & 0xA) && *(int *)(st + 0xA4C) && !(flg & 0x400)) {
             func_00000000(*(int *)(st + 0x850), st + 0x9D8, dp);
             if ((double)(dp[0] * *(float *)(st + 0x9D8) + dp[1] * *(float *)(st + 0x9DC) +
-                         dp[2] * *(float *)(st + 0x9E0)) < *(double *)((char *)&func_00000940 + 0x38)) {
+                         dp[2] * *(float *)(st + 0x9E0)) < D_bu_978_d) {
                 float div255 = 255.0f;
-                *(float *)(st + 0x9E8) = (float)(unsigned int)(unsigned char)(*(unsigned char *)(st + 0xA30) / 2) / div255;
-                *(float *)(st + 0x9EC) = (float)(unsigned int)(unsigned char)(*(unsigned char *)(st + 0xA31) / 2) / div255;
-                *(float *)(st + 0x9F0) = (float)(unsigned int)(unsigned char)(*(unsigned char *)(st + 0xA32) / 2) / div255;
+                unsigned char cr = *(unsigned char *)(st + 0xA30) / 2;
+                unsigned char cg = *(unsigned char *)(st + 0xA31) / 2;
+                unsigned char cb = *(unsigned char *)(st + 0xA32) / 2;
+                *(float *)(st + 0x9E8) = (float)(unsigned int)cr / div255;
+                *(float *)(st + 0x9EC) = (float)(unsigned int)cg / div255;
+                *(float *)(st + 0x9F0) = (float)(unsigned int)cb / div255;
                 *(float *)(st + 0x9F4) = 112.0f / div255;
-                func_00000000(st + 0x9E8);
+                func_00000000(&D_CFA0_e, st + 0x9E8);
                 if (*(int *)(st + 0x8B8) & 2) {
-                    char *o, *vt;
                     func_00000000(2);
-                    o = *(char **)(st + 0x814); vt = *(char **)(o + 0x28);
-                    (*(void (**)(char *))(vt + 0x1C))(o + *(short *)(vt + 0x18));
-                    o = *(char **)(st + 0x820); vt = *(char **)(o + 0x28);
-                    (*(void (**)(char *))(vt + 0x1C))(o + *(short *)(vt + 0x18));
+                    DISPATCH_CFA0(0x814);
+                    DISPATCH_CFA0(0x820);
                 }
                 if ((*(int *)(st + 0x8B8) & 8) && *(int *)(st + 0x938) == 0) {
-                    char *o, *vt;
                     func_00000000(8);
-                    o = *(char **)(st + 0x824); vt = *(char **)(o + 0x28);
-                    (*(void (**)(char *))(vt + 0x1C))(o + *(short *)(vt + 0x18));
+                    DISPATCH_CFA0(0x824);
                 }
             }
-            *(int *)((char *)&func_00000080 + 0x64) = 0;
+            D_bu_E4_flag = 0;
+          }
+          t = st + 0x8E0;
         }
+        if (*(int *)(st + 0x8B8) & 1) {
+            func_00000000(0x11);
+        } else {
+            func_00000000(0x14);
+        }
+    } else {
+        *(int *)(st + 0xA44) = 0;
+        func_00000000(0x14);
+        t = st + 0x8E0;
     }
-    func_00000000((*(int *)(st + 0x8B8) & 1) ? 0x11 : 0x14);
-    sp30 = 0;
-    func_00000000(0, &sp30);
+    func_00000000(&D_CFA0_f, t);
     func_00000000(st);
-    func_00000000(*(int *)(*(char **)((char *)&func_0000023C + 0x18) + 0x108));
+    func_00000000(*(int *)(CTX + 0x108));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CFA0);
