@@ -3792,3 +3792,6 @@ gl_d_1fa20_b = 0x00000000;
 gl_d_1fa20_c = 0x00000000;
 /* game_libs_func_0001FBCC base-0 record-table placeholder held in s0 (target lui s0,0 / addiu s0,s0,0) */
 gl_d_1fbcc = 0x00000000;
+/* gl_func_000272C4 base-0 placeholders, one per store site (target lui 0 / addiu 0 each) */
+gl_d_23f98 = 0x00000000;
+gl_d_272c4 = 0x00000000;

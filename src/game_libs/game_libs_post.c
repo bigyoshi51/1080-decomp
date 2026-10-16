@@ -8972,11 +8972,9 @@ int gl_func_0002722C(int a0) {
 //   STALE; .s is 0x3C/15 words, ONE function). Subsystem-shutdown
 //   helper. Real-C STRUCTURAL body below per the analysis (set
 //   ready/shutdown handle &D_0+0x215C=1; jal-0 reloc(0); clear main
-//   state &D_0+0x2CF0=0). Byte-match deferred — placeholder jal-0
-//   reloc needs USO reloc infra. Name pre-checked: no extern reuse
+//   state &D_0+0x2CF0=0). Now EXACT (run 95). Name pre-checked: no extern reuse
 //   (collision-safe). gl_func_00000000 = canonical never-defined
 //   USO placeholder.
-#ifdef NON_MATCHING
 /* 48.3 -> fuzzy-100 (agent-h): all 15 words exact vs target in standalone
  * probe. Two levers stacked: (1) int-cast base arith `int g = (int)arr;`
  * unfolds the absolute store ($at-macro sw sym+0x215C form -> compiler-held
@@ -8984,7 +8982,10 @@ int gl_func_0002722C(int a0) {
  * %hi-CSE-kill (27784 osAiSetNextBuffer precedent): a SECOND zero-based
  * extern (gl_d_272c4) for the post-call store kills the cross-call value-CSE
  * that otherwise spills the base to a frame slot (frame 0x20+spill vs target
- * 0x18+remat). Stays NM wrap: callee is the jal-0 placeholder. */
+ * 0x18+remat). EXACT (unwrapped run 95): gl_func_00000000 is a real symbol
+ * at 0, and gl_d_23f98 / gl_d_272c4 are pinned to 0 in undefined_syms_auto.txt
+ * (ROM words are lui 0 / addiu 0). */
+extern unsigned char gl_d_23f98[];
 extern unsigned char gl_d_272c4[];
 extern int gl_func_00000000();
 void gl_func_000272C4(void) {
@@ -8994,9 +8995,6 @@ void gl_func_000272C4(void) {
     gl_func_00000000(0);
     *(unsigned char *)(h + 0x2CF0) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000272C4);
-#endif
 
 /* game_libs_func_00027300: a0*352-strided record lookup. If the record's
  * 0x2D00 word has its sign bit set, return the signed byte at
