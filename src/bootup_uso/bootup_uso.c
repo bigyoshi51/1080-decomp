@@ -814,6 +814,18 @@ extern s32 bu_e68_mgr;
  * Same class as the func_000055A0 &D-CSE-into-saved-reg cap (~line 3512):
  * solvable only by identical allocator coloring, not C/symbol tricks. Not a
  * fakeable diff -> stays NON_MATCHING. */
+/* PASS-8 2026-10-16 (agent-c, 71.38 -> 73.38 fuzzy): (1) the grid-row temps
+ * temp_a1/a3/t0/v1 are s32, not s16: only their sh stores truncate, and the
+ * s16 typing emitted sll/sra 16 sign-extension pairs the target lacks.
+ * (2) the three dim-A reads use ONE PLAIN (non-volatile) extern PER SITE
+ * (bu_e68_d4_1/2/3): the shared volatile symbol let IDO keep the address in
+ * a saved register, and the per-site symbols restore the target's per-site
+ * lui/lw at sites 1 and 3. (3) the three volatile e68 pads are dropped: with
+ * (1)+(2) the frame is 0x1D8 without them. Residual: site 2 (inside the row
+ * loop) still has its address hoisted into s1; dim-A spills to 0xF0 instead
+ * of staying in a3 across the grid loop; buf (sp1CC) stays in s3 where the
+ * target spills it and reloads it per row; Phase-2 colouring. */
+extern s32 bu_e68_d4_1, bu_e68_d4_2, bu_e68_d4_3;
 void *func_00000E68(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 arg4) {
     s32 sp1D4;
     s32 sp1D0;
@@ -826,13 +838,10 @@ void *func_00000E68(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 arg4) {
     s32 sp54;
     s32 sp50;
     s32 sp4C;
-    volatile int e68_pad0;
-    volatile int e68_pad1;
-    volatile int e68_pad2;
-    s16 temp_a1;
-    s16 temp_a3;
-    s16 temp_t0;
-    s16 temp_v1;
+    s32 temp_a1;
+    s32 temp_a3;
+    s32 temp_t0;
+    s32 temp_v1;
     s32 temp_a1_2;
     s32 temp_s3;
     s32 temp_s7;
@@ -900,7 +909,7 @@ void *func_00000E68(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 arg4) {
         temp_v0_2 = func_00000000(0x800);
         sp1CC = temp_v0_2;
         func_00000000(temp_v0_2, 0x800, 0);
-        var_a3 = D_00000004;
+        var_a3 = bu_e68_d4_1;
         var_s6 = 0;
         var_t4 = 0;
         var_t3 = (var_a3 / 2) - 0x10;
@@ -944,7 +953,7 @@ void *func_00000E68(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 arg4) {
                         var_v0_2 += 0x40;
                         var_v1 = (s32) bu_e68_dimB / 64;
                     } while (var_s3 < var_v1);
-                    var_a3 = D_00000004;
+                    var_a3 = bu_e68_d4_2;
                     var_v0 = var_a3 / 32;
                 }
                 var_t4 += 1;
@@ -1168,7 +1177,7 @@ loop_12:
         var_s5_2 = sp1CC;
         temp_s3 = (s32) bu_e68_dimB / 32;
         temp_v0_9 = temp_s3 * 4;
-        dimA2 = D_00000004;
+        dimA2 = bu_e68_d4_3;
         if ((dimA2 / 64) > 0) {
             temp_s7 = (((temp_v0_9 << 0xA) | ((temp_v0_9 * 0x10) - 1)) & 0xFFFF) | 0x04000000;
             var_s6_3 = sp124;
