@@ -32560,32 +32560,22 @@ void gl_func_00060260(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060260);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_000602A8: 28-insn double-printf-like call (80.0%).
- *   n = (unsigned)a0[2];
- *   d = (double)((float)n / 1024.0f);
- *   func(0x21CD8, &a0[0x24], d);  // doubleword passed in a2/a3 (mfc1)
- *
- * Remaining 20% is THREE stacked documented caps, none C-fixable:
- *  1. div→mul fold: target `div.s f6,1024.0f` (lui 0x4480); IDO -O2
- *     strength-reduces `/1024.0f` to `mul.s ×(1/1024)` (lui 0x3A80).
- *     Per docs/IDO_CODEGEN.md#feedback-ido-div-2-mul-fold-and-mtc1-load-
- *     delay-nops the fold happens regardless of source form.
- *  2. split-or-constant: target `addiu a0,0x1CD8`; `(char*)0x21CD8`
- *     gives `ori a0,0x1cd8`.
- *  3. unused-arg-save: target spills a0 to home slot then reloads
- *     (`sw a0,0x18(sp); lw t6,0x18(sp)`); IDO keeps a0 in-reg here.
- *     Pointer-copy local (`int *p=a0`) does NOT trigger the reload
- *     (verified 2026-05-15, stays 80.04%).
- * NM-wrap-only; default build is INCLUDE_ASM-exact. */
+/* gl_func_000602A8: EXACT (0x70 / 28 words). Prints a1 = &a0[0x24] with
+ * (float)(unsigned)a0[2] / 1024 promoted to double (a2/a3 via mfc1) through
+ * the K&R blank, format string &D + 0x21CD8.
+ * Was 80.0% with "three stacked caps"; all three were C:
+ *  1. `sw a0,0x18(sp); lw t6,0x18(sp)` = address-taken param read through
+ *     `int **pp = &a0;` (IDO_CODEGEN#addr-taken-param-home-reload-t6-51714).
+ *  2. `addiu a0,0x1CD8` = &D_00000000 + 0x21CD8 (HI16/LO16 pair), not a
+ *     literal address (`ori`).
+ *  3. div.s by 1024.0f: an INT literal divisor (`/ 1024`) keeps div.s;
+ *     `/ 1024.0f` and a `float k = 1024.0f` local both fold to mul.s by
+ *     1/1024 (lui 0x3A80); `(float)1024` in a local also works. */
 void gl_func_000602A8(int *a0) {
-    unsigned int x = (unsigned int)a0[2];
-    double d = (double)((float)x / 1024.0f);
-    func_00000000((char*)0x21CD8, (char*)a0 + 0x24, d);
+    int **pp = &a0;
+    gl_func_00000000((char *)&D_00000000 + 0x21CD8, (char *)*pp + 0x24,
+                     (double)((float)(unsigned int)(*pp)[2] / 1024));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000602A8);
-#endif
 
 void gl_func_00060318(int *a0, int a1) {
     int *p = (int*)a0[0x18/4];
