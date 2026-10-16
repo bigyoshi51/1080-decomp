@@ -25589,67 +25589,45 @@ void gl_func_00054A14(int *s0) {
 }
 
 
-#ifdef NON_MATCHING
-/* gl_func_00054AEC: command-token decoder (clean single fn).
- * Decoded from bare stub 2026-05-19. Sibling of gl_func_0005256C
- * / 00051AD8 command-decoder family.
- *   void f(int *self, int *strm) {
- *     switch (*strm) {
- *       case 'r'(0x72):                       // read 2 floats
- *         self->0xC8 = (float)(p=strm[1], strm[1]+=4, *p);
- *         self->0xCC = (float)(p=strm[1], strm[1]+=4, *p);
- *         break;
- *       case 'h'(0x68):
- *       case 'i'(0x69):
- *         idx = (p=strm[1], strm[1]+=4, *p);
- *         if (!((u)idx < 0x28)) cb_assert(&D+0x210B4);
- *         self->0xD4 = *(int*)(&D_00000000 + idx*4);
- *         cb(self, ...);
- *         break;
- *       default: cb(self, ...);
- *     }
- *   }
- * Multi-idiom (focused pass): li-at/beq dispatch chain with the
- * arg-move (or a2,a1 / or a0,..) in each beq delay slot;
- * cursor-advance (p=strm[1]; strm[1]+=4; *p) per read; int→float
- * `mtc1; cvt.s.w; swc1` for the 'r' floats; the 'h'/'i'
- * bnel-delay-likely bound-assert (idx<0x28) + `&D_0 + idx*4`
- * table lookup; shared cb tail. Exact per-case offsets, the
- * 'h'/'i' fallthrough and the strm-cursor reg threading need a
- * focused .s pass. Real decoded C preserved; INCLUDE_ASM build
- * path. */
+/* gl_func_00054AEC: command-token decoder ('r' two int->float reads, 'h'
+ * sub-decoder on self+0x124, 'i' bounded table lookup, default passthrough).
+ * EXACT 2026-10-16 (agent-g, 89.8 -> 100): the target tests 0x72 FIRST and
+ * then 0x68/0x69 as a beq chain with `b default` after -- an IDO switch
+ * always emits its tests ascending (0x68, 0x69, then a bnel on 0x72), and an
+ * if/else chain inverts to bne-fallthrough. A separate `if (v == 0x72) goto`
+ * before a 2-case goto switch gives the exact layout (bodies in R/H/I/D
+ * order); the 'i' table value reuses `v` so it colours v0 (a fresh temp
+ * takes t2). */
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_00054AEC(int *self, int *strm) {
     int *p;
     int idx;
-    switch (*strm) {
-    case 0x72:
-        p = (int *)strm[1]; strm[1] += 4;
-        *(float *)((char *)self + 0xC8) = (float)*p;
-        p = (int *)strm[1]; strm[1] += 4;
-        *(float *)((char *)self + 0xCC) = (float)*p;
-        break;
-    case 0x68:
-        gl_func_00000000(strm, (char *)self + 0x124);
-        break;
-    case 0x69:
-        p = (int *)strm[1]; strm[1] += 4;
-        idx = *p;
-        if (!((unsigned int)idx < 0x28)) {
-            gl_func_00000000((char *)&D_00000000 + 0x210B4);
-        }
-        *(int *)((char *)self + 0xD4) =
-            *(int *)((char *)&D_00000000 + idx * 4);
-        break;
-    default:
-        gl_func_00000000(self, strm);
-        break;
+    int v = *strm;
+    if (v == 0x72) goto R;
+    switch (v) { case 0x68: goto H; case 0x69: goto I; }
+    goto D;
+R:
+    p = (int *)strm[1]; strm[1] += 4;
+    *(float *)((char *)self + 0xC8) = (float)*p;
+    p = (int *)strm[1]; strm[1] += 4;
+    *(float *)((char *)self + 0xCC) = (float)*p;
+    return;
+H:
+    gl_func_00000000(strm, (char *)self + 0x124);
+    return;
+I:
+    p = (int *)strm[1]; strm[1] += 4;
+    idx = *p;
+    if (!((unsigned int)idx < 0x28)) {
+        gl_func_00000000((char *)&D_00000000 + 0x210B4);
     }
+    v = *(int *)((char *)&D_00000000 + idx * 4);
+    *(int *)((char *)self + 0xD4) = v;
+    return;
+D:
+    gl_func_00000000(self, strm);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054AEC);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_00054BE4(char *a0) {
