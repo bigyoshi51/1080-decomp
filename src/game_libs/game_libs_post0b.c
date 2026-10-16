@@ -31757,124 +31757,66 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F5F0);
 #endif
 
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005F984)();
-void gl_func_0005F984(char *arg0, char *arg1, f32 arg2, f32 arg3, f32 arg4, s32 arg5) {
-    int spCC;
-    f32 spBC;
-    f32 spB0;
-    f32 spA8;
-    f32 spA4;
-    f32 spA0;
-    int sp88;
-    f32 sp48;
-    f32 sp24;
-    f32 sp20;
-    f32 *temp_v0;
-    f32 *var_a2;
-    f32 *var_v0;
-    f32 *var_v1;
-    f32 temp_a3;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f0_3;
-    f32 temp_f10;
-    f32 temp_f10_2;
-    f32 temp_f10_3;
-    f32 temp_f12;
-    f32 temp_f12_2;
-    f32 temp_f14;
-    f32 temp_f4;
-    f32 temp_f4_2;
-    f32 temp_f4_3;
-    f32 temp_f6;
-    f32 temp_f6_2;
-    f32 temp_f6_3;
-    f32 temp_f6_4;
-    f32 temp_f8;
-    f32 temp_f8_2;
-    f32 temp_f8_3;
-    f32 var_f16;
-    f32 var_f18;
-    char *var_a0;
+/* gl_func_0005F984: rotate matrix m about axis (x,y,z) (optionally taken
+ * through rot's upper 3x3 first): len = sqrtf(|v|^2); len==0 -> (flag ?
+ * copy(m, rot) : nothing). Else h = sqrtf(100^2 + len^2), axis = -(y,x,z)/len,
+ * build R = rotation(axis, sin = len/h, cos = 100/h) (placeholder call), then
+ * m = m * R through a stack temp (flag == 0) or copy R into m (flag != 0).
+ * NM 2026-10-16 (agent-g; was a 13% m2c stub): control flow, the 4x4 multiply
+ * loop (inner k unrolled, beql/bnel rotation) and the sqrt/100 constant
+ * shape are right. Residual: m is not kept in s0 (spilled to its home, even
+ * with `register`), the frame is 0xF0 vs 0x100, and the rot block: the target
+ * cycles the three axis components through two stack words (sp32/36, an
+ * ugen FP-temp spill shape) where this keeps them in registers. */
+typedef struct { f32 x, y, z; } V3_5F984;
+extern f32 gl_func_00000000_sqrt5F984(f32);
+extern void gl_func_00000000_rot5F984(f32 (*)[4], V3_5F984 *, f32, f32);
+extern int gl_func_00000000();
+void gl_func_0005F984(register f32 (*m)[4], f32 (*rot)[4], f32 x, f32 y, f32 z, s32 flag) {
+    f32 R[4][4];
+    f32 len;
+    V3_5F984 v;
+    f32 pad[2];
+    f32 out[4][4];
+    f32 t[2];
+    f32 h;
+    f32 c;
+    f32 cs, sn;
+    s32 i, j, k;
 
-    temp_f0 = gl_func_00034458((arg2 * arg2) + (arg3 * arg3) + (arg4 * arg4), arg2);
-    if (temp_f0 == 0.0f) {
-        if (arg5 != 0) {
-            gl_func_00034458(arg0, arg1);
+    len = gl_func_00000000_sqrt5F984(x * x + y * y + z * z);
+    if (len == 0.0f) {
+        if (flag != 0) {
+            gl_func_00000000(m, rot);
         }
-    } else {
-        spB0 = temp_f0;
-        temp_f0_2 = gl_func_00034458((100.0f * 100.0f) + (temp_f0 * temp_f0), temp_f0, arg1);
-        temp_f6 = -arg3 / temp_f0;
-        temp_a3 = 100.0f / temp_f0_2;
-        temp_f10 = -arg2 / temp_f0;
-        spA0 = temp_f6;
-        temp_f8 = -arg4 / temp_f0;
-        spA4 = temp_f10;
-        spA8 = temp_f8;
-        if (arg1 != 0) {
-            sp20 = temp_f10;
-            sp24 = temp_f8;
-            temp_f8_2 = sp20;
-            temp_f4 = ((*(f32*)((char*)arg1 + 0x0)) * temp_f6) + ((*(f32*)((char*)arg1 + 0x10)) * temp_f8_2);
-            sp20 = temp_f6;
-            temp_f6_2 = sp24;
-            temp_f0_3 = temp_f4 + ((*(f32*)((char*)arg1 + 0x20)) * temp_f6_2);
-            temp_f10_2 = sp20;
-            sp24 = temp_f8_2;
-            sp20 = temp_f6_2;
-            temp_f6_3 = sp24;
-            temp_f4_2 = ((*(f32*)((char*)arg1 + 0x4)) * temp_f10_2) + ((*(f32*)((char*)arg1 + 0x14)) * temp_f6_3);
-            sp24 = temp_f10_2;
-            spA4 = temp_f4_2 + ((*(f32*)((char*)arg1 + 0x24)) * sp20);
-            spA0 = temp_f0_3;
-            spA8 = ((*(f32*)((char*)arg1 + 0x8)) * sp24) + ((*(f32*)((char*)arg1 + 0x18)) * temp_f6_3) + ((*(f32*)((char*)arg1 + 0x28)) * sp20);
-        }
-        gl_func_00034458(&spBC, &spA0, temp_f0 / temp_f0_2, temp_a3);
-        var_a2 = &sp48;
-        if (arg5 == 0) {
-            var_a0 = arg0;
-            do {
-                var_v0 = var_a2;
-                *var_v0 = 0.0f;
-                var_v1 = &spBC + 4;
-                var_f16 = *var_v0;
-                var_f18 = (*(f32*)((char*)var_a0 + 0x0)) * spBC;
-                if ((int)var_v1 != (int)&spCC) {
-                    do {
-                        temp_f10_3 = (*(f32*)((char*)var_v1 + 0x1C));
-                        temp_f8_3 = (*(f32*)((char*)var_v1 + 0x2C));
-                        *var_v0 = var_f16 + var_f18;
-                        temp_f6_4 = *var_v0;
-                        temp_f4_3 = (*(f32*)((char*)var_v1 + 0x0));
-                        temp_f12 = (*(f32*)((char*)var_a0 + 0x4)) * (*(f32*)((char*)var_v1 + 0xC));
-                        var_v0 += 4;
-                        var_v1 += 4;
-                        var_v0[-1] = (f32) (temp_f6_4 + temp_f12);
-                        var_v0[-1] = (f32) (var_v0[-1] + ((*(f32*)((char*)var_a0 + 0x8)) * temp_f10_3));
-                        var_v0[0] = 0.0f;
-                        var_f16 = var_v0[0];
-                        var_v0[-1] = (f32) (var_v0[-1] + ((*(f32*)((char*)var_a0 + 0xC)) * temp_f8_3));
-                        var_f18 = (*(f32*)((char*)var_a0 + 0x0)) * temp_f4_3;
-                    } while ((int)var_v1 != (int)&spCC);
+        return;
+    }
+    c = 100.0f;
+    h = gl_func_00000000_sqrt5F984(c * c + len * len);
+    cs = 100.0f / h;
+    v.x = -y / len;
+    v.y = -x / len;
+    v.z = -z / len;
+    sn = len / h;
+    if (rot != NULL) {
+        f32 a = v.x, b = v.y, d = v.z;
+        v.x = rot[0][0] * a + rot[1][0] * b + rot[2][0] * d;
+        v.y = rot[0][1] * a + rot[1][1] * b + rot[2][1] * d;
+        v.z = rot[0][2] * a + rot[1][2] * b + rot[2][2] * d;
+    }
+    gl_func_00000000_rot5F984(R, &v, sn, cs);
+    if (flag == 0) {
+        for (i = 0; i < 4; i++) {
+            for (j = 0; j < 4; j++) {
+                out[i][j] = 0.0f;
+                for (k = 0; k < 4; k++) {
+                    out[i][j] += m[i][k] * R[k][j];
                 }
-                *var_v0 = var_f16 + var_f18;
-                temp_f14 = (*(f32*)((char*)var_a0 + 0x4));
-                temp_v0 = var_v0 + 4;
-                temp_v0[-1] = (f32) (*var_v0 + (temp_f14 * (*(f32*)((char*)var_v1 + 0xC))));
-                temp_f12_2 = (*(f32*)((char*)var_a0 + 0x8));
-                temp_v0[-1] = (f32) (temp_v0[-1] + (temp_f12_2 * (*(f32*)((char*)var_v1 + 0x1C))));
-                temp_v0[-1] = (f32) (temp_v0[-1] + ((*(f32*)((char*)var_a0 + 0xC)) * (*(f32*)((char*)var_v1 + 0x2C))));
-                var_a2 += 0x10;
-                var_a0 += 0x10;
-            } while ((int)var_a2 != (int)&sp88);
-            gl_func_00034458(temp_f12_2, temp_f14, &sp48, arg0, var_a2);
-            return;
+            }
         }
-        gl_func_00034458(&spBC, arg0, var_a2);
+        gl_func_00000000(out, m);
+    } else {
+        gl_func_00000000(R, m);
     }
 }
 #else
