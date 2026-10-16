@@ -10581,8 +10581,7 @@ void game_uso_func_0000F284(int *a0) {
     gl_func_00000000(a0, m, 0, 0, 0x100, a0[0x19C / 4]);
 }
 
-#ifdef NON_MATCHING
-/* game_uso_func_0000F360: 49-insn float-compare-gated state-mux update.
+/* game_uso_func_0000F360: 49-insn float-compare-gated state-mux update. EXACT.
  *
  * 2026-07-03 (game_uso W4, agent-e, 89.67% -> 47/49 = 95.9%): applied the W4
  * lever trio in-tree. Now byte-exact EVERYWHERE except 2 words (see RESIDUAL).
@@ -10601,7 +10600,7 @@ void game_uso_func_0000F284(int *a0) {
  * candidate-numbering coloring cap" (ldc1/cvt.d.s f6<->f18 temp-binding swap
  * at words f3d0/f3d4) RETRACTED via the cfe commutative-operand RANK lever
  * (docs/IDO_CODEGEN 199C entry): a TYPED extern-struct MEMBER load
- * (game_uso_D_807FFB60_thr.v, base-0 alias in undefined_syms_auto.txt,
+ * (game_uso_D_807FFB60.v, typed directly; base-0 in undefined_syms_auto.txt,
  * struct pad puts .v at +0x240 so relocs/bytes are identical) restores
  * TEXTUAL operand order, so writing the double const FIRST
  * (`D.v * (double)f0`) creates its ldc1 pseudo before the cvt.d.s -> ldc1
@@ -10610,12 +10609,13 @@ void game_uso_func_0000F284(int *a0) {
  * int-cast address form, named double all probed: 47/49 or worse; named
  * double recolors the whole fn f0->f2, 37/49).
  *
- * NOT LANDABLE as compiled C despite byte-exact object: intra-USO
- * `jal game_uso_func_0001001C` is baked as `jal 0` in the ROM (loader
- * patches at runtime) but would link to the real local symbol -> ROM
- * mismatch (USO baked-reloc landability filter). Stays NM wrap at 100. */
-extern char game_uso_D_807FFB60;
-extern struct { char pad[0x240]; double v; } game_uso_D_807FFB60_thr;
+ * 2026-10-16 (agent-g): LANDED as compiled C. The old "not landable"
+ * note (in-unit jal to 1001C would link to the real symbol) does not apply:
+ * the Yay0 block is cut from the UNLINKED game_uso.c.o, so every in-unit
+ * jal stays `jal 0` exactly like the ROM (verify-blocks clean, no block
+ * diff in F360). The struct now types game_uso_D_807FFB60 itself (the only
+ * user in this TU), so the _thr alias is no longer referenced. */
+extern struct { char pad[0x240]; double v; } game_uso_D_807FFB60;
 extern void import_00096874(int);
 extern void game_uso_func_0001001C(int *);
 void game_uso_func_0000F360(int *a0) {
@@ -10638,7 +10638,7 @@ void game_uso_func_0000F360(int *a0) {
         f0 = *(float*)(b770 + 0x10) + f2;
     }
     if (*(short*)((char*)p + 0x9A2) == 0x62) {
-        f0 = (float)(game_uso_D_807FFB60_thr.v * (double)f0);
+        f0 = (float)(game_uso_D_807FFB60.v * (double)f0);
     }
     b31C = (char*)p; if (1) { b31C += 0x31C; }
     f0 *= *(float*)(b510 + 0x10);
@@ -10647,9 +10647,6 @@ void game_uso_func_0000F360(int *a0) {
     import_00096874((int)(*(char**)((char*)a0 + 0xB4) + 0x808));
     game_uso_func_0001001C(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F360);
-#endif
 
 extern void game_uso_func_0000E5C8(char *, int);
 void game_uso_func_0000F424(int *a0) {
