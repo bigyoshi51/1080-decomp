@@ -4,9 +4,8 @@ extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
-#ifdef NON_MATCHING
 /* Macro definitions for NM-wrap bodies. Auto-managed by /struct-name-tick.
- * Default build never sees these — wrap bodies aren't compiled.
+ * Unconditional since 2026-10-16: unwrapped exact bodies use them too.
  * MGR_STATE_PTR: pointer to the manager state struct (read into `state`/`s`
  * locals, then deref'd for fields 0x4C/0x6A8/0x6AC). mgrproc_uso D+0x30.
  * MGR_D_64: int slot — written from q[3], read as an index (`idx = MGR_D_64
@@ -21,7 +20,6 @@ typedef struct { int a, b, c, d; } Quad4;
 #define MGR_D_64 (*(int*)((char*)&D_00000000 + 0x64))
 #define MGR_STATE_CODE (*(int*)((char*)&D_00000000 + 0x40))
 #define MGR_D_44 (*(int*)((char*)&D_00000000 + 0x44))
-#endif
 
 /* mgrproc_uso_func_00000000 / _0000004C / _000000B0 (contiguous -O0 run,
  * 0x0..0xF8) live in mgrproc_uso_o0_0.c — carved into a dedicated -O0 sub-unit
@@ -1833,7 +1831,6 @@ void mgrproc_uso_func_00002E3C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002E3C);
 #endif
 
-#ifdef NON_MATCHING
 /* mgrproc_uso_func_00002EF0: one ~97-insn (0x184) object initializer + draw-list
  * builder. BOUNDARY MERGED 2026-06-02: splat had split it into 2EF0 (8-insn
  * FP-const prologue — f2=255, f4=192, f6=255, f10=0, then div.s f0=192/255 —
@@ -1845,7 +1842,12 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002E3
  * the decode). Remaining caps keep it NM: Yay0/-O0 segment, branch-likely
  * (bgezl/beqzl), two &D bases, placeholder calls. Body = field layout + draw
  * sequence; ends in the linked-set finalizer idiom
- * (reference_1080_linked_set_finalizer_tail_idiom). */
+ * (reference_1080_linked_set_finalizer_tail_idiom).
+ * 2026-10-16 (agent-g): UNWRAPPED EXACT. The raw slice already equalled
+ * expected/; placeholder calls and &D bases are fine in the mgrproc Yay0
+ * block (cut from the unlinked .o, data relocs baked by bake-data-relocs.py).
+ * docs/MATCHING_WORKFLOW.md#yay0-block-unlinked-in-unit-jal-f360. Also
+ * dropped a stray unmatched #endif that IDO cfe had silently tolerated. */
 void mgrproc_uso_func_00002EF0(self, a1, a2, a3, arg5)
     int *self; int a1, a2, a3, arg5;
 {
@@ -1887,10 +1889,6 @@ void mgrproc_uso_func_00002EF0(self, a1, a2, a3, arg5)
         *(int*)((char*)node + 0x14) = (int)self;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002EF0);
-#endif
-#endif
 
 /* mgrproc_uso_func_00003074: per-frame step gated on arg0->0xBC->0x4F0 bit-16 &&
  * ->0x4DC==1. Bumps arg0->0x30 by 0x21 if gated; cb(arg0,sub). Then (if gated):
