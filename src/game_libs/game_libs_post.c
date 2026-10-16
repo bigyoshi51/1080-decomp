@@ -14904,17 +14904,13 @@ void gl_func_0002D710(int a0) {
  * 2026-07-17 WORD-EXACT (agent-h): same decode fix as 2D710 — one-param
  * fn, arg passed as 3rd call arg; leading `or a2,a0,zero` pulled in from
  * 2D710.s tail, own tail move pushed to 2D788.s. 15/15 words exact.
- * Stays NM wrap (jal-0 placeholder callee) — no episode. */
+ * EXACT (unwrapped run 95): D_2D74C_store/_load pinned to 0. */
 extern int D_2D74C_store;
 extern int D_2D74C_load;
-#ifdef NON_MATCHING
 void gl_func_0002D74C(int a0) {
     D_2D74C_store = a0;
     gl_func_00000000(0x41000000, ((int*)&D_2D74C_load)[a0], a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D74C);
-#endif
 
 /* gl_func_0002D788: 14-insn main body + 4-insn trailing alt-entry
  * (`li v0, 8; lui at, 0; sw v0, 0(at); lui at, 0`) — declared size 0x48
