@@ -32376,12 +32376,12 @@ void game_libs_func_0006024C(int a0) {
 
 void game_libs_func_00060258(void) {}
 
-#ifdef NON_MATCHING
 /* gl_func_00060260: r = call1(a0); if (r == 0) call2(&D+0x21CBC, a0); call3(r);
  * 2026-07-15 agent-f DECODE FIX: `bnez v0,+0x30` targets the THIRD jal, not the
  * epilogue — call3(r) runs on BOTH paths (prior "if (r) return" decode skipped
  * it). r carried to the join in a2 (`move a2,v0` bnez delay-fill; spilled to
- * 0x1C(sp) across call2 in the jal delay, reloaded into a2). */
+ * 0x1C(sp) across call2 in the jal delay, reloaded into a2).
+ * EXACT: unwrapped 2026-10-16 (callee and data symbols are both at 0). */
 extern int gl_func_00000000();
 
 void gl_func_00060260(char *a0) {
@@ -32391,9 +32391,6 @@ void gl_func_00060260(char *a0) {
     }
     gl_func_00000000(r);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060260);
-#endif
 
 /* gl_func_000602A8: EXACT (0x70 / 28 words). Prints a1 = &a0[0x24] with
  * (float)(unsigned)a0[2] / 1024 promoted to double (a2/a3 via mfc1) through
