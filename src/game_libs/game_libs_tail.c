@@ -2927,49 +2927,12 @@ void gl_func_0000D9B8(int *a0, int a1, int a2) {
 }
 
 
-#ifdef NON_MATCHING
-/* gl_func_0000D9E4: 0x150 (84 insns), 0x30-byte stack frame.
- * Untouched until 2026-05-03. Single function (grep -c 03E00008 = 1).
- * 2-arg: takes (int *a0, int a1).
- *
- * ENTRY GUARDS (insns 1-18 @ 0xD9E4-0xDA28, decoded):
- *   addiu sp,-0x30                     ; prologue
- *   save ra/s0/s1                       ; 0x24/0x20/0x1C
- *   sw a1, 0x34(sp)                    ; spill a1 to caller slot (varargs?)
- *   s0 = a0[0x6C]                       ; sub-struct ptr (cached for body)
- *   s1 = a0                             ; saved arg
- *   if (s0 == 0) goto end_simple        ; beq +0x3F
- *   t6 = a0[0xB4]
- *   if ((t6 & 2) == 0) goto end_simple  ; beq +0x3A
- *   t8 = *(int*)(&D_0 + 0x64)           ; load global ptr
- *   if (t8 == 0) goto end_simple        ; beq +0x36
- *
- * MID BODY (insns 19-50 @ 0xDA2C-0xDAB0, decoded structurally):
- *   FPU math chain. Constants:
- *     0x447A0000 = 1000.0f            (used in mtc1 + at-reg dance)
- *     0x42C80000 = 100.0f
- *     0x437F0000 = 255.0f             (loaded into multiple $f-regs)
- *     0x436B0000 = 235.0f
- *   Pattern: (float)a1 / 1000.0f then scale by 100.0f and 255.0f / 235.0f
- *   — looks like a percentage/normalized-value calculation. Probably color
- *   alpha (0..255 range with 0..235 sub-range) or stat-bar percentage.
- *
- * After FPU, calls some external (jal func_00000000 at 0xDA60) with 5 args
- *   (a0, a1, a2 from FPU, a3, plus saved on sp+0x10) — likely a
- *   `set_color_or_alpha(p, val_pct)` style helper.
- *
- * THEN at 0xDAA0+ another large FPU block computing 4 swc1 stores into
- *   (a0->0x64..0x70) and similar. Final block does 2 conditional gl_func
- *   calls based on (a0[0xB4] & 1) and a sub-struct check.
- *
- * EXIT (last 6 insns @ 0xDB1C-0xDB34):
- *   end_simple:
- *     restore ra/s0/s1, restore sp, jr ra
- *
- * Per feedback_partial_alloc_block_add_irreversible.md, NOT writing partial
- * body — would regress the 0% baseline. Captures structural decode only;
- * future passes with full body context can write all FPU sub-blocks
- * together. Multi-tick decomp expected. */
+/* gl_func_0000D9E4: 0x150 (84 insns), 0x30-byte frame. Sub-object spawn
+ * (sibling of D548 / D6E8): when a0->0x6C is set, flag bit 2 is on and the
+ * global at D+0x64 is non-null, create a child via the USO placeholder and
+ * initialise its colour/scale fields; then fire the bit-1 callback.
+ * Unwrapped 2026-10-16 (agent-g): the NM body was word-identical to the target;
+ * the second call goes through the blank alias gl_func_00000000_d9e4b (pinned 0). */
 extern void gl_func_00000000_d9e4b(int *, int, int, float, float);
 void gl_func_0000D9E4(int *a0, int a1) {
     int *v0;
@@ -3003,9 +2966,6 @@ void gl_func_0000D9E4(int *a0, int a1) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D9E4);
-#endif
 
 void gl_func_0000DB34(int a0, int a1, int a2) {
     char pad1[4];
