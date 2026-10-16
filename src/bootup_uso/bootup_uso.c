@@ -7867,77 +7867,82 @@ void func_0000B49C(int idx, int j) {
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0000B520)();
-typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_0000B520;
+/* PASS-2 2026-10-16 (agent-c, 36.90 -> 99.34): m2c had the Vec3 copies as
+ * int structs with (f32)/(s32) casts (4 cvt + 4 trunc too many) and a K&R call
+ * carrying stale f12/f14. 143/143 words; 19 differ: the 0.0 constant / s
+ * swap f0<->f2, the v5C copy base v1 (target v0), and the four pool addends
+ * (k48/k44/kc need pins for an exact). Same shape as func_0000D900: named
+ * products, v50 -> v5C -> v74 struct copies, decl-order frame (an unused
+ * Vec3 between v74 and v5C, pad[3] below v50). Also: q = arg0 + 0x3C8 assigned
+ * before the if (target re-forms it on both join edges, addiu v0,a1,968); the
+ * second flag test re-reads p->0x10 (volatile read; plain CSEs the lw); the
+ * 0x48 limit read inline at both uses; the call is (arg0 + 0x318, arg0). */
+extern f32 bu_b520_k48, bu_b520_k44;  /* rodata f32 (target func_00008124 + 0x48 / + 0x44) */
+extern f64 bu_b520_kc;               /* rodata f64 (target func_000008B4 + 0xC) */
+#define F520(p, o) (*(f32 *)((char *)(p) + (o)))
 void func_0000B520(char *arg0) {
-    Q_0000B520 sp50;
-    Q_0000B520 sp5C;
-    Q_0000B520 sp74;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f0_3;
-    f32 temp_f0_4;
-    f32 temp_f14;
-    f32 var_f12;
-    f32 var_f2;
-    f32 var_f2_2;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_3;
+    Vec3 v74;
+    Vec3 vB;
+    Vec3 v5C;
+    Vec3 v50;
+    s32 pad[3];
+    f32 s;
+    f32 px;
+    f32 py;
+    f32 pz;
+    f32 t;
+    f32 d;
+    f32 k;
+    char *p;
+    char *q;
 
-    var_f2 = 0.0f;
+    q = arg0 + 0x3C8;
+    s = 0.0f;
     if (FW(arg0, 0xA58) & 0x100) {
-        temp_v0 = FW(arg0, 0x800);
-        if (FW(temp_v0, 0x10) & 4) {
-            var_f2 = 0.0f + 10.0f;
+        p = (char *)FW(arg0, 0x800);
+        if (FW(p, 0x10) & 4) {
+            s += 10.0f;
         }
-        if (FW(temp_v0, 0x10) & 8) {
-            var_f2 -= 10.0f;
+        if (*(volatile int *)(p + 0x10) & 8) {
+            s -= 10.0f;
         }
     }
-    temp_v0_2 = (int)arg0 + 0x3C8;
-    var_f12 = (*(f32*)((char*)temp_v0_2 + 0x4)) * var_f2;
-    temp_f14 = (*(f32*)((char*)temp_v0_2 + 0x8)) * var_f2;
-    sp50.unk0 = (*(f32*)((char*)arg0 + 0x3C8)) * var_f2;
-    sp50.unk4 = var_f12;
-    sp50.unk8 = temp_f14;
-    sp5C.unk0 = (f32) sp50.unk0;
-    sp5C.unk4 = (s32) sp50.unk4;
-    sp5C.unk8 = (s32) sp50.unk8;
-    sp74.unk0 = sp5C.unk0;
-    sp74.unk4 = (s32) sp5C.unk4;
-    sp74.unk8 = (s32) sp5C.unk8;
-    (*(f32*)((char*)arg0 + 0x318)) = (f32) ((*(f32*)((char*)arg0 + 0x318)) + sp74.unk0);
-    (*(f32*)((char*)arg0 + 0x31C)) = (f32) ((*(f32*)((char*)arg0 + 0x31C)) + sp74.unk4);
-    (*(f32*)((char*)arg0 + 0x320)) = (f32) ((*(f32*)((char*)arg0 + 0x320)) + sp74.unk8);
-    if (FW(arg0, 0xA58) & 0x20000) {
-        temp_v0_3 = FW(arg0, 0x908);
-        var_f2_2 = (*(f32*)((char*)arg0 + 0x768));
-        if (temp_v0_3 != 0) {
-            var_f12 = (*(f32*)((char*)&D_00000000 + 0x48));
-            temp_f0 = (*(f32*)((char*)temp_v0_3 + 0xBC)) - (*(f32*)((char*)arg0 + 0xBC));
-            if (var_f12 < temp_f0) {
-                var_f2_2 += (*(f32*)((char*)&D_00000000 + 0x44));
-            } else if (temp_f0 < -var_f12) {
-                var_f2_2 -= (*(f32*)((char*)&D_00000000 + 0x44));
+    px = F520(q, 0) * s;
+    py = F520(q, 4) * s;
+    pz = F520(q, 8) * s;
+    v50.x = px; v50.y = py; v50.z = pz;
+    v5C = v50;
+    v74 = v5C;
+    F520(arg0, 0x318) = F520(arg0, 0x318) + v74.x;
+    F520(arg0, 0x31C) = F520(arg0, 0x31C) + v74.y;
+    F520(arg0, 0x320) = F520(arg0, 0x320) + v74.z;
+    if ((FW(arg0, 0xA58) << 14) < 0) {
+        p = (char *)FW(arg0, 0x908);
+        t = F520(arg0, 0x768);
+        if (p != NULL) {
+            d = F520(p, 0xBC) - F520(arg0, 0xBC);
+            if (bu_b520_k48 < d) {
+                t += bu_b520_k44;
+            } else if (d < -bu_b520_k48) {
+                t -= bu_b520_k44;
             }
         }
-        temp_f0_2 = (*(f32*)((char*)arg0 + 0xA78));
-        (*(f32*)((char*)arg0 + 0xA78)) = (f32) ((f64) temp_f0_2 + ((f64) (var_f2_2 - temp_f0_2) * (*(f64*)((char*)&D_00000000 + 0xC))));
+        k = F520(arg0, 0xA78);
+        F520(arg0, 0xA78) = (f64)k + (f64)(t - k) * bu_b520_kc;
     } else {
-        (*(f32*)((char*)arg0 + 0xA78)) = (f32) (*(f32*)((char*)arg0 + 0x768));
+        F520(arg0, 0xA78) = F520(arg0, 0x768);
     }
-    if ((*(f32*)((char*)arg0 + 0xA78)) < (*(f32*)((char*)arg0 + 0x348))) {
-        (char*)func_00000000(var_f12, temp_f14, (int)arg0 + 0x318, arg0);
-        temp_f0_3 = (*(f32*)((char*)arg0 + 0xA78));
-        (*(f32*)((char*)arg0 + 0x318)) = (f32) ((*(f32*)((char*)arg0 + 0x318)) * temp_f0_3);
-        (*(f32*)((char*)arg0 + 0x31C)) = (f32) ((*(f32*)((char*)arg0 + 0x31C)) * temp_f0_3);
-        (*(f32*)((char*)arg0 + 0x320)) = (f32) ((*(f32*)((char*)arg0 + 0x320)) * temp_f0_3);
+    if (F520(arg0, 0xA78) < F520(arg0, 0x348)) {
+        func_00000000(arg0 + 0x318, arg0);
+        k = F520(arg0, 0xA78);
+        F520(arg0, 0x318) = F520(arg0, 0x318) * k;
+        F520(arg0, 0x31C) = F520(arg0, 0x31C) * k;
+        F520(arg0, 0x320) = F520(arg0, 0x320) * k;
     }
     if (FW(arg0, 0x938) == 0) {
-        temp_f0_4 = 1.0f - (*(f32*)((char*)arg0 + 0x6C0));
-        (*(f32*)((char*)arg0 + 0x318)) = (f32) ((*(f32*)((char*)arg0 + 0x318)) * temp_f0_4);
-        (*(f32*)((char*)arg0 + 0x320)) = (f32) ((*(f32*)((char*)arg0 + 0x320)) * temp_f0_4);
+        k = 1.0f - F520(arg0, 0x6C0);
+        F520(arg0, 0x318) = F520(arg0, 0x318) * k;
+        F520(arg0, 0x320) = F520(arg0, 0x320) * k;
     }
 }
 #else
