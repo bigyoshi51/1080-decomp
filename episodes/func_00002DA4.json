@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00002DA4",
+  "project": "1080-agent-c",
+  "model": "claude-manual",
+  "start_time": "2026-10-16T15:56:19.793198+00:00",
+  "end_time": "2026-10-16T15:56:19.793214+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-16T15:56:19.793210+00:00",
+      "assistant_text": "Exact via REPLACE_FUNC_BODY donor splice (jumptable .rodata reloc renamed func_00002DA4_rodata, pinned 0x4F4). Case->arm map read from the RoData table words (entry 0 at file offset imm+4): arms in source order 2,4,12,3,5,6,1,9,10,11, cases 7/8 default. Levers: distinct base-0 globals for the store and the immediate re-read (no forwarding) and for the config load vs store (no lui CSE); void blank alias for unused-result calls so the named config value colours v0; case 1 reuses a1 with if (1) { a1 += 0x18; } for the addiu-then-sw 0(a1) RMW; a1 declared before v1 for spill homes.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 123,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 -O2 donor for func_00002DA4 -- bootup_uso subsystem init + 12-way\n * command dispatch (0x1EC / 123 words; word-exact standalone apart from the\n * reloc fields).\n *\n * WIRED via REPLACE_FUNC_BODY donor splice into bootup_uso.c.o (the game_libs\n * 7344 / 52CD4 recipe, docs/MATCHING_WORKFLOW.md#post0b-jumptable-donor-52cd4):\n * the switch's donor-local .rodata jumptable reloc is renamed\n * func_00002DA4_rodata and pinned in undefined_syms_auto.txt to 0x4F4, the\n * table bootup_uso ships in its RoData (module 0xD9FE28; file offset 0x4F8 =\n * imm + 4, the word at 0x4F4 is the preceding 0.04f literal). Table words\n * (cases 1..12): 2F10 2E98 2ED4 2EAC 2EE8 2EFC 2F74 2F74 2F38 2F4C 2F60 2EC0,\n * so the arms lay out in SOURCE order 2, 4, 12, 3, 5, 6, 1, 9, 10, 11 and\n * cases 7/8 share the default (&D_00007408). The 2026-07-10 NM decode had the\n * table one entry late (3,5,1,4,...); extract-uso-jumptable.py drops the\n * LAST entry here (0x2EC0), not the first.\n *\n * Load-bearing shapes:\n *  - distinct base-0 globals (docs/IDO_CODEGEN.md#lui-count-placeholder-\n *    sweep-44de4): the created object is stored through D_2DA4_obj and\n *    re-read at once through D_2DA4_obj_rd (one symbol forwards the stored\n *    v0 instead of the target's `lui a1; lw a1,0(a1)`); the config word is\n *    read through D_2DA4_cfg+4 and stored through D_00000000+4 (one symbol\n *    CSEs the lui).\n *  - calls whose result is unused go through the void alias\n *    func_00000000_2DA4_v: with the int-returning blank, the dead $v0 def\n *    pushes the named config value `v` to v1 (target v0).\n *  - case 1: `a1 = obj; if (1) { a1 += 0x18; } *(int *)a1 |= 4` reusing the\n *    a1 variable gives `lw t0,24(a1); addiu a1,a1,24; ... sw t1,0(a1)`.\n *  - `a1` declared before `v1` puts their spill homes at sp+0x1C / sp+0x18.\n *  - `v | 0x80000 | 0x2000 | 0x20000` stays unfolded (lui/or, ori, lui/or). */\n#include \"common.h\"\n\nextern int func_00000000();\nextern void func_00000000_2DA4_v();\nextern char D_000073EC, D_000073F8, D_00007408;\nextern int D_2DA4_obj, D_2DA4_obj_rd;\nextern char D_00000000, D_2DA4_cfg;\n\n#define FW(p, o) (*(int *)((char *)(p) + (o)))\n\nvoid func_00002DA4(char *arg0, s32 arg1, s32 arg2) {\n    char *a1;\n    char *v1;\n    int v;\n    func_00000000_2DA4_v(&D_000073EC, 0);\n    func_00000000_2DA4_v();\n    D_2DA4_obj = func_00000000(0, &D_000073F8);\n    v1 = (char *)FW(arg0, 0x84);\n    a1 = (char *)D_2DA4_obj_rd;\n    func_00000000_2DA4_v(v1 + 0x10, a1);\n    if (FW(a1, 0x14) != 0) {\n        FW(a1, 0x4) = 1;\n    }\n    FW(a1, 0x14) = (int)v1;\n    func_00000000_2DA4_v(D_2DA4_obj);\n    v = *(int *)((char *)&D_2DA4_cfg + 4);\n    v = v | 0x80000 | 0x2000 | 0x20000;\n    *(int *)((char *)&D_00000000 + 4) = v;\n    switch (arg1) {\n    case 2: func_00000000_2DA4_v(arg0, arg2); break;\n    case 4: func_00000000_2DA4_v(arg0, arg2); break;\n    case 12: func_00000000_2DA4_v(arg0, arg2); break;\n    case 3: func_00000000_2DA4_v(arg0, arg2); break;\n    case 5: func_00000000_2DA4_v(arg0, arg2); break;\n    case 6: func_00000000_2DA4_v(arg0, arg2); break;\n    case 1:\n        func_00000000_2DA4_v(arg0, 0);\n        a1 = (char *)D_2DA4_obj; if (1) { a1 += 0x18; } *(int *)a1 = *(int *)a1 | 4;\n        break;\n    case 9: func_00000000_2DA4_v(arg0, arg2); break;\n    case 10: func_00000000_2DA4_v(arg0, arg2); break;\n    case 11: func_00000000_2DA4_v(arg0, arg2); break;\n    default:\n        func_00000000_2DA4_v(&D_00007408);\n        break;\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o2_2DA4.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_00002DA4.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "ROM byte-identical (cmp tenshoe.z64 baserom.z64); objdiff 100.0; .text slice equals expected/ except the pinned D_000073EC LO16 and the renamed func_00002DA4_rodata jumptable LO16."
+  }
+}

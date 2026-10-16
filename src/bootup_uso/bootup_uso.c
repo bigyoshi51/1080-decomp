@@ -2063,122 +2063,63 @@ void func_00002C94(void *a0, void *a1) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002C94);
 #endif
 
-/* func_00002DA4 - verified structural decode (0x1EC, 123 insns,
- * subsystem-init + 12-way jump-table dispatcher).
- *   void func_00002DA4(St *a3, int a1, int a2) {
- *       func_00000000(&D_000073EC, 0);            // init
- *       func_00000000();
- *       *(void**)&D_g = func_00000000(0, &D_000073F8);  // create
- *       v1 = a3->0x84;
- *       func_00000000((char*)v1 + 0x10, *(int*)&D_h);   // attach
- *       if (v1->0x14 != 0) v1->0x4 = 1;          // beql link
- *       v1->0x14 = ...;
- *       func_00000000(*(int*)&D_i);
- *       cfg = *(int*)(func_00000000 + 4);
- *       cfg |= 0x82000 | 0x20000;                 // set feature bits
- *       *(int*)(func_00000000 + 4) = cfg;
- *       u32 sel = (u32)(a1 - 1);
- *       if (sel < 0xC) {
- *           switch (sel) {                        // jtbl @
- *               ...                               //  func_000003F8+0xFC
- *               // each case: func_00000000(a3, a2) + variants
- *           }
- *       }
- *       // default: .L00002F74
- *   }
- * Struct-typing reference: a3->0x84 (132) -> v1, an object whose
- * +0x10 (16) is a child list/attach point; v1->0x14 (20) back-link
- * (0 = unlinked), v1->0x4 (4) = 1 linked-flag. *(&D_g) global =
- * the created object (func_00000000(0,&D_000073F8)). Config word
- * at func_00000000+4 gets feature bits 0x82000|0x20000 OR'd in.
- * a1 = a 1-based command/mode id (a1-1 indexes a 12-entry jump
- * table at func_000003F8+0xFC; out-of-range -> no-op default);
- * each handler invokes func_00000000(a3, a2) in a mode-specific
- * way. D_000073EC/F8, D_00007408 = init datums. Caps <80:
- * .rodata jump-table dispatch (jr $t9) + ~10 func_00000000 reloc
- * + multi-&D + beql list-link + sltiu bound check. Full body
- * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
- * episode; tautology-trap rule). */
-#ifdef NON_MATCHING
-/* func_00002DA4 - RECONSTRUCTED SWITCH (JUMPTABLE, 2026-07-10).
- * bootup_uso subsystem-init + 12-way jr-$t9 dispatch on (arg1-1)<0xC.
- * Jump table @ func_000003F8+0xFC resolved via
- * scripts/extract-uso-jumptable.py (RoData reloc, module 0xD9FE28):
- * the case bodies are emitted in target .text-block order, which the
- * jumptable maps as arg1 = 3,5,1,4,6,7,2,10,11,12 (source-order = block
- * order). Nine handlers are func(arg0,arg2); the arg1==2 handler is
- * func(arg0,0) + (*D_g)->0x18 |= 4. arg1=8,9 and out-of-range fall to
- * the default (target func(&D_00007408); modeled as func(NULL) — the
- * &D_00007408 form is undefined here and scores lower under objdiff).
- * Filling the previously-empty cases + block-order raised objdiff fuzzy
- * 37.0% -> 76.2%. Remaining gap = the rodata jumptable pool +
- * func_00000000/D_ placeholder relocs (data-pool consumer, unmatchable
- * exactly). NOT byte-matched; build path is INCLUDE_ASM (no episode). */
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-
-void func_00002DA4(void *arg0, s32 arg1, void *arg2) {
-    void *sp1C;
-    s32 sp18;
-    s32 temp_v1;
-    void *temp_a1;
-    void *temp_a1_2;
-    func_00000000(NULL, NULL, arg0);
-    func_00000000();
-    (*(int*)&D_00000000) = func_00000000(NULL, NULL);
-    temp_v1 = FW(arg0, 0x84);
-    temp_a1 = (*(int*)&D_00000000);
-    sp18 = temp_v1;
-    sp1C = temp_a1;
-    func_00000000(temp_v1 + 0x10, temp_a1);
-    if (FW(temp_a1, 0x14) != 0) {
-        FW(temp_a1, 0x4) = 1;
+/* func_00002DA4: bootup_uso subsystem init + 12-way command dispatch
+ * (0x1EC / 123 words). init(&D_000073EC, 0); create -> global; attach the
+ * new object under arg0->0x84 (+0x10 list, 0x14 back-link, 0x4 linked flag);
+ * config word |= 0x82000 | 0x20000; then switch (arg1) 1..12 -> per-mode
+ * handler(arg0, arg2) (case 1: handler(arg0, 0) + obj->0x18 |= 4; cases
+ * 7/8 and out-of-range: func(&D_00007408)).
+ * Exact C (identical to the IDO 7.1 -O2 donor unit bootup_uso_o2_2DA4.c,
+ * 123/123 words; levers documented there). WIRED via REPLACE_FUNC_BODY donor
+ * splice: the in-unit compile's .rodata jumptable is discarded by the link, so
+ * the splice swaps in the donor body with its .rodata reloc renamed
+ * func_00002DA4_rodata (pinned to the bootup_uso RoData table at +0x4F4).
+ * The in-unit body keeps the .text size exact: a smaller placeholder shifts
+ * the section-relative %lo(.L...) addends of later INCLUDE_ASM functions
+ * (replace-function-body.py does not rebase those). */
+extern void func_00000000_2DA4_v();
+extern char D_000073EC, D_000073F8, D_00007408;
+extern int D_2DA4_obj, D_2DA4_obj_rd;
+extern char D_2DA4_cfg;
+#define FW2DA4(p, o) (*(int *)((char *)(p) + (o)))
+void func_00002DA4(char *arg0, s32 arg1, s32 arg2) {
+    char *a1;
+    char *v1;
+    int v;
+    func_00000000_2DA4_v(&D_000073EC, 0);
+    func_00000000_2DA4_v();
+    D_2DA4_obj = func_00000000(0, &D_000073F8);
+    v1 = (char *)FW2DA4(arg0, 0x84);
+    a1 = (char *)D_2DA4_obj_rd;
+    func_00000000_2DA4_v(v1 + 0x10, a1);
+    if (FW2DA4(a1, 0x14) != 0) {
+        FW2DA4(a1, 0x4) = 1;
     }
-    FW(temp_a1, 0x14) = temp_v1;
-    func_00000000((*(int*)&D_00000000), temp_a1, arg2, arg0);
-    (*(int*)((char*)&D_00000000+4)) = (s32) ((*(int*)((char*)&D_00000000+4)) | 0x80000 | 0x2000 | 0x20000);
-    if ((u32) (arg1 - 1) < 0xCU) {
-        switch (arg1) {
-        case 3:
-            func_00000000(arg0, arg2);
-            break;
-        case 5:
-            func_00000000(arg0, arg2);
-            break;
-        case 1:
-            func_00000000(arg0, arg2);
-            break;
-        case 4:
-            func_00000000(arg0, arg2);
-            break;
-        case 6:
-            func_00000000(arg0, arg2);
-            break;
-        case 7:
-            func_00000000(arg0, arg2);
-            break;
-        case 2:
-            func_00000000(arg0, NULL);
-            temp_a1_2 = (*(int*)&D_00000000);
-            FW(temp_a1_2, 0x18) = (s32) (FW(temp_a1_2, 0x18) | 4);
-            break;
-        case 10:
-            func_00000000(arg0, arg2);
-            break;
-        case 11:
-            func_00000000(arg0, arg2);
-            break;
-        case 12:
-            func_00000000(arg0, arg2);
-            break;
-        }
-    } else {
-        func_00000000(NULL);
+    FW2DA4(a1, 0x14) = (int)v1;
+    func_00000000_2DA4_v(D_2DA4_obj);
+    v = *(int *)((char *)&D_2DA4_cfg + 4);
+    v = v | 0x80000 | 0x2000 | 0x20000;
+    *(int *)((char *)&D_00000000 + 4) = v;
+    switch (arg1) {
+    case 2: func_00000000_2DA4_v(arg0, arg2); break;
+    case 4: func_00000000_2DA4_v(arg0, arg2); break;
+    case 12: func_00000000_2DA4_v(arg0, arg2); break;
+    case 3: func_00000000_2DA4_v(arg0, arg2); break;
+    case 5: func_00000000_2DA4_v(arg0, arg2); break;
+    case 6: func_00000000_2DA4_v(arg0, arg2); break;
+    case 1:
+        func_00000000_2DA4_v(arg0, 0);
+        a1 = (char *)D_2DA4_obj; if (1) { a1 += 0x18; } *(int *)a1 = *(int *)a1 | 4;
+        break;
+    case 9: func_00000000_2DA4_v(arg0, arg2); break;
+    case 10: func_00000000_2DA4_v(arg0, arg2); break;
+    case 11: func_00000000_2DA4_v(arg0, arg2); break;
+    default:
+        func_00000000_2DA4_v(&D_00007408);
+        break;
     }
 }
-#undef FW
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002DA4);
-#endif
+#undef FW2DA4
 
 /* func_00002F90 - verified structural decode (0x228, 138 insns,
  * multi-widget builder + per-child init). Builder+register family

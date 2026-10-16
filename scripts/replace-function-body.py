@@ -178,6 +178,30 @@ class Elf:
             self.write_section_header(i)
         self.write_elf_header()
 
+    def has_foreign_section_relocs(self, start, size):
+        """True if a .rel.text entry in [start, start+size) targets a local
+        section symbol other than .text (e.g. an in-unit switch jumptable in
+        .rodata, which the link discards). An in-unit body that is
+        byte-identical to its donor still needs the donor's renamed relocs."""
+        if not self.has_section(".rel.text"):
+            return False
+        rel_idx = self.find_section(".rel.text")
+        sec = self.sections[rel_idx]
+        off, size_b, ent = sec[4], sec[5], sec[9]
+        symtab_idx = self.find_section(".symtab")
+        strtab_idx = self.sections[symtab_idx][6]
+        syms = list(self.iter_symtab(symtab_idx))
+        for i in range(size_b // ent):
+            r_off, r_info = struct.unpack(REL_FMT, self.data[off + i * ent:off + (i + 1) * ent])
+            if not (start <= r_off < start + size):
+                continue
+            sym = syms[r_info >> 8][1]
+            if (sym[3] & 0xF) == 3:  # STT_SECTION
+                shndx = sym[5]
+                if 0 < shndx < self.e_shnum and self.section_name(shndx) != ".text":
+                    return True
+        return False
+
     # ---- section-growth + symbol-import helpers (for import_donor_relocs) ----
     def _grow_section(self, sec_idx, extra_bytes):
         """Insert extra_bytes of 0 at the end of section sec_idx. Shift later
@@ -388,7 +412,7 @@ def main():
     old_start, old_size = fields[1], fields[2]
 
     old_payload = dest.text_bytes_for(args.func)
-    if old_payload == payload:
+    if old_payload == payload and not dest.has_foreign_section_relocs(old_start, old_size):
         print(f"replace-body-skip: {args.func} already matches donor")
         return
 
