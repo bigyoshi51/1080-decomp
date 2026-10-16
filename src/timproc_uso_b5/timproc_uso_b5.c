@@ -3886,77 +3886,33 @@ void timproc_uso_b5_func_00005FC0(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00005FC0);
 #endif
 
-// timproc_uso_b5_func_00006394 — STRUCTURAL PASS (0x4C8 / 306 words,
-// no episode). Raw-.word USO form (genuine code). Hand-decoded.
-//
-// Timing-screen element layout/draw helper (operates on the Scr object).
-//
-//   void timproc_uso_b5_func_00006394(Scr *scr) {        // scr -> s0
-//     N *n = scr->0x414->0xC;
-//     if (n->0xBC >= 0x78) return;                        // X bound 120
-//     if (scr->0x3B0 + n->0xC4 < 0x15) { ... }            // count bound 21
-//     v = func_00000000(scr->0x3C8, 0x15);                // query/alloc
-//     // index static table D_00000160 by computed idx -> entry;
-//     func_00000000(&D_0, scr->0x398, scr+0x1E8);
-//     func_00000000(idxbuf, 0xA0, v);                     // build row
-//     if (scr->0x4B4 == 1) {
-//       // FP block (~11 FPU ops): compute positions/colors,
-//       //   alpha = 0xFF; ~22 func_00000000 draw/config calls
-//       //   emitting the timing display rows/digits.
-//     }
-//   }
-//
-// Struct-typing reference:
-//   scr: 0x414 -> node, node->0x0C -> sub (->0xBC X coord vs 0x78=120,
-//     ->0xC4 count); 0x3B0 row offset (vs 0x15=21 cap), 0x398 arg,
-//     0x3C8 query key, 0x490 a count, 0x4B4 draw-state (==1 draws),
-//     0x1E8 a sub-record passed by ptr. Constants: 0xFF alpha,
-//     state ids 1/5/7, 2/3.
-//   D_00000160 = USO static layout table (the 0x1xx pool). func_00000000
-//     = USO placeholder dispatcher (query / build / draw).
-// Caps (DEFERRED): raw-word USO + placeholder calls + FP block; USO
-//   mnemonic disasm limitation prevents byte-match. Real-C STRUCTURAL
-//   body below — bound guards + query + draw skeleton only.
-//   Byte-match deferred. Name pre-checked: no extern reuse.
-// 2026-06-21 RECONSTRUCT 64.4%->69.9% (gap -3 -> +5, LCS 197->214): first
-// query call is a DIRECT alias() (jal), not a fnptr-cast jalr; the result
-// indexes (&D_6394_F5E0)[ret] array base, *24, added to (char*)&D_00000160
-// base; the two FP draw blocks pass a0 = &import_8024CAF8 (alpha=0xFF call) and
-// the row template = &D_6394_FF5B0 / &D_6394_FF5C8 (reloc'd globals, not bare
-// 0x130/0x148); the template +0x20 fields are *(s16*) (lh), and the *0.25f/
-// *0.75f strength-reduced FP scales preserved.
-// 2026-06-23 RECONSTRUCT 69.1%->73.2% (size 311->306 words EXACT, LCS 215->224),
-// fixing 4 genuine bugs (size-corrected, not faked):
-//   (1) field 0x480 is f32 compared to 1.0f -> *(float*)(arg0+0x480) (was
-//       FW int->cvt.s.w, +2 phantom words: lwc1+c.eq.s vs lw/mtc1/cvt/c.eq).
-//   (2) table base is &D_807FF5E0+0x160 (reloc'd global) not bare &D_00000160.
-//   (3) the +0x34==2 gate reads global import_800200CC+0x34, not &D_00000000.
-//   (4) tail dispatch: drop redundant sp24 local + REORDER so the
-//       func_00008A64 call precedes the FW(arg0,0x4A4) read -> kills the v1
-//       spill/reload pair (caller had two phantom spill words).
-// RESIDUAL (~82 word diffs, all SAME-SIZE): (a) the D_807FE728/D_807FF5E0 array+
-//   base load is HI16-only-unpaired (target folds +0x160 into the base addiu via
-//   reloc + literal-0 lw offsets; IDO-from-C emits paired HI16/LO16 + folds
-//   +0x160 into the index multiply) -- the documented raw-word-USO unpaired-HI16
-//   cap, unreproducible from C. (b) everything else is pure register-renumber
-//   coloring + stack-slot cascade + 1 scheduler load-order swap (permuter-immune
-//   cap class). Byte-match remains DEFERRED (DECODE-ONLY). Name pre-checked.
-#ifdef NON_MATCHING
-
-
-
+/* timproc_uso_b5_func_00006394 (0x4C8 / 306 words): timing-screen row draw.
+ * Gate on scr->0x414->0xC->0xBC >= 0x78; clamp the row y (C4 + 0x3B0) to
+ * >= 21; pick the layout entry (&D_807FF5E0 + 0x160)[D_807FE728[87A0(..)]]
+ * (0x18-byte entries) and draw it; on a blinking (0x48C & 8) frame draw the
+ * two side templates (&D_807FF5B0 + 0x130 at 1/4 width, &D_807FF5C8 + 0x148
+ * at 3/4 width) centred against the entry's half-width; then dispatch the
+ * per-state vtable callbacks through 8A38 (0xC4 / 0xDC / 0xD4 / 0xCC slots).
+ *
+ * EXACT 2026-10-16 (agent-g, from the 98.50 draft): the whole function ran
+ * two ugen temp-ring slots behind the target (t0 where the target had t2,
+ * from the table-index load onward). Cause: in the target the template row
+ * pointer and the template width are NAMED locals -- uopt colours them into
+ * t0/t1 (the width lives across the /2 rounding branch), and every ring temp
+ * in the function then skips t0/t1. Naming them took 62 -> 6 differing words
+ * (row t0 / width t1, swapped). Both LRs are unconstrained, so they colour
+ * in first-occurrence (bitpos) order: a dead `tmpl_w = 0;` at entry makes the
+ * width the earlier variable -> width t0, row t1 = target. See
+ * docs/IDO_CODEGEN.md#named-locals-reserve-ring-regs-6394. */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_00006394)();
-extern int D_6394_F5E0;
-extern char D_6394_FF5E0;
+extern int timproc_uso_b5_D_807FE728[];
 extern char import_8024CAF8;
-extern char D_6394_FF5B0;
-extern char D_6394_FF5C8;
 extern char import_800200CC;
 void timproc_uso_b5_func_00006394(char *arg0) {
-    char *sp44;
+    s32 sp44;
     char *sp40;
     s32 temp_v0;
     s32 temp_v0_12;
@@ -3985,34 +3941,45 @@ void timproc_uso_b5_func_00006394(char *arg0) {
     char *temp_v1_7;
     char *temp_v1_8;
     char *var_v0;
+    s32 tmpl_w;
+    char *tmpl_row;
 
+    tmpl_w = 0;
     var_v0 = FW(arg0, 0x414);
     temp_v1 = FW(var_v0, 0xC);
     if (FW(temp_v1, 0xBC) >= 0x78) {
-        var_v0_2 = FW(arg0, 0x3B0) + FW(temp_v1, 0xC4);
-        if (var_v0_2 < 0x15) {
-            var_v0_2 = 0x15;
+        sp44 = FW(temp_v1, 0xC4) + FW(arg0, 0x3B0);
+        if (sp44 < 0x15) {
+            sp44 = 0x15;
         }
-        sp44 = (char *) var_v0_2;
-        sp40 = (char *)&D_6394_FF5E0 + 0x160 + (&D_6394_F5E0)[(s32) timproc_uso_b5_alias(arg0, FW(arg0, 0x3C8))] * 0x18;
-        timproc_uso_b5_alias(0, FW(arg0, 0x398), (int)arg0 + 0x1E8);
-        timproc_uso_b5_alias(sp40);
-        timproc_uso_b5_alias(sp40, 0xA0, sp44, 3);
+        sp40 = (char *)&timproc_uso_b5_D_807FF5E0 + 0x160;
+        sp40 = sp40 + *(int *)((char *)timproc_uso_b5_D_807FE728 + timproc_uso_b5_func_000087A0(arg0, FW(arg0, 0x3C8)) * 4) * 0x18;
+        import_0024E608(&import_8024CAF8, FW(arg0, 0x398), (int)arg0 + 0x1E8);
+        import_0024F2C8(sp40);
+        import_0024F34C(sp40, 0xA0, sp44, 3);
         if (FW(arg0, 0x4B4) != 1) {
             temp_v0 = FW(arg0, 0x3CC);
             if ((temp_v0 != 7) && (temp_v0 != 5) && (temp_v0 != 4)) {
                 temp_v0_2 = FW(arg0, 0x48C);
                 FW(arg0, 0x48C) = (s32) (temp_v0_2 + 1);
                 if (temp_v0_2 & 8) {
-                    if (timproc_uso_b5_alias(arg0) != 0) {
-                        timproc_uso_b5_alias(&import_8024CAF8, 0xFF, (int)arg0 + 0x20C);
-                        timproc_uso_b5_alias(&D_6394_FF5B0);
-                        timproc_uso_b5_alias(&D_6394_FF5B0, (s32) (((*(s16*)((char*)FW(sp40, 0x10) + 0x20) / 2) + 0xA0) - (*(s16*)((char*)FW(&D_6394_FF5B0, 0x10) + 0x20) * 0.25f)), sp44, 2);
+                    if (timproc_uso_b5_func_00006900(arg0) != 0) {
+                        import_0024E608(&import_8024CAF8, 0xFF, (int)arg0 + 0x20C);
+                        import_0024F2C8((char *)&timproc_uso_b5_D_807FF5B0 + 0x130);
+                        temp_v1 = (char *)&timproc_uso_b5_D_807FF5B0;
+                        temp_v1 += 0x130;
+                        temp_v1_2 = (char *)FW(sp40, 0x10); temp_v0 = *(s16 *)(temp_v1_2 + 0x20);
+                        tmpl_row = (char *)FW(temp_v1, 0x10); tmpl_w = *(s16 *)(tmpl_row + 0x20);
+                        import_0024F34C(temp_v1, (s32) (((temp_v0 / 2) + 0xA0) - (tmpl_w * 0.25f)), sp44, 2);
                     }
-                    if (timproc_uso_b5_alias(arg0) != 0) {
-                        timproc_uso_b5_alias(&import_8024CAF8, 0xFF, (int)arg0 + 0x20C);
-                        timproc_uso_b5_alias(&D_6394_FF5C8);
-                        timproc_uso_b5_alias(&D_6394_FF5C8, (s32) ((0xA0 - (*(s16*)((char*)FW(sp40, 0x10) + 0x20) / 2)) - (*(s16*)((char*)FW(&D_6394_FF5C8, 0x10) + 0x20) * 0.75f)), sp44, 2);
+                    if (timproc_uso_b5_func_0000687C((int *)arg0) != 0) {
+                        import_0024E608(&import_8024CAF8, 0xFF, (int)arg0 + 0x20C);
+                        import_0024F2C8((char *)&timproc_uso_b5_D_807FF5C8 + 0x148);
+                        temp_v1 = (char *)&timproc_uso_b5_D_807FF5C8;
+                        temp_v1 += 0x148;
+                        temp_v1_2 = (char *)FW(sp40, 0x10); temp_v0 = *(s16 *)(temp_v1_2 + 0x20);
+                        tmpl_row = (char *)FW(temp_v1, 0x10); tmpl_w = *(s16 *)(tmpl_row + 0x20);
+                        import_0024F34C(temp_v1, (s32) ((0xA0 - (temp_v0 / 2)) - (tmpl_w * 0.75f)), sp44, 2);
                     }
                 }
             }
@@ -4026,36 +3993,36 @@ void timproc_uso_b5_func_00006394(char *arg0) {
         if ((temp_v0_3 != 1) && (temp_v0_3 != 0xA) && (*(float *)((char *)arg0 + 0x480) == 1.0f) && (FW(arg0, 0x4B4) != 1)) {
             if ((temp_v0_3 == 5) || (temp_v0_3 == 7)) {
                 if (FW(arg0, 0x490) & 8) {
-                    temp_v0_4 = timproc_uso_b5_alias(arg0);
+                    temp_v0_4 = (char *)timproc_uso_b5_func_00008A38(arg0);
                     temp_v1_2 = FW(temp_v0_4, 0x28);
                     ((GP_00006394)FW(temp_v1_2, 0xC4))(*(s16*)((char*)temp_v1_2 + 0xC0) + temp_v0_4, arg0, (int)arg0 + 0x254, (int)arg0 + 0x278);
                 }
             } else if (temp_v0_3 == 8) {
-                temp_v0_5 = timproc_uso_b5_alias(arg0);
+                temp_v0_5 = (char *)timproc_uso_b5_func_00008A38(arg0);
                 temp_v1_3 = FW(temp_v0_5, 0x28);
                 ((GP_00006394)FW(temp_v1_3, 0xC4))(*(s16*)((char*)temp_v1_3 + 0xC0) + temp_v0_5, arg0, (int)arg0 + 0x29C, (int)arg0 + 0x2C0);
             } else {
-                temp_v0_6 = timproc_uso_b5_alias(arg0);
+                temp_v0_6 = (char *)timproc_uso_b5_func_00008A38(arg0);
                 temp_v1_4 = FW(temp_v0_6, 0x28);
                 ((GP_00006394)FW(temp_v1_4, 0xC4))(*(s16*)((char*)temp_v1_4 + 0xC0) + temp_v0_6, arg0, (int)arg0 + 0x254, (int)arg0 + 0x278);
             }
             if (*(s32 *)((char *)&import_800200CC + 0x34) == 2) {
                 temp_v0_7 = FW(arg0, 0x3CC);
                 if (temp_v0_7 == 4) {
-                    temp_v0_8 = timproc_uso_b5_alias(arg0);
+                    temp_v0_8 = (char *)timproc_uso_b5_func_00008A38(arg0);
                     temp_v1_5 = FW(temp_v0_8, 0x28);
                     ((GP_00006394)FW(temp_v1_5, 0xDC))(*(s16*)((char*)temp_v1_5 + 0xD8) + temp_v0_8, arg0, FW(arg0, 0x490));
                 } else if (temp_v0_7 == 5) {
-                    temp_v0_9 = timproc_uso_b5_alias(arg0);
+                    temp_v0_9 = (char *)timproc_uso_b5_func_00008A38(arg0);
                     temp_v1_6 = FW(temp_v0_9, 0x28);
                     ((GP_00006394)FW(temp_v1_6, 0xDC))(*(s16*)((char*)temp_v1_6 + 0xD8) + temp_v0_9, arg0, 8);
                 } else {
-                    temp_v0_10 = timproc_uso_b5_alias(arg0);
+                    temp_v0_10 = (char *)timproc_uso_b5_func_00008A38(arg0);
                     temp_v1_7 = FW(temp_v0_10, 0x28);
                     ((GP_00006394)FW(temp_v1_7, 0xD4))(*(s16*)((char*)temp_v1_7 + 0xD0) + temp_v0_10, arg0);
                 }
             } else {
-                temp_v0_11 = timproc_uso_b5_alias(arg0);
+                temp_v0_11 = (char *)timproc_uso_b5_func_00008A38(arg0);
                 temp_v1_8 = FW(temp_v0_11, 0x28);
                 ((GP_00006394)FW(temp_v1_8, 0xD4))(*(s16*)((char*)temp_v1_8 + 0xD0) + temp_v0_11, arg0);
             }
@@ -4064,7 +4031,7 @@ void timproc_uso_b5_func_00006394(char *arg0) {
     }
     temp_v0_12 = FW(arg0, 0x3CC);
     if (((var_v1 >= 0x78) && (FW(arg0, 0x4B4) != 1) && (temp_v0_12 == 6)) || (temp_v0_12 == 7)) {
-        var_a2 = FW((timproc_uso_b5_alias(arg0)), 0x2B0);
+        var_a2 = FW((timproc_uso_b5_func_00008A64((int *)arg0)), 0x2B0);
         temp_v1_9 = FW(arg0, 0x4A4);
         if (temp_v1_9 == 1) {
             var_a2 = 5;
@@ -4075,15 +4042,12 @@ void timproc_uso_b5_func_00006394(char *arg0) {
         if (temp_v1_9 == 3) {
             var_a2 = 7;
         }
-        temp_v0_13 = timproc_uso_b5_alias(arg0);
+        temp_v0_13 = (char *)timproc_uso_b5_func_00008A38(arg0);
         temp_v1_10 = FW(temp_v0_13, 0x28);
         ((GP_00006394)FW(temp_v1_10, 0xCC))(*(s16*)((char*)temp_v1_10 + 0xC8) + temp_v0_13, arg0, var_a2);
     }
-    timproc_uso_b5_alias(arg0);
+    timproc_uso_b5_func_04CCA8(arg0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006394);
-#endif
 
 void timproc_uso_b5_func_0000685C(char *a0) {
     gl_func_00000000(a0 + 0x2C);
