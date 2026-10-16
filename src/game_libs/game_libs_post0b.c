@@ -24215,49 +24215,47 @@ void game_libs_func_00052918(void *arg0) {
     *(float *)((char *)arg0 + 0x9C) = 1.0f;
 }
 
-// gl_func_00052994 — NM wrap 82.6% (2026-05-28, was documented-only). command
-// handler dispatching on msg->0 (46 insns). case 0xC: flag op gated by
-// self->0x30&0x40 (self->0xA4 = obj->4, or set/clear bit 0x80 of *(self+0x18)
-// by obj->4); case 1: if (obj->0x4C != 8) callback; default: callback.
-// 2026-05-31: `switch` (NOT goto-chain) wins — 82.63%->86.93%. The old note's
-// "goto-chain gives the dispatch layout" was wrong: switch fixes the beql-vs-bne
-// case-1 polarity (cases 1/12 are sparse so switch emits beq compares, no jumptable).
-// See docs/IDO_CODEGEN.md#switch-vs-if-goto-dispatch-polarity. Residual (~13%): the
-// addiu+0(reg) base-pointer RMW form on *(self+0x18) (mine folds to direct 0x18(a0),
-// target re-derives addiu v0,a0,0x18 + 0(v0) per branch — the missing 3 insns;
-// 2026-06-10: role-#6 barriers in the arms DO materialize the addius standalone
-// but REGRESS the in-tree fuzzy 86.93->81.37 (the extra BBs perturb the
-// dispatch layout); the if-chain-12-first variant word-diffs better (29 vs 38)
-// but loses the case-1 beql polarity. The three constraints (addiu form,
-// 12-first order, beql polarity) are mutually exclusive from C) + switch tests
-// case 1 before 12 (IDO sorts ascending) where target tests 12 first + obj-ptr regalloc.
-#ifdef NON_MATCHING
+// gl_func_00052994: command handler dispatching on msg->0 (46 insns).
+// case 12: flag op gated by self->0x30&0x40 (self->0xA4 = obj->4, or set/clear
+// bit 0x80 of *(self+0x18) by obj->4); case 1: if (obj->0x4C != 8) callback;
+// default: callback.
+// EXACT 2026-10-16 (agent-g, 86.93 -> 100). The old note's three "mutually
+// exclusive" constraints all fit: (1) dispatch `if (v0 == 12) goto C; if (v0 != 1)
+// goto D; goto ONE;` -- the INVERTED second test gives the target's
+// `beq 12; beql 1 (obj load in the likely slot); b D` (a plain goto chain or a
+// one-case switch gives `bne D; b ONE`; a 2-case switch tests 1 first);
+// (2) the addiu+0(reg) RMW base via `if (1) { q = (int *)((char *)q + 0x18); }`
+// in each arm; (3) the dispatch variable v0 reused for both loaded values so
+// they colour v0. See docs/IDO_CODEGEN.md#unsorted-dispatch-if-goto-plus-switch-54aec.
 void gl_func_00052994(int *a0, int *a1) {
     int *v1;
     int v0 = a1[0];
-    switch (v0) {
-    case 12:
-        v1 = (int*)a1[1];
-        if (a0[0x30/4] & 0x40) {
-            a0[0xA4/4] = v1[1];
-        } else if (v1[1] != 0) {
-            *(int*)((char*)a0 + 0x18) |= 0x80;
-        } else {
-            *(int*)((char*)a0 + 0x18) &= ~0x80;
-        }
-        return;
-    case 1:
-        v1 = (int*)a1[1];
-        if (v1[0x4C/4] != 8) {
-            gl_func_00000000();
-        }
-        return;
+    if (v0 == 12) goto C;
+    if (v0 != 1) goto D;
+    goto ONE;
+C:
+    v1 = (int*)a1[1];
+    if (a0[0x30/4] & 0x40) {
+        a0[0xA4/4] = v1[1];
+    } else if ((v0 = v1[1]) != 0) {
+        int *q = a0;
+        if (1) { q = (int*)((char*)q + 0x18); }
+        *q |= 0x80;
+    } else {
+        int *q = a0;
+        if (1) { q = (int*)((char*)q + 0x18); }
+        *q &= ~0x80;
     }
+    return;
+ONE:
+    v1 = (int*)a1[1];
+    if ((v0 = v1[0x4C/4]) != 8) {
+        gl_func_00000000();
+    }
+    return;
+D:
     gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052994);
-#endif
 
 unsigned char game_libs_func_00052A4C(char *a0, int a1) {
     return *(unsigned char *)(*(int *)(*(int *)(a0 + 0x84) + a1 * 4) + 0x32);
