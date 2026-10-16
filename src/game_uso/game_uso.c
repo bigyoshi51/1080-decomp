@@ -11350,9 +11350,9 @@ void game_uso_func_00010128(int *a0) {
  * void alias import_0010DB28_void (=0 in undefined_syms_auto.txt, identical
  * 0C000000 jal bytes) frees $v0 -> 79/79 objdiff-100. (26FC return-capture
  * probed first: inert, immediate-redef web split per the 1C90 caveat.)
- * NOT landable as C: jal game_uso_func_0000E2D0 targets a real in-TU
- * symbol (baked jal 0 in ROM). Stays NM wrap at 100. INCLUDE_ASM build. */
-#ifdef NON_MATCHING
+ * 2026-10-16 (agent-g): UNWRAPPED EXACT. The "in-TU jal" hold-back does not
+ * apply to Yay0-block units (block cut from the unlinked .o, jal stays 0);
+ * see docs/MATCHING_WORKFLOW.md#yay0-block-unlinked-in-unit-jal-f360. */
 extern char game_uso_D_807FF3D8;
 extern char game_uso_D_807FF3D0;
 extern char game_uso_D_807FF3E8;
@@ -11387,9 +11387,6 @@ void game_uso_func_000102CC(int *a0) {
     game_uso_func_00011750((char *)s0);
   }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000102CC);
-#endif
 
 /* Small state-dispatch helper. BYTE-EXACT (was force-promoted via banned
  * SUFFIX_BYTES + INSN_PATCH). Two legit levers: (1) pass the &D+0xDF8 pair as a
