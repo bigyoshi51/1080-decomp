@@ -3622,8 +3622,7 @@ void gl_func_00037CE0(struct gl_func_00037CE0_Six *a0) {
  * (4) slots via decl-order pads: padA[1](0x44)/fbuf(0x38)/padB[2](0x30)/
  *     tmp(0x24)/padC[3](0x18). GOTCHA: `(void)pad` on a SCALAR volatile
  *     emits `lw zero` — pads must be arrays.
- * Un-landable (jal-0/&D placeholders); stays as objdiff-100 NM wrap. */
-#ifdef NON_MATCHING
+ * EXACT (unwrapped run 95): func_00000000 / D_00000000 are real symbols at 0. */
 void gl_func_00037D48(int *a0) {
     volatile int padA[1];
     float fbuf[3];
@@ -3637,9 +3636,6 @@ void gl_func_00037D48(int *a0) {
     (void)padB;
     (void)padC;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037D48);
-#endif
 
 /* gl_func_00037DA8: 23-insn copy-6-ints + send-buffer helper. Copies
  * a0[0..5] into stack local then calls gl_func(&D_0, local, 24).
