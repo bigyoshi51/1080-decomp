@@ -10546,6 +10546,15 @@ void gl_func_00028A18(char *a0) {
 //   infra. Real-C STRUCTURAL body below per the analysis (placeholder
 //   calls / fields). Byte-match deferred.
 //   Name pre-checked: no extern reuse (collision-safe).
+// 2026-10-16 agent-c: NM 95.61 -> 1 word. The target computes rec twice
+//   with OPPOSITE addu operand orders (value `addu t7,s0,v0`, address
+//   `addu t8,v0,s0`), so they must be two non-CSE'd expressions: value =
+//   pointer add `(int)(off + base)` (local base: written order kept),
+//   address = int add `(int)base + off + 8` (int adds come out base-first
+//   whatever the source order). RESIDUAL: the call arg `addu a1,s0,t1`
+//   (build t1,s0): with the reload inline IDO evaluates the load first in
+//   every spelling (off+X, X+off, &X[off], (int) casts, struct-array
+//   &recs[i]); a reassigned named local gets the order but colours v0.
 #ifdef NON_MATCHING
 extern int gl_func_0001CA10();
 extern int D_00000000;
@@ -10556,8 +10565,8 @@ void gl_func_00028A68(void) {
     gl_func_0001CA10(tbl);
     for (i = 0, off = 0; i < GL_COUNT_2070; i++, off += 0xD0) {
         char *base = *(char **)((char *)&D_00000000 + 0x2CFC);
-        *(int *)(base + off + 8) = (int)(base + off);
-        *(int *)(*(char **)((char *)&D_00000000 + 0x2CFC) + off) = 0;
+        *(int *)((int)base + off + 8) = (int)(off + base);
+        *(int *)(*(int *)((char *)&D_00000000 + 0x2CFC) + off) = 0;
         gl_func_0001CA10(tbl, *(char **)((char *)&D_00000000 + 0x2CFC) + off);
     }
 }
