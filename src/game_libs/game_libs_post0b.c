@@ -30995,29 +30995,20 @@ void game_libs_func_0005DB00(int a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DB00);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0005DB58: 22-insn float wrapper.
- *   r = gl_func_00000000(a2[0]*a2[0] + a2[2]*a2[2]);  // jal#1, float
- *                                                     // arg in $f12
- *   gl_func_00000000(a0, a1, bits_of_r, *((int*)a2 + 1));  // jal#2
- *
- * CAP (documented, not a deferral): jal#1 passes a single float arg to
- * the file-scope K&R `extern int gl_func_00000000()` via DIRECT `jal`.
- * Per docs/IDO_CODEGEN.md#feedback-ido-knr-float-call this is provably
- * unmatchable from C: K&R promotes float→double (spurious `cvt.d.s` —
- * the 71.8% prior result), a `(float)` prototype redecl is a cfe error
- * ("not compatible after default argument promotion"), and a fn-ptr
- * cast yields `jalr $t9` not the target's direct `jal`. No C form
- * exists. NM kept as decoded reference; INCLUDE_ASM is the build path
- * (ROM byte-exact). */
-extern int gl_func_00000000();
+/* gl_func_0005DB58: EXACT (0x58 / 22 words). r = sqrt-slot(x*x + z*z) of the
+ * Vec3 at a2, then a 4-arg cross-module call (a0, a1, r, a2->y bits). The old
+ * "K&R float call unmatchable" cap is lifted by prototyped blank aliases pinned
+ * at 0: gl_func_00000000_5db58a is (float)->float (f12 in, f0 out, still a
+ * direct jal), and gl_func_00000000_5db58b is (int, int, float, int) so O32
+ * passes r in a2 via mfc1. Named x/z temps give the f0/f2 load colours (the
+ * inline a2[0]*a2[0] form loads a2[2] into f0); see
+ * docs/IDO_CODEGEN.md#vec3-sqlen-named-temps-5bd80. */
+extern float gl_func_00000000_5db58a(float);
+extern void gl_func_00000000_5db58b(int, int, float, int);
 void gl_func_0005DB58(int a0, int a1, float *a2) {
-    float r = gl_func_00000000(a2[0] * a2[0] + a2[2] * a2[2]);
-    gl_func_00000000(a0, a1, r, *((int*)a2 + 1));
+    float x = a2[0], z = a2[2];
+    gl_func_00000000_5db58b(a0, a1, gl_func_00000000_5db58a(x * x + z * z), *((int*)a2 + 1));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DB58);
-#endif
 
 /* gl_func_0005DBB0: 0x234 rotation-matrix (f32 rows, stride 0x10) ->
  * quaternion, classic Shoemake mtx->quat with nxt[]={1,2,0} table at &D_0
