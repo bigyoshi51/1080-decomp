@@ -5881,7 +5881,12 @@ int game_uso_func_00007ACC(int *a0, int *a1, int arg3, int *arg4) {
  * q = (f32*)((int)base+0x30) keeps the addiu join-CSE. Residual ~24%:
  * per-block load-pair scheduling, y-store dup into branch delay slots,
  * s-reg pressure (s0-s3 vs s0-s2), spill-temp homes. Placeholder callees --
- * NM wrap regardless. See docs/IDO_CODEGEN.md #fresh-vec3-fanout-intcast-q-7c1c. */
+ * NM wrap regardless. See docs/IDO_CODEGEN.md #fresh-vec3-fanout-intcast-q-7c1c.
+ * 2026-10-16 (agent-g, 75.76 -> 79.99): the 14 alloc-guard Vec3 writes now
+ * evaluate their non-constant components into function-scope temps tx/tz
+ * before the stores (target loads-first ctor shape; per-component stores
+ * through p block the later loads from hoisting). Temps in STORE order beat
+ * x-then-z order (79.96). docs/IDO_CODEGEN.md#alloc-guard-vec3-temps-first-8cd8. */
 
 int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
                            char *arg4, f32 *arg5) {
@@ -5953,6 +5958,7 @@ int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
     char *node;
     float k;
     float metric, thresh;
+    f32 tx, tz;
 
     if (arg5 != NULL) {
         *arg5 = 0.0f;
@@ -5962,15 +5968,19 @@ int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
         q = (f32 *)((int)arg2 + 0x30);
         p = 0; if (1) { p = &nA; }
         if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+            tx = *q;
+            tz = *(f32 *)((int)q + 8);
             p->y = 0.0f;
-            p->x = *q;
-            p->z = *(f32 *)((int)q + 8);
+            p->x = tx;
+            p->z = tz;
         }
         p = 0; if (1) { p = &nB; }
         if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+            tx = nA.x - *(f32 *)(arg4 + 0x0);
+            tz = nA.z - *(f32 *)(arg4 + 0x8);
             p->y = 0.0f;
-            p->x = nA.x - *(f32 *)(arg4 + 0x0);
-            p->z = nA.z - *(f32 *)(arg4 + 0x8);
+            p->x = tx;
+            p->z = tz;
         }
         *(Tri3i *)&scratch = *(Tri3i *)&nB;
         *(Tri3i *)&cpA = *(Tri3i *)&scratch;
@@ -5982,16 +5992,20 @@ int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
         q = (f32 *)((int)arg3 + 0x30);
         p = 0; if (1) { p = &mA; }
         if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+            tz = *(f32 *)((int)q + 8);
+            tx = *q;
             p->y = 0.0f;
-            p->z = *(f32 *)((int)q + 8);
-            p->x = *q;
+            p->z = tz;
+            p->x = tx;
         }
         q = (f32 *)((int)arg2 + 0x30);
         p = 0; if (1) { p = &mB; }
         if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+            tx = mA.x - *q;
+            tz = mA.z - *(f32 *)((int)q + 8);
             p->y = 0.0f;
-            p->x = mA.x - *q;
-            p->z = mA.z - *(f32 *)((int)q + 8);
+            p->x = tx;
+            p->z = tz;
         }
         *(Tri3i *)&scratch = *(Tri3i *)&mB;
         *(Tri3i *)&stg1 = *(Tri3i *)&scratch;
@@ -6013,16 +6027,20 @@ int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
                 char *src = (char *)*(int *)(*(int *)(arg1 + 0x30) + 0x908) + 0xB4;
                 p = 0; if (1) { p = &mC; }
                 if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+                    tx = *(f32 *)(src + 0x0);
+                    tz = *(f32 *)(src + 0x8);
                     p->y = 0.0f;
-                    p->x = *(f32 *)(src + 0x0);
-                    p->z = *(f32 *)(src + 0x8);
+                    p->x = tx;
+                    p->z = tz;
                 }
                 q = (f32 *)((int)arg2 + 0x30);
                 p = 0; if (1) { p = &mD; }
                 if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+                    tx = mC.x - *q;
+                    tz = mC.z - *(f32 *)((int)q + 8);
                     p->y = 0.0f;
-                    p->x = mC.x - *q;
-                    p->z = mC.z - *(f32 *)((int)q + 8);
+                    p->x = tx;
+                    p->z = tz;
                 }
                 *(Tri3i *)&scratch = *(Tri3i *)&mD;
                 *(Tri3i *)&mE = *(Tri3i *)&scratch;
@@ -6033,9 +6051,11 @@ int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
         p = 0; if (1) { p = &mP; }
 
         if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+            tx = stg2.z;
+            tz = -stg2.x;
             p->y = 0.0f;
-            p->x = stg2.z;
-            p->z = -stg2.x;
+            p->x = tx;
+            p->z = tz;
         }
         *(Tri3i *)&scratch = *(Tri3i *)&mP;
         *(Tri3i *)&segDir = *(Tri3i *)&scratch;
@@ -6046,15 +6066,19 @@ int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
         p = 0; if (1) { p = &mC2; }
 
         if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+            tz = *(f32 *)((int)q + 8);
+            tx = *q;
             p->y = 0.0f;
-            p->z = *(f32 *)((int)q + 8);
-            p->x = *q;
+            p->z = tz;
+            p->x = tx;
         }
         p = 0; if (1) { p = &mD2; }
         if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+            tx = mC2.x - *(f32 *)(arg4 + 0x0);
+            tz = mC2.z - *(f32 *)(arg4 + 0x8);
             p->y = 0.0f;
-            p->x = mC2.x - *(f32 *)(arg4 + 0x0);
-            p->z = mC2.z - *(f32 *)(arg4 + 0x8);
+            p->x = tx;
+            p->z = tz;
         }
         *(Tri3i *)&scratch = *(Tri3i *)&mD2;
         *(Tri3i *)&resDir = *(Tri3i *)&scratch;
@@ -6120,16 +6144,20 @@ int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
             p = 0; if (1) { p = &lA; }
 
             if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+                tx = *q;
+                tz = *(f32 *)((int)q + 8);
                 p->y = 0.0f;
-                p->x = *q;
-                p->z = *(f32 *)((int)q + 8);
+                p->x = tx;
+                p->z = tz;
             }
             q = (f32 *)((int)arg3 + 0x30);
             p = 0; if (1) { p = &lB; }
             if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+                tz = lA.z - *(f32 *)((int)q + 8);
+                tx = lA.x - *q;
                 p->y = 0.0f;
-                p->z = lA.z - *(f32 *)((int)q + 8);
-                p->x = lA.x - *q;
+                p->z = tz;
+                p->x = tx;
             }
             *(Tri3i *)&scratch = *(Tri3i *)&lB;
             *(Tri3i *)&lSeg = *(Tri3i *)&scratch;
@@ -6137,9 +6165,11 @@ int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
             p = 0; if (1) { p = &lP; }
 
             if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+                tx = lSeg.z;
+                tz = -lSeg.x;
                 p->y = 0.0f;
-                p->x = lSeg.z;
-                p->z = -lSeg.x;
+                p->x = tx;
+                p->z = tz;
             }
             *(Tri3i *)&mid2 = *(Tri3i *)&lP;
             *(Tri3i *)&lDir = *(Tri3i *)&mid2;
@@ -6150,15 +6180,19 @@ int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
             p = 0; if (1) { p = &lE; }
 
             if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+                tx = *q;
+                tz = *(f32 *)((int)q + 8);
                 p->y = 0.0f;
-                p->x = *q;
-                p->z = *(f32 *)((int)q + 8);
+                p->x = tx;
+                p->z = tz;
             }
             p = 0; if (1) { p = &lF; }
             if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+                tx = lE.x - *(f32 *)(arg4 + 0x0);
+                tz = lE.z - *(f32 *)(arg4 + 0x8);
                 p->y = 0.0f;
-                p->x = lE.x - *(f32 *)(arg4 + 0x0);
-                p->z = lE.z - *(f32 *)(arg4 + 0x8);
+                p->x = tx;
+                p->z = tz;
             }
             *(Tri3i *)&scratch = *(Tri3i *)&lF;
             *(Tri3i *)&lRD = *(Tri3i *)&scratch;
