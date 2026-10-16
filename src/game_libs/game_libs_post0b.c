@@ -8059,10 +8059,9 @@ int *gl_func_0003D5BC(int *a0) {
  *     at sp+0x24 (was 0x18). NEGATIVE probes: named p+q=(int*)(int)tmp gives
  *     candidates v0/v1 (not ring); de-named q-stores int-cast break the
  *     a1[1] CSE (3 reloads); trailing if(tag){} emits a real branch and
- *     drags tag to $a2. Un-landable (jal-0 placeholder callee); stays as
- *     objdiff-100 NM wrap. */
+ *     drags tag to $a2. EXACT: unwrapped 2026-10-16 (func_00000000 is a
+ *     real symbol at 0, so the jal-0 placeholder links to the ROM word). */
 extern int func_00000000();
-#ifdef NON_MATCHING
 void gl_func_0003D620(int *a0, int *a1) {
     volatile int pad[2];
     float tmp[3];
@@ -8080,9 +8079,6 @@ void gl_func_0003D620(int *a0, int *a1) {
         func_00000000();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D620);
-#endif
 
 /* gl_func_0003D68C: 36-insn — fill 3 ints via helper, convert to floats,
  * build a {int=7; float* -> 3 floats} local, then indirect vtable call.
