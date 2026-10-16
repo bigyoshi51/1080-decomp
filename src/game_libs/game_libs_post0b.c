@@ -14485,47 +14485,41 @@ int game_libs_func_00044DD4(int *a0, int a1) {
 // gl_func_00044918 / 000412E8). Per-handler arg and loop-body detail
 // representative; the &D_0002FEB4 tag store, the cleared offsets, the
 // 0x240 + idx*4 + 0x198/0x180 handler-table math and the &D_0002FExx keys
-// are exact. Caps: self struct, &D_g global and cb signatures untyped. Full
-// body INCLUDE_ASM-preserved.
-#ifdef NON_MATCHING
+// are exact. EXACT 2026-10-16: the two global stores are DISTINCT base-0
+// externs (D_44DE4_tag / D_44DE4_val, one `lui at` each), the string keys are
+// `&D_00000000 + K` (lui 2; addiu -X carry form), a volatile first self store
+// pins the self->s2 copy, the loop reads `((char **)(self + 0x148))[i]` so
+// IDO strength-reduces its own cursor, and a named 0x22C local takes v0.
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00044DE4)();
+extern int D_44DE4_tag, D_44DE4_val;
 void gl_func_00044DE4(char *arg0) {
-    s32 var_s1;
-    char *temp_v0;
-    char *temp_v1;
-    char *var_s0;
+    s32 i;
+    char *e;
+    char *vt;
+    char *q;
 
-    *(int*)0 = 0x1FEB4;
-    *(int*)0 = (s32) FW(FW(arg0, 0x218), 0x24);
-    FW(arg0, 0x244) = 0;
+    D_44DE4_tag = (int)((char *)&D_00000000 + 0x1FEB4);
+    D_44DE4_val = FW(FW(arg0, 0x218), 0x24);
+    *(volatile int *)(arg0 + 0x244) = 0;
     FW(arg0, 0x248) = 0;
     FW(arg0, 0x258) = 0;
-    gl_func_00034458(FW((FW(arg0, 0x240) + (FW(arg0, 0x204) * 4)), 0x198));
-    gl_func_00034458(FW((FW(arg0, 0x240) + (FW(arg0, 0x204) * 4)), 0x180));
-    FW(FW(arg0, 0x22C), 0xC) = 0;
-    gl_func_00034458(0x1FEBC);
-    gl_func_00034458(0x1FEC4);
+    gl_func_00000000(((int *)(FW(arg0, 0x240) + 0x198))[FW(arg0, 0x204)]);
+    gl_func_00000000(((int *)(FW(arg0, 0x240) + 0x180))[FW(arg0, 0x204)]);
+    q = (char *)FW(arg0, 0x22C);
+    FW(q, 0xC) = 0;
+    gl_func_00000000((char *)&D_00000000 + 0x1FEBC);
+    gl_func_00000000((char *)&D_00000000 + 0x1FEC4);
     FW(arg0, 0x1C0) = 0;
-    var_s1 = 0;
-    var_s0 = arg0;
-    if (FW(arg0, 0x15C) > 0) {
-        do {
-            temp_v1 = FW(var_s0, 0x148);
-            if (temp_v1 != 0) {
-                temp_v0 = FW(temp_v1, 0x5C);
-                ((GP_00044DE4)FW(temp_v0, 0xC))(FW(temp_v0, 0x8) + temp_v1, 0);
-            }
-            var_s1 += 1;
-            var_s0 += 4;
-        } while (var_s1 < FW(arg0, 0x15C));
+    for (i = 0; i < FW(arg0, 0x15C); i++) {
+        e = ((char **)(arg0 + 0x148))[i];
+        if (e != 0) {
+            vt = (char *)FW(e, 0x5C);
+            ((void (*)(char *, int))FW(vt, 0xC))(e + *(s16 *)(vt + 8), 0);
+        }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044DE4);
-#endif
 
 // gl_func_00044EDC — STRUCTURAL PASS (0x298 / 167 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x28
