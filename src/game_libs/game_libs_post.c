@@ -1771,7 +1771,6 @@ block_41:
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001E134);
 #endif
-#endif
 
 // gl_func_0001EE78 — STRUCTURAL PASS (0xA8 / 42 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -16812,7 +16811,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F288);
 #endif
 
 
-#ifdef NON_MATCHING
 /* game_libs_func_0002F578: one ~46-insn (0xB8) FP value-quantize / clamp-to-byte
  * helper. BOUNDARY MERGED 2026-06-02: splat had split it into 0002F578 (3-insn
  * FP-const prologue: `mtc1 a3,$f12` (the input value, ARG-DERIVED) + `mtc1
@@ -16825,7 +16823,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F288);
  * in-scope — CORRECTS the prior structural decode that mis-read v as o->0 and
  * the bound as 15.0. Maps the input float to a 7-bit byte (clamp [0,127]+1,
  * optional negate by o->0x1C bit0, scale by o->0x54, trunc, saturate [0,0x7F],
- * store to o->0x33/o->0x1C). Byte-match deferred (raw-word USO + FP clamp). */
+ * store to o->0x33/o->0x1C). EXACT: unwrapped 2026-10-16 (NM body word-identical). */
 /* WHOLE-BODY REDECODE 2026-07-31 (34.6->NM): prior body mis-read the FP chain
  * (real: v=|v|+15.0 min-clamped to 127.0 — not [0,1,127] clamp), missed that
  * bit0 of o->0x1C gates BOTH the o->0x54 scale AND the o->0x60 byte capture
@@ -16857,9 +16855,6 @@ void game_libs_func_0002F578(char *o, int a1, int a2, f32 v, unsigned char b) {
     }
     gl_func_00000000(*(unsigned char *)(o + 0x21), a1, a2, iv, b);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F578);
-#endif
 
 void game_libs_func_0002F630(void) {
 }
