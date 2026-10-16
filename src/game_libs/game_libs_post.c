@@ -11437,24 +11437,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029978);
 //   03E00008 = 1 (.s now single fn). Real-C STRUCTURAL body below
 //   per the analysis. Byte-match deferred. Name pre-checked: no
 //   extern reuse.
-#ifdef NON_MATCHING
 // DECODE-CORRECTNESS 2026-07-11: target STORES the reset callback's float
 // return ($f0) into the phase accumulator, INSIDE the guard (swc1 $f0,56/60(a1)
 // only on the call path), and the guard is `!= 0` (beqzl), not `!= 0xFF`. Prior
 // decode stored 0.0f UNCONDITIONALLY (mtc1 zero; swc1) and mis-read the guard.
 // Callback typed float-returning + called DIRECTLY (jal, per K&R direct-call).
-extern float gl_ref_00029B6C();
+// Unwrapped EXACT 2026-10-16 (run 96): the two ROM jal words are baked in-unit
+// targets 0x3DF44 / 0x3DFE4, so each call site has its own alias pinned to
+// its real address in undefined_syms_auto.txt.
+extern float gl_ref_00029B6C_3DF44();
+extern float gl_ref_00029B6C_3DFE4();
 void gl_func_00029B6C(char *obj) {
     if (*(unsigned char *)(obj + 0x80) != 0) {
-        *(float *)(obj + 0x38) = gl_ref_00029B6C(obj + 0x80);
+        *(float *)(obj + 0x38) = gl_ref_00029B6C_3DF44(obj + 0x80);
     }
     if (*(unsigned char *)(obj + 0xA0) != 0) {
-        *(float *)(obj + 0x3C) = gl_ref_00029B6C(obj + 0x8C);
+        *(float *)(obj + 0x3C) = gl_ref_00029B6C_3DFE4(obj + 0x8C);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029B6C);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
