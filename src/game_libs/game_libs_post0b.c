@@ -24724,52 +24724,40 @@ block_24:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053560);
 #endif
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00053A2C)();
+/* Per-triangle face normals: for each of the 0x44 tris (u16 vertex indices
+ * at +2/+4/+6 of an 8-byte record in 0x68), fetch the three s16 vertices via
+ * the index lookup and store the integer cross product (b-a) x (c-b) as floats
+ * into the 12-byte normal array at 0x54, then call the normalize slot with the
+ * normal pointer only (its stray a1 is just the last s16 load). Callees go
+ * through the blank gl_func_00000000 alias (a direct gl_func_00034458 call
+ * bakes the in-unit jal target into the ROM). EXACT once the
+ * m2c temps were dropped: plain struct-member cross product + one-arg K&R
+ * call (the m2c `(u16)temp_a1_2` 2nd arg forced an andi + a3 copy of c). */
+typedef struct { s16 x, y, z; } V3s_53A2C;
+typedef struct { u16 pad; u16 i[3]; } Tri_53A2C;
+typedef struct { f32 x, y, z; } V3f_53A2C;
 void gl_func_00053A2C(char *arg0) {
-    s16 temp_a0;
-    s16 temp_a0_2;
-    s16 temp_a1;
-    s16 temp_a1_2;
-    s16 temp_v1;
-    s16 temp_v1_2;
-    s32 var_s3;
-    s32 var_s4;
-    u32 var_s5;
-    char *temp_s1;
-    char *temp_s2;
-    char *temp_v0;
-
-    var_s4 = 0;
-    var_s5 = 0;
-    if (FW(arg0, 0x44) != 0) {
-        var_s3 = 0;
+    V3s_53A2C *a, *b, *c;
+    u32 i;
+    s32 to, no;
+    to = 0;
+    i = 0;
+    if (*(u32 *)(arg0 + 0x44) != 0) {
+        no = 0;
         do {
-            temp_s1 = gl_func_00034458(arg0, *(u16*)((char*)(FW(arg0, 0x68) + var_s4) + 0x2));
-            temp_s2 = gl_func_00034458(arg0, *(u16*)((char*)(FW(arg0, 0x68) + var_s4) + 0x4));
-            temp_v0 = gl_func_00034458(arg0, *(u16*)((char*)(FW(arg0, 0x68) + var_s4) + 0x6));
-            temp_v1 = (*(s16*)((char*)temp_s2 + 0x2));
-            temp_a0 = (*(s16*)((char*)temp_s2 + 0x4));
-            *(f32*)((char*)(FW(arg0, 0x54) + var_s3)) = (f32) (((temp_v1 - (*(s16*)((char*)temp_s1 + 0x2))) * ((*(s16*)((char*)temp_v0 + 0x4)) - temp_a0)) - ((temp_a0 - (*(s16*)((char*)temp_s1 + 0x4))) * ((*(s16*)((char*)temp_v0 + 0x2)) - temp_v1)));
-            temp_a1 = (*(s16*)((char*)temp_s2 + 0x0));
-            temp_a0_2 = (*(s16*)((char*)temp_s2 + 0x4));
-            *(f32*)((char*)(FW(arg0, 0x54) + var_s3) + 0x4) = (f32) (((temp_a0_2 - (*(s16*)((char*)temp_s1 + 0x4))) * ((*(s16*)((char*)temp_v0 + 0x0)) - temp_a1)) - ((temp_a1 - (*(s16*)((char*)temp_s1 + 0x0))) * ((*(s16*)((char*)temp_v0 + 0x4)) - temp_a0_2)));
-            temp_v1_2 = (*(s16*)((char*)temp_s2 + 0x2));
-            temp_a1_2 = (*(s16*)((char*)temp_s2 + 0x0));
-            *(f32*)((char*)(FW(arg0, 0x54) + var_s3) + 0x8) = (f32) (((temp_a1_2 - (*(s16*)((char*)temp_s1 + 0x0))) * ((*(s16*)((char*)temp_v0 + 0x2)) - temp_v1_2)) - ((temp_v1_2 - (*(s16*)((char*)temp_s1 + 0x2))) * ((*(s16*)((char*)temp_v0 + 0x0)) - temp_a1_2)));
-            gl_func_00034458(FW(arg0, 0x54) + var_s3, (u16) temp_a1_2);
-            var_s5 += 1;
-            var_s4 += 8;
-            var_s3 += 0xC;
-        } while (var_s5 < (u32) FW(arg0, 0x44));
+            a = (V3s_53A2C *)gl_func_00000000(arg0, ((Tri_53A2C *)(*(char **)(arg0 + 0x68) + to))->i[0]);
+            b = (V3s_53A2C *)gl_func_00000000(arg0, ((Tri_53A2C *)(*(char **)(arg0 + 0x68) + to))->i[1]);
+            c = (V3s_53A2C *)gl_func_00000000(arg0, ((Tri_53A2C *)(*(char **)(arg0 + 0x68) + to))->i[2]);
+            ((V3f_53A2C *)(*(char **)(arg0 + 0x54) + no))->x = (b->y - a->y) * (c->z - b->z) - (b->z - a->z) * (c->y - b->y);
+            ((V3f_53A2C *)(*(char **)(arg0 + 0x54) + no))->y = (b->z - a->z) * (c->x - b->x) - (b->x - a->x) * (c->z - b->z);
+            ((V3f_53A2C *)(*(char **)(arg0 + 0x54) + no))->z = (b->x - a->x) * (c->y - b->y) - (b->y - a->y) * (c->x - b->x);
+            gl_func_00000000(*(char **)(arg0 + 0x54) + no);
+            i++;
+            to += 8;
+            no += 12;
+        } while (i < *(u32 *)(arg0 + 0x44));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053A2C);
-#endif
 
 /* gl_func_00053C04: per-vertex face-normal accumulator (vertex normals).
  * Face vertices are stack-homed f32[3] arrays; per-vertex counts are a u8
