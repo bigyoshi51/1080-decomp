@@ -8267,79 +8267,138 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026214);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int func_3b164(), func_3b110();
-/* Decoded via jumptable extraction + delay-slot patch (fix-jumptable-delay-slot.py).
- * KEY: m2c's "arg3"/unset-reg reads are NOT caller-set — each case reloads
- * a3=&D_00000000 (lui a3,0; placeholder reloc) and reads operands from cmd[N];
- * so all globals resolve to &D+offset. Dual-range opcode dispatch (0x81-0x90 and
- * 0xF0-0xFB share one jumptable by index op-0x81 / op-0xF0). Residual: the
- * complex 0x83/0x91 cases + the &D-relative object globals + regalloc. */
-int gl_func_00026790(unsigned char *cmd) {
-    char *g = (char *)&D_00000000;
-    int op = cmd[0];
-    int idx, i;
-    if (op >= 0x91) {
-        if ((unsigned)(op - 0xF0) >= 0xC) return 0;
-        idx = op - 0xF0;
-    } else {
-        if ((unsigned)(op - 0x81) >= 0x10) return 0;
-        idx = op - 0x81;
-    }
-    switch (idx) {
-    case 0:
-        *(char *)(g + 0x2076) = *(int *)(cmd + 4);
+/* PASS-2 2026-10-16 (agent-c): ONE switch on cmd[0]; IDO splits its two dense
+ * clusters into the two tables (0x81..0x90 at D+0xF10, 0xF0..0xFB at D+0xEE0).
+ * Case map from `scripts/extract-uso-jumptable.py gl_func_00026790 --module
+ * 0xD9FE28 --shim 0x1466C --vaddr 0x26790 --size 0x314` (target = value -
+ * shim); entry 0xF0 is a zero-addend reloc in the table and is the clear-bit
+ * loop that case 0xF3 falls into. Cases are laid out in source order. Void
+ * (no v0 at the exit). NM 22.28 -> 96.36. Also: the +0x2D00 entries and the
+ * +0xB0 object word are bitfield words (lw + srl 31 tests, lbu/ori/sb sets,
+ * andi 0xffdf clear); the two flag loops walk a base-0 alias apart from &D
+ * (target lui v0 + 0x2D00(v0) next to the a3 = &D count base); the 0xF3 count
+ * is a variable reloaded only after the store; the 0x84 call takes one arg.
+ * Residual: &D colours a2 (target a3) and cmd[1] a0 (target v0); the 0xF3
+ * loop's q + 0xB0 address is not pre-formed. */
+extern char gl_26790_ent[];  /* per-site base-0 alias of the entry array (target materialises it apart from &D) */
+extern int gl_26790_w;      /* base-0 word stored by op 0x81 (direct lui at / sw) */
+typedef struct Ent26790 {   /* &D + 0x2D00, stride 0x160 */
+    unsigned f80 : 1;
+    unsigned f40 : 1;
+    unsigned f20 : 1;
+    unsigned f10 : 1;
+    unsigned f08 : 1;
+    unsigned f04 : 1;
+    unsigned lo : 26;
+    char pad[0x15C];
+} Ent26790;
+typedef struct Obj26790 {   /* *(&D + 0x2CFC), stride 208 */
+    char pad00[0x34];
+    unsigned char b34;
+    char pad35[0x44 - 0x35];
+    char *p44;
+    char pad48[0xB0 - 0x48];
+    unsigned f80 : 1;
+    unsigned f40 : 1;
+    unsigned f20 : 1;
+    unsigned lo : 29;
+    char padB4[208 - 0xB4];
+} Obj26790;
+void gl_func_00026790(unsigned char *cmd) {
+    char *g;
+    Ent26790 *e;
+    Obj26790 *q;
+    char *p;
+    int i;
+    int n;
+    int v;
+
+    switch (cmd[0]) {
+    case 0x82:
+        gl_func_00000000(cmd[2], 3);
         break;
-    case 1: {                                   /* set bit 0x20 on all entries */
-        char *p = g;
-        for (i = 0; i < *(short *)(g + 0x2048); i++) {
-            int t = *(int *)(p + 0x2D00);
-            p += 0x160;
-            *(char *)(p + 0x2BA0) = t | 0x20;
-            *(char *)(p + 0x2BA0) = (t | 0x20) | 4;
-        }
-        break; }
-    case 2: {                                   /* clear bit 0x20 on all entries */
-        char *p = g;
-        for (i = 0; i < *(short *)(g + 0x2048); i++) {
-            int t = *(int *)(p + 0x2D00);
-            p += 0x160;
-            *(char *)(p + 0x2BA0) = t & 0xFFDF;
-            *(char *)(p + 0x2BA0) = (t & 0xFFDF) | 4;
-        }
-        break; }
-    case 3:
-        gl_func_0001CA10(cmd[1], cmd[2], cmd[3]);
-        break;
-    case 4:
-    case 5:
-        gl_func_0001CA10(cmd[1], cmd[2], cmd[3], g + 0x164C);
-        break;
-    case 6:
-        gl_func_0001CA10(cmd[2]);
-        break;
-    case 9:
-        *(char *)(g + 0x2CF0) = 5;
-        *(char *)(g + 0x2CF1) = cmd[4];
-        break;
-    case 11:
-        *(int *)g = *(int *)(cmd + 4);
-        break;
-    case 13:
-        gl_func_0001CA10(cmd[1], cmd[2], cmd[3]);
+    case 0x83:
+    case 0x89:
+        gl_func_00000000(cmd[1], cmd[2], cmd[3]);
         func_3b164(cmd[1], *(int *)(cmd + 4));
         break;
-    case 14: {
-        char *e = g + op * 0x160;
-        if ((unsigned)*(int *)(e + 0x2D00) >> 0x1F) {
-            int a = *(int *)(cmd + 4);
-            if (a == 0) {
-                gl_func_0001CA10(e + 0x2D00, a, g);
+    case 0x86:
+        gl_func_00000000(cmd[1], cmd[2], *(int *)(cmd + 4));
+        break;
+    case 0x84:
+        v = cmd[1];
+        g = (char *)&D_00000000;
+        e = (Ent26790 *)(g + 0x2D00) + v;
+        if (e->f80) {
+            i = *(int *)(cmd + 4);
+            if (i == 0) {
+                gl_func_00000000(e);
             } else {
-                func_3b110(op, a, g);
+                func_3b110(cmd[1], i);
             }
         }
-        break; }
+        break;
+    case 0xF1:
+        g = (char *)&D_00000000;
+        *(unsigned char *)(g + 0x2076) = *(int *)(cmd + 4);
+        break;
+    case 0xF2:
+        g = (char *)&D_00000000;
+        p = gl_26790_ent;
+        for (i = 0; i < *(short *)(g + 0x2048); i++) {
+            ((Ent26790 *)(p + 0x2D00))->f20 = 1;
+            ((Ent26790 *)(p + 0x2D00))->f04 = 1;
+            p += sizeof(Ent26790);
+        }
+        break;
+    case 0xF3:
+        g = (char *)&D_00000000;
+        if (*(int *)(cmd + 4) == 1) {
+            n = *(int *)(g + 0x2070);
+            for (i = 0; i < n; i++) {
+                q = (Obj26790 *)(*(char **)(g + 0x2CFC) + i * 208);
+                if (q->f80 && q->b34 == 0 && (*(unsigned char *)(*(char **)(q->p44 + 0x50) + 3) & 8)) {
+                    q->f20 = 1;
+                    n = *(int *)(g + 0x2070);
+                }
+            }
+        }
+    case 0xF0:
+        g = (char *)&D_00000000;
+        p = gl_26790_ent;
+        for (i = 0; i < *(short *)(g + 0x2048); i++) {
+            ((Ent26790 *)(p + 0x2D00))->f20 = 0;
+            ((Ent26790 *)(p + 0x2D00))->f04 = 1;
+            p += sizeof(Ent26790);
+        }
+        break;
+    case 0xF4:
+        gl_func_00000000(cmd[1], cmd[2], cmd[3]);
+        break;
+    case 0xF5:
+        gl_func_00000000(cmd[1], cmd[2], cmd[3], (char *)&D_00000000 + 0x164C);
+        break;
+    case 0xF6:
+        gl_func_00000000(cmd[1], cmd[2], cmd[3], (char *)&D_00000000 + 0x164C);
+        break;
+    case 0xF7:
+        gl_func_00000000(cmd[2]);
+        break;
+    case 0x90:
+        g = (char *)&D_00000000;
+        *(unsigned short *)(g + 0x53BC + cmd[1] * 2) = *(unsigned short *)(cmd + 4);
+        break;
+    case 0xFA:
+        g = (char *)&D_00000000;
+        *(unsigned char *)(g + 0x2CF0) = 5;
+        *(unsigned char *)(g + 0x2CF1) = *(int *)(cmd + 4);
+        break;
+    case 0x81:
+        gl_26790_w = *(int *)(cmd + 4);
+        break;
+    case 0xFB:
+        break;
     }
-    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026790);
