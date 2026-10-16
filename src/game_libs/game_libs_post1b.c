@@ -449,7 +449,6 @@ void gl_func_0006382C(Quad4 *dst) {
     *dst = scratch;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00063884: 56-insn alloc-if-null constructor + 2 Vec3
  * int->float copies. a0 ?: alloc(292); init call; a0->[0x28]=&D;
  * a2 Vec3 -> a0->[0x10C..0x114]; a3 Vec3 -> a0->[0x118..0x120] (both
@@ -470,7 +469,10 @@ void gl_func_0006382C(Quad4 *dst) {
  *     &tmp base (v1) with fresh t-reg src pointers, float reads fold to
  *     sp — and the goto-join phi colors a0 (epilogue `move v0,a0`,
  *     `beqz v0,end` with `move a0,v0` in the delay) instead of the
- *     early-`return a0` v0-coalesce (bnez+b shape). */
+ *     early-`return a0` v0-coalesce (bnez+b shape).
+ * 2026-10-16 agent-g: UNWRAPPED -- every reloc is base-0 (gl_func_00000000 is the
+ * real fn at game_libs VRAM 0, gl_init_00000000_63884 and D_00000000 pin to 0), so
+ * the linked words equal the baked ROM words; cmp stays byte-identical. */
 extern int gl_func_00000000();
 extern int gl_init_00000000_63884(void *, void *, float, float, float);
 extern int D_00000000;
@@ -496,9 +498,6 @@ void *gl_func_00063884(void *a0, int a1, int *a2, int *a3) {
 end:
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063884);
-#endif
 
 /* gl_func_00063964 hand-redecode 2026-08-22 (agent-g): full structure from
  * raw-word disasm. K&R def (all 4 args homed; f32 arg1 reused as the
