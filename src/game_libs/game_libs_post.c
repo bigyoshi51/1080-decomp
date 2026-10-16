@@ -15906,7 +15906,23 @@ int game_libs_func_0002E290(unsigned char *o) {
  *   aggressive variable-economy coalescing of the var_f0_N / temp_v0_N temp
  *   families into the target's reused-register set + the ||-chain beql/li-at
  *   regalloc idiom. Byte-match deferred; NM wrap (no episode). */
+/* PASS-5 2026-10-16 (agent-c, 70.78 -> 73.94 fuzzy): two call DECODE fixes
+ * found by reading the call setups: (1) the first gl_func_00043824 call
+ * takes 3 args (f12 = o->4 * 120, a1 = &table 0x1C250, a2 = 0x10); the old
+ * extra `o->4, 1` args were invented and made the float vararg double-promote
+ * into a2/a3. (2) the two tail emits take a SINGLE float 4th arg passed in a3
+ * (target `lw a3,120(sp)`), so they go through a prototyped alias
+ * gl_E354_emitf (s32, s32, s32, f32, s32, s32). Before, the K&R call promoted
+ * sp78 to double at 16(sp) and pushed the two byte args to 24/28(sp).
+ * Also: the 0x1C330 / 0x1C3B0 / 0x1C310 float tables are per-table arrays
+ * (target lui %hi + addu idx + lwc1 %lo), `sp60 *= f` keeps the runtime
+ * 1.0f multiply, and same-type m2c temps with provably disjoint live ranges
+ * were merged when that did not lower the score. Residual: frame 0xA0 vs
+ * 0x80 (the target has 13 register-only locals in the slot gaps; we still
+ * declare ~16 words), the ||-chain constant reuse (li a0,1 / beql), and FP
+ * colouring. */
 extern int gl_func_000428FC();
+extern void gl_E354_emitf(s32, s32, s32, f32, s32, s32);  /* 4th arg is a single float passed in a3 (target lw a3,120(sp)) */
 extern int gl_func_00043824(float, ...);
 extern int gl_func_000438F4();
 extern int gl_func_00044C38();
@@ -15924,6 +15940,7 @@ extern s32 D_raceA_E354;    /* race-state word (t4 @123c4): ==1 gate of 0x23 blo
 extern s32 D_raceB_E354;    /* race-mode word (v0 @123d4): 4|10 gate (distinct from raceA) */
 extern s32 D_raceC_E354;    /* race word (t1 @125d8): ==0 -> increment 0x38 (switch6 case0) */
 extern s32 D_raceD_E354;    /* race word (v1 @12618): !=0,!=1,!=8 gate (distinct fresh lui) */
+extern f32 D_E354_1C330[], D_E354_1C3B0[], D_E354_1C310[];  /* per-table float arrays: target lui %hi(tbl)+addu idx+lwc1 %lo */
 void gl_func_0002E354(char *arg0, s32 arg1) {
     u8 sp7D;
     f32 sp78;
@@ -15938,44 +15955,18 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
     f32 temp_f14;
     f32 temp_f16;
     f32 temp_f18;
-    f32 temp_f2;
-    f32 temp_f4;
     f32 var_f0;
-    f32 var_f0_2;
-    f32 var_f0_3;
-    f32 var_f0_4;
-    f32 var_f10;
     f32 var_f4;
     s32 *var_at;
-    s32 temp_f10;
-    s32 temp_t7;
-    s32 temp_t9_3;
     s32 temp_v0;
-    s32 temp_v0_10;
     s32 temp_v0_2;
-    s32 temp_v0_3;
-    s32 temp_v0_6;
     s32 temp_v0_7;
-    s32 temp_v0_8;
-    s32 temp_v0_9;
     s32 temp_v1;
-    s32 temp_v1_7;
-    s32 var_a2;
-    s32 var_a2_2;
-    s32 var_t3;
     s32 var_t9;
     s32 var_v0;
     s32 var_v0_3;
     s8 var_a2_3;
     u32 temp_t9_2;
-    u8 temp_a0;
-    u8 temp_a0_2;
-    u8 temp_a0_3;
-    u8 temp_t0;
-    u8 temp_t8;
-    u8 temp_t9;
-    u8 temp_v0_4;
-    u8 temp_v0_5;
     u8 temp_v1_2;
     u8 temp_v1_3;
     u8 temp_v1_4;
@@ -16011,9 +16002,9 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
             *(u8 *)((char *)(arg0) + 0x20) = 0U;
             temp_v0_2 = temp_v1_2 * 4;
             if (temp_v1_2 != 0) {
-                sp64 = *(f32 *)((char *)&D_00000000 + 0x1C330 + temp_v0_2);
-                temp_f0 = *(f32 *)((char *)&D_00000000 + 0x1C3B0 + temp_v0_2);
-                sp60 = 1.0f * temp_f0;
+                sp64 = D_E354_1C330[temp_v1_2];
+                temp_f0 = D_E354_1C3B0[temp_v1_2];
+                sp60 *= temp_f0;
                 *(u8 *)((char *)(arg0) + 0x32) = (u8) (temp_v1_2 - 1);
                 *(f32 *)((char *)(arg0) + 0x4) = (f32) (temp_f14 * temp_f0);
             }
@@ -16029,27 +16020,27 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
             }
             *(f32 *)((char *)(arg0) + 0x50) = (f32) ((temp_f16 + *(f32 *)((char *)(arg0) + 0x0)) * 0.5f);
             *(f32 *)((char *)(arg0) + 0x44) = (f32) ((*(f32 *)((char *)(arg0) + 0x44) + temp_f18) * 0.5f);
-            sp7D = gl_func_00043824(*(f32 *)((char *)(arg0) + 0x4) * 120.0f, *(f32 *)((char *)(arg0) + 0x4), 1, (s32)((char *)&D_00000000 + 0x1C250), 0x10);
-            temp_f2 = *(f32 *)((char *)(arg0) + 0x0);
-            temp_t7 = (gl_func_00043824(*(f32 *)((char *)(arg0) + 0x44), (s32)((char *)&D_00000000 + 0x1C290), 0x20) * 4) & 0xFF;
-            temp_f4 = (temp_f2 / 200.0f) + *(f32 *)((char *)&D_00000000 + 0x16E0);
-            temp_f10 = temp_t7;
-            sp78 = temp_f4;
-            var_f4 = (f32) temp_f10;
-            sp78 = temp_f4 * sp64;
-            if (temp_t7 < 0) {
+            sp7D = gl_func_00043824(*(f32 *)((char *)(arg0) + 0x4) * 120.0f, (s32)((char *)&D_00000000 + 0x1C250), 0x10);
+            temp_f16 = *(f32 *)((char *)(arg0) + 0x0);
+            temp_v1 = (gl_func_00043824(*(f32 *)((char *)(arg0) + 0x44), (s32)((char *)&D_00000000 + 0x1C290), 0x20) * 4) & 0xFF;
+            temp_f18 = (temp_f16 / 200.0f) + *(f32 *)((char *)&D_00000000 + 0x16E0);
+            temp_v0_2 = temp_v1;
+            sp78 = temp_f18;
+            var_f4 = (f32) temp_v0_2;
+            sp78 = temp_f18 * sp64;
+            if (temp_v1 < 0) {
                 var_f4 += 4294967296.0f;
             }
             temp_f10_2 = var_f4 * sp60;
             var_t9 = (u32) temp_f10_2; /* recomposed (u32)float */
             *(u8 *)((char *)(arg0) + 0x26) = (u8) (((s32) *(u8 *)((char *)(arg0) + 0x26) / 2) + ((s32) (var_t9 & 0xFF) / 2));
-            if (temp_f2 == 0.0f) {
+            if (temp_f16 == 0.0f) {
                 *(u8 *)((char *)(arg0) + 0x26) = 0U;
             }
-            temp_a0 = *(u8 *)((char *)(arg0) + 0x1D);
-            if (*(u8 *)((char *)(arg0) + 0x34) != temp_a0) {
+            temp_v1_2 = *(u8 *)((char *)(arg0) + 0x1D);
+            if (*(u8 *)((char *)(arg0) + 0x34) != temp_v1_2) {
                 var_v0 = 8;
-                if (temp_a0 == 1) {
+                if (temp_v1_2 == 1) {
                     var_v0 = 0x40;
                 }
                 temp_v1_3 = *(u8 *)((char *)(arg0) + 0x21);
@@ -16073,15 +16064,15 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
                 *(u8 *)((char *)(arg0) + 0x34) = *(u8 *)((char *)(arg0) + 0x1D);
             }
             if (*(u8 *)((char *)(arg0) + 0x1C) & 1) {
-                temp_t9 = *(u8 *)((char *)(arg0) + 0x26);
+                temp_v1_3 = *(u8 *)((char *)(arg0) + 0x26);
                 temp_f0 = *(f32 *)((char *)(arg0) + 0x54);
-                var_f10 = (f32) temp_t9;
-                if ((s32) temp_t9 < 0) {
-                    var_f10 += 4294967296.0f;
+                var_f4 = (f32) temp_v1_3;
+                if ((s32) temp_v1_3 < 0) {
+                    var_f4 += 4294967296.0f;
                 }
-                temp_f4 = var_f10 * temp_f0;
-                var_t3 = (u32) temp_f4; /* recomposed (u32)float */
-                *(u8 *)((char *)(arg0) + 0x26) = (u8) var_t3;
+                temp_f18 = var_f4 * temp_f0;
+                var_v0 = (u32) temp_f18; /* recomposed (u32)float */
+                *(u8 *)((char *)(arg0) + 0x26) = (u8) var_v0;
                 sp78 *= *(f32 *)((char *)(arg0) + 0x58);
                 *(u8 *)((char *)(arg0) + 0x28) = (u8) ((s32) (*(u8 *)((char *)(arg0) + 0x28) + *(u8 *)((char *)(arg0) + 0x60)) >> 1);
                 if (*(u8 *)((char *)(arg0) + 0x21) == 0) {
@@ -16089,18 +16080,18 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
                     func_00000000(0x03020000, (s8) *(u8 *)((char *)(arg0) + 0x28));
                     func_00000000(0x90000000, 0x806);
                     func_00000000(0x0C00FF00, *(s8 *)((char *)(arg0) + 0x63));
-                    var_f0_2 = func_00000000(0x0D00FF00, 0x3000);
+                    temp_f10_2 = func_00000000(0x0D00FF00, 0x3000);
                 } else {
                     func_00000000(0x01020100, temp_f0);
                     func_00000000(0x03020100, (s8) *(u8 *)((char *)(arg0) + 0x28));
                     func_00000000(0x90000000, 0x1060);
                     func_00000000(0x0C00FF00, *(s8 *)((char *)(arg0) + 0x63));
-                    var_f0_2 = func_00000000(0x0D00FF00, 0x3000);
+                    temp_f10_2 = func_00000000(0x0D00FF00, 0x3000);
                 }
             } else {
                 if (D_stateF_E354 == 4) {
-                    temp_a0_2 = *(u8 *)((char *)(arg0) + 0x21);
-                    switch (temp_a0_2) {            /* switch 2; irregular */
+                    temp_v1_3 = *(u8 *)((char *)(arg0) + 0x21);
+                    switch (temp_v1_3) {            /* switch 2; irregular */
                     case 0:                         /* switch 2 */
                         *(u8 *)((char *)(arg0) + 0x28) = 0x10U;
                         break;
@@ -16113,27 +16104,27 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
                 }
                 if (*(u8 *)((char *)(arg0) + 0x21) == 0) {
                     func_00000000(0x01020000, 0x3F800000);
-                    var_f0_2 = func_00000000(0x03020000, (s8) *(u8 *)((char *)(arg0) + 0x28));
+                    temp_f10_2 = func_00000000(0x03020000, (s8) *(u8 *)((char *)(arg0) + 0x28));
                 } else {
                     func_00000000(0x01020100, 0x3F800000);
-                    var_f0_2 = func_00000000(0x03020100, (s8) *(u8 *)((char *)(arg0) + 0x28));
+                    temp_f10_2 = func_00000000(0x03020100, (s8) *(u8 *)((char *)(arg0) + 0x28));
                 }
             }
             if (*(u8 *)((char *)(arg0) + 0x16) & 1) {
                 *(s32 *)((char *)(arg0) + 0x8) = (f32) (*(s32 *)((char *)(arg0) + 0x8) + 50.0f);
                 gl_func_00043BE4(arg0, 0, *(u8 *)((char *)(arg0) + 0x2C) - 1, *(s32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
-                var_f0_2 = func_00000000(arg0, (*(u32 *)((char *)&D_00000000 + 0x2154) & 7) + 0x20);
+                temp_f10_2 = func_00000000(arg0, (*(u32 *)((char *)&D_00000000 + 0x2154) & 7) + 0x20);
                 *(u8 *)((char *)(arg0) + 0x16) = (u8) (*(u8 *)((char *)(arg0) + 0x16) & ~1);
             }
             var_v0_2 = *(u8 *)((char *)(arg0) + 0x14);
             temp_v1_4 = *(u8 *)((char *)(arg0) + 0x2C);
-            temp_t0 = var_v0_2;
+            temp_v1_2 = var_v0_2;
             if (var_v0_2 != temp_v1_4) {
                 if (temp_v1_4 == 0) {
-                    temp_v0_3 = *(s32 *)((char *)(arg0) + 0x38);
-                    var_a2 = 3;
-                    *(f32 *)((char *)(arg0) + 0x8) = (f32) ((f32) temp_v0_3 * 3.0f);
-                    if (temp_v0_3 < 0xA) {
+                    temp_v1 = *(s32 *)((char *)(arg0) + 0x38);
+                    var_v0 = 3;
+                    *(f32 *)((char *)(arg0) + 0x8) = (f32) ((f32) temp_v1 * 3.0f);
+                    if (temp_v1 < 0xA) {
                         *(s32 *)((char *)(arg0) + 0x8) = 0.0f;
                     }
                     var_v0_2 = 1;
@@ -16141,36 +16132,36 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
                         temp_v1_5 = *(u8 *)((char *)(arg0) + 0x15);
                         if (temp_v1_5 != 1) {
                             if (temp_v1_5 != 2) {
-                                var_a2 = 2;
+                                var_v0 = 2;
                             } else {
-                                var_a2 = 1;
+                                var_v0 = 1;
                             }
                         } else {
-                            var_a2 = 0;
+                            var_v0 = 0;
                         }
                     }
-                    temp_t8 = *(u8 *)((char *)(arg0) + 0x22);
-                    temp_t9_2 = temp_t8 - 1;
+                    temp_v1_3 = *(u8 *)((char *)(arg0) + 0x22);
+                    temp_t9_2 = temp_v1_3 - 1;
                     if (temp_t9_2 < 5U) {
                         /* jtbl @data+0x16E4: byte 4,5 -> a1=8; byte 2,3 -> a1=0xC */
-                        switch (temp_t8) {
+                        switch (temp_v1_3) {
                         case 4:
                         case 5:
-                            gl_func_00043BE4(arg0, 8, var_a2, *(s32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
+                            gl_func_00043BE4(arg0, 8, var_v0, *(s32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
                             goto block_78;
                         case 2:
                         case 3:
-                            gl_func_00043BE4(arg0, 0xC, var_a2, *(s32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
+                            gl_func_00043BE4(arg0, 0xC, var_v0, *(s32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
                             goto block_78;
                         }
                     } else {
-                        gl_func_00043BE4(arg0, 0xC, var_a2, *(s32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
+                        gl_func_00043BE4(arg0, 0xC, var_v0, *(s32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
 block_78:
                         goto block_81;
                     }
                 } else {
                 /* case 3 (switch 3, flattened) */
-                    if (temp_t0 == 0) {
+                    if (temp_v1_2 == 0) {
                         *(s32 *)((char *)(arg0) + 0x38) = 0;
                         *(u8 *)((char *)(arg0) + 0x33) = 0U;
 block_81:
@@ -16183,15 +16174,15 @@ block_81:
 block_83:
                 if (*(u16 *)((char *)(arg0) + 0x1A) != 0) {
                     if (*(s32 *)((char *)(arg0) + 0x48) == 0) {
-                        temp_f2 = *(f32 *)((char *)(arg0) + 0x0);
+                        temp_f16 = *(f32 *)((char *)(arg0) + 0x0);
                         var_v0_2 = 0x11;
-                        if (75.0f <= temp_f2) {
+                        if (75.0f <= temp_f16) {
                             var_v0_2 = 0x13;
-                        } else if (50.0f <= temp_f2) {
+                        } else if (50.0f <= temp_f16) {
                             var_v0_2 = 0x12;
                         }
                         sp6B = var_v0_2;
-                        if (25.0f <= temp_f2) {
+                        if (25.0f <= temp_f16) {
                             sp6B = var_v0_2;
                             gl_func_00043BE4(arg0, 0x10, var_v0_2, 127.0f, (s32) *(u8 *)((char *)(arg0) + 0x28));
                         }
@@ -16204,36 +16195,36 @@ block_83:
                     sp50 = 4;
                     var_v0_2 = gl_func_000428FC(arg0);
                     sp6B = var_v0_2;
-                    temp_a0_3 = *(u8 *)((char *)(arg0) + 0x29);
-                    var_a2_2 = var_v0_2 & 0xFF;
-                    var_f0_2 = *(f32 *)((char *)((temp_a0_3 * 4)) + 0x1C310);
+                    temp_v1_2 = *(u8 *)((char *)(arg0) + 0x29);
+                    var_t9 = var_v0_2 & 0xFF;
+                    temp_f10_2 = D_E354_1C310[temp_v1_2];
                     if ((s32) var_v0_2 < 0xB) {
-                        switch (temp_a0_3) {        /* switch 4; irregular */
+                        switch (temp_v1_2) {        /* switch 4; irregular */
                         default:                    /* switch 4 */
-                            var_a2_2 = var_v0_2 & 0xFF;
+                            var_t9 = var_v0_2 & 0xFF;
                             break;
                         case 0:                     /* switch 4 */
                         case 1:                     /* switch 4 */
-                            var_a2_2 = (var_v0_2 & 0xFF) + 1;
+                            var_t9 = (var_v0_2 & 0xFF) + 1;
                             break;
                         case 2:                     /* switch 4 */
                         case 3:                     /* switch 4 */
-                            var_a2_2 = var_v0_2 & 0xFF;
+                            var_t9 = var_v0_2 & 0xFF;
                             break;
                         }
                     }
-                    if ((*(u16 *)((char *)(arg0) + 0x30) != 1) || (temp_a0_3 != 3)) {
-                        temp_v0_4 = *(u8 *)((char *)(arg0) + 0x22);
-                        if ((s32) temp_v0_4 >= 6) {
-                            var_a2_2 = temp_v0_4 + 0xE;
+                    if ((*(u16 *)((char *)(arg0) + 0x30) != 1) || (temp_v1_2 != 3)) {
+                        temp_v1_5 = *(u8 *)((char *)(arg0) + 0x22);
+                        if ((s32) temp_v1_5 >= 6) {
+                            var_t9 = temp_v1_5 + 0xE;
                         }
                         if ((*(s32 *)((char *)&D_00000000 + 0) /* M2C unset $t4 */ == 4) || (*(u8 *)((char *)(arg0) + 0x1C) & 1)) {
-                            gl_func_00043BE4(arg0, 0x10, var_a2_2, var_f0_2, (s32) *(u8 *)((char *)(arg0) + 0x28)); var_v0_2 = 0; /* M2C: v0-after-void-call */
+                            gl_func_00043BE4(arg0, 0x10, var_t9, temp_f10_2, (s32) *(u8 *)((char *)(arg0) + 0x28)); var_v0_2 = 0; /* M2C: v0-after-void-call */
                         } else {
-                            temp_v0_5 = *(u8 *)((char *)(arg0) + 0x2E);
-                            if (temp_v0_5 == 1) {
+                            temp_v1_5 = *(u8 *)((char *)(arg0) + 0x2E);
+                            if (temp_v1_5 == 1) {
                                 var_v0_3 = 0x7F;
-                            } else if (temp_v0_5 == 3) {
+                            } else if (temp_v1_5 == 3) {
                                 var_v0_3 = 0;
                             } else {
                                 var_v0_3 = 0x40;
@@ -16241,7 +16232,7 @@ block_83:
                             if (*(u8 *)((char *)(arg0) + 0x1E) != 0) {
                                 var_v0_3 = (0x7F - var_v0_3) & 0xFF;
                             }
-                            gl_func_00043BE4(arg0, 0x10, var_a2_2, var_f0_2, var_v0_3); var_v0_2 = 0; /* M2C: v0-after-void-call */
+                            gl_func_00043BE4(arg0, 0x10, var_t9, temp_f10_2, var_v0_3); var_v0_2 = 0; /* M2C: v0-after-void-call */
                         }
                     }
                     switch ((u8) sp6B) {            /* switch 5; jtbl @data+0x16F8 */
@@ -16280,60 +16271,60 @@ block_83:
                     *(u8 *)((char *)(arg0) + 0x2B) = sp6B;
                 }
             }
-            temp_v0_6 = *(s32 *)((char *)(arg0) + 0x48);
-            temp_t9_3 = temp_v0_6 - 1;
-            if (temp_v0_6 != 0) {
-                *(s32 *)((char *)(arg0) + 0x48) = temp_t9_3;
-                if (temp_t9_3 == 0) {
+            temp_v0 = *(s32 *)((char *)(arg0) + 0x48);
+            temp_v0_2 = temp_v0 - 1;
+            if (temp_v0 != 0) {
+                *(s32 *)((char *)(arg0) + 0x48) = temp_v0_2;
+                if (temp_v0_2 == 0) {
                     *(u8 *)((char *)(arg0) + 0x2D) = 0;
                 }
             }
             if (*(u8 *)((char *)(arg0) + 0x23) != 0) {
                 if ((D_raceA_E354 == 1) && ((temp_v0_7 = D_raceB_E354, (temp_v0_7 == 4)) || (temp_v0_7 == 0xA)) && ((temp_v0_7 != 4) || (*(u8 *)((char *)(arg0) + 0x21) != 2))) {
                     if (*(u8 *)((char *)(arg0) + 0x14) == 0) {
-                        temp_v0_8 = *(s32 *)((char *)(arg0) + 0x38);
-                        if (temp_v0_8 == 0) {
-                            temp_f2 = *(f32 *)((char *)(arg0) + 0x0);
-                            *(f32 *)((char *)&D_00000000 + 0x1C738) = temp_f2;
-                            if (temp_f2 == 0.0f) {
+                        temp_v1 = *(s32 *)((char *)(arg0) + 0x38);
+                        if (temp_v1 == 0) {
+                            temp_f16 = *(f32 *)((char *)(arg0) + 0x0);
+                            *(f32 *)((char *)&D_00000000 + 0x1C738) = temp_f16;
+                            if (temp_f16 == 0.0f) {
                                 *(f32 *)((char *)&D_00000000 + 0x1C738) = 1.0f;
                             }
-                        } else if (temp_v0_8 >= 7) {
-                            var_f0_3 = *(f32 *)((char *)(arg0) + 0x0) / *(f32 *)((char *)&D_00000000 + 0x1C738);
-                            if (!(0.5f <= var_f0_3)) {
-                                var_f0_3 = 0.5f;
+                        } else if (temp_v1 >= 7) {
+                            temp_f10_2 = *(f32 *)((char *)(arg0) + 0x0) / *(f32 *)((char *)&D_00000000 + 0x1C738);
+                            if (!(0.5f <= temp_f10_2)) {
+                                temp_f10_2 = 0.5f;
                             }
-                            if (1.0f <= var_f0_3) {
-                                var_f0_3 = 1.0f;
+                            if (1.0f <= temp_f10_2) {
+                                temp_f10_2 = 1.0f;
                             }
-                            temp_v0_9 = *(s32 *)((char *)&D_00000000 + 0);
-                            if (temp_v0_9 != 0) {
-                                *(s32 *)((char *)&D_00000000 + 0) = (s32) (temp_v0_9 - 1);
-                                var_f0_3 *= *(f32 *)((char *)(((temp_v0_9 & 0x1F) * 4)) + 0x1C430);
+                            temp_v1 = *(s32 *)((char *)&D_00000000 + 0);
+                            if (temp_v1 != 0) {
+                                *(s32 *)((char *)&D_00000000 + 0) = (s32) (temp_v1 - 1);
+                                temp_f10_2 *= *(f32 *)((char *)(((temp_v1 & 0x1F) * 4)) + 0x1C430);
                             }
-                            temp_f2 = *(f32 *)((char *)&D_00000000 + 0x1724);
-                            if (temp_f2 <= var_f0_3) {
-                                var_f0_3 = temp_f2;
+                            temp_f16 = *(f32 *)((char *)&D_00000000 + 0x1724);
+                            if (temp_f16 <= temp_f10_2) {
+                                temp_f10_2 = temp_f16;
                             }
                             *(s32 *)((char *)&D_00000000 + 0x14) = 0x20;
-                            *(f32 *)((char *)&D_00000000 + 0x1C73C) = var_f0_3;
-                            func_00000000(0x3F000000, 0x04010900, var_f0_3);
+                            *(f32 *)((char *)&D_00000000 + 0x1C73C) = temp_f10_2;
+                            func_00000000(0x3F000000, 0x04010900, temp_f10_2);
                         }
                     } else {
-                        temp_v0_10 = *(s32 *)((char *)&D_00000000 + 0x14);
-                        if (temp_v0_10 != 0) {
+                        temp_v0_2 = *(s32 *)((char *)&D_00000000 + 0x14);
+                        if (temp_v0_2 != 0) {
                             temp_f0 = *(f32 *)((char *)&D_00000000 + 0x1C73C);
-                            temp_f2 = *(f32 *)((char *)&D_00000000 + 0x1728);
-                            var_f0_4 = ((1.0f - temp_f0) / (f32) temp_v0_10) + temp_f0;
-                            if (temp_f2 <= var_f0_4) {
-                                var_f0_4 = temp_f2;
+                            temp_f16 = *(f32 *)((char *)&D_00000000 + 0x1728);
+                            temp_f14 = ((1.0f - temp_f0) / (f32) temp_v0_2) + temp_f0;
+                            if (temp_f16 <= temp_f14) {
+                                temp_f14 = temp_f16;
                             }
-                            if (!(0.5f <= var_f0_4)) {
-                                var_f0_4 = 0.5f;
+                            if (!(0.5f <= temp_f14)) {
+                                temp_f14 = 0.5f;
                             }
-                            *(s32 *)((char *)&D_00000000 + 0x14) = (s32) (temp_v0_10 - 1);
-                            *(f32 *)((char *)&D_00000000 + 0x1C73C) = var_f0_4;
-                            func_00000000(0x04010900, var_f0_4);
+                            *(s32 *)((char *)&D_00000000 + 0x14) = (s32) (temp_v0_2 - 1);
+                            *(f32 *)((char *)&D_00000000 + 0x1C73C) = temp_f14;
+                            func_00000000(0x04010900, temp_f14);
                         } else {
                             func_00000000(0x04010900, 0x3F800000);
                         }
@@ -16347,15 +16338,15 @@ block_83:
                     if ((*(u8 *)((char *)(arg0) + 0x21) == 0) && (*(s32 *)((char *)(arg0) + 0x38) == 0x1E)) {
                         func_00000000(0x20, 0x12, 0);
                     }
-                    temp_v1_7 = D_raceD_E354;
-                    if ((temp_v1_7 != 0) && (temp_v1_7 != 1) && (temp_v1_7 != 8)) {
+                    temp_v0_2 = D_raceD_E354;
+                    if ((temp_v0_2 != 0) && (temp_v0_2 != 1) && (temp_v0_2 != 8)) {
                         if (*(s32 *)((char *)(arg0) + 0x48) != 0) {
                             *(u8 *)((char *)(arg0) + 0x33) = 0x1AU;
                         }
                         if (*(f32 *)((char *)&D_00000000 + 0x172C) < *(f32 *)((char *)(arg0) + 0xC)) {
-                            temp_t8 = *(u8 *)((char *)(arg0) + 0x33) + 1;
-                            *(u8 *)((char *)(arg0) + 0x33) = temp_t8;
-                            if ((temp_t8 & 0xFF) == 0x19) {
+                            temp_v1_3 = *(u8 *)((char *)(arg0) + 0x33) + 1;
+                            *(u8 *)((char *)(arg0) + 0x33) = temp_v1_3;
+                            if ((temp_v1_3 & 0xFF) == 0x19) {
                                 func_00000000(arg0, 0x3C);
                             }
                         }
@@ -16373,10 +16364,10 @@ block_83:
                     } else {
                         func_00000000(*(u8 *)((char *)(arg0) + 0x21));
                     }
-                    func_00000000(*(u8 *)((char *)(arg0) + 0x21), sp7D * 0x10, *(u8 *)((char *)(arg0) + 0x26), sp78, (s32) *(u8 *)((char *)(arg0) + 0x15), (s32) *(u8 *)((char *)(arg0) + 0x28));
+                    gl_E354_emitf(*(u8 *)((char *)(arg0) + 0x21), sp7D * 0x10, *(u8 *)((char *)(arg0) + 0x26), sp78, (s32) *(u8 *)((char *)(arg0) + 0x15), (s32) *(u8 *)((char *)(arg0) + 0x28));
                     break;
                 default:                            /* switch 6 */
-                    func_00000000(*(u8 *)((char *)(arg0) + 0x21), sp7D * 0x10, *(u8 *)((char *)(arg0) + 0x26), sp78, *(u8 *)((char *)(arg0) + 0x14) + 2, (s32) *(u8 *)((char *)(arg0) + 0x28));
+                    gl_E354_emitf(*(u8 *)((char *)(arg0) + 0x21), sp7D * 0x10, *(u8 *)((char *)(arg0) + 0x26), sp78, *(u8 *)((char *)(arg0) + 0x14) + 2, (s32) *(u8 *)((char *)(arg0) + 0x28));
                     func_00000000(*(u8 *)((char *)(arg0) + 0x21));
                     break;
                 }
