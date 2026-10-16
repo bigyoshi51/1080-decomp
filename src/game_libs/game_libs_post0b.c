@@ -9676,11 +9676,10 @@ void *gl_func_0003EA98(int *a0, int a1) {
  * the caller-slot home store sw a1,28(sp) (volatile-p trick retired). The
  * remaining 4-word a3-vs-v1 copy color + fnptr v1-vs-t9 fell to DE-NAMING the
  * fn pointer (direct call expression -> fnptr drops to ring t9, r's copy takes
- * v1). Stays NM wrap: the jal callee is a collapsed placeholder (raw-.word USO
- * reloc depression, real callee unknown). */
+ * v1). EXACT: unwrapped 2026-10-16 (the placeholder jal links to
+ * gl_func_00000000 = 0, so the ROM word is unchanged). */
 extern int gl_func_00000000();
 
-#ifdef NON_MATCHING
 struct OneInt3EAE0 { int v; };
 int *gl_func_0003EAE0(int a0, int a1, int a2, int a3) {
     int *r = (int*)gl_func_00000000(a0, *(struct OneInt3EAE0 *)&a1, a2, a3);
@@ -9692,9 +9691,6 @@ int *gl_func_0003EAE0(int a0, int a1, int a2, int a3) {
 end_zero:
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EAE0);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0003EB3C: 21-insn (0x54) nullable-double-deref helper.
