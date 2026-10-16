@@ -4677,10 +4677,13 @@ void timproc_uso_b5_func_00007078(char *arg0) {
 // (->0xAC fn, ->0xA8 s16 base) dispatch; 0x3CC=10; 0x484=0.0f.
 // Levers: 73C0's `step + (curf = cur)` add.s operand lever; same-line
 // `cur = ...; if (...)` collapse fixes the tgt/cur lwc1 as1 tie.
-// Cap: USO baked relocs (addiu a0 LO16 emission diff) — objdiff-100
-// placeholder-class, stays NM wrap, no episode, not landable.
-#ifdef NON_MATCHING
+// 2026-10-16 (agent-g): UNWRAPPED EXACT. The raw .text slice equals
+// expected/ word for word and the Yay0 block is cut from the unlinked .o,
+// so the "baked relocs" cap does not apply (and the bundle note above is
+// stale: 73C0 is its own symbol). docs/MATCHING_WORKFLOW.md
+// #yay0-block-unlinked-in-unit-jal-f360.
 extern int timproc_uso_b5_func_011E00();
+void timproc_uso_b5_func_00006E08(char *arg0, s32 arg1);
 void timproc_uso_b5_func_000072D0(char *scr) {
     float cur;
     float curf;
@@ -4713,9 +4716,6 @@ check_target:
         *(float *)(scr + 0x484) = 0.0f;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000072D0);
-#endif
 
 // timproc_uso_b5_func_000073C0 — ramp-UP twin of 000072D0's leading body.
 // Increments scr->0x480 toward scr->0x484, using the fast step at 0xD4 when
