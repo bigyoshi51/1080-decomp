@@ -33416,18 +33416,21 @@ void gl_func_000619D4(int *a0) {
     a0[1] = 1;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00061A0C: hex-dump printer (16 bytes/line, m2c-decoded, 96.2%). For
  * each 16-byte chunk: print line prefix (&D+0x21F1C, ptr), then each byte
  * (&D+0x21F24, *ptr), then newline (&D+0x21F2C); finally &D+0x21F30. Reloc-blind
  * placeholder calls. SOLE residual = prologue scheduling: target interleaves
  * `move s4,a2` (s4=count) into the save sequence (after sw s4/s1); -O2 C emits it
- * after the full prologue. Pure positional, same 52 insns. */
+ * after the full prologue. Pure positional, same 52 insns.
+ * 2026-10-16: EXACT. Make the count PARAMETER the loop variable (no
+ * `s4 = a2` copy) and keep the `s1 = a1` pointer copy: the param web gets
+ * its `move s4,a2` inside the save sequence, the copied local gets its
+ * move after the saves, as in the target. Reassigning BOTH params moves
+ * `move s1,a1` too early (9 diffs). */
 extern int gl_func_00000000();
-void gl_func_00061A0C(int a0, char *a1, unsigned int a2) {
-    unsigned int s4 = a2;
+void gl_func_00061A0C(int a0, char *a1, unsigned int s4) {
     char *s1 = a1;
-    if (a2 != 0) {
+    if (s4 != 0) {
         do {
             int s2 = 0x10;
             int s0 = 0;
@@ -33448,9 +33451,6 @@ void gl_func_00061A0C(int a0, char *a1, unsigned int a2) {
     }
     gl_func_00000000((char *)&D_00000000 + 0x21F30);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061A0C);
-#endif
 
 int game_libs_func_00061ADC(int a0, int a1, int a2) {
     return -1;
