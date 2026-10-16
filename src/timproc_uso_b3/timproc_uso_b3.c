@@ -1745,8 +1745,7 @@ void timproc_uso_b3_func_00002C98(char *obj) {
     }
 }
 
-#ifdef NON_MATCHING
-/* timproc_uso_b3_func_00002DF0: 64-insn (0x100) grid-render setup.
+/* timproc_uso_b3_func_00002DF0: 63-insn (0x100) grid-render setup.
  *
  * Structure:
  *   1. Copy 5 ints from D[0x4A0..0x4B0] into a local stack buf[5]
@@ -1777,6 +1776,10 @@ void timproc_uso_b3_func_00002C98(char *obj) {
  * emits base-first addu s2,s4,t1). Full 0x100 footprint now BYTE-EXACT vs
  * expected/ (incl. the trailing sll t6,a1,2 region). USO placeholder
  * callees (jal 0): stays NM wrap, no episode.
+ * 2026-10-16 (agent-g): UNWRAPPED EXACT. The .s is now 0xFC (the trailing
+ * sll moved to the successor's symbol), the raw slice equals expected/, and
+ * placeholder jal 0 callees are fine in a Yay0-block unit (block cut from the
+ * unlinked .o): docs/MATCHING_WORKFLOW.md#yay0-block-unlinked-in-unit-jal-f360.
  *
  * 2026-05-15 status (superseded): 61.83%. buf-copy switched to the pointer-walk form
  * (`int *src = &D+0x4A0; buf[i]=src[i]`) — that IS the target shape
@@ -1826,9 +1829,6 @@ void timproc_uso_b3_func_00002DF0(int *a0) {
         s3 += 0x20;
     } while (s3 != 0xF0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002DF0);
-#endif
 
 /* 3-call wrapper over the +0x70 records table, indexed by a1*24.
  * MATCHED 2026-06-10 (23/23): the old wrap's hand-spelled shift form
