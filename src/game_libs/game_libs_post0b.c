@@ -8186,7 +8186,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D71C);
  * comment on the NM body below. The old "double-spill-reload is an IDO
  * regalloc artifact not reachable from C" conclusion was WRONG: the two
  * reloads are the struct-assignment base temp + cast test load. */
-#ifdef NON_MATCHING
 /* gl_func_0003D7F8: constructor. obj = a0 ?: alloc(88); cb(obj, a1, a2);
  * obj->0x28 = &D vtable; if a3 null set default transform (0,0 / 1,1 at
  * 0x4C/0x50/0x48/0x54) else copy 4 words from a3 into 0x48..0x54; return obj.
@@ -8201,7 +8200,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D71C);
  *    (test t8 + base t9, both uopt TEMPS) feeding bnezl annul-fill, and the
  *    alternating t1/t0 4-word copy. Element-wise copies via a local `int *p`
  *    color the base to $v0 (candidate, not temp) — 8 reg diffs.
- * Placeholder callees (gl_func_00000000/D_00000000) → stays NM wrap. */
+ * EXACT: unwrapped 2026-10-16 (gl_func_00000000 and D_00000000 are both
+ * symbols at 0, so the jal and HI/LO words link to the ROM words). */
 extern int gl_func_00000000();
 extern int D_00000000;
 int *gl_func_0003D7F8(arg0, arg1, arg2, arg3)
@@ -8233,9 +8233,6 @@ end:
 #undef ia2
 #undef pa3
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D7F8);
-#endif
 
 /* gl_func_0003D8A8: ret = X1(0); if (a0->0x40) { v1 = a0->0x40;
  * X2(ret + 0x10, v1, ret); if (v1->0x14) v1->0x4 = 1; v1->0x14 = ret; }
