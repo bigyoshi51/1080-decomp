@@ -1448,82 +1448,77 @@ void timproc_uso_b3_func_000023DC(void) {}
  *    dropped 162 -> 57 reloc-filtered diffs. (relocs are masked by the gate.)
  *  - `(D[0] == 0x17D7) == 0` form emits the target's `xori;sltiu;bnel`
  *    seq-idiom (a plain `!= 0x17D7` regresses to li+beql).
- * RESIDUAL (~57 diffs, -1 word): deterministic IDO frame-layout/regalloc —
- *  spill-slot numbering off-by-4 (target 0x2C/0x38/0x3C vs base 0x28/0x34/
- *  0x38), bne-delay-slot fill (or s0,a0 vs sw ra at entry), and the indirect-
- *  call object/vtable v0/a3 -> v1/a1 renumber. Not C-controllable (cap class
- *  per docs/TOOLING_DECOMP "register PLACEMENT" / preheader slot order). */
-#ifdef NON_MATCHING
-char *timproc_uso_b3_func_000023E4(char *a0) {
-    char *s0;
+ * 2026-10-16 (agent-g) EXACT (96.32 -> 100): ported the levers of the exact
+ *  sibling arcproc_uso_func_0000251C -- the 199C short-circuit head with
+ *  ONE a3 web for level-2 / vtable / registration nodes, `if (1) {}` before
+ *  the dispatch base, and the unused `volatile int pad` (+8 frame, lifts the
+ *  arg0+16 spill to 0x2C). That fixed every spill slot and the entry delay
+ *  fill. Then: (1) the 0x17D7 compare reads its OWN symbol (target `lui t1;
+ *  lw t1,0(t1)`), while D+388 / D+400 / the final call's D+400 share one
+ *  base symbol (CSE'd into v0 for the gate, re-materialized after the call);
+ *  (2) the first registration (call, `->0x14` test, store) on ONE source
+ *  line: with it on separate lines the gate base `addiu v0` schedules after
+ *  the arg0+16 reload instead of before it. See docs/IDO_CODEGEN.md
+ *  #same-line-registration-schedule-23e4. */
+extern int D_b3_23E4_17D7;
+extern char D_b3_23E4_base;
+char *timproc_uso_b3_func_000023E4(char *arg0) {
     char *a3;
-    char *p;
+    char *a0;
     char *v0;
-    char *vt;
-    s0 = a0;
-    if (a0 != 0 ||
-        (s0 = (char *)gl_func_00000000(108), s0 != 0)) {
-        a3 = s0;
-        if (s0 != 0 ||
-            (a3 = (char *)gl_func_00000000(80), a3 != 0)) {
-            p = a3;
-            if (a3 != 0 ||
-                (p = (char *)gl_func_00000000(44), p != 0)) {
-                gl_func_00000000(p, (char *)&D_00000000 + 1160);
-                *(char **)(p + 0x28) = &D_00000000;
+    volatile int pad;
+
+    if ((arg0 != 0) || (arg0 = (char *)gl_func_00000000(108), (arg0 != 0))) {
+        a3 = arg0;
+        if ((arg0 != 0) || (a3 = (char *)gl_func_00000000(80), (a3 != 0))) {
+            a0 = a3;
+            if ((a3 != 0) || (a0 = (char *)gl_func_00000000(44), (a0 != 0))) {
+                gl_func_00000000(a0, (char *)&D_00000000 + 1160); *(char **)(a0 + 0x28) = &D_00000000;
             }
             *(char **)(a3 + 0x28) = &D_00000000;
         }
-        *(char **)(s0 + 0x28) = &D_00000000;
-        *(char **)(s0 + 0xC) = (char *)&D_00000000 + 1168;
-        gl_func_00000000(s0);
-        *(int *)(s0 + 0x60) = 120;
-        *(int *)(s0 + 0x64) = 161;
-        *(int *)(s0 + 0x68) = 191;
-        *(int *)(s0 + 0x48) = gl_func_00000000(0);
-        gl_func_00000000(*(int *)(s0 + 0x48), s0);
-        gl_func_00000000(*(int *)(s0 + 0x48), ((*(int *)&D_00000002 + 3) << 16) | 1, -1, &D_00000001);
-        gl_func_00000000(*(int *)(s0 + 0x48), ((*(int *)&D_00000003 + 3) << 16) | 6, -1, &D_00000001);
-        gl_func_00000000(*(int *)(s0 + 0x48), ((*(int *)&D_00000004 + 3) << 16) | 7, -1, &D_00000001);
-        gl_func_00000000(*(int *)(s0 + 0x48), ((*(int *)&D_00000005 + 3) << 16) | 4, -1, &D_00000001);
-        gl_func_00000000(*(int *)(s0 + 0x48), ((*(int *)&D_00000006 + 3) << 16) | 3, -1, &D_00000001);
-        gl_func_00000000(*(int *)(s0 + 0x48), ((*(int *)&D_00000007 + 3) << 16) | 2, -1, &D_00000001);
-        gl_func_00000000(*(int *)(s0 + 0x48), ((*(int *)&D_00000008 + 3) << 16) | 5, -1, &D_00000001);
-        *(int *)(*(int *)(s0 + 0x48) + 0x30) =
-            gl_func_00000000(0, &D_00000000, 72, 221, 3, 13);
-        gl_func_00000000(*(int *)(s0 + 0x48));
-        gl_func_00000000(*(int *)(s0 + 0x48), 140);
-        v0 = *(char **)(s0 + 0x48);
-        vt = *(char **)(v0 + 0x28);
-        ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v0);
-        v0 = (char *)*(int *)(s0 + 0x48);
-        gl_func_00000000(s0 + 0x10, (int)v0);
-        a3 = v0;
+        *(char **)(arg0 + 0x28) = &D_00000000;
+        *(char **)(arg0 + 0xC) = (char *)&D_00000000 + 1168;
+        gl_func_00000000(arg0);
+        *(int *)(arg0 + 0x60) = 120;
+        *(int *)(arg0 + 0x64) = 161;
+        *(int *)(arg0 + 0x68) = 191;
+        *(int *)(arg0 + 72) = gl_func_00000000(0);
+        gl_func_00000000(*(int *)(arg0 + 72), arg0);
+        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_00000002 + 3) << 16) | 1, -1, &D_00000001);
+        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_00000003 + 3) << 16) | 6, -1, &D_00000001);
+        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_00000004 + 3) << 16) | 7, -1, &D_00000001);
+        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_00000005 + 3) << 16) | 4, -1, &D_00000001);
+        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_00000006 + 3) << 16) | 3, -1, &D_00000001);
+        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_00000007 + 3) << 16) | 2, -1, &D_00000001);
+        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_00000008 + 3) << 16) | 5, -1, &D_00000001);
+        *(int *)(*(int *)(arg0 + 72) + 48) = gl_func_00000000(0, &D_00000000, 72, 221, 3, 13);
+        gl_func_00000000(*(int *)(arg0 + 72));
+        gl_func_00000000(*(int *)(arg0 + 72), 140);
+        if (1) {}
+        v0 = *(char **)(arg0 + 72);
+        a3 = *(char **)(v0 + 40);
+        ((void (*)(int))(*(int *)(a3 + 0x5C)))(*(short *)(a3 + 0x58) + (int)v0);
+        a3 = *(char **)(arg0 + 72);
+        gl_func_00000000(arg0 + 16, a3); if (*(int *)(a3 + 0x14) != 0) { *(int *)(a3 + 0x4) = 1; } *(int *)(a3 + 0x14) = (int)arg0;
+        if (*(int *)((char *)&D_b3_23E4_base + 388) == 0 ||
+            (D_b3_23E4_17D7 == 0x17D7) == 0) {
+            *(int *)(*(int *)(arg0 + 72) + 0xD8) = 0;
+        }
+        a3 = *(char **)((char *)&D_b3_23E4_base + 400);
+        gl_func_00000000(arg0 + 16, a3);
         if (*(int *)(a3 + 0x14) != 0) {
             *(int *)(a3 + 0x4) = 1;
         }
-        *(int *)(a3 + 0x14) = (int)s0;
-        if (*(int *)((char *)&D_00000000 + 388) == 0 ||
-            (*(int *)&D_00000000 == 0x17D7) == 0) {
-            *(int *)(*(int *)(s0 + 0x48) + 0xD8) = 0;
-        }
-        a3 = *(char **)((char *)&D_00000000 + 400);
-        gl_func_00000000(s0 + 0x10, a3);
-        if (*(int *)(a3 + 0x14) != 0) {
-            *(int *)(a3 + 0x4) = 1;
-        }
-        *(int *)(a3 + 0x14) = (int)s0;
-        gl_func_00000000(*(int *)((char *)&D_00000009 + 400), 1, 0, a3);
-        *(int *)(s0 + 0x54) = 0;
-        *(int *)(s0 + 0x50) = 0;
-        *(int *)(s0 + 0x30) = 1;
-        *(int *)(s0 + 0x2C) = 0;
+        *(int *)(a3 + 0x14) = (int)arg0;
+        gl_func_00000000(*(int *)((char *)&D_b3_23E4_base + 400), 1, 0, a3);
+        *(int *)(arg0 + 0x54) = 0;
+        *(int *)(arg0 + 80) = 0;
+        *(int *)(arg0 + 48) = 1;
+        *(int *)(arg0 + 44) = 0;
     }
-    return s0;
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000023E4);
-#endif
 
 /* Byte-identical sibling of timproc_uso_b1_func_000024F4 (147 insns).
  * Same display-list build pattern. The 0x260000-series `or a1, s1, tN` wants
