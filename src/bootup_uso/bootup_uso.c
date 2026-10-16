@@ -2565,8 +2565,9 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003638);
  *      original's named locals) — 4x `volatile int pad` phantom slots
  *      restore them with zero insns. Word-exact vs target .s except the
  *      %lo placeholder addend (reloc).
- * STAYS NM WRAP: all callees + data are USO placeholders — not landable. */
-#ifdef NON_MATCHING
+ * Unwrapped EXACT 2026-10-16 (run 96): the one differing .o word (lw %lo
+ * addend 0 vs 0x14) links to the ROM's 0x94 because D_3734_v is pinned to
+ * func_00000080+0x14 = 0x94; every other reloc resolves to 0. */
 /* typed-float proto (0x0-alias): args 7,8 are single floats on the stack
  * (target swc1 0x18/0x1C); K&R func_00000000 double-promotes them. */
 extern char *func_3734_r1(void *, int, int, int, void *, int, float, float, int, int);
@@ -2602,9 +2603,6 @@ void func_00003734(char *s1, int a1) {
     *(char**)(s0 + 0x14) = p;
     *(char**)(r1 + 0x8DC) = r4;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003734);
-#endif
 
 /* func_000038C0 - verified structural decode (0x118, 70 insns,
  * composite constructor + 3-stage builder chain).
