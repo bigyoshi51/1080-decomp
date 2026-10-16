@@ -2157,7 +2157,7 @@ void gl_func_000041D4(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
-// gl_func_00004244 — m2c DECODE (28.62% NM, no episode). LARGEST non-jumptable lift (2479w); game_libs control-flow via scripts/decomp-uso-cf.py.
+// gl_func_00004244 -- EXACT 2026-10-16 (agent-g); see the note above the function. Historical notes follow.
 /* gl_func_00004244 — BEST VERIFIED STATE 2363/2479 words (95.3% positional,
  * byte-level vs own .s, 2026-07-03 agent-e w5). NOT exact; deliverable is this
  * best state + the corrected residual map below. Source below is byte-identical
@@ -2200,23 +2200,24 @@ void gl_func_000041D4(Vec3 *dst) {
  * The A-win lever of this session (decl-order named-home moves, cracked
  * 7FF4/38F4/85B0) does NOT apply here: 4244's 58w class is gettemp-region
  * sharing across 29 distinct webs, not a named-home position issue. */
-#ifdef NON_MATCHING
-/* 2026-10-16 agent-g: 2413 -> 2477/2479 words. CLASS C (58w) and the
- * prologue (6w) are CRACKED, not caps:
+/* 2026-10-16 agent-g: EXACT (was 2413/2479 words, "capped").
  *  - prologue: param reassign (arg0 is the live object, no var_s0 copy;
  *    var_s0 kept as an unused decl so the frame map holds) puts
  *    move s0,a0 right after sw s0 (docs/IDO_CODEGEN.md
  *    #prologue-move-param-vs-copy-62368).
- *  - class C: units 2..32 share ONE name (var_a0_2, declared LAST -> home
- *    0x38). One name alone colors to s3 once it covers >= ~26 units; an
- *    empty if (1) {} after the ctor call in 18..30 of the units adds BBs
- *    so the LR stays uncolored (home 0x38 + in-BB a0 cache, the target's
+ *  - class C (58w): units 2..32 share ONE name (var_a0_2, declared LAST ->
+ *    home 0x38). One name alone colors to s3 once it covers >= ~26 units;
+ *    an empty if (1) {} after the ctor call in 18..30 of the units adds BBs
+ *    so the LR stays uncolored (home 0x38 + in-BB a0 cache = the target's
  *    sw/lw a0,0x38 pairs). 31 if(1)s or any in unit 1 flips s1/s2. The
  *    unused var_a0_4..30 decls must stay (dropping them moves the frame).
- *  RESIDUAL 2w: class B only (li at,-8 vs addiu s2,sp,84 order in unit 1);
- *  5-statement permutations, same-line joins, test spellings, if(1) at
- *  every unit-1 line: no change. See docs/IDO_CODEGEN.md
- *  #if1-bbs-uncolor-shared-name-4244. */
+ *  - class B (2w, li at,-8 vs addiu s2,sp,84): the hoisted &sp78 / &sp54
+ *    address materializations carry the .loc of the last statement before
+ *    unit 1 (the var_v1 store); as1 puts li at,-8 first only when that
+ *    statement and unit 1's null test share ONE source line, hence the long
+ *    joined line below (same-line join lever, as for the 25 lui pairs).
+ *  The older notes below describe the pre-crack state.
+ *  See docs/IDO_CODEGEN.md #if1-bbs-uncolor-shared-name-4244. */
 /* PASS-O 2026-06-11 (578B4-ladder from 53.60 -> 99.76, insns 2479 exact,
  * 96.5% words byte-exact): 32 light-record units rewritten as per-unit
  * V4/F1 structs w/ aggregate copies (beats const-forwarding/DSE);
@@ -2531,27 +2532,7 @@ void *gl_func_00004244(char *arg0) {
         var_v1 = arg0;
         if ((arg0 != 0) || (temp_v0_2 = func_00000000(8), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
             *(s32 *)((char *)(var_v1) + 0x0) = (s32)((char *)&D_00000000_cf80 + 0xCF80);
-            *(s32 *)((char *)(var_v1) + 0x4) = 0;
-        }
-        u1_a.x = 1.0f;
-        u1_a.y = 1.0f;
-        u1_a.z = 1.0f;
-        u1_c.x = 1.0f;
-        u1_c.y = 1.0f;
-        u1_c.z = 1.0f;
-        u1_c.w = 1.0f;
-        u1_a.w = 0.0f;
-        u1_b.x = 0.0f;
-        u1_b.y = 0.0f;
-        u1_b.z = 0.0f;
-        u1_b.w = 0.0f;
-        u1_f.v = *(s32 *)((char *)&D_00000000_cf90 + 0xCF90);
-        sp78 = u1_a;
-        var_a0 = arg0 + 8;
-        sp68 = u1_b;
-        sp58 = u1_c;
-        sp54 = u1_f;
-        if ((arg0 != (void *)-8) || (temp_v0_2 = func_00000000(0x24), var_a0 = temp_v0_2, (temp_v0_2 != 0))) {
+        *(s32 *)((char *)(var_v1) + 0x4) = 0; } u1_a.x = 1.0f; u1_a.y = 1.0f; u1_a.z = 1.0f; u1_c.x = 1.0f; u1_c.y = 1.0f; u1_c.z = 1.0f; u1_c.w = 1.0f; u1_a.w = 0.0f; u1_b.x = 0.0f; u1_b.y = 0.0f; u1_b.z = 0.0f; u1_b.w = 0.0f; u1_f.v = *(s32 *)((char *)&D_00000000_cf90 + 0xCF90); sp78 = u1_a; var_a0 = arg0 + 8; sp68 = u1_b; sp58 = u1_c; sp54 = u1_f; if ((arg0 != (void *)-8) || (temp_v0_2 = func_00000000(0x24), var_a0 = temp_v0_2, (temp_v0_2 != 0))) {
             func_00000000(var_a0, arg0, sp54, 1);
             *(s32 *)((char *)(var_a0) + 0xC) = (s32)((char *)&D_00000000_cd58_u1 + 0xCD58);
             *(s32 *)((char *)(var_a0) + 0x20) = 0;
@@ -3281,9 +3262,6 @@ void *gl_func_00004244(char *arg0) {
     }
     return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00004244);
-#endif
 
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
