@@ -1097,88 +1097,88 @@ void timproc_uso_b5_func_00001658(char *arg0) {
 //   disasm limitation prevents byte-match. Real-C STRUCTURAL body
 //   below — alloc-or-reuse 3-child labeled-widget panel. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
-// timproc_uso_b5_func_000018B4 — FULL m2c DECODE (57.12% NM, no episode). Non-jumptable control-flow fn via scripts/lift-uso-controlflow.py.
-#ifdef NON_MATCHING
-
-
+// timproc_uso_b5_func_000018B4 — EXACT (2026-10-16). Self pointer is the
+// param itself (entry or s0,a0 before the bnez; sw a3 in its delay slot),
+// no named copy and no pad (sp4C then lands at 0x4C), and real reloc names
+// for every callee/global (docs/IDO_CODEGEN.md#placeholder-symbol-cse-cap-79a4).
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_000018B4)();
+extern char timproc_uso_b5_D_807FE7E0, timproc_uso_b5_D_807FE940, timproc_uso_b5_D_807FE958;
+extern char timproc_uso_b5_D_807FE968, timproc_uso_b5_D_807FE97C;
+extern char import_800200E8, import_800200F4, import_800200FC;
+extern char *timproc_uso_b5_func_00004118();
+extern void timproc_uso_b5_func_00005BF0();
+extern void timproc_uso_b5_func_00001DB0();
 char *timproc_uso_b5_func_000018B4(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, char *arg5, s32 arg6, s32 arg7) {
     register s32 d;
     register char *E;
     char *w;
     char *sp4C;
-    char *var_s0;
 
     d = arg2;
-    var_s0 = arg0;
     E = arg5;
-    if ((var_s0 != 0) || ((var_s0 = timproc_uso_b5_alias((char *)0x58)) != 0)) {
-        timproc_uso_b5_alias(var_s0, (char *)&D_00000000 + 0x10D0);
-        FW(var_s0, 0x28) = (int)&D_00000000;
-        FW(var_s0, 0xC) = (int)((char *)&D_00000000 + 0x10D8);
-        FW(var_s0, 0x30) = d;
-        FW(var_s0, 0x2C) = (int)E;
+    if ((arg0 != 0) || ((arg0 = (char *)timproc_uso_b5_func_055750(0x58)) != 0)) {
+        timproc_uso_b5_func_04C678(arg0, &timproc_uso_b5_D_807FE940 + 0x10D0);
+        FW(arg0, 0x28) = (int)&timproc_uso_b5_D_807FE7E0;
+        FW(arg0, 0xC) = (int)(&timproc_uso_b5_D_807FE7E0 + 0x10D8);
+        FW(arg0, 0x30) = d;
+        FW(arg0, 0x2C) = (int)E;
         if (d == 1) {
-            w = timproc_uso_b5_alias(0, var_s0, arg1, 1, 0, arg3, arg4, arg6, E, FW(E, 0x4), (char *)&D_00000000 + 0x10E8, 0);
-            FW(var_s0, 0x34) = w;
-            timproc_uso_b5_alias(w, (char *)&D_00000000 + 0x68, (char *)&D_00000000 + 0x4C, (char *)&D_00000000 + 0x50, (char *)&D_00000000 + 0x54, (char *)&D_00000000 + 0x64);
-            w = FW(var_s0, 0x34);
-            timproc_uso_b5_alias(var_s0 + 0x10, w);
+            w = timproc_uso_b5_func_00004118(0, arg0, arg1, 1, 0, arg3, arg4, arg6, E, FW(E, 0x4), &timproc_uso_b5_D_807FE958 + 0x10E8, 0);
+            FW(arg0, 0x34) = w;
+            timproc_uso_b5_func_00005BF0(w, &import_800200E8 + 0x68, &import_800200E8 + 0x4C, &import_800200E8 + 0x50, &import_800200FC + 0x54, &import_800200FC + 0x64);
+            w = FW(arg0, 0x34);
+            timproc_uso_b5_func_07ACE0(arg0 + 0x10, w);
             if (FW(w, 0x14) != 0) {
                 FW(w, 0x4) = 1;
             }
-            FW(w, 0x14) = var_s0;
-            FW(FW(FW(E, 0x0), 0x5C), 0x38) = (char *) FW(var_s0, 0x34);
+            FW(w, 0x14) = arg0;
+            FW(FW(FW(E, 0x0), 0x5C), 0x38) = (char *) FW(arg0, 0x34);
         } else {
-            w = timproc_uso_b5_alias(0, var_s0, arg1, 2, 0, arg3, arg4, arg6, E, FW(E, 0x4), (char *)&D_00000000 + 0x10F8, 0);
-            FW(var_s0, 0x34) = w;
-            timproc_uso_b5_alias(w, (char *)&D_00000000 + 0x68, (char *)&D_00000000 + 0x4C, (char *)&D_00000000 + 0x50, (char *)&D_00000000 + 0x54, (char *)&D_00000000 + 0x64);
-            w = FW(var_s0, 0x34);
-            sp4C = var_s0 + 0x10;
-            timproc_uso_b5_alias(sp4C, w);
+            w = timproc_uso_b5_func_00004118(0, arg0, arg1, 2, 0, arg3, arg4, arg6, E, FW(E, 0x4), &timproc_uso_b5_D_807FE968 + 0x10F8, 0);
+            FW(arg0, 0x34) = w;
+            timproc_uso_b5_func_00005BF0(w, &import_800200E8 + 0x68, &import_800200E8 + 0x4C, &import_800200E8 + 0x50, &import_800200FC + 0x54, &import_800200FC + 0x64);
+            w = FW(arg0, 0x34);
+            sp4C = arg0 + 0x10;
+            timproc_uso_b5_func_07ACE0(sp4C, w);
             if (FW(w, 0x14) != 0) {
                 FW(w, 0x4) = 1;
             }
-            FW(w, 0x14) = var_s0;
-            FW(FW(FW(E, 0x0), 0x5C), 0x38) = (char *) FW(var_s0, 0x34);
-            w = timproc_uso_b5_alias(0, var_s0, arg1, 2, 1, arg3, arg4, arg7, E, FW(E, 0x8), (char *)&D_00000000 + 0x110C, 0x80);
-            FW(var_s0, 0x38) = w;
-            timproc_uso_b5_alias(w, (char *)&D_00000000 + 0x68, (char *)&D_00000000 + 0x58, (char *)&D_00000000 + 0x5C, (char *)&D_00000000 + 0x60, (char *)&D_00000000 + 0x64);
-            w = FW(var_s0, 0x38);
-            timproc_uso_b5_alias(sp4C, w);
+            FW(w, 0x14) = arg0;
+            FW(FW(FW(E, 0x0), 0x5C), 0x38) = (char *) FW(arg0, 0x34);
+            w = timproc_uso_b5_func_00004118(0, arg0, arg1, 2, 1, arg3, arg4, arg7, E, FW(E, 0x8), &timproc_uso_b5_D_807FE97C + 0x110C, 0x80);
+            FW(arg0, 0x38) = w;
+            timproc_uso_b5_func_00005BF0(w, &import_800200F4 + 0x68, &import_800200F4 + 0x58, &import_800200F4 + 0x5C, &import_800200FC + 0x60, &import_800200FC + 0x64);
+            w = FW(arg0, 0x38);
+            timproc_uso_b5_func_07ACE0(sp4C, w);
             if (FW(w, 0x14) != 0) {
                 FW(w, 0x4) = 1;
             }
-            FW(w, 0x14) = var_s0;
-            FW(FW(FW(E, 0x0), 0x5C), 0x3C) = (char *) FW(var_s0, 0x38);
-            if (FW(FW(var_s0, 0x34), 0x3C8) != 4) {
-                FW(var_s0, 0x3C) = 0;
-                FW(var_s0, 0x40) = 0;
-                FW(var_s0, 0x44) = 0x78;
-                FW(var_s0, 0x48) = 0;
-                FW(var_s0, 0x50) = 3;
-                FW(var_s0, 0x4C) = 0;
-                *(f32 *)((char *)var_s0 + 0x54) = 0.0f;
+            FW(w, 0x14) = arg0;
+            FW(FW(FW(E, 0x0), 0x5C), 0x3C) = (char *) FW(arg0, 0x38);
+            if (FW(FW(arg0, 0x34), 0x3C8) != 4) {
+                FW(arg0, 0x3C) = 0;
+                FW(arg0, 0x40) = 0;
+                FW(arg0, 0x44) = 0x78;
+                FW(arg0, 0x48) = 0;
+                FW(arg0, 0x50) = 3;
+                FW(arg0, 0x4C) = 0;
+                *(f32 *)((char *)arg0 + 0x54) = 0.0f;
             } else {
-                FW(var_s0, 0x3C) = 3;
-                FW(var_s0, 0x40) = 3;
-                FW(var_s0, 0x4C) = 0;
-                FW(var_s0, 0x48) = 1;
-                FW(var_s0, 0x44) = 0xF0;
-                FW(var_s0, 0x50) = 1;
-                *(f32 *)((char *)var_s0 + 0x54) = 1.0f;
-                timproc_uso_b5_alias(var_s0);
+                FW(arg0, 0x3C) = 3;
+                FW(arg0, 0x40) = 3;
+                FW(arg0, 0x4C) = 0;
+                FW(arg0, 0x48) = 1;
+                FW(arg0, 0x44) = 0xF0;
+                FW(arg0, 0x50) = 1;
+                *(f32 *)((char *)arg0 + 0x54) = 1.0f;
+                timproc_uso_b5_func_00001DB0(arg0);
             }
         }
     }
-    return var_s0;
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000018B4);
-#endif
 
 // timproc_uso_b5_func_00001C08 — STRUCTURAL PASS (no episode).
 // Raw-.word USO form. BOUNDARY NOTE: this .s is an UNSPLIT USO
