@@ -30233,17 +30233,28 @@ void game_libs_func_0005C808(int obj, float a, float b, float c, float d, float 
     }
 }
 
-/* game_libs_func_0005C8CC: 3x3-matrix x Vec3 transform. Verified decode (m2c):
- *   v0=arg0[0]; v1=arg0[4]; v2=arg0[8];   (read input vec into temps first)
- *   arg0[0] = arg1[0]*v0 + arg1[4]*v1 + arg1[8]*v2;
- *   arg0[4] = arg1[0x10]*v0 + arg1[0x14]*v1 + arg1[0x18]*v2;
- *   arg0[8] = arg1[0x20]*v0 + arg1[0x24]*v1 + arg1[0x28]*v2;
- * Logic exact but only ~34% (sub-80, kept INCLUDE_ASM): the temps land in $f0/$f2
- * where the target uses $f2/$f12/$f14, cascading FP-reg-allocation diffs (33 vs 31
- * insns). Permuter does NOT converge (scores ~2000, FP-regalloc-immune). Unlike the
- * compound-*= matrix-SCALE (0005E8B0 matched), the matrix*VECTOR dot-product form is
- * an FP-reg-allocation cap. Resume if an $f-reg-steering lever is found. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C8CC);
+/* game_libs_func_0005C8CC: EXACT (0x7C / 31 words). v = M(rows of a 4x4,
+ * stride 0x10) x v, in place. Was "~34%, FP-reg-allocation cap". Three
+ * independent levers, no named x/y/z input temps:
+ *  1. NO named input locals: read v[i] inline in every row (CSE folds them).
+ *     Named x,y,z get coloured f0/f2/f12 and push the row-0 sum to f14; the
+ *     inline CSE temps land on f2/f12/f14 and leave f0 for the row-0 sum.
+ *  2. Each row spelled REVERSED (`m2*v2 + (m1*v1 + v0*m0)`): IDO emits
+ *     `a + b` as add.s d,b,a here (cf. 5DBB0); the forward spelling flips both
+ *     adds. The x-term written `v[0]*m[0]` (vector first) gets mul.s fs=m.
+ *  3. Natural store order v[0], v[1], v[2]. CAUTION: a standalone one-fn
+ *     compile schedules swc1 v[1] before v[0] for this order (and wants
+ *     v[2],v[1],v[0]); in-tree the order flips -- gate store order in-tree.
+ * See IDO_CODEGEN#mtx-vec3-inline-cse-reversed-rows-5c8cc. */
+void game_libs_func_0005C8CC(float *v, float *m) {
+    float a, b, c;
+    a = m[2] * v[2] + (m[1] * v[1] + v[0] * m[0]);
+    b = m[6] * v[2] + (m[5] * v[1] + v[0] * m[4]);
+    c = m[10] * v[2] + (m[9] * v[1] + v[0] * m[8]);
+    v[0] = a;
+    v[1] = b;
+    v[2] = c;
+}
 
 /* game_libs_func_0005C948 (0x74, 29 words): the 6-word game_libs_func_0005C948
  * orphan + gl_func_0005C960 are ONE function -- bootup.uso Sym exports text
