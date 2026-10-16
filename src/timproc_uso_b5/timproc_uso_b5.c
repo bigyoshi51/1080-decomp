@@ -185,21 +185,24 @@ void timproc_uso_b5_func_0000024C(int *a0) {
 void timproc_uso_b5_func_000002F4(a0) int a0; {}
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000024C_pad.s")
 
-void timproc_uso_b5_func_00000330(int *dst) {
+/* 0330/036C/03A8/0400 are static: their in-unit callers (AA5C..AAF4) then get
+ * R_MIPS_26 .text + in-place offset, the module-relative jal field the ROM block
+ * ships (docs/MATCHING_WORKFLOW.md#timproc-block-bake-data-pins-static-callee-jal). */
+static void timproc_uso_b5_func_00000330(int *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
 
-void timproc_uso_b5_func_0000036C(float *dst) {
+static void timproc_uso_b5_func_0000036C(float *dst) {
     float buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
 
-void timproc_uso_b5_func_000003A8(Quad4 *dst) {
+static void timproc_uso_b5_func_000003A8(Quad4 *dst) {
     Quad4 buf;
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = buf;
@@ -208,7 +211,7 @@ void timproc_uso_b5_func_000003A8(Quad4 *dst) {
 
 typedef struct { int a, b, c; } Tri3i;
 typedef struct { float x, y, z; } Vec3;
-void timproc_uso_b5_func_00000400(Vec3 *dst) {
+static void timproc_uso_b5_func_00000400(Vec3 *dst) {
     int pad_top[1];
     Tri3i raw;
     int pad_mid[2];

@@ -10,9 +10,9 @@
 
 extern int gl_func_00000000();
 extern char D_00000000;
-extern char D_00000001;
-extern char D_00000002, D_00000003, D_00000004, D_00000005;
-extern char D_00000006, D_00000007, D_00000008, D_00000009;
+extern char D_b3_23E4_d1;
+extern char D_b3_23E4_d2, D_b3_23E4_d3, D_b3_23E4_d4, D_b3_23E4_d5;
+extern char D_b3_23E4_d6, D_b3_23E4_d7, D_b3_23E4_d8, D_b3_23E4_d9;
 typedef struct { int a, b, c, d; } Quad4;
 
 #ifdef NON_MATCHING
@@ -1441,8 +1441,8 @@ void timproc_uso_b3_func_000023DC(void) {}
  *  - Whole body wrapped in the `(arg0 != 0 || (alloc; cond))` short-circuit
  *    ladder so the alloc-failure paths fall through to `return s0` (matches
  *    the nested `bne X,zero;<delay assignment>` cascade exactly).
- *  - Distinct extern symbols per global-deref site (D_00000002..8 for the 7
- *    OR'd-value reads; D_00000001 for the 4th-arg pointer) DEFEAT IDO's CSE
+ *  - Distinct extern symbols per global-deref site (D_b3_23E4_d2..8 for the 7
+ *    OR'd-value reads; D_b3_23E4_d1 for the 4th-arg pointer) DEFEAT IDO's CSE
  *    that hoisted &D into a saved $s1: target re-materializes the base with a
  *    fresh `lui` per call. This collapsed the size gap -24 -> -1 word and
  *    dropped 162 -> 57 reloc-filtered diffs. (relocs are masked by the gate.)
@@ -1485,13 +1485,13 @@ char *timproc_uso_b3_func_000023E4(char *arg0) {
         *(int *)(arg0 + 0x68) = 191;
         *(int *)(arg0 + 72) = gl_func_00000000(0);
         gl_func_00000000(*(int *)(arg0 + 72), arg0);
-        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_00000002 + 3) << 16) | 1, -1, &D_00000001);
-        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_00000003 + 3) << 16) | 6, -1, &D_00000001);
-        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_00000004 + 3) << 16) | 7, -1, &D_00000001);
-        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_00000005 + 3) << 16) | 4, -1, &D_00000001);
-        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_00000006 + 3) << 16) | 3, -1, &D_00000001);
-        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_00000007 + 3) << 16) | 2, -1, &D_00000001);
-        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_00000008 + 3) << 16) | 5, -1, &D_00000001);
+        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_b3_23E4_d2 + 3) << 16) | 1, -1, &D_b3_23E4_d1);
+        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_b3_23E4_d3 + 3) << 16) | 6, -1, &D_b3_23E4_d1);
+        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_b3_23E4_d4 + 3) << 16) | 7, -1, &D_b3_23E4_d1);
+        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_b3_23E4_d5 + 3) << 16) | 4, -1, &D_b3_23E4_d1);
+        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_b3_23E4_d6 + 3) << 16) | 3, -1, &D_b3_23E4_d1);
+        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_b3_23E4_d7 + 3) << 16) | 2, -1, &D_b3_23E4_d1);
+        gl_func_00000000(*(int *)(arg0 + 72), ((*(int *)&D_b3_23E4_d8 + 3) << 16) | 5, -1, &D_b3_23E4_d1);
         *(int *)(*(int *)(arg0 + 72) + 48) = gl_func_00000000(0, &D_00000000, 72, 221, 3, 13);
         gl_func_00000000(*(int *)(arg0 + 72));
         gl_func_00000000(*(int *)(arg0 + 72), 140);

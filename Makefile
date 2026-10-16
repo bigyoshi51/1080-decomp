@@ -1804,10 +1804,12 @@ build/assets/timproc_uso_block1_yay0.bin: build/src/timproc_uso_b1/timproc_uso_b
 	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert d[n:]==b'\x00'*len(d[n:]), ('nonzero discarded tail', hex(len(d)), d[n:].hex()); d=d[:n]+b'\x00'*(n-len(d)); open(f,'wb').write(d)" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
-build/assets/timproc_uso_block3_yay0.bin: build/src/timproc_uso_b3/timproc_uso_b3_o0_0.c.o build/src/timproc_uso_b3/timproc_uso_b3.c.o
+build/assets/timproc_uso_block3_yay0.bin: build/src/timproc_uso_b3/timproc_uso_b3_o0_0.c.o build/src/timproc_uso_b3/timproc_uso_b3.c.o undefined_syms_auto.txt
 	@mkdir -p $(dir $@)
 	$(OBJCOPY) -O binary --only-section=.text $(word 1,$^) $(@:.bin=.text0.bin)
+	python3 scripts/bake-data-relocs.py $(word 1,$^) $(@:.bin=.text0.bin) undefined_syms_auto.txt
 	$(OBJCOPY) -O binary --only-section=.text $(word 2,$^) $(@:.bin=.text1.bin)
+	python3 scripts/bake-data-relocs.py $(word 2,$^) $(@:.bin=.text1.bin) undefined_syms_auto.txt
 	cat $(@:.bin=.text0.bin) $(@:.bin=.text1.bin) > $(@:.bin=.text.bin)
 	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert d[n:]==b'\x00'*len(d[n:]), ('nonzero discarded tail', hex(len(d)), d[n:].hex()); d=d[:n]+b'\x00'*(n-len(d)); open(f,'wb').write(d)" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
@@ -1817,9 +1819,10 @@ build/assets/timproc_uso_block3_yay0.bin: build/src/timproc_uso_b3/timproc_uso_b
 # their predecessor switch functions (87A0, 87F4, 88A0) and are absorbed back
 # into the main TU (2026-09-05): plain -O2 leaves a switch's final return block
 # unfilled by itself (docs/IDO_CODEGEN.md#switch-final-return-block-unfilled-jr-delay-not-g3-343f4).
-build/assets/timproc_uso_block5_yay0.bin: build/src/timproc_uso_b5/timproc_uso_b5.c.o
+build/assets/timproc_uso_block5_yay0.bin: build/src/timproc_uso_b5/timproc_uso_b5.c.o undefined_syms_auto.txt
 	@mkdir -p $(dir $@)
 	$(OBJCOPY) -O binary --only-section=.text $< $(@:.bin=.text.bin)
+	python3 scripts/bake-data-relocs.py $< $(@:.bin=.text.bin) undefined_syms_auto.txt
 	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert d[n:]==b'\x00'*len(d[n:]), ('nonzero discarded tail', hex(len(d)), d[n:].hex()); d=d[:n]+b'\x00'*(n-len(d)); open(f,'wb').write(d)" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
