@@ -32845,29 +32845,29 @@ void gl_func_00060D08(int a0, int a1, int a2) {
     gl_func_00000000(gl_data_00000000, 0, a1, a2);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00060D40: 31-insn alloc-or-given constructor. Alloc 0x3C if a0
  * null, then init with &D+0x21D88, set 4 fields to zero/D, call twice with
- * (0, 3). NM 132/124 (2 insns over — likely an extra `or a0, s0` copy). */
-int* gl_func_00060D40(int *a0) {
-    int *s0 = a0;
+ * (0, 3). NM 132/124 (2 insns over — likely an extra `or a0, s0` copy).
+ * 2026-10-16: EXACT (was 75.5). Reassign the PARAM (no `s0 = a0` copy),
+ * route the alloc-fail exit through the shared `return s0` (goto end, not
+ * `return 0`, which added a b + move v0,zero), and write the three zero
+ * stores in target order 0x34, 0x30, 0x2C. */
+int* gl_func_00060D40(int *s0) {
     if (s0 == 0) {
         s0 = (int*)gl_func_00000000(0x3C);
-        if (s0 == 0) return 0;
+        if (s0 == 0) goto end;
     }
     gl_func_00000000(s0, (char*)&D_00000000 + 0x21D88);
     s0[0x28/4] = (int)&D_00000000;
-    s0[0x2C/4] = 0;
-    s0[0x30/4] = 0;
     s0[0x34/4] = 0;
+    s0[0x30/4] = 0;
+    s0[0x2C/4] = 0;
     gl_func_00000000(s0, 0);
     gl_func_00000000(s0, 3);
     s0[0x38/4] = 0;
+end:
     return s0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060D40);
-#endif
 
 void game_libs_func_00060DBC(int a0) {
 }
