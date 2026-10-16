@@ -1546,9 +1546,8 @@ void timproc_uso_b1_func_00002740(int *a0)
  * the coloring); separate case-2 local w splits the spill homes
  * (v0->0x2C, a2->0x28, w->0x24; decl order f,v0,a2,w,x with 5 decls puts
  * f at unused 0x30 and v0 at 0x2C); a2 = x; if (f) a2 = x - 0xE (source
- * x, not a2 -= 0xE). Objdiff-100 stays NM wrap: callees/data are USO
- * placeholders (gl_func_00000000/D_00000000), no episode. */
-#ifdef NON_MATCHING
+ * x, not a2 -= 0xE). Unwrapped EXACT 2026-10-16 (run 96): glv_2838 is a
+ * per-site blank callee alias pinned to 0 in undefined_syms_auto.txt. */
 extern void glv_2838();
 void timproc_uso_b1_func_00002838(char *arg0) {
     char *obj = arg0; /* shared obj local colors the recurring s0 web (44EDC recipe) */
@@ -1610,9 +1609,6 @@ void timproc_uso_b1_func_00002838(char *arg0) {
         break;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002838);
-#endif
 
 /* timproc_uso_b1_func_00002A8C — sequence of gl_func_00000000(&D, mask)
  * gates toggling s0->0x58, then a recurring vtable-dispatch tail:

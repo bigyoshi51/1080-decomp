@@ -3785,3 +3785,5 @@ gl_d_272c4 = 0x00000000;
 /* gl_func_0002D788 store / load-array base-0 placeholders (target lui 0 each) */
 D_2D788_a = 0x00000000;
 D_2D788_b = 0x00000000;
+/* timproc_uso_b1_func_00002838 blank callee alias (target jal 0 at every call site) */
+glv_2838 = 0x00000000;
