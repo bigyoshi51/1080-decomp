@@ -582,8 +582,11 @@ build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x17a48
 # inter-fn pad (real entry 0x295C4); appended to gl_func_00029494 as an all-zero
 # SUFFIX_BYTES_FORCE. expected/ metadata: 29494 size 0x128->0x130, 295BC value +8
 # size 0x1D0->0x1C8 (scripts/elf-symtab-edit.py; .text + relocs unchanged).
-build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES_FORCE := gl_func_00029494=0x00000000,0x00000000
-build/non_matching/src/game_libs/game_libs_post.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_00029494=0x00000000,0x00000000
+# game_libs_func_0001F6A8: the three all-zero ROM words at 0x1F6A8-0x1F6B3 are inter-fn
+# pad (real entry 0x1F6B4); appended to gl_func_0001F3C8 (expected/: F3C8 size 0x2E0->0x2EC,
+# 1F6A8 value +0xC size 0x378->0x36C).
+build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES_FORCE := gl_func_00029494=0x00000000,0x00000000 gl_func_0001F3C8=0x00000000,0x00000000,0x00000000
+build/non_matching/src/game_libs/game_libs_post.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_00029494=0x00000000,0x00000000 gl_func_0001F3C8=0x00000000,0x00000000,0x00000000
 # 70FA4 = the merged full function (head fragment 70FA0 + the old g3_70FBC
 # tail carve); -O1 -g3 is the matching mode. .text ends with 8 bytes of
 # natural zero padding = the 0x70FCC/0x70FD0 pad nops before 70FCC=fcos.

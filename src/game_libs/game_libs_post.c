@@ -2237,47 +2237,40 @@ block_6:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F3C8);
 #endif
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-/* game_libs_func_0001F6A8 PASS 2026-10-16 (agent-c, 20.07 -> 95.56): rewritten
- * from the m2c unroll transcript to the source loops. It fills a 256-entry
- * f32 table at D->0x2CF8 with (256 * D->0x2054) / divisor: five fixed slots
- * 0xFB..0xFF, then i = 0x80..0xFA (0xFB - i), i = 0x10..0x7F (60 + (0x80 - i)
- * * 4), i = 1..15 (480 + (15 - i) * 60), and slot 0 = 0. IDO peels 3 and
- * unrolls x4 the last loop by itself (the target's t7=14/13/12 stores and the
- * beql/bnel x4 body). Void: the old `return v0 + 4` was m2c reading the dead
- * loop counter. Residual: mul.s operand order (target 256.0f first; every C
- * spelling normalizes), 4.0/60.0 in f12/f2 vs f2/f12, and the 3 leading
- * zero words in the .s (the previous function's padding sits inside this
- * symbol's 0x378). */
-typedef char *(*GP_0001F6A8)();
-extern f32 gl_1f6a8_kE70, gl_1f6a8_kE74;  /* data f32 at 0xE70 / 0xE74 (target lui at,0 + lwc1 0xE70(at), not D-relative) */
+/* game_libs_func_0001F6A8 EXACT 2026-10-16 (agent-c, 95.56 -> 100): fills the
+ * 256-entry f32 table at D->0x2CF8 with (D->0x2054 * 256) / divisor: five fixed
+ * slots 0xFB..0xFF, then i = 0x80..0xFA (0xFB - i), i = 0x10..0x7F
+ * (60 + (0x80 - i) * 4), i = 1..15 (480 + (15 - i) * 60), slot 0 = 0. IDO peels
+ * and unrolls the last loop x4 by itself.
+ * - K * (0, 256.0f): the comma constant ranks below the inline load, so mul.s
+ *   takes the constant first (docs/IDO_CODEGEN.md#comma-constant-const-first-mul-5d754).
+ * - (f32)60 in the second loop vs 60.0f in the third: two literal spellings are
+ *   two constant candidates, so the third loop re-materialises 60.0 (f12) and
+ *   480.0 takes f2, as in the target.
+ * Boundary: the .s began with three all-zero pad words (real entry 0x1F6B4);
+ * they sit on gl_func_0001F3C8 as an all-zero SUFFIX_BYTES_FORCE. */
+extern f32 gl_1f6a8_kE70, gl_1f6a8_kE74;  /* data f32 at 0xE70 / 0xE74, pinned */
 #define K1F6A8 (*(f32 *)((char *)&D_00000000 + 0x2054))
 #define T1F6A8 (*(f32 **)((char *)&D_00000000 + 0x2CF8))
 void game_libs_func_0001F6A8(void) {
     s32 i;
 
-    T1F6A8[0xFF] = (256.0f * K1F6A8) / 0.25f;
-    T1F6A8[0xFE] = (256.0f * K1F6A8) / gl_1f6a8_kE70;
-    T1F6A8[0xFD] = (256.0f * K1F6A8) / 0.5f;
-    T1F6A8[0xFC] = (256.0f * K1F6A8) / gl_1f6a8_kE74;
-    T1F6A8[0xFB] = (256.0f * K1F6A8) / 0.75f;
+    T1F6A8[0xFF] = (K1F6A8 * (0, 256.0f)) / 0.25f;
+    T1F6A8[0xFE] = (K1F6A8 * (0, 256.0f)) / gl_1f6a8_kE70;
+    T1F6A8[0xFD] = (K1F6A8 * (0, 256.0f)) / 0.5f;
+    T1F6A8[0xFC] = (K1F6A8 * (0, 256.0f)) / gl_1f6a8_kE74;
+    T1F6A8[0xFB] = (K1F6A8 * (0, 256.0f)) / 0.75f;
     for (i = 0x80; i < 0xFB; i++) {
-        T1F6A8[i] = (256.0f * K1F6A8) / (f32)(0xFB - i);
+        T1F6A8[i] = (K1F6A8 * (0, 256.0f)) / (f32)(0xFB - i);
     }
     for (i = 0x10; i < 0x80; i++) {
-        T1F6A8[i] = (256.0f * K1F6A8) / (60.0f + (f32)(0x80 - i) * 4.0f);
+        T1F6A8[i] = (K1F6A8 * (0, 256.0f)) / ((f32)60 + (f32)(0x80 - i) * 4.0f);
     }
     for (i = 1; i < 0x10; i++) {
-        T1F6A8[i] = (256.0f * K1F6A8) / (480.0f + (f32)(0xF - i) * 60.0f);
+        T1F6A8[i] = (K1F6A8 * (0, 256.0f)) / (480.0f + (f32)(0xF - i) * 60.0f);
     }
     T1F6A8[0] = 0.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001F6A8);
-#endif
 
 /* Reset 3 byte-arrays in the global D struct: entries in D+0x2C40[48],
  * D+0x2C10[48], D+0x2C70[128]; if entry != 5 set it to 0 (beql 5,entry).
