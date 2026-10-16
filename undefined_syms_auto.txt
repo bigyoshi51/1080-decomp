@@ -3715,3 +3715,4 @@ gl_func_00000000_42778 = 0x00000000;  /* (float)->float sqrt blank for gl_func_0
 gl_func_00000000_5bd80 = 0x00000000;  /* (float)->float sqrt blank for gl_func_0005BD80 */
 gl_func_00000000_5db58a = 0x00000000;  /* (float)->float sqrt blank for gl_func_0005DB58 */
 gl_func_00000000_5db58b = 0x00000000;  /* (int, int, float, int) void blank for gl_func_0005DB58 */
+gl_func_00000000_5db00c = 0x00000000;  /* (int, int, float, float) void blank for game_libs_func_0005DB00 */

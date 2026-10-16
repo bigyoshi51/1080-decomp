@@ -30967,33 +30967,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D9EC);
  * Merging brings f14 (=bit-cast a2) and f4 (=D[0x2048]) in-scope, removing the
  * NON-STANDARD-INHERITED-FPU-REGS cap.
  *
- * 2026-06-04: 20.4% -> 48.9%. Two K&R FLOAT-PROMOTION fixes: (1) pass jal1_res
- * as int-bits `*(int*)&jal1_res` (was promoting float->double via cvt.d.s);
- * (2) typed float-param/return aliases (gl_func_DB00_a/_f) so `quot` passes as
- * single float and the callees return float in fv0 (not int via cvt.s.w).
- * Remaining caps keep it NM: the `mtc1 a2,fa1` bit-cast (`*(float*)&a2`) and the
- * `mfc1 a3,fv0` bit-cast (`*(int*)&jal2_res`) both emit stack round-trips from
- * IDO C (documented mtc1/mfc1-from-C cap).
  *
- * Body (a2 is bit-reinterpreted as the f14 dividend):
- *   $f12 = f14 / D[0x2048]; sp[0x28]=a0; sp[0x2C]=a1; jal_1(); $f12=sp[0x1C];
- *   jal_2(); a3=mfc1(f0); a0=sp[0x28]; a1=sp[0x2C]; jal_3(a0,a1,sp[0x24],a3). */
-#ifdef NON_MATCHING
-extern int gl_func_00000000();
+ * EXACT 2026-10-16 (agent-c, was NM 49.4). a2 is a plain float param: O32 passes
+ * it in a2 (third slot after two ints) and IDO moves it with `mtc1 a2,$f14`, so
+ * no bit-cast is needed. q = a2 / D[0x2048]; r1 = A(q); r2 = B(q); then the
+ * 4-arg call C(a0, a1, r1, r2) with the prototype (int, int, float, float), which
+ * passes r1 via its stack spill (`lw a2`) and r2 via `mfc1 a3,$f0`. All three
+ * callees are prototyped blank aliases pinned at 0 (gl_func_DB00_a/_f, and
+ * gl_func_00000000_5db00c). The decl order `float r1, r2, q;` puts r1's spill at
+ * sp+0x24 (r2/r1/q order gives 0x20). */
 extern float D_5DB0C_divisor; /* D + 0x2048 (the inherited divisor) */
-extern float gl_func_DB00_a(void);
+extern float gl_func_DB00_a(float);
 extern float gl_func_DB00_f(float);
-void game_libs_func_0005DB00(int a0, int a1, int a2) {
-    float f14_arg = *(float *)&a2;       /* mtc1 a2,$f14 in the merged prologue */
-    float quot = f14_arg / D_5DB0C_divisor;
-    float jal1_res, jal2_res;
-    jal1_res = gl_func_DB00_a();
-    jal2_res = gl_func_DB00_f(quot);
-    gl_func_00000000(a0, a1, *(int*)&jal1_res, *(int*)&jal2_res);
+extern void gl_func_00000000_5db00c(int, int, float, float);
+void game_libs_func_0005DB00(int a0, int a1, float a2) {
+    float r1, r2, q;
+    q = a2 / D_5DB0C_divisor;
+    r1 = gl_func_DB00_a(q);
+    r2 = gl_func_DB00_f(q);
+    gl_func_00000000_5db00c(a0, a1, r1, r2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DB00);
-#endif
 
 /* gl_func_0005DB58: EXACT (0x58 / 22 words). r = sqrt-slot(x*x + z*z) of the
  * Vec3 at a2, then a 4-arg cross-module call (a0, a1, r, a2->y bits). The old
