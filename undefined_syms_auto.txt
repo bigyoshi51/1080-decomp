@@ -3712,3 +3712,4 @@ gl_ref_0001E5DC = 0x0001E5DC;  /* gl_func_00035440 baked lui/addiu message addre
 gl_ref_0002008C = 0x0002008C;  /* gl_func_0004ABD8 baked lui/addiu message address (no-records report) */
 gl_ref_000200AC = 0x000200AC;  /* gl_func_0004ABD8 baked lui/addiu message address (work-path report) */
 gl_func_00000000_42778 = 0x00000000;  /* (float)->float sqrt blank for gl_func_00042778 */
+gl_func_00000000_5bd80 = 0x00000000;  /* (float)->float sqrt blank for gl_func_0005BD80 */

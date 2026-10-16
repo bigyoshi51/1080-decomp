@@ -29950,15 +29950,16 @@ void game_libs_func_0005BCCC(float angle, float *a1, float *a2) {
     *a2 = new_y;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0005BD80: 16-insn Vec3-sqlen + callee (probably sqrtf).
- * `func(x*x + y*y + z*z)` — K&R float-to-double promote cap. */
+/* gl_func_0005BD80: EXACT (0x40 / 16 words). Vec3 squared length passed to a
+ * (float)->float cross-module callee (sqrt slot) through the prototyped blank
+ * alias gl_func_00000000_5bd80 (no K&R double promote). The named x/y/z temps
+ * matter: the inline a0[i]*a0[i] form loads into f2/f14/f0 and adds f10+f8;
+ * reading x,y,z into locals first gives the target f0/f2/f14 + add f8,f10. */
+extern float gl_func_00000000_5bd80(float);
 float gl_func_0005BD80(float *a0) {
-    return gl_func_00000000(a0[0] * a0[0] + a0[1] * a0[1] + a0[2] * a0[2]);
+    float x = a0[0], y = a0[1], z = a0[2];
+    return gl_func_00000000_5bd80(x * x + y * y + z * z);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BD80);
-#endif
 
 /* game_libs_func_0005BDC0: 24-insn 4x4 reciprocal copier. BYTE-EXACT 2026-05-30.
  * Long documented as a "genuine loop-IV cap" (by-4 element vs by-1 trip counter,
