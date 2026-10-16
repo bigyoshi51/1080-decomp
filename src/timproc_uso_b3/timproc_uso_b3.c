@@ -1623,7 +1623,6 @@ void timproc_uso_b3_func_0000294C(int *a0)
 
 }
 
-#ifdef NON_MATCHING
 /* timproc_uso_b3_func_00002A44: HUD draw dispatcher, byte-twin of
  * timproc_uso_b1_func_00002838 (only middle panel ID differs 0x1C0->0x1D8).
  * 2026-07-17 agent-g: 149/149 words EXACT (was 86.64) via verbatim backport
@@ -1631,8 +1630,11 @@ void timproc_uso_b3_func_0000294C(int *a0)
  * &D+0 first arg (not literal 0); single-def x = v0-0x27 after
  * `if (f) { if(1){ v0 += 0xA; } }` -> beql tail-dup (rematerialize-in-delay)
  * + x demoted to last-colored web; separate case-2 local w; decl order
- * f,v0,a2,w,x for spill homes v0->0x2C/a2->0x28/w->0x24. Objdiff-100 stays
- * NM wrap: callees/data are USO placeholders, no episode. */
+ * f,v0,a2,w,x for spill homes v0->0x2C/a2->0x28/w->0x24.
+ * 2026-10-16 agent-g: LANDED. The placeholder callee (glv_2a44, blank) and
+ * &D_00000000+K data are the same convention as the landed b3 exacts
+ * (23E4, 1240); the Yay0 block is cut from the unlinked .o, so the raw
+ * slice (149/149 words == expected/) is what reaches the ROM block. */
 extern void glv_2a44();
 void timproc_uso_b3_func_00002A44(char *arg0) {
     char *obj = arg0; /* shared obj local colors the recurring s0 web (44EDC recipe) */
@@ -1694,9 +1696,6 @@ void timproc_uso_b3_func_00002A44(char *arg0) {
         break;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002A44);
-#endif
 
 /* 4-stage state dispatcher on obj->0x58: each stage queries gl_func(&D, flag);
  * on hit, conditionally toggles obj->0x58 or fires a virtual method
