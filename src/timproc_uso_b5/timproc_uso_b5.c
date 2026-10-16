@@ -5572,9 +5572,9 @@ void timproc_uso_b5_func_000080F4(char *arg0) {
 //   from target's or rs/rt (source elem|m -> or a1,m,elem — IDO
 //   reverses commutative or; the swap also fixed the m/sum/elem
 //   t-ring rotation t8/t0/t1). Naming m instead moved it to v1 and
-//   shifted the whole downstream t-ring (wrong). Stays NM wrap:
-//   callees are USO placeholder aliases, no episode.
-#ifdef NON_MATCHING
+//   shifted the whole downstream t-ring (wrong).
+// 2026-10-16 agent-g: LANDED (placeholder callees follow the landed
+//   Yay0-unit convention; block5 is cut from the unlinked .o).
 typedef void (*GPv_8468)();
 void timproc_uso_b5_func_00008468(char *arg0) {
     char *temp_v0;
@@ -5618,9 +5618,6 @@ void timproc_uso_b5_func_00008468(char *arg0) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008468);
-#endif
 
 /* timproc_uso_b5_func_000085E0 — MATCHED 2026-07-09 (35/35 words).
  * FPU clamp: decrement a0->0x480 by a0->0xEC toward bound a0->0x484; on
