@@ -342,16 +342,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000346F0);
 //   (emits `move a3,sp; addiu 0x27; and ~3`); string is baked-USO
 //   `(char*)&D_00000000 + 0x48D5C` (NOT 0x58D5C — %lo sign-extends);
 //   call is func(str, 0, a0, ap) with a0 RELOADED from its home
-//   (`lw a2,0x20(sp)`) because &a0 is address-taken. Placeholder
-//   callee gl_func_00000000 → stays NM wrap, no episode.
-#ifdef NON_MATCHING
+//   (`lw a2,0x20(sp)`) because &a0 is address-taken. EXACT: unwrapped
+//   2026-10-16 (gl_func_00000000 is a real symbol at 0).
 void gl_func_00034810(int a0, ...) {
     int aligned = (((int)((char *)&a0 + 4)) + 3) & ~3;
     gl_func_00000000((char *)&D_00000000 + 0x48D5C, 0, a0, aligned);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034810);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003485C);
 
