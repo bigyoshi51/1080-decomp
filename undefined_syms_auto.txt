@@ -3782,3 +3782,5 @@ gl_func_00034458_4EB54 = 0x00000000;
 D_g_0004EB54 = 0x00000000;
 /* gl_func_0004F85C blank alias for the in-unit callee gl_func_00034458 (ROM words are jal 0) */
 gl_func_00034458_4F85C = 0x00000000;
+/* gl_func_0005185C blank alias for the in-unit callee gl_func_00034458 (ROM words are jal 0) */
+gl_func_00034458_5185C = 0x00000000;

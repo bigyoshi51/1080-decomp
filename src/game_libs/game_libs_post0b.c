@@ -23260,8 +23260,11 @@ void game_libs_func_000517E4(int *a0) {
     *(float *)((char *)a0 + 0x10) = 1.0f;
 }
 
-// gl_func_0005185C — OBJDIFF-100 (82/82 words byte-exact vs target,
-// 2026-07-15 agent-f; placeholder-call fn → stays NM wrap, no episode).
+// gl_func_0005185C — EXACT (unwrapped 2026-10-16; was OBJDIFF-100 since
+// 2026-07-15 agent-f). The ROM's jal words are `jal 0`; gl_func_00034458 is
+// defined in this directly linked unit, so the body calls it through the
+// blank alias gl_func_00034458_5185C (= 0 in undefined_syms_auto.txt).
+// D_00000000_a..d are pinned to 0.
 // 84.06 -> 100 in one pass: (1) decode fix — the log/bind calls pass
 // (&D_0, &D+string_off, ...) RELOC-form args (lui/addiu), not (0,
 // int-literal); (2) ||-alloc-fallback chain (`o != 0 || (o = alloc(N))
@@ -23305,10 +23308,9 @@ void game_libs_func_000517E4(int *a0) {
 // 0x20740 / 0x20638-loaded triple / 0x20D88 vtable-handler installs
 // and the self+0x50 / self+0x54 sub-field binds are exact; the 9 cb
 // prototypes and the exact alloc/handler struct layout are
-// representative. Caps: self struct + all 9 USO cb prototypes untyped
-// (USO-relocated); string-table offsets not symbolized. Full body
-// INCLUDE_ASM-preserved.
-#ifdef NON_MATCHING
+// representative. Self struct + the 9 cb prototypes are still untyped;
+// string-table offsets are not symbolized.
+extern int gl_func_00034458_5185C(); /* blank alias (= 0): ROM jal words are jal 0 */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -23318,15 +23320,15 @@ void gl_func_0005185C(char *arg0) {
     s32 *o2;
     s32 *o3;
 
-    gl_func_00034458((char *)&D_00000000, (char *)&D_00000000_c + 0x20EC8, 0);
-    gl_func_00034458(arg0, 0);
+    gl_func_00034458_5185C((char *)&D_00000000, (char *)&D_00000000_c + 0x20EC8, 0);
+    gl_func_00034458_5185C(arg0, 0);
     if (FW(arg0, 0x38) & 0x400000) {
-        o1 = (s32 *)gl_func_00034458(0x10);
+        o1 = (s32 *)gl_func_00034458_5185C(0x10);
         if (o1 != 0) {
             o2 = o1;
-            if (o2 != 0 || (o2 = (s32 *)gl_func_00034458(0x10)) != 0) {
+            if (o2 != 0 || (o2 = (s32 *)gl_func_00034458_5185C(0x10)) != 0) {
                 o3 = o2;
-                if (o3 != 0 || (o3 = (s32 *)gl_func_00034458(4)) != 0) {
+                if (o3 != 0 || (o3 = (s32 *)gl_func_00034458_5185C(4)) != 0) {
                     *o3 = (s32)((char *)&D_00000000_a[0] + 0x20740);
                 }
                 *(Pair2 *)((o2[1] = (s32)arg0, o2) + 2) =
@@ -23334,15 +23336,12 @@ void gl_func_0005185C(char *arg0) {
             }
             *o1 = (s32)((char *)&D_00000000_d + 0x20D88);
         }
-        gl_func_00034458((char *)&D_00000000, (char *)&D_00000000_c + 0x20ED0, o1, 1);
+        gl_func_00034458_5185C((char *)&D_00000000, (char *)&D_00000000_c + 0x20ED0, o1, 1);
     }
-    gl_func_00034458((char *)&D_00000000, (char *)&D_00000000_c + 0x20ED8, arg0 + 0x50, 0);
-    gl_func_00034458((char *)&D_00000000, (char *)&D_00000000_c + 0x20EE0, arg0 + 0x54, 0);
-    gl_func_00034458((char *)&D_00000000);
+    gl_func_00034458_5185C((char *)&D_00000000, (char *)&D_00000000_c + 0x20ED8, arg0 + 0x50, 0);
+    gl_func_00034458_5185C((char *)&D_00000000, (char *)&D_00000000_c + 0x20EE0, arg0 + 0x54, 0);
+    gl_func_00034458_5185C((char *)&D_00000000);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005185C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000519A4 — W5 2026-07-03: IMPROVED 63/77 -> 71/77 words (in-tree
