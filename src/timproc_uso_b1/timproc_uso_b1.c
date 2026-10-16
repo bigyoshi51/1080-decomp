@@ -1668,7 +1668,6 @@ void timproc_uso_b1_func_00002A8C(char *obj) {
     }
 }
 
-#ifdef NON_MATCHING
 /* timproc_uso_b1_func_00002BE4: 0xFC (63 insns) BYTE-EXACT (2026-07-23).
  * 7x5 grid dispatch: copy 5 tile indices from D+0x4D0, then for each row
  * (s3=0x10..0xD0 step 0x20) x col (i=0..4) call helper(&D+0x10+vec4[i]*0x18)
@@ -1686,7 +1685,8 @@ void timproc_uso_b1_func_00002A8C(char *obj) {
  * `s2 = (char*)s4; s2 += vec4[i]*0x18;` — the += tree puts the dest/base
  * first in the commutative addu (single-expr spellings all emit mult-first;
  * naming the mult temp `int off` flips order but costs +8 frame and colors
- * mflo v0). USO placeholder callees (jal 0): stays NM wrap, no episode. */
+ * mflo v0). Unwrapped EXACT 2026-10-16 (run 96): placeholder callees stay
+ * jal 0 because the Yay0 block is cut from the unlinked .o. */
 typedef struct { int v[5]; } B1Vec5_2BE4;
 typedef struct { char pad[0x18]; } B1S18_2BE4;
 extern int gl_func_00000000();
@@ -1713,9 +1713,6 @@ void timproc_uso_b1_func_00002BE4(int *a0) {
         s3 += 0x20;
     } while (s3 != 0xF0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002BE4);
-#endif
 
 /* timproc_uso_b1_func_00002CE0: 26-insn (0x68) 3-call wrapper indexed by a1.
  * Promoted 95.12% → 100% via two levers:
