@@ -50,7 +50,6 @@ void mgrproc_uso_func_00000B20(void) {
     gl_func_00000000(&D_mgr_B20_2);
 }
 
-#ifdef NON_MATCHING
 extern int import_80263D60;
 extern int import_80020098[];
 extern int import_000A5A1C();
@@ -58,57 +57,31 @@ extern int import_000A5938();
 extern int mgrproc_uso_func_01FA1C();
 extern int mgrproc_uso_func_00F954();
 /* mgrproc_uso_func_00000B5C: 46-insn (0xB8) state-update with cond branch.
- * Sibling of mgrproc_uso_func_00000C14 — identical control structure, same
- * state-slot (&import_80263D60 + 0x30) and `other` base (&import_80020098),
- * different constants. True-arm: [0x504]=0; [0x4E0]=7; other[0x40]=5;
- * other[0x44]=3; [0x7D8]=1; import_000A5938(state). FALSE-arm: other[0x40]=3;
- * mgrproc_uso_func_00F954(state, 4, state->[0x6A8]->[0xC]).
- *
- * 2026-07-03 (agent-e): 38/46 raw words (was 45-word UNDER-decode: form-b state
- * loads + FALSE-arm args swapped). Rewritten to the cracked 00C14 form-a shape:
- *  - state slot via pointer-MUTATION if(1) barrier (pp=&import_80263D60;
- *    if(1){pp+=0xC;}) → form-a `lui;addiu v1,0x30;lw 0(v1)` w/ v1 reused per
- *    region; 4 aliasing `lw 0(v1)` reloads in the true arm.
- *  - `other` base held in ONE reg via `extern int import_80020098[]` direct index.
- *  - FALSE-arm state hoisted into a local (`int *st=*pp`) so `lw a0` loads BEFORE
- *    the `other[0x40]=3` store — false arm now 13/13 EXACT; front reloc pair,
- *    beqz/b displacements, and both call regions all EXACT.
- *  RESIDUAL (8 words = same irreducible if(1)-barrier scheduling cap as 00C14):
- *   (A) region-1 `sw ra` schedules between lui/addiu (target: after addiu) — 2 wds.
- *   (B) true-arm: with correct REGISTERS (other=v0, 0x7D8-reload=t4) the `li t9,7`
- *       and the 0x7D8 reload emit un-hoisted (li/lui swap + reload 3 slots late) —
- *       6 wds. Hoisting via a named temp (s3=*pp) fixes the SCHEDULE perfectly but
- *       steals v0 (other→a3, reload→v0) → still 6. Can't have form-a schedule AND
- *       the natural coloring; the if(1) barriers that force form-a perturb as1/uopt
- *       exactly here. Default build INCLUDE_ASM.
- * 2026-08-23 (agent-h) NEGATIVES: (int)&import held-base cast spelling regresses
- * to form-b (offset folds into lw, v1 CSE'd + spilled across regions, +16 frame);
- * do-while(0) barrier instead of if(1) = bit-identical output (same 8-word
- * residual) — the barrier's BB shape is not the scheduling perturber. */
+ * Sibling of mgrproc_uso_func_00000C14 (same state pointer, same `other`
+ * base import_80020098, different constants). TRUE arm: [0x504]=0;
+ * [0x4E0]=7; other[0x40]=5; other[0x44]=3; [0x7D8]=1; import_000A5938(state).
+ * FALSE arm: other[0x40]=3; mgrproc_uso_func_00F954(state, 4,
+ * state->[0x6A8]->[0xC]).
+ * 2026-10-16 EXACT with the 0C14 fix: the state pointer is its own global
+ * import_80263D60_30 (pinned to 0x30, baked into the addiu). The earlier
+ * if(1) pointer-mutation form left 8 schedule words. */
+extern int *import_80263D60_30;
 void mgrproc_uso_func_00000B5C(void) {
-    int **pp;
     int v0;
-    pp = (int **)&import_80263D60; if (1) { pp += 0xC; }
-    import_000A5A1C(*pp);
-    pp = (int **)&import_80263D60; if (1) { pp += 0xC; }
-    v0 = mgrproc_uso_func_01FA1C(*(int *)((char *)((int **)*pp)[0x6AC / 4] + 0x4C));
-    pp = (int **)&import_80263D60; if (1) { pp += 0xC; }
+    import_000A5A1C(import_80263D60_30);
+    v0 = mgrproc_uso_func_01FA1C(*(int *)((char *)((int **)import_80263D60_30)[0x6AC / 4] + 0x4C));
     if (v0 != 0) {
-        (*pp)[0x504 / 4] = 0;
-        (*pp)[0x4E0 / 4] = 7;
+        import_80263D60_30[0x504 / 4] = 0;
+        import_80263D60_30[0x4E0 / 4] = 7;
         import_80020098[0x40 / 4] = 5;
         import_80020098[0x44 / 4] = 3;
-        (*pp)[0x7D8 / 4] = 1;
-        import_000A5938(*pp);
+        import_80263D60_30[0x7D8 / 4] = 1;
+        import_000A5938(import_80263D60_30);
     } else {
-        int *st = *pp;
         import_80020098[0x40 / 4] = 3;
-        mgrproc_uso_func_00F954(st, 4, *(int *)((char *)*(int **)((char *)st + 0x6A8) + 0xC));
+        mgrproc_uso_func_00F954(import_80263D60_30, 4, *(int *)((char *)*(int **)((char *)import_80263D60_30 + 0x6A8) + 0xC));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000B5C);
-#endif
 
 /* mgrproc_uso_func_00000C14: 44-insn (0xB0) state-update with conditional
  * branch. state = the global state pointer at import_80263D60 + 0x30;
