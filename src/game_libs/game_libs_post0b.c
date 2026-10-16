@@ -2592,8 +2592,8 @@ end:
 }
 
 // gl_func_00036C08 — BYTE-EXACT decode (0x26C / 155 words, objdiff-100).
-// Stays NM-wrapped (all 7 calls are jal-0 USO placeholders -> gl_func_00000000;
-// no episode per placeholder-callee policy). Anchor/offset apply routine:
+// EXACT: unwrapped 2026-10-16 (all 7 calls go to gl_func_00000000, a real
+// symbol at 0, so each jal links to the ROM word). Anchor/offset apply routine:
 // builds flag-gated offset vec p (bit 0x200: sub->D4/D8/DC * -10/10/30),
 // transforms it through the chained target (o->38->110->70)+B4, applies to
 // ctx(o->14)->child->pos and ctx->pos; builds nudge vec q from flag bits
@@ -2613,7 +2613,6 @@ end:
 //     +0x34/+0x38 element offsets (nested sub-struct base shape).
 //   - p zeroed p[2],p[1],p[0] (reverse, shares mtc1 $f0); q zeroed forward.
 //   - pos as float[3] at +0x30 of S36C08; per-site addiu a0,{s0,t9},48.
-#ifdef NON_MATCHING
 typedef struct S36C08 {
     char pad00[0x30];
     float pos[3];                                   /* 0x30 */
@@ -2689,9 +2688,6 @@ void gl_func_00036C08(char *o) {
     t = *pc;
     gl_func_00000000(t->pos, r);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036C08);
-#endif
 
 // gl_func_00036E74 — STRUCTURAL PASS (0x98 / 38 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
