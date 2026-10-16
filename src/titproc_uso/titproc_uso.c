@@ -1607,7 +1607,6 @@ void titproc_uso_func_00001E2C(char *a0) {
     gl_func_00000000(&D_00000000, 0, 0, 0x13F, 0xEF, 0x10001);
 }
 
-#ifdef NON_MATCHING
 /* 2026-07-10: 81.3% -> 243/245 words (99.2%), frame + ALL slots + both s-regs
  * exact. Two-s-reg constructor kit (docs/IDO_CODEGEN.md, timproc b5 478
  * family) + refinements:
@@ -1633,12 +1632,15 @@ void titproc_uso_func_00001E2C(char *a0) {
  * adjacent-pair order after the 04C678 return -- as1 tie-break between two
  * independent fill candidates; immune to named-temp/goto-label/if(1)/
  * volatile-store/deref-spelling probes. Same allocator-internal pair-order
- * cap class as the b5 478 residual. Default build INCLUDE_ASM.
+ * cap class as the b5 478 residual.
  * 2026-07-17 re-probe with the new levers: void-alias dead-$v0 on the
  * 04C678 call (result unused), if(1){} barrier after the call, explicit
  * goto after_fourth, named import-addr temp — ALL identical (2 diffs).
  * The tie is not post-call v-reg coloring (regs already match), it is
- * pure as1 pick order; pair-order cap verdict stands. */
+ * pure as1 pick order; pair-order cap verdict stands.
+ * 2026-10-16 EXACT: the 04C678 call and the import_00073B18 store on ONE
+ * source line flips the as1 pair order (docs/IDO_CODEGEN.md
+ * #same-line-registration-schedule-23e4). */
 int *titproc_uso_func_00001E9C(int *arg0, int arg1, int arg2, int arg3) {
 extern char import_000745F8;
 extern char titproc_uso_D_000334;
@@ -1667,8 +1669,7 @@ extern char titproc_uso_D_000334;
         fourth = (int *)titproc_uso_func_055750(0x2C);
         if (fourth == 0) goto after_fourth;
     }
-    titproc_uso_func_04C678(fourth, (char *)&titproc_uso_D_00048C + 0x514);
-    fourth[0x28 / 4] = (int)&import_00073B18;
+    titproc_uso_func_04C678(fourth, (char *)&titproc_uso_D_00048C + 0x514); fourth[0x28 / 4] = (int)&import_00073B18;
 after_fourth:
     third[0x28 / 4] = (int)&import_00073B80;
 after_third:
@@ -1770,9 +1771,6 @@ after_node:
 done:
     return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001E9C);
-#endif
 
 void titproc_uso_func_00002270(int a0, int *a1) {
     int v = *a1;
