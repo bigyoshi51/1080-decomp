@@ -2144,105 +2144,97 @@ void func_00002DA4(char *arg0, s32 arg1, s32 arg2) {
  * the global func_000003F8+0x12C value; later children use 1.0),
  * ->0x130 (304) f32 = 1.0 alpha, ->0xD0 (208) s32 = type tag
  * (1,2,...), ->0xC4 (196) u32 flags (bits 0x40 then 0x80 OR'd in).
- * D_0000741C = pre-init datum. Residual is a register-coloring +
- * scheduling cap (float-pool base placement / dead-spill grows frame
- * 0x60->0x68); see the NON_MATCHING body comment below for detail.
- * Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM
- * (no episode; tautology-trap rule). */
-#ifdef NON_MATCHING
-/* 2026-06-23 reconstruction pass (correct-C decode; logic 100%, mnemonic-LCS
- * 85.5%, size-exact 138/138 insns).
- *  - Float-pool refs corrected to func_000003F8 base (+0x12C/0x130/0x134); the
- *    target reads its colour literals (8224.51 @ +0x12C, 569.0 @ +0x130, 0.0 @
- *    +0x134) out of func_000003F8's shared in-text literal pool. Was wrongly
- *    &D_00000000+0x52x before.
- *  - Callee args are the named text-symbols &D_0000741C/7424/7434/7444/7454
- *    (matches the R_MIPS_HI16/LO16 relocs in expected/bootup_uso.c.o exactly).
- *  - obj3 vec is a float[3] (was 3 scalars: IDO dead-store-eliminated 2 of 3
- *    because only &sp3c was passed; array form keeps all three stores live).
- *  RESIDUAL = register-coloring + scheduling cap (NOT a logic bug). IDO -O2
- *  materializes the func_000003F8 float-pool base in $a2 and dead-spills it
- *  (sw a2,X(sp)) across the obj2 alloc call, where the target uses a one-shot
- *  `lui $at; lwc1 ..,off($at)` (no held base). That one dead spill grows the
- *  frame 0x60 -> 0x68 and cascade-renumbers the $t/$v regs downstream. The base
- *  placement is an IDO-allocator choice (cf. docs IDO_CODEGEN "stack-array
- *  placement / addr-fold" + "adjacent-extern lui $at" caps); not C-reorderable
- *  via decl-order / inline-deref / single-k / vec-array variants (all probed).
- *  Permuter import blocked by NM-wrap multi-fn TU + 15 undef externs. Build path
- *  stays INCLUDE_ASM (no episode; tautology rule). */
-extern char D_0000741C;
-extern char D_00007424;
-extern char D_00007434;
-extern char D_00007444;
-extern char D_00007454;
+ * D_0000741C = pre-init datum. EXACT (see the comment on the body). */
+/* EXACT 2026-10-16 (agent-c, 75.4 -> 100). The old "held float-pool base"
+ * cap was the shared func_000003F8 base: three scalar f32 globals pinned at
+ * the real offsets (D_00000524/528/52C = func_000003F8+0x12C/0x130/0x134)
+ * each get their own `lui at; lwc1`. Other levers:
+ *  - the three registration calls take a base-0 object (D_2F90_reg, one
+ *    symbol: the target holds it in s0), not a literal 0; m->0x28 is the
+ *    base-0 address D_2F90_m28, and the s1->0x90 link call passes p90 as a1;
+ *  - `p = obj; if (1) { p += 0xC4; } *(int *)p |= K;` for the addiu-base RMWs,
+ *    with ONE reused pointer (p90, colours a2) for every s1->0x90/0x94 reload
+ *    and the link block; a second reused pointer `o` (s0) for the third child,
+ *    the s1->0x84 node and the 0x16C alloc;
+ *  - the alloc init takes three floats through the prototyped blank alias
+ *    func_00000000_2F90_f (mfc1 a2/a3 + swc1 16(sp)); unused-result calls go
+ *    through the void alias func_00000000_2F90_v (the int blank pushed n2 to
+ *    v1);
+ *  - `*(o+0x28) = &D; *(o+0x120) = 0xFFFF;` on one line gives the target ring
+ *    order; s1->0x90 store after the k load;
+ *  - slots: volatile pads pad0 / pad..pad3 put p90's spill at sp+0x58, n2 at
+ *    0x48 and vec at 0x3C (frame 0x60). */
+extern char D_0000741C, D_00007424, D_00007434, D_00007444, D_00007454;
+extern float D_00000524, D_00000528, D_0000052C;
+extern char D_2F90_reg, D_2F90_m28;
+extern void func_00000000_2F90_v();
+extern void func_00000000_2F90_f(char *, char *, float, float, float);
 void func_00002F90(char *s1) {
-    char *c;
-    char *o;
+    volatile int pad0;
+    char *p90;
+    volatile int pad;
+    volatile int pad2;
+    volatile int pad3;
+    int n2;
     float vec[3];
-    func_00000000(&D_0000741C, 0);
+    float k2;
+    char *o;
+    char *c;
+    func_00000000_2F90_v(&D_0000741C, 0);
     c = (char *)func_00000000(0, &D_00007424);
-    *(char **)(s1 + 0x90) = c;
     {
-        float k = *(float *)((char *)&func_000003F8 + 0x12C);
+        float k = D_00000524;
+        *(char **)(s1 + 0x90) = c;
         *(float *)(c + 0x12C) = k;
         *(float *)(c + 0x128) = k;
         *(float *)(c + 0x124) = k;
         *(float *)(c + 0x130) = 1.0f;
     }
-    *(int *)(*(char **)(s1 + 0x90) + 0xD0) = 1;
-    *(int *)(*(char **)(s1 + 0x90) + 0xC4) |= 0x40;
-    *(int *)(*(char **)(s1 + 0x90) + 0xC4) |= 0x80;
+    p90 = *(char **)(s1 + 0x90); *(int *)(p90 + 0xD0) = 1;
+    p90 = *(char **)(s1 + 0x90); if (1) { p90 += 0xC4; } *(int *)p90 |= 0x40;
+    p90 = *(char **)(s1 + 0x90); if (1) { p90 += 0xC4; } *(int *)p90 |= 0x80;
     c = (char *)func_00000000(0, &D_00007434);
     *(char **)(s1 + 0x94) = c;
     *(float *)(c + 0x130) = 1.0f;
     *(float *)(c + 0x12C) = 1.0f;
     *(float *)(c + 0x128) = 1.0f;
     *(float *)(c + 0x124) = 1.0f;
-    *(int *)(*(char **)(s1 + 0x94) + 0xD0) = 2;
-    *(int *)(*(char **)(s1 + 0x94) + 0xC4) |= 0x40;
+    p90 = *(char **)(s1 + 0x94); *(int *)(p90 + 0xD0) = 2;
+    p90 = *(char **)(s1 + 0x94); if (1) { p90 += 0xC4; } *(int *)p90 |= 0x40;
     o = (char *)func_00000000(0, &D_00007444);
     vec[0] = 0.0f;
     vec[2] = 0.0f;
-    vec[1] = *(float *)((char *)&func_000003F8 + 0x130);
-    func_00000000(o + 0x70, vec);
-    *(int *)(o + 0xC4) |= 0x40;
-    func_00000000(0, *(int *)(s1 + 0x94));
-    func_00000000(0, *(int *)(s1 + 0x90));
-    func_00000000(0, *(int *)(s1 + 0x94));
-    {
-        int p90 = *(int *)(s1 + 0x90);
-        int n = *(int *)(s1 + 0x84);
-        func_00000000(n + 0x10);
-        if (*(int *)(p90 + 0x14) != 0) {
-            *(int *)(p90 + 4) = 1;
-        }
-        *(int *)(p90 + 0x14) = n;
+    vec[1] = D_00000528;
+    func_00000000_2F90_v(o + 0x70, vec);
+    c = o; if (1) { c += 0xC4; } *(int *)c |= 0x40;
+    func_00000000_2F90_v(&D_2F90_reg, *(int *)(s1 + 0x94));
+    func_00000000_2F90_v(&D_2F90_reg, *(int *)(s1 + 0x90));
+    func_00000000_2F90_v(&D_2F90_reg, *(int *)(s1 + 0x94));
+    p90 = *(char **)(s1 + 0x90);
+    o = *(char **)(s1 + 0x84);
+    func_00000000_2F90_v(o + 0x10, p90);
+    if (*(int *)(p90 + 0x14) != 0) {
+        *(int *)(p90 + 4) = 1;
     }
-    {
-        char *m = (char *)func_00000000(0x16C);
-        int n2;
-        if (m != 0) {
-            float k2 = *(float *)((char *)&func_000003F8 + 0x134);
-            func_00000000(m, &D_00007454, 0.0f, 0.0f, 0.0f);
-            *(int *)(m + 0x120) = 0xFFFF;
-            *(int *)(m + 0x28) = 0;
-            *(float *)(m + 0x108) = k2;
-            *(float *)(m + 0x10C) = k2;
-            *(float *)(m + 0x110) = k2;
-            *(float *)(m + 0x124) = 1.0f;
-        }
-        n2 = *(int *)(s1 + 0x84);
-        func_00000000(n2 + 0x10, m);
-        if (*(int *)(m + 0x14) != 0) {
-            *(int *)(m + 4) = 1;
-        }
-        *(int *)(m + 0x14) = n2;
+    *(int *)(p90 + 0x14) = (int)o;
+    o = (char *)func_00000000(0x16C);
+    if (o != 0) {
+        func_00000000_2F90_f(o, &D_00007454, 0.0f, 0.0f, 0.0f);
+        k2 = D_0000052C;
+        *(int *)(o + 0x28) = (int)&D_2F90_m28; *(int *)(o + 0x120) = 0xFFFF;
+        *(float *)(o + 0x108) = k2;
+        *(float *)(o + 0x10C) = k2;
+        *(float *)(o + 0x110) = k2;
+        *(float *)(o + 0x124) = 1.0f;
     }
-    func_00000000();
+    n2 = *(int *)(s1 + 0x84);
+    func_00000000_2F90_v(n2 + 0x10, o);
+    if (*(int *)(o + 0x14) != 0) {
+        *(int *)(o + 4) = 1;
+    }
+    *(int *)(o + 0x14) = n2;
+    func_00000000_2F90_v();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002F90);
-#endif
 
 void func_000031B8(int a0) {
 }

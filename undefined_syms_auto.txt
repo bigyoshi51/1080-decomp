@@ -3766,3 +3766,10 @@ D_87A4_vt = 0x00000000;  /* func_000087A4 child +0x30 base-0 address (target lui
 D_87A4_tail = 0x00000000;  /* func_000087A4 final callback arg load (target lui a0 / lw 0(a0)) */
 func_00000000_087A4_f = 0x00000000;  /* func_000087A4 prototyped (char*,char*,int,float,float) blank alias: single-float stack arg via swc1 */
 D_24B8_tbl = 0x00000000;  /* func_000024B8 (NM) base-0 poll-table word (target lui a0 / lw a0,0(a0), no reloc) */
+D_00000524 = 0x00000524;  /* func_00002F90 colour literal (== func_000003F8+0x12C; target lui at / lwc1 0x12C(at)), distinct so the pool base is not held */
+D_00000528 = 0x00000528;  /* func_00002F90 vec[1] literal (== func_000003F8+0x130) */
+D_0000052C = 0x0000052C;  /* func_00002F90 alloc-init literal (== func_000003F8+0x134) */
+D_2F90_reg = 0x00000000;  /* func_00002F90 base-0 registration object (target lui s0 / addiu s0, held across three calls) */
+D_2F90_m28 = 0x00000000;  /* func_00002F90 base-0 address stored to m->0x28 (target lui t8 / addiu t8, no reloc) */
+func_00000000_2F90_v = 0x00000000;  /* func_00002F90 void-typed blank alias (unused-result calls; n2 colours v0) */
+func_00000000_2F90_f = 0x00000000;  /* func_00002F90 prototyped (char*,char*,float,float,float) blank alias (mfc1 a2/a3 + swc1 16(sp)) */
