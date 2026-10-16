@@ -2241,83 +2241,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F3C8);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
+/* game_libs_func_0001F6A8 PASS 2026-10-16 (agent-c, 20.07 -> 95.56): rewritten
+ * from the m2c unroll transcript to the source loops. It fills a 256-entry
+ * f32 table at D->0x2CF8 with (256 * D->0x2054) / divisor: five fixed slots
+ * 0xFB..0xFF, then i = 0x80..0xFA (0xFB - i), i = 0x10..0x7F (60 + (0x80 - i)
+ * * 4), i = 1..15 (480 + (15 - i) * 60), and slot 0 = 0. IDO peels 3 and
+ * unrolls x4 the last loop by itself (the target's t7=14/13/12 stores and the
+ * beql/bnel x4 body). Void: the old `return v0 + 4` was m2c reading the dead
+ * loop counter. Residual: mul.s operand order (target 256.0f first; every C
+ * spelling normalizes), 4.0/60.0 in f12/f2 vs f2/f12, and the 3 leading
+ * zero words in the .s (the previous function's padding sits inside this
+ * symbol's 0x378). */
 typedef char *(*GP_0001F6A8)();
-s32 game_libs_func_0001F6A8(void) {
-    f32 d025 = 0.25f;
-    f32 d05 = 0.5f;
-    f32 d075 = 0.75f;
-    char *temp_t3;
-    char *temp_t6;
-    f32 temp_f10;
-    f32 temp_f10_2;
-    f32 var_f16;
-    f32 var_f18;
-    s32 temp_f16;
-    s32 temp_f6;
-    s32 temp_f8;
-    s32 var_a0;
-    s32 var_v0;
-    s32 var_v0_2;
-    s32 var_v0_3;
-    s32 var_v1;
-    s32 var_v1_2;
-    s32 var_v1_3;
-    char *temp_t3_2;
+extern f32 gl_1f6a8_kE70, gl_1f6a8_kE74;  /* data f32 at 0xE70 / 0xE74 (target lui at,0 + lwc1 0xE70(at), not D-relative) */
+#define K1F6A8 (*(f32 *)((char *)&D_00000000 + 0x2054))
+#define T1F6A8 (*(f32 **)((char *)&D_00000000 + 0x2CF8))
+void game_libs_func_0001F6A8(void) {
+    s32 i;
 
-    var_v0_2 = 0x80;
-    var_v1 = 0x200;
-    (*(f32*)((char*)(*(char**)((char*)&D_00000000 + 0x2CF8)) + 0x3FC)) = (f32) ((256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / d025);
-    (*(f32*)((char*)(*(char**)((char*)&D_00000000 + 0x2CF8)) + 0x3F8)) = (f32) ((256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / (*(f32*)((char*)&D_00000000 + 0xE70)));
-    (*(f32*)((char*)(*(char**)((char*)&D_00000000 + 0x2CF8)) + 0x3F4)) = (f32) ((256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / d05);
-    (*(f32*)((char*)(*(char**)((char*)&D_00000000 + 0x2CF8)) + 0x3F0)) = (f32) ((256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / (*(f32*)((char*)&D_00000000 + 0xE74)));
-    (*(f32*)((char*)(*(char**)((char*)&D_00000000 + 0x2CF8)) + 0x3EC)) = (f32) ((256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / d075);
-    do {
-        temp_f16 = 0xFB - var_v0_2;
-        var_v0_2 += 1;
-        temp_t3 = (*(char**)((char*)&D_00000000 + 0x2CF8)) + var_v1;
-        var_v1 += 4;
-        *(f32*)temp_t3 = (256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / (f32) temp_f16;
-    } while (var_v0_2 < 0xFB);
-    var_v0_3 = 0x10;
-    var_v1_2 = 0x40;
-    do {
-        temp_f10 = (f32) (0x80 - var_v0_3);
-        var_v0_3 += 1;
-        temp_t6 = (*(char**)((char*)&D_00000000 + 0x2CF8)) + var_v1_2;
-        var_v1_2 += 4;
-        *(f32*)temp_t6 = (256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / (60.0f + (temp_f10 * 4.0f));
-    } while (var_v0_3 < 0x80);
-    var_v0 = 4;
-    var_v1_3 = 0x10;
-    (*(f32*)((char*)(*(char**)((char*)&D_00000000 + 0x2CF8)) + 0x4)) = (f32) ((256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / (480.0f + ((f32) 0xE * 60.0f)));
-    (*(f32*)((char*)(*(char**)((char*)&D_00000000 + 0x2CF8)) + 0x8)) = (f32) ((256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / (480.0f + ((f32) 0xD * 60.0f)));
-    (*(f32*)((char*)(*(char**)((char*)&D_00000000 + 0x2CF8)) + 0xC)) = (f32) ((256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / (480.0f + ((f32) 0xC * 60.0f)));
-    var_a0 = 0xF - 4;
-    var_f18 = 480.0f + ((f32) var_a0 * 60.0f);
-    var_f16 = 256.0f * (*(f32*)((char*)&D_00000000 + 0x2054));
-    if (4 != 0xC) {
-        do {
-            temp_f10_2 = (f32) (var_a0 - 1);
-            temp_f8 = var_a0 - 2;
-            temp_f6 = var_a0 - 3;
-            var_v0 += 4;
-            var_a0 = 0xF - var_v0;
-            *(f32*)((*(char**)((char*)&D_00000000 + 0x2CF8)) + var_v1_3) = var_f16 / var_f18;
-            (*(f32*)((*(char**)((char*)&D_00000000 + 0x2CF8)) + var_v1_3 + 0x4)) = (f32) ((256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / (480.0f + (temp_f10_2 * 60.0f)));
-            (*(f32*)((*(char**)((char*)&D_00000000 + 0x2CF8)) + var_v1_3 + 0x8)) = (f32) ((256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / (480.0f + ((f32) temp_f8 * 60.0f)));
-            temp_t3_2 = (*(char**)((char*)&D_00000000 + 0x2CF8)) + var_v1_3;
-            var_v1_3 += 0x10;
-            var_f18 = 480.0f + ((f32) var_a0 * 60.0f);
-            (*(f32*)((char*)temp_t3_2 + 0xC)) = (f32) ((256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / (480.0f + ((f32) temp_f6 * 60.0f)));
-            var_f16 = 256.0f * (*(f32*)((char*)&D_00000000 + 0x2054));
-        } while (var_v0 != 0xC);
+    T1F6A8[0xFF] = (256.0f * K1F6A8) / 0.25f;
+    T1F6A8[0xFE] = (256.0f * K1F6A8) / gl_1f6a8_kE70;
+    T1F6A8[0xFD] = (256.0f * K1F6A8) / 0.5f;
+    T1F6A8[0xFC] = (256.0f * K1F6A8) / gl_1f6a8_kE74;
+    T1F6A8[0xFB] = (256.0f * K1F6A8) / 0.75f;
+    for (i = 0x80; i < 0xFB; i++) {
+        T1F6A8[i] = (256.0f * K1F6A8) / (f32)(0xFB - i);
     }
-    *(f32*)((*(char**)((char*)&D_00000000 + 0x2CF8)) + var_v1_3) = var_f16 / var_f18;
-    (*(f32*)((*(char**)((char*)&D_00000000 + 0x2CF8)) + var_v1_3 + 0x4)) = (f32) ((256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / (480.0f + ((f32) (var_a0 - 1) * 60.0f)));
-    (*(f32*)((*(char**)((char*)&D_00000000 + 0x2CF8)) + var_v1_3 + 0x8)) = (f32) ((256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / (480.0f + ((f32) (var_a0 - 2) * 60.0f)));
-    (*(f32*)((*(char**)((char*)&D_00000000 + 0x2CF8)) + var_v1_3 + 0xC)) = (f32) ((256.0f * (*(f32*)((char*)&D_00000000 + 0x2054))) / (480.0f + ((f32) (var_a0 - 3) * 60.0f)));
-    (*(f32*)((char*)(*(char**)((char*)&D_00000000 + 0x2CF8)) + 0x0)) = 0.0f;
-    return var_v0 + 4;
+    for (i = 0x10; i < 0x80; i++) {
+        T1F6A8[i] = (256.0f * K1F6A8) / (60.0f + (f32)(0x80 - i) * 4.0f);
+    }
+    for (i = 1; i < 0x10; i++) {
+        T1F6A8[i] = (256.0f * K1F6A8) / (480.0f + (f32)(0xF - i) * 60.0f);
+    }
+    T1F6A8[0] = 0.0f;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001F6A8);
