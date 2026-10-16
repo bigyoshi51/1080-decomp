@@ -42,3 +42,12 @@ glabel game_uso_func_00000000
     /* 000098 00000098 03E00008 */  .word 0x03E00008
     /* 00009C 0000009C E484000C */  .word 0xE484000C
 endlabel game_uso_func_00000000
+
+/* game_uso .rodata +0x000: 1.0f/6 (lwc1 %lo at text 0x4). The USO RoData */
+/* payload starts with a 4-byte marker (0x10002E75); text %lo values are   */
+/* offsets past it, so this float is the unit's rodata item 0. Emitting it */
+/* puts game_uso_func_00000940's C jumptables at +0x4 like the ROM.        */
+.late_rodata
+.word 0x3E2AAAAB
+
+.text

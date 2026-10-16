@@ -254,3 +254,21 @@ glabel game_uso_func_0000BB8C
     /* 00BF74 0000BF74 03E00008 */  .word 0x03E00008
     /* 00BF78 0000BF78 27BD0128 */  .word 0x27BD0128
 endlabel game_uso_func_0000BB8C
+
+/* game_uso .rodata (offsets past the USO RoData marker word, see   */
+/* game_uso_func_00000000.s). Emitted here so every C fn's local    */
+/* jumptable lands at its ROM %lo offset; layout order = text order. */
+.late_rodata
+/* +0x168..+0x180: own 3 doubles (ldc1 %lo 0x168..0x178) */
+.word 0x3FB99999, 0x9999999A, 0x3F847AE1, 0x47AE147B
+.word 0x3F847AE1, 0x47AE147B
+/* +0x180..+0x1EC: DAMAGE0-4/NULL/STOP1-3/SLOW1-2 strings (no text LO16 ref) */
+.word 0x0A44414D, 0x41474530, 0x0A000000, 0x0A44414D
+.word 0x41474531, 0x0A000000, 0x0A44414D, 0x41474532
+.word 0x0A000000, 0x0A44414D, 0x41474533, 0x0A000000
+.word 0x0A44414D, 0x41474534, 0x0A000000, 0x0A4E554C
+.word 0x4C0A0000, 0x0A53544F, 0x50310A00, 0x0A53544F
+.word 0x50320A00, 0x0A53544F, 0x50330A00, 0x0A534C4F
+.word 0x57310A00, 0x0A534C4F, 0x57320A00
+
+.text

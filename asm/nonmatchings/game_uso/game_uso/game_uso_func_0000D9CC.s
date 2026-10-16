@@ -526,3 +526,14 @@ glabel game_uso_func_0000D9CC
     /* 00E1F4 0000E1F4 03E00008 */  .word 0x03E00008
     /* 00E1F8 0000E1F8 00000000 */  .word 0x00000000
 endlabel game_uso_func_0000D9CC
+
+/* game_uso .rodata (offsets past the USO RoData marker word, see   */
+/* game_uso_func_00000000.s). Emitted here so every C fn's local    */
+/* jumptable lands at its ROM %lo offset; layout order = text order. */
+.late_rodata
+/* +0x1F8..+0x208: own 2 doubles (ldc1 %lo 0x1F8/0x200) */
+.word 0x3FE99999, 0x9999999A, 0xBFD99999, 0x9999999A
+/* +0x208..+0x210: double of C fn game_uso_func_0000E1FC (ldc1 %lo 0x208) */
+.word 0x3FB99999, 0x9999999A
+
+.text

@@ -456,8 +456,14 @@ void game_uso_func_000008FC(int *a0) {
 // jr-via-rodata jumptable cap (docs/MATCHING_WORKFLOW.md:613,6900): it can't
 // byte-match without rodata-relayout infra placing the build's local jtbl at
 // the external symbol addrs — a multi-tick splat/linker job, NOT a C lever.
-// 104/107 words exact. Default build = INCLUDE_ASM byte-exact.
-#ifdef NON_MATCHING
+// 104/107 words exact.
+// 2026-10-16 (agent-g): EXACT, block-equal (no lo16 exception). The 3 words
+// were never external-symbol relocs: the ROM %lo values are offsets into the
+// unit's own RoData (past the section's 4-byte marker word), and the build's
+// .rodata simply lacked the INCLUDE_ASM fns' literals. Those are now emitted
+// as `.late_rodata` in their .s files (game_uso_func_00000000.s carries the
+// +0x0 float 1/6), so this fn's jumptables land at +0x4/+0x20/+0x38 like the
+// ROM. docs/MATCHING_WORKFLOW.md#game-uso-rodata-relayout-late-rodata.
 
 extern char import_80020098;
 void game_uso_func_00000AEC(int *a0, int a1);
@@ -545,9 +551,6 @@ void game_uso_func_00000940(char *arg0) {
         game_uso_func_00000AEC((int *)arg0, var_a1);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000940);
-#endif
 
 void game_uso_func_00000AEC(int *a0, int a1) {
     if (*(int*)((char*)*(int**)((char*)a0 + 0x158) + 0x24) > 0) {
@@ -10554,7 +10557,8 @@ extern void game_uso_func_0000D5BC(char *, Pair2);
 extern char game_uso_D_807FFB58;
 extern char game_uso_D_807FF498;
 void game_uso_func_0000F13C(int *a0, int *a1) {
-    volatile int *ret = a0;
+    /* placeholder; also emits the donor's double 0.06 (RoData 0x238) */
+    *(volatile double *)a0 = 0.06;
 }
 
 /* game_uso_func_0000F284: 55-insn EE84-family branchy, beql-selected mode+D-pair.
@@ -10614,8 +10618,13 @@ void game_uso_func_0000F284(int *a0) {
  * the Yay0 block is cut from the UNLINKED game_uso.c.o, so every in-unit
  * jal stays `jal 0` exactly like the ROM (verify-blocks clean, no block
  * diff in F360). The struct now types game_uso_D_807FFB60 itself (the only
- * user in this TU), so the _thr alias is no longer referenced. */
-extern struct { char pad[0x240]; double v; } game_uso_D_807FFB60;
+ * user in this TU), so the _thr alias is no longer referenced.
+ *
+ * 2026-10-16 (agent-g): the const is now the plain literal 0.7 -- with the
+ * unit's .rodata relaid out (INCLUDE_ASM literals emitted as .late_rodata)
+ * IDO's own local double lands at RoData +0x240 exactly, and the literal
+ * keeps the textual operand rank (ldc1 before cvt.d.s), so the extern struct
+ * is no longer needed. docs/MATCHING_WORKFLOW.md#game-uso-rodata-relayout-late-rodata. */
 extern void import_00096874(int);
 extern void game_uso_func_0001001C(int *);
 void game_uso_func_0000F360(int *a0) {
@@ -10638,7 +10647,7 @@ void game_uso_func_0000F360(int *a0) {
         f0 = *(float*)(b770 + 0x10) + f2;
     }
     if (*(short*)((char*)p + 0x9A2) == 0x62) {
-        f0 = (float)(game_uso_D_807FFB60.v * (double)f0);
+        f0 = (float)(0.7 * (double)f0);
     }
     b31C = (char*)p; if (1) { b31C += 0x31C; }
     f0 *= *(float*)(b510 + 0x10);
@@ -10948,8 +10957,10 @@ extern char D_00000000;
  * call (a3 set before the jal; call-shape-scan `nm=jal/012 tgt=jal/0123`).
  * Passing field_770 as a third C arg (after the 2-word Pair2) through the
  * prototyped zero-address alias game_uso_func_0000D5BC_a3 makes the base a
- * real multi-use value hoisted above the flag test, in a3. */
-extern char game_uso_D_807FFB68;
+ * real multi-use value hoisted above the flag test, in a3.
+ * 2026-10-16 (agent-g): dconst is now the literal 0.8 (IDO's local double at
+ * RoData +0x248 after the rodata relayout; same bytes, honest source).
+ * docs/MATCHING_WORKFLOW.md#game-uso-rodata-relayout-late-rodata. */
 extern char game_uso_D_807FF400;
 extern char game_uso_D_807FF410;
 void game_uso_func_0000D5BC(char *, Pair2);
@@ -10967,7 +10978,7 @@ void game_uso_func_0000FC34(int *a0) {
         field_31C = (float*)(base + 0x31C);
         do {
             *field_31C = (float)((double)*(float*)(field_770 + 0x10)
-                * *(double*)((char*)&game_uso_D_807FFB68 + 0x248)
+                * 0.8
                 + (double)*field_31C);
         } while (0);
         game_uso_func_0000D5BC_a3((char*)a0,
@@ -11468,7 +11479,8 @@ void game_uso_func_00010648(void *a0) {
  * float prototype for import_0010DB78. docs/MATCHING_WORKFLOW.md#game-uso-
  * ncc-cplusplus-donor-recipe. Body below is a placeholder for the splice. */
 void game_uso_func_00010694(int *a0) {
-    volatile int *ret = a0;
+    /* placeholder; also emits the donor's double 0.06 (RoData 0x250) */
+    *(volatile double *)a0 = 0.06;
 }
 
 /* game_uso_func_00010840 (0x10C / 67 words): state-entry handler, sibling of
@@ -11484,7 +11496,8 @@ void game_uso_func_00010694(int *a0) {
  * docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe.
  * Body below is a placeholder for the splice. */
 void game_uso_func_00010840(int *a0) {
-    volatile int *ret = a0;
+    /* placeholder; also emits the donor's double 0.06 (RoData 0x258) */
+    *(volatile double *)a0 = 0.06;
 }
 
 /* game_uso_func_0001094C: 48-insn EE84-family (near-twin of 10A0C).
