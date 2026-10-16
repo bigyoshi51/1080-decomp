@@ -20142,39 +20142,41 @@ void game_libs_func_00034180(void) {
 //   spimdisasm-USO migration). Real-C STRUCTURAL body below for the
 //   NAMED leading function only — bundled tail leaves untouched.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+// EXACT 2026-10-16 (87.4 -> 100): the record pointer, the poll arg, the two
+//   cb args and the config table were all one &D_00000000 placeholder. Target
+//   has distinct symbols: D_34240_G (record ptr, address hoisted to s4),
+//   D_34240_X / D_34240_Y (cb args, fresh lui/addiu each), D_34240_P (poll
+//   arg, s3, rematerialized per loop) and the table D_0001E21C (pinned to its
+//   real address; `&D_00000000 + 0x1E21C` folds the first test into
+//   `lui; lw -7652`, a zero-offset symbol keeps `lw 0(s2)`). No param (the
+//   old `a2` homed a0). d[0x80] + saved34 declared before the named pointers
+//   = frame 0xC0; `dp = d` assigned in the first call's arg; the empty
+//   `if (D_34240_G) {}` after the first store keeps `addiu s1,sp,64` next to
+//   its use instead of right after `sw s1`.
 extern int D_00000000;
-// Subsystem run loop. G = *&D_0. Marks G->0x38=1, builds a local descriptor d
-// (cb(&d,-1)), saves G->0x34. Polls a config table at absolute 0x1E21C: each
-// round cb(&D)/cb(&d) refreshes d, and the d[0x18] state walks the table
-// (advance on match, reset on miss) until the entry is 0. Then a vtable
-// dispatch G->0x28->0x1C(G + (short)G->0x28->0x18) and two cbs. Main loop:
-// G->0x34=&d; if d[0x10] cb(); exit when d[0x1C]&0x40000; when d[0x18]&0x100
-// run two cbs; cb(&D)/cb(&d); repeat. Tail: cb(0x202); G->0x38=0; restore
-// G->0x34. Reloc-blind cbs/&D (field-0 matchable); 0x1E21C is a baked absolute.
-void gl_func_00034240(int a2) {
-    char d[0x40];
+extern char *D_34240_G;
+extern char D_0001E21C, D_34240_X, D_34240_P, D_34240_Y;
+void gl_func_00034240(void) {
+    char d[0x80];
+    int saved34;
     char *cfg;
     char *s0;
-    char *s3;
-    char *g;
-    int saved34;
-    (void)a2;
+    char *dp;
 
-    *(int *)(*(char **)&D_00000000 + 0x38) = 1;
-    gl_func_00000000(d, -1);
-    saved34 = *(int *)(*(char **)&D_00000000 + 0x34);
-    gl_func_00000000((char *)&D_00000000, 1);
+    *(int *)(D_34240_G + 0x38) = 1;
+    if (D_34240_G) {}
+    gl_func_00000000(dp = d, -1);
+    saved34 = *(int *)(D_34240_G + 0x34);
+    gl_func_00000000(&D_34240_X, 1);
 
-    cfg = (char *)0x0001E21C;
-    s3 = (char *)&D_00000000;
+    cfg = &D_0001E21C;
     s0 = cfg;
-    if (*(int *)cfg != 0) {
+    if (*(int *)s0 != 0) {
         do {
-            gl_func_00000000(s3);
-            gl_func_00000000(d);
-            if (*(int *)(d + 0x18) != 0) {
-                if (*(int *)(d + 0x18) == *(int *)s0) {
+            gl_func_00000000(&D_34240_P);
+            gl_func_00000000(dp);
+            if (*(int *)(dp + 0x18) != 0) {
+                if (*(int *)(dp + 0x18) == *(int *)s0) {
                     s0 += 4;
                 } else {
                     s0 = cfg;
@@ -20183,37 +20185,32 @@ void gl_func_00034240(int a2) {
         } while (*(int *)s0 != 0);
     }
 
-    s3 = (char *)&D_00000000;
     gl_func_00000000(0);
-    gl_func_00000000((char *)&D_00000000, 0);
+    gl_func_00000000(&D_34240_Y, 0);
 
-    g = *(char **)(*(char **)&D_00000000 + 0x28);
-    (*(void (**)(char *))(g + 0x1C))(*(char **)&D_00000000 + *(short *)(g + 0x18));
+    (*(void (**)(char *))(*(char **)(D_34240_G + 0x28) + 0x1C))(D_34240_G + *(short *)(*(char **)(D_34240_G + 0x28) + 0x18));
     gl_func_00000000();
     gl_func_00000000();
 
     for (;;) {
-        *(int *)(*(char **)&D_00000000 + 0x34) = (int)d;
-        if (*(int *)(d + 0x10) != 0) {
+        *(int *)(D_34240_G + 0x34) = (int)dp;
+        if (*(int *)(dp + 0x10) != 0) {
             gl_func_00000000();
         }
-        if (*(int *)(d + 0x1C) & 0x40000) {
+        if (*(int *)(dp + 0x1C) & 0x40000) {
             break;
         }
-        if (*(int *)(d + 0x18) & 0x100) {
+        if (*(int *)(dp + 0x18) & 0x100) {
             gl_func_00000000();
             gl_func_00000000();
         }
-        gl_func_00000000(s3);
-        gl_func_00000000(d);
+        gl_func_00000000(&D_34240_P);
+        gl_func_00000000(dp);
     }
     gl_func_00000000(0x202);
-    *(int *)(*(char **)&D_00000000 + 0x38) = 0;
-    *(int *)(*(char **)&D_00000000 + 0x34) = saved34;
+    *(int *)(D_34240_G + 0x38) = 0;
+    *(int *)(D_34240_G + 0x34) = saved34;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034240);
-#endif
 
 // Indexed read from the segment-base int table: return D[a0]. Builds byte-exact
 // as plain C (single &D_00000000 segment-base ref, resolves to addr 0). No
