@@ -2420,35 +2420,40 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000031C0);
  * `*(+0x24)=r` store (not in target); `r->0x70=a2` placed correctly
  * (2nd-call delay slot); the two optional-callback calls take TWO args
  * `func(r, a0->0x84)` / `func(r, a0->0x80)` (the 2nd arg was missing).
- * RESIDUAL caps: (1) FP global-copy base — target holds
- * `&func_00000008+0x28` in $v0 (stores at 0/4/8/C); IDO folds my held
- * pointer to base+displacement. (2) frame -112 vs -96 (varargs stack-arg
- * block placement). Both structural; INCLUDE_ASM remains build path. */
+ * 2026-10-16 EXACT (lui-count sweep, docs/IDO_CODEGEN.md#lui-count-
+ * placeholder-sweep-44de4: target 6 luis vs 3): the three source floats are
+ * distinct scalar globals pinned at 0x538/0x53C/0x540 (one shared
+ * &func_000003F8 base was CSE'd into one held register), and the Vec4 slot is
+ * the zero-offset D_00000030 (== func_00000008+0x28), so its address is held
+ * in v0 with 0/4/8/C displacements as in the target. Each optional callback
+ * reads its gate once (`if ((p = a0->0x84) != 0) f(r, p)`), and the r->0x70
+ * store precedes the publish call (it lands in that jal's delay slot). */
 extern char D_000074D0;
+extern f32 D_00000538, D_0000053C, D_00000540;
+extern float D_00000030[4];
+extern char D_0000002C;
 extern void func_00000008();  /* used as data-symbol base */
 extern void func_000003F8();  /* used as data-symbol base */
-#ifdef NON_MATCHING
 void *func_000034E8(char *a0, int *a1, int a2) {
-    float *g = (float*)((char*)&func_00000008 + 0x28);
+    float *g;
     char *r;
-    g[0] = *(float*)((char*)&func_000003F8 + 0x140);
-    g[1] = *(float*)((char*)&func_000003F8 + 0x144);
-    g[2] = *(float*)((char*)&func_000003F8 + 0x148);
+    int p;
+    g = D_00000030;
+    g[0] = D_00000538;
+    g[1] = D_0000053C;
+    g[2] = D_00000540;
     g[3] = 0.0f;
-    r = (char*)func_00000000(0, 0x64, &D_000074D0, 0x6D,
+    r = (char *)func_00000000(0, 0x64, &D_000074D0, 0x6D,
                               2, 0x6E, a1[0], a1[1], 0x6F, a1[2], a1[3],
                               0x70, a1[6] | 2, 0x71, 1, 0x73, a1[4],
                               0x74, a1[5], 0);
-    func_00000000((char*)&func_00000008 + 0x24, r);
-    *(int*)(r + 0x70) = a2;
-    if (*(int*)(a0 + 0x84) != 0) func_00000000(r, *(int*)(a0 + 0x84));
-    if (*(int*)(a0 + 0x80) != 0) func_00000000(r, *(int*)(a0 + 0x80));
+    *(int *)(r + 0x70) = a2;
+    func_00000000(&D_0000002C, r);
+    if ((p = *(int *)(a0 + 0x84)) != 0) func_00000000(r, p);
+    if ((p = *(int *)(a0 + 0x80)) != 0) func_00000000(r, p);
     func_00000000(a0, r);
     return r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000034E8);
-#endif
 
 /* func_00003638 - verified structural decode (0xFC, 63 insns,
  * object factory + link + notify).

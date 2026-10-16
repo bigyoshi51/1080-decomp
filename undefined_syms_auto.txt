@@ -3738,3 +3738,6 @@ D_000073EC = 0x000073EC;  /* func_00002DA4 init arg (target lui/addiu %hi/%lo .L
 D_2DA4_obj = 0x00000000;  /* func_00002DA4 base-0 created-object global (store + later reads) */
 D_2DA4_obj_rd = 0x00000000;  /* func_00002DA4 base-0 immediate re-read (distinct so the stored v0 is not forwarded) */
 D_2DA4_cfg = 0x00000000;  /* func_00002DA4 base-0 config word load (+4), distinct from the D_00000000+4 store */
+D_00000538 = 0x00000538;  /* func_000034E8 source float 0 (== func_000003F8+0x140; target lui at / lwc1 0x538(at)) */
+D_0000053C = 0x0000053C;  /* func_000034E8 source float 1 (== func_000003F8+0x144), distinct so its lui is not CSE'd */
+D_00000540 = 0x00000540;  /* func_000034E8 source float 2 (== func_000003F8+0x148) */
