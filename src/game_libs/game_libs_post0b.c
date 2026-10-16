@@ -138,30 +138,31 @@ extern void gl_func_0003D074();
 //   fn-ptr is the RECORD's vtable slot (constant), not per-node; nodes link via
 //   +0xC and the -1 sentinel is at node->+4. Remaining ~13% = USO reloc/regalloc.
 //   Name pre-checked: no extern reuse.
+// EXACT 2026-10-16: the list head and the vtable record were one placeholder
+//   (&D_00000000 + 0), so IDO CSE'd them; the target has two luis (head in s0,
+//   record address hoisted to s4). Two distinct base-0 externs D_34458_head /
+//   D_34458_obj fix it. Templates as &D_00000000 + K (lui 2; addiu -X).
+//   Frame: outA/outB at sp+0x50/0x54 need `volatile int pad;` first and
+//   outB declared before outA.
 extern char D_0001E3F4, D_0001E400;
-#ifdef NON_MATCHING
+extern char *D_34458_head;
+extern char *D_34458_obj;
 int gl_func_00034458() {
-    char *n = *(char **)((char *)&D_00000000 + 0);
-    char *r;
-    int (*f)(int, int *, int *);
-    int outA, outB;
+    char *n = D_34458_head;
+    volatile int pad;
+    int outB, outA;
     int s1;
     int vB;
-    gl_func_00000000(&D_0001E3F4);
+    gl_func_00000000((char *)&D_00000000 + 0x1E3F4);
     while (*(int *)(n + 4) != -1) {
-        r = *(char **)((char *)&D_00000000 + 0);
-        f = *(int (**)(int, int *, int *))(r + 0x70);
-        f(*(int *)(n + 0x11C), &outA, &outB);
+        (*(int (**)(int, int *, int *))(D_34458_obj + 0x70))(*(int *)(n + 0x11C), &outA, &outB);
         s1 = gl_func_00000000(*(int *)(n + 0x14));
         vB = gl_func_00000000(*(unsigned short *)(n + 0x10));
-        gl_func_00000000(&D_0001E400, s1, *(int *)(n + 0x14), vB,
+        gl_func_00000000((char *)&D_00000000 + 0x1E400, s1, *(int *)(n + 0x14), vB,
                          outA, outB, *(int *)(n + 0x11C));
         n = *(char **)(n + 0xC);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034458);
-#endif
 
 // gl_func_00034548 — STRUCTURAL PASS (0x13C / 79 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one

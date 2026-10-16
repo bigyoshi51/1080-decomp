@@ -3718,3 +3718,5 @@ gl_func_00000000_5db58b = 0x00000000;  /* (int, int, float, int) void blank for 
 gl_func_00000000_5db00c = 0x00000000;  /* (int, int, float, float) void blank for game_libs_func_0005DB00 */
 D_44DE4_tag = 0x00000000;  /* gl_func_00044DE4 1st base-0 global store (teardown tag); distinct from D_44DE4_val so each store keeps its own lui at */
 D_44DE4_val = 0x00000000;  /* gl_func_00044DE4 2nd base-0 global store (self->0x218->0x24) */
+D_34458_head = 0x00000000;  /* gl_func_00034458 base-0 list-head global (lui s0; lw s0,0(s0)) */
+D_34458_obj = 0x00000000;  /* gl_func_00034458 base-0 vtable record global, distinct from D_34458_head (hoisted lui s4; addiu s4) */
