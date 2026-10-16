@@ -527,6 +527,10 @@ build/src/game_libs/game_libs_o0_949C.c.o: TRUNCATE_TEXT := 0x1D8
 # byte-verify fails even though ROM ends up identical post-link.
 # 0x565c -> 0x5584 (2026-10-15 agent-g): gl_func_0000959C (0xD8) moved out to game_libs_o0_949C.c; tail now starts at 0x9674.
 build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x5584
+# gl_func_0000C5B0 (unwrapped 2026-10-16 agent-g): its trailing alignment nop is an all-zero
+# SUFFIX_BYTES_FORCE word; the old 1-word _pad.s GLOBAL_ASM emits 8 bytes after a C body.
+build/src/game_libs/game_libs_tail.c.o: SUFFIX_BYTES_FORCE := gl_func_0000C5B0=0x00000000
+build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_0000C5B0=0x00000000
 # gl_func_0000EBC8 is a byte-correct real-def (ROM matches, make verify OK) but IDO
 # emits a trailing jr-delay nop so its symbol is 0x30 (12w) vs the target's 0x2c (11w
 # — baserom attributes that nop to alignment). objdiff per-symbol scored 90.9%=11/12.
@@ -549,7 +553,9 @@ build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x5584
 # unrolled form (was a 24w plain loop); EBC8 NM offset 0x5540 -> 0x55f8, clip = offset + 0x30.
 # tail clip 0x5628 -> 0x5590 (2026-10-15 agent-g): gl_func_0000959C (old 0x98 -O2 NM body)
 # moved out to game_libs_o0_949C.c; EBC8 NM offset 0x55f8 -> 0x5560, clip = offset + 0x30.
-build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5590 gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
+# tail clip 0x5590 -> 0x558c (2026-10-16 agent-g): gl_func_0000C5B0 unwrapped; its 8-byte _pad.s
+# block became a 4-byte SUFFIX_BYTES_FORCE word. EBC8 NM offset 0x5560 -> 0x555c, clip = offset + 0x30.
+build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x558c gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
 # tail clip 0x5550 -> 0x5554 (2026-09-11 agent-g): gl_func_0000A670 real def is 62w vs its
 # old 61w NM body; EBC8 NM offset 0x5520 -> 0x5524, clip = offset + 0x30.
 # 0x17a38 -> 0x17a48 (2026-09-05 agent-g): game_libs_func_000343F4 absorbed the

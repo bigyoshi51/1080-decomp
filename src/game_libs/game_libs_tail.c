@@ -1972,15 +1972,16 @@ struct GlExisting {
     void *field_14;
 };
 
-#ifdef NON_MATCHING
 /* 2026-07-18 WORD-EXACT (35/35; was 86.1%): raw-word twin scan showed this
  * is 0-delta identical to gl_func_000088B4's 35 body words (88B4 has one
- * extra trailing nop delay word; C5B0's delay slot lives in the _pad.s).
- * 88B4 was cracked 2026-06-21 with the flat int* donor form (decl-order
- * p2,head,p1; p1-reuse-for-arg0; condition re-load -> two-web spill,
- * frame 0x28); the struct-typed body formerly here produced
- * frame 0x30. Ported verbatim. jal targets are USO placeholders ->
- * stays NM wrap, no episode. */
+ * extra trailing nop delay word). 88B4 was cracked 2026-06-21 with the flat
+ * int* donor form (decl-order p2,head,p1; p1-reuse-for-arg0; condition
+ * re-load -> two-web spill, frame 0x28). Ported verbatim.
+ * Unwrapped 2026-10-16 (agent-g): the C body is 0x90 (its jr-delay nop
+ * included) vs the target symbol 0x8c; the ROM has delay nop + one more
+ * alignment nop. The 1-word _pad.s GLOBAL_ASM emitted 8 bytes after a C
+ * body, so it is replaced by an all-zero SUFFIX_BYTES_FORCE word (Makefile);
+ * the non_matching clip resizes the symbol to 0x8c. */
 int *gl_func_0000C5B0(int *arg0) {
     int *p2;
     int *head;
@@ -2003,10 +2004,6 @@ int *gl_func_0000C5B0(int *arg0) {
     }
     return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C5B0);
-#endif
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0000C5B0_pad.s")
 
 extern int gl_func_00000000();
 void gl_func_0000C644(int *dst) {
