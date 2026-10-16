@@ -4738,7 +4738,6 @@ void gl_func_00068990(char *o) {
     (void)ret;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00068B04: 42-insn 2-guard + lazy-init + 5-dispatch (0xA8, frame 0x28).
  *
  * Decoded structure (raw-word disasm):
@@ -4756,23 +4755,22 @@ void gl_func_00068990(char *o) {
  * D_X is an int[] at a fixed address: dispatchers take its ADDRESS (a0=&D_X via
  * lui/addiu), and D_X[1] is a direct word load 0x4(&D_X) (no pointer indirection).
  * func5's 2nd arg is reloaded from self[0x8] memory, not the SSA v0 register.
+ * 2026-10-16 agent-g: UNWRAPPED. D_X is the base-0 placeholder D_gl68B04 (= 0 in
+ * undefined_syms_auto.txt; the ROM words are lui 0 / addiu 0 / lw 4).
  */
 void gl_func_00068B04(int *self) {
-    extern int D_X[];
+    extern int D_gl68B04[];
     int saved_dx1;
     if (*self & 1) return;
     if (self[0x8 / 4] != 0) return;
     self[0x8 / 4] = (int)gl_func_00000000(self[0x2C / 4]);
-    saved_dx1 = D_X[1];
-    gl_func_00000000(D_X, 1);
-    gl_func_00000000(D_X, ((int*)self[0xC / 4])[0x2C / 4]);
-    gl_func_00000000(D_X, 0, self[0x28 / 4]);
-    gl_func_00000000(D_X, self[0x8 / 4], self[0x2C / 4]);
-    gl_func_00000000(D_X, saved_dx1);
+    saved_dx1 = D_gl68B04[1];
+    gl_func_00000000(D_gl68B04, 1);
+    gl_func_00000000(D_gl68B04, ((int*)self[0xC / 4])[0x2C / 4]);
+    gl_func_00000000(D_gl68B04, 0, self[0x28 / 4]);
+    gl_func_00000000(D_gl68B04, self[0x8 / 4], self[0x2C / 4]);
+    gl_func_00000000(D_gl68B04, saved_dx1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068B04);
-#endif
 
 void gl_func_00068BAC(int *a0) {
     if ((*a0 & 1) == 0) {
