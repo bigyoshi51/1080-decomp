@@ -18973,6 +18973,21 @@ void gl_func_0004C288(int *self, int a1) {
 // =-1, 0x1B8/0x1A4/0x144=0), the &D_0002F128 key, the 0x78 flag bits
 // (0x200/0x400/0x800) and the 0xB8*0xBC product are exact. Caps: self
 // struct + cb signature untyped. Full body INCLUDE_ASM-preserved.
+/* gl_func_0004C300 2026-10-16 agent-c (run 97): 78.96 -> 181/185 words. Levers:
+ * (1) all string args are &D_00000000 + off (lui/addiu, not ori) and the
+ * 0x240 global is *(char **)(&D + 0x240); (2) a FOR loop (not do-while) stops
+ * IDO hoisting the loop's string addresses into s-regs, so the 6 g-address
+ * loads take s3..s8 as in the target; 10 DISTINCT globals (the second call's
+ * four are lui-reloaded); (3) the 2-arg alloc call -- the target's a2 is the
+ * PRE temp of 0x78 & 0x800, not an argument; (4) `bc` as a named local puts
+ * the 0xBC load in a1; (5) `v1 += sz` (not `v1 = sz`) keeps addu v1,v1,s0;
+ * (6) no `self = arg0` copy (frame 96) and sp54 used directly (no count-var
+ * copy, no beqzl reload); (7) `+= sz << 1` inside the 0x200 then-arm gives
+ * the lw/andi/sll t4/t5/t6 order; (8) sp54 declared after bc -> slot 84.
+ * RESIDUAL (4 words): the else-arm G240 temp colours v1 (target v0), so the
+ * `lui v0` is not hoisted into the beqz delay. Tried: local g, typed test,
+ * arm swap, else-if split, sp54 types. The calls go through the blank alias
+ * gl_func_00034458_4C300 and D_4C300_g6..g9 (both need = 0 pins on unwrap). */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
@@ -18983,13 +18998,18 @@ extern int D_4C300_g2;
 extern int D_4C300_g3;
 extern int D_4C300_g4;
 extern int D_4C300_g5;
+extern int D_4C300_g6;
+extern int D_4C300_g7;
+extern int D_4C300_g8;
+extern int D_4C300_g9;
+extern int gl_func_00034458_4C300();
 typedef char *(*GP_0004C300)();
-void gl_func_0004C300(char *arg0) {
-    char *self = arg0;
-    s32 flags;
+#define G240_4C300 (*(char **)((char *)&D_00000000 + 0x240))
+void gl_func_0004C300(char *self) {
     s32 sz;
-    s32 v1;
+    s32 bc;
     s32 sp54;
+    s32 v1;
     char *p;
     s32 i;
 
@@ -18999,67 +19019,62 @@ void gl_func_0004C300(char *arg0) {
     FW(self, 0x1A8) = -1;
     FW(self, 0x1AC) = -1;
     FW(self, 0x144) = 0;
-    gl_func_00034458(0x20128, 0);
-    sz = FW(self, 0xBC) * FW(self, 0xB8);
-    flags = FW(self, 0x78);
+    gl_func_00034458_4C300((char *)&D_00000000 + 0x20128, 0);
+    bc = FW(self, 0xBC);
+    sz = FW(self, 0xB8) * bc;
     v1 = 0;
-    if (flags & 0x800) {
-        v1 = sz;
-        if (flags & 0x400) {
+    if (FW(self, 0x78) & 0x800) {
+        v1 += sz;
+        if (FW(self, 0x78) & 0x400) {
             v1 += sz;
         }
     }
-    if (flags & 0x200) {
+    if (FW(self, 0x78) & 0x200) {
         v1 += sz;
     }
     if (v1 != 0) {
-        sp54 = gl_func_00034458(v1 * 2, 0x40, flags & 0x800);
+        sp54 = gl_func_00034458_4C300(v1 * 2, 0x40);
         FW(self, 0xFC) = sp54;
     }
-    v1 = sp54;
     if (FW(self, 0x78) & 0x800) {
-        FW(self, 0xF4) = v1;
+        FW(self, 0xF4) = sp54;
         if (FW(self, 0x78) & 0x400) {
-            v1 += sz * 2;
-            FW(self, 0xF8) = v1;
+            sp54 += sz * 2;
+            FW(self, 0xF8) = sp54;
         } else {
             FW(self, 0xF8) = FW(self, 0xF4);
         }
         FW(self, 0x148) = (s32) self;
     } else {
-        FW(self, 0x148) = *(int *)0x240;
+        FW(self, 0x148) = (s32) G240_4C300;
     }
-    v1 += sz * 2;
     if (FW(self, 0x78) & 0x200) {
-        FW(self, 0xF0) = v1;
+        sp54 += sz << 1;
+        FW(self, 0xF0) = sp54;
     } else {
-        if (*(int *)0x240 == 0) {
-            gl_func_00034458(0x20138);
+        if (G240_4C300 == 0) {
+            gl_func_00034458_4C300((char *)&D_00000000 + 0x20138);
         }
-        FW(self, 0xF0) = FW(*(int *)0x240, 0xF0);
+        FW(self, 0xF0) = FW(G240_4C300, 0xF0);
     }
-    gl_func_00034458();
-    gl_func_00034458(0x20154, 0);
-    i = 0;
-    p = self;
-    do {
-        FW(p, 0x14C) = gl_func_00034458(0, 0x20158, 0x28, 0, 0, 0, 1);
+    gl_func_00034458_4C300();
+    gl_func_00034458_4C300((char *)&D_00000000 + 0x20154, 0);
+    for (i = 0, p = self; i != 8; i += 4, p += 4) {
+        FW(p, 0x14C) = gl_func_00034458_4C300(0, (char *)&D_00000000 + 0x20158, 0x28, 0, 0, 0, 1);
         if (FW(self, 0x78) & 0x1000) {
-            FW(p, 0x198) = gl_func_00034458(0, 0x20164, D_4C300_g0, D_4C300_g1,
+            FW(p, 0x198) = gl_func_00034458_4C300(0, (char *)&D_00000000 + 0x20164, D_4C300_g0, D_4C300_g1,
                                             D_4C300_g2, D_4C300_g3, D_4C300_g4);
-            FW(p, 0x180) = gl_func_00034458(0, 0x20170, D_4C300_g5, D_4C300_g0,
-                                            D_4C300_g1, D_4C300_g2, D_4C300_g3);
+            FW(p, 0x180) = gl_func_00034458_4C300(0, (char *)&D_00000000 + 0x20170, D_4C300_g5, D_4C300_g6,
+                                            D_4C300_g7, D_4C300_g8, D_4C300_g9);
         } else {
-            FW(p, 0x180) = gl_func_00034458(0, 0x20178, FW(*(char **)0x240 + i, 0x180));
-            FW(p, 0x198) = FW(*(char **)0x240 + i, 0x198);
+            FW(p, 0x180) = gl_func_00034458_4C300(0, (char *)&D_00000000 + 0x20178, FW(G240_4C300 + i, 0x180));
+            FW(p, 0x198) = FW(G240_4C300 + i, 0x198);
         }
-        i += 4;
-        p += 4;
-    } while (i != 8);
-    gl_func_00034458();
+    }
+    gl_func_00034458_4C300();
     {
         char *cb = (char *)FW(self, 0x28);
-        ((GP_0004C300)FW(cb, 0x5C))((s16)FW(cb, 0x58) + (int)self, cb);
+        ((GP_0004C300)FW(cb, 0x5C))(*(s16 *)(cb + 0x58) + self, cb);
     }
 }
 #else

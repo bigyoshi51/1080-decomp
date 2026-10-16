@@ -422,7 +422,9 @@ build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_SUFFIX_BYTES
 # a 4-byte all-zero SUFFIX_BYTES_FORCE word in both builds, NM build -4 at 55264; the NM
 # gl_func_00061478 body then gains 2 stray zero words, +8 -- the same NM-only asm-processor
 # block-count artifact as 4DD0C): 62F08 NM offset 0x2e2bc + 0x50.
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2e30c gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# Clip re-probed 2026-10-16 agent-c (4C300 NM body reworked to the target size 0x2E4, +0x20):
+# 62F08 NM offset 0x2e2dc + 0x50.
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2e32c gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
