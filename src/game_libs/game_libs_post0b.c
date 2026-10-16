@@ -27339,7 +27339,45 @@ void game_libs_func_00057194(int *a0, int *a1) {
     arr[1] = 0;
 }
 
+/* game_libs_func_0005721C: gSPFogPosition + gDPSetFogColor emitter (0x358 /
+ * 214 words). F3DEX1 G_MOVEWORD 0xBC000008 (G_MW_FOG) with
+ * fm = 128000 / (max - min), fo = (500 - min) * 256 / (max - min), then
+ * G_SETFOGCOLOR 0xF8000000 with each channel (u32)(c[i] * 255.0f) & 0xFF
+ * (the 0x4F000000 cfc1/ctc1 sequences are IDO's float -> u32 conversion).
+ * NM 2026-10-16 agent-g (0 -> standalone 214/214 words, ~86 local score):
+ * every word matches except the 255.0f `lui at; mtc1 f0` materialization,
+ * which the target has at function entry (uopt candidate placed at the
+ * entry, as1 then schedules it into the first DL block) while this body
+ * gets it right before the first mul.s. Probed without effect: a named
+ * (register) f32 k at the top (const-propagated), channels precomputed
+ * into locals (217 words), do/while(0) and if(1) block boundaries, other
+ * literal spellings (255.0 double is worse). Load-bearing: two DL slot
+ * pointers (arr in t0, arr2 in t2 live to the final sw), and the OR chain
+ * written c1 | c2 | c3 | c0 because IDO evaluates the LAST operand of an
+ * a|b|c|d chain first, then a, b, c (target loads c[0..3] in order).
+ * Draft: /home/danjs/decomp-drafts/game_libs_func_0005721C_draft.c. */
+#ifdef NON_MATCHING
+void game_libs_func_0005721C(int *a0, s16 min, s16 max, f32 *c) {
+    int *rec;
+    int idx;
+    int *arr;
+    int *arr2;
+    rec = (int *)a0[3];
+    idx = rec[1];
+    rec[1] = idx + 1;
+    arr = (int *)(((int *)a0[3])[0] + idx * 8);
+    arr[0] = 0xBC000008;
+    arr[1] = (((u32)(128000 / (max - min)) & 0xFFFF) << 16) | ((u32)((500 - min) * 256 / (max - min)) & 0xFFFF);
+    rec = (int *)a0[3];
+    idx = rec[1];
+    rec[1] = idx + 1;
+    arr2 = (int *)(((int *)a0[3])[0] + idx * 8);
+    arr2[0] = 0xF8000000;
+    arr2[1] = (((u32)(c[1] * 255.0f) & 0xFF) << 16) | (((u32)(c[2] * 255.0f) & 0xFF) << 8) | ((u32)(c[3] * 255.0f) & 0xFF) | (((u32)(c[0] * 255.0f) & 0xFF) << 24);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005721C);
+#endif
 
 void game_libs_func_00057574(int *a0) {
     int *rec;
