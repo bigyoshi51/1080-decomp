@@ -641,13 +641,20 @@ void timproc_uso_b1_func_00001130(int *self) {
  * word: add.s emits fresh-load-first (f10,f0) vs target (f0,f10), both
  * spellings tested. Floor 98.61, honest NM. */
 extern char D_b1_11d8_a, D_b1_11d8_b, D_b1_11d8_c, D_b1_11d8_d;
-#ifdef NON_MATCHING
+/* EXACT 2026-10-16 (agent-c): both "version-independent" FP caps closed by
+ * the assignment-expression operand lever (docs/IDO_CODEGEN.md
+ * #feedback-ido-fp-commutative-operand-order-assignment-lever):
+ * `K + (ft = fv)` puts fv as add.s fs, `field * (fv = 255.0f)` gives the
+ * constant the later ring reg ($f18, field $f4). The new float local ft costs
+ * one stack word, so ONE volatile pad is dropped (7 -> 6) to keep the call-arg
+ * spill home at sp+0x24. */
 void timproc_uso_b1_func_000011D0(char *a0) {
     float buf[4];            /* dead color buffer, sp+0x50..0x5C (frame top) */
-    volatile int pad0, pad1, pad2, pad3, pad4, pad5, pad6;
+    volatile int pad0, pad1, pad2, pad3, pad4, pad5;
     char *saved;             /* call-arg spill home sp+0x24 */
     int flag;
     float fv;
+    float ft;
 
     buf[0] = 1.0f;
     buf[1] = 1.0f;
@@ -657,7 +664,7 @@ void timproc_uso_b1_func_000011D0(char *a0) {
     if (*(float *)&D_b1_11d8_a <= 0.0f) {
         fv = *(float *)(a0 + 0x72C);
         if (fv < *(float *)((char *)&D_b1_11d8_b + 0x40)) {
-            *(float *)(a0 + 0x72C) = fv + *(float *)((char *)&D_b1_11d8_c + 0x44);
+            *(float *)(a0 + 0x72C) = *(float *)((char *)&D_b1_11d8_c + 0x44) + (ft = fv);
         }
         *(int *)(a0 + 0x508) = *(int *)(a0 + 0x508) + 1;
         flag = 0;
@@ -669,7 +676,7 @@ void timproc_uso_b1_func_000011D0(char *a0) {
         if (flag != 0) {
             saved = a0 + 0x6E4;
             gl_func_00000000(saved);
-            gl_func_00000000(saved, (int)(255.0f * *(float *)(a0 + 0x72C)),
+            gl_func_00000000(saved, (int)(*(float *)(a0 + 0x72C) * (fv = 255.0f)),
                              a0 + 0x2F0, a0 + 0x314);
             if (*(int *)(a0 + 0x508) & 8) {
                 gl_func_00000000(saved, 160, 160, 3);
@@ -680,9 +687,6 @@ void timproc_uso_b1_func_000011D0(char *a0) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000011D0);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
