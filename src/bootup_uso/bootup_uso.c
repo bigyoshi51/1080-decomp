@@ -8012,7 +8012,20 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B520);
  *   self-assign and staged-copy multi-defs both VN/copy-prop away (s0 stays).
  *   Residual: arg0 s0-promotion vs target a3+home (11 calls), frame 256 vs
  *   120 (named m2c FP-temp ghost homes), as1 const-hoist order (20.0f/30.0f),
- *   store-forward vs reload at 0x974. */
+ *   store-forward vs reload at 0x974.
+ * PASS-5 2026-10-16 (agent-c): 69.24 -> 88.15. CALL DECODE: the nine
+ *   float-carrying calls are (ptr, ptr, f32, self) -- target a0/a1 = arg0+K,
+ *   a2 = mfc1 of ONE single float, a3 = arg0 -- through the prototyped blank
+ *   alias bu_b75c_mvf. m2c had invented `var_f12_2, 0` / `0, temp_f14` lead
+ *   args and K&R double promotion (12 extra cvt.d.s + 4 sdc1). Passing self
+ *   as the 4th arg is also why the target keeps arg0 in a3 (or a3,a0 early,
+ *   sw/lw a3,120(sp) around every call; IDO_CODEGEN #hidden-arg-register-
+ *   base-a88). The 0x808 call is just (arg0+0x808, arg0->0xB4) and the
+ *   D_00008170 call is (st->0x800, D_00008170, 1, arg0). st800->0x0 is an
+ *   f32 in the A70 accumulate (target lwc1 + cvt.d.s, not lw + cvt.d.w).
+ *   Residual: 20.0f/30.0f hoist, 0x974 store+reload, `sp60 *= 2.0f`
+ *   (target mul.s, build add.s), sp1C/sp6C[2] reload placement, t-ring. */
+extern void bu_b75c_mvf(char *, char *, f32, char *);  /* (dst, src, single float in a2, self in a3); NM-only blank alias */
 extern f64 D_000008C8, D_000008D0, D_000008D8, D_000008E8, D_000008F8, D_00000900, D_00000908;
 extern char D_00008170[];
 void func_0000B75C(char *arg0) {
@@ -8131,7 +8144,7 @@ void func_0000B75C(char *arg0) {
             *(s16 *)((char *)(arg0) + 0xA6C) = (s16) (temp_v0_2 + 1);
             if (temp_v0_2 >= 0xB) {
                 temp_f12_2 = D_000008E0;
-                temp_f0_7 = (f32) ((f64) *(f32 *)((char *)(arg0) + 0xA70) + ((f64) *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x800)) + 0x0) * D_000008E8));
+                temp_f0_7 = (f32) ((f64) *(f32 *)((char *)(arg0) + 0xA70) + ((f64) *(f32 *)(*(s32 *)((char *)(arg0) + 0x800)) * D_000008E8));
                 if (temp_f0_7 < temp_f12_2) {
                     var_f2_2 = temp_f12_2;
                 } else {
@@ -8147,18 +8160,18 @@ void func_0000B75C(char *arg0) {
         } else {
             *(s16 *)((char *)(arg0) + 0xA6C) = 0;
             if (*(s32 *)((char *)(arg0) + 0x9A8) & 1) {
-                func_00000000(var_f12_2, 0, arg0 + 0xCC, arg0 + 0x3B0, -*(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x800)) + 0x0) * *(f32 *)((char *)(arg0) + 0x678), arg0);
+                bu_b75c_mvf(arg0 + 0xCC, arg0 + 0x3B0, -*(f32 *)(*(s32 *)((char *)(arg0) + 0x800)) * *(f32 *)((char *)(arg0) + 0x678), arg0);
             } else {
                 temp_a0 = arg0 + 0xCC;
                 temp_a1 = arg0 + 0x3C8;
                 sp28 = temp_a1;
                 sp24 = temp_a0;
-                func_00000000(var_f12_2, 0, temp_a0, temp_a1, (f32) ((f64) ((*(f32 *)((char *)(arg0) + 0x3BC) * sp6C[0]) + (*(f32 *)((char *)(arg0) + 0x3C0) * sp6C[1]) + (*(f32 *)((char *)(arg0) + 0x3C4) * sp6C[2])) * D_000008F8), arg0);
+                bu_b75c_mvf(temp_a0, temp_a1, (f32) ((f64) ((*(f32 *)((char *)(arg0) + 0x3BC) * sp6C[0]) + (*(f32 *)((char *)(arg0) + 0x3C0) * sp6C[1]) + (*(f32 *)((char *)(arg0) + 0x3C4) * sp6C[2])) * D_000008F8), arg0);
                 if (*(s32 *)((char *)(arg0) + 0xA18) != 0) {
                     sp24 = temp_a0;
-                    func_00000000(temp_a0, temp_a1, *(f32 *)(*(s32 *)((char *)(arg0) + 0x800)) * *(f32 *)((char *)(arg0) + 0x690), arg0);
-                    func_00000000(temp_a0, arg0 + 0x3BC, *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x800)) + 0x4) * *(f32 *)((char *)(arg0) + 0x660), arg0);
-                    func_00000000(temp_a0, arg0 + 0x3B0, -*(f32 *)(*(s32 *)((char *)(arg0) + 0x800)) * *(f32 *)((char *)(arg0) + 0x678), arg0);
+                    bu_b75c_mvf(temp_a0, temp_a1, *(f32 *)(*(s32 *)((char *)(arg0) + 0x800)) * *(f32 *)((char *)(arg0) + 0x690), arg0);
+                    bu_b75c_mvf(temp_a0, arg0 + 0x3BC, *(f32 *)((char *)(*(s32 *)((char *)(arg0) + 0x800)) + 0x4) * *(f32 *)((char *)(arg0) + 0x660), arg0);
+                    bu_b75c_mvf(temp_a0, arg0 + 0x3B0, -*(f32 *)(*(s32 *)((char *)(arg0) + 0x800)) * *(f32 *)((char *)(arg0) + 0x678), arg0);
                 }
             }
         }
@@ -8167,7 +8180,7 @@ void func_0000B75C(char *arg0) {
             if ((f64) *(f32 *)((char *)(arg0) + 0x3B4) < D_00000900) {
                 *(f32 *)((char *)(arg0) + 0x318) = 0.0f;
             }
-            func_00000000(arg0 + 0xCC, arg0 + 0x3B0, -*(f32 *)((char *)(arg0) + 0xA70), arg0);
+            bu_b75c_mvf(arg0 + 0xCC, arg0 + 0x3B0, -*(f32 *)((char *)(arg0) + 0xA70), arg0);
             var_v0_2 = *(s32 *)((char *)(arg0) + 0x9A8);
             goto block_67;
         }
@@ -8183,7 +8196,7 @@ void func_0000B75C(char *arg0) {
         }
         *(s32 *)((char *)(arg0) + 0xA5C) = (s32) (20.0f + (30.0f * var_f0));
         if (*(s32 *)((char *)(arg0) + 0x9A8) & 1) {
-            func_00000000(0, temp_f14, arg0 + 0x808, *(s32 *)((char *)(arg0) + 0xB4), arg0);
+            func_00000000(arg0 + 0x808, *(s32 *)((char *)(arg0) + 0xB4));
             if (*(s32 *)((char *)(arg0) + 0x960) == 0) {
                 temp_f2_5 = *(f32 *)((char *)(arg0) + 0x3C8);
                 if (temp_f2_5 < 0.0f) {
@@ -8202,7 +8215,7 @@ void func_0000B75C(char *arg0) {
             if ((sp58 < *(f32 *)((char *)(arg0) + 0x648)) && (((sp54 > 0.0f) && (sp60 < 0.0f)) || ((sp54 < 0.0f) && (sp60 > 0.0f)))) {
                 *(s32 *)((char *)(arg0) + 0xA5C) = (s32) (*(s32 *)((char *)(arg0) + 0xA5C) + 0x14);
                 sp60 = 0.0f;
-                func_00000000(0, temp_f14, *(s32 *)((char *)(arg0) + 0x800), D_00008170, 1, arg0);
+                func_00000000(*(s32 *)((char *)(arg0) + 0x800), D_00008170, 1, arg0);
             }
             temp_f2_7 = *(f32 *)((char *)(arg0) + 0xA08);
             if (temp_f2_7 < 0.0f) {
@@ -8211,7 +8224,7 @@ void func_0000B75C(char *arg0) {
                 var_f0_3 = temp_f2_7;
             }
             if (*(f32 *)((char *)(arg0) + 0x618) < var_f0_3) {
-                func_00000000(0, arg0 + 0xCC, arg0 + 0x3C8, temp_f2_7 * *(f32 *)((char *)(arg0) + 0x600), arg0);
+                bu_b75c_mvf(arg0 + 0xCC, arg0 + 0x3C8, temp_f2_7 * *(f32 *)((char *)(arg0) + 0x600), arg0);
             }
             temp_f2_8 = *(f32 *)((char *)(arg0) + 0xA04);
             var_a0 = arg0 + 0xCC;
@@ -8222,10 +8235,10 @@ void func_0000B75C(char *arg0) {
             }
             if (*(f32 *)((char *)(arg0) + 0x630) < var_f0_4) {
                 sp24 = var_a0;
-                func_00000000(0, var_a0, arg0 + 0x3BC, temp_f2_8 * *(f32 *)((char *)(arg0) + 0x600), arg0);
+                bu_b75c_mvf(var_a0, arg0 + 0x3BC, temp_f2_8 * *(f32 *)((char *)(arg0) + 0x600), arg0);
             }
         }
-        func_00000000(var_a0, arg0 + 0x3B0, sp60, arg0);
+        bu_b75c_mvf(var_a0, arg0 + 0x3B0, sp60, arg0);
         var_v0_2 = *(s32 *)((char *)(arg0) + 0x9A8);
 block_67:
         var_v0 = var_v0_2 & 1;
