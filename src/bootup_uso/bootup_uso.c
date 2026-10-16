@@ -5557,7 +5557,7 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007BF4);
 #endif
 
 extern float D_000005EC;
-/* func_00007C74: 36-insn alloc/init/link helper. NON_MATCHING (spill-slot cap).
+/* func_00007C74: 36-insn alloc/init/link helper. EXACT 2026-10-16 (was NM spill-slot "cap", fix at the end).
  * 6 residual diffs, all frame-slot offsets. ROOT CAUSE (re-decoded 2026-05-28):
  * BOTH mine and target spill `ret` to sp+0x1C; the ONLY difference is the
  * `link` spill slot — mine reuses the gap BELOW ret (sp+0x18, frame 0x20),
@@ -5594,11 +5594,18 @@ extern float D_000005EC;
  * parks in $f0 via user-var reuse, 1C74-style) ALL leave frame -32 with dense
  * 0x18/0x1C spills. Dead homes materialize only in aggregate-bearing frames
  * (titproc 1710 class). Decl order does control which spill gets the higher
- * slot (link-first -> link above ret) but cannot skip a slot. Cap stands. */
-#ifdef NON_MATCHING
+ * slot (link-first -> link above ret) but cannot skip a slot. Cap stands.
+ *
+ * 2026-10-16 EXACT (agent-c): the empty 0x18 IS a dead aggregate home, it just
+ * needs BOTH halves at once: `char pad[4];` declared FIRST (gets the lowest
+ * slot, 0x18, and grows the frame to 0x28) AND link declared before ret (link
+ * spill above ret: ret 0x1C, link 0x20). Either alone stays off (pad-first with
+ * ret-first decls puts ret at 0x20; link-first without pad keeps frame 0x20).
+ * The 07-15 probes tried pad and decl order separately. */
 void *func_00007C74(char *a0) {
-    char *ret;
+    char pad[4];
     int *link;
+    char *ret;
 
     ret = (char*)func_00000000(0x88);
     if (ret != 0) {
@@ -5616,9 +5623,6 @@ void *func_00007C74(char *a0) {
 
     return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007C74);
-#endif
 
 /* func_00007D04 - verified structural decode (0x14C, 83 insns,
  * phased animation/timer state machine).
