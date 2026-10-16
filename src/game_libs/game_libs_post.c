@@ -14873,18 +14873,14 @@ void gl_func_0002D6C8(int a0) {
  * there never was an a1 spill. Same fix chained through siblings
  * 2D74C/2D788 (each fn's leading move was sitting at the previous .s
  * tail; boundary words shifted one file forward, ROM order preserved).
- * All 15/15 words exact vs .s. Stays NM wrap (jal-0 placeholder callee
- * gl_func_00000000 + baked USO syms) — no episode. */
+ * All 15/15 words exact vs .s. EXACT (unwrapped run 95): gl_func_00000000
+ * is a real symbol at 0 and D_2D710_store/_load are pinned to 0. */
 extern int D_2D710_store;
 extern int D_2D710_load;
-#ifdef NON_MATCHING
 void gl_func_0002D710(int a0) {
     D_2D710_store = a0;
     gl_func_00000000(0x41010000, ((int*)&D_2D710_load)[a0], a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D710);
-#endif
 
 /* gl_func_0002D74C: byte-for-byte SIBLING of gl_func_0002D710 (above)
  * with one differing constant — `lui $a0, 0x4100` (= 8.0f) instead of
