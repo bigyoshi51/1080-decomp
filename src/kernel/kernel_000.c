@@ -1701,43 +1701,39 @@ float func_8000149C(void) {
     return 0.0f;
 }
 
-#ifdef NON_MATCHING
-/* USO loader main loop: walk the pending-request list (D_8000A2E0, 0x14-byte
- * entries); for each, iterate its USO records (func_80000880 fills a record
- * buffer, func_80000A98 advances + yields the next), and for each valid slot
- * index (sp44 >= 0) read the USO body into D_800130A0[idx] (0x9C-stride slot)
- * via func_800005DC and stamp slot->unk94 from the record. */
-void func_800014A8(void) {
-    extern s32 func_800005DC();
-    u8 sp70[0x28];
-    u8 sp4C[0x24];
-    u8 sp40[0xC];
-    s32 *var_s6;
-    s32 temp_t9;
-    UsoSlot *temp_s0;
+/* func_800014A8: USO loader main loop. Walk the pending-request list
+ * (D_8000A2E0, 0x14-byte entries, NULL-head terminated); for each, open a
+ * record iterator (func_80000880), and for every record yielded by
+ * func_80000A98 whose slot index is valid, read the USO body into
+ * D_800130A0[idx].name (+0x72, 0x9C-stride slot) and stamp slot +0x94 from
+ * the iterator. EXACT 2026-10-16 after splitting func_80001594 out of the
+ * bundled .s: the old 30% NM body used raw byte arrays + an explicit
+ * do/while; typed stack structs + for/while give the 0x98 frame and the
+ * s3=base / s4=0x9C coloring. */
+typedef struct { u8 pad_00[0x72]; u8 name[0x22]; s32 unk94; u8 pad_98[4]; } UsoLoadSlot;
+typedef struct { s32 unk0; s32 idx; s32 unk8; } UsoLoadRec;
+typedef struct { s32 unk0; s32 unk4; s32 pad[8]; } UsoLoadIter;
+typedef struct { s32 head; s32 pad[4]; } UsoLoadReq;
 
-    var_s6 = (s32 *) D_8000A2E0;
-    if (*var_s6 != 0) {
-        do {
-            func_80000880(sp70, var_s6);
-            if (func_80000A98(sp70, sp40) != 0) {
-                do {
-                    if (*(s32 *)(sp40 + 4) >= 0) {
-                        temp_s0 = &D_800130A0 + *(s32 *)(sp40 + 4);
-                        func_800005DC((char *) temp_s0 + 0x72, sp4C);
-                        *(s32 *)((char *) temp_s0 + 0x94) = *(s32 *)(sp70 + 4);
-                    }
-                    func_80000B34(sp70);
-                } while (func_80000A98(sp70, sp40) != 0);
+void func_800014A8(void) {
+    UsoLoadIter it;
+    u8 buf[0x24];
+    UsoLoadRec rec;
+    UsoLoadReq *req;
+    UsoLoadSlot *slot;
+
+    for (req = (UsoLoadReq *)D_8000A2E0; req->head != 0; req++) {
+        func_80000880(&it, req);
+        while (func_80000A98(&it, &rec) != 0) {
+            if (rec.idx >= 0) {
+                slot = &((UsoLoadSlot *)&D_800130A0)[rec.idx];
+                func_800005DC_d2c(slot->name, buf);
+                slot->unk94 = it.unk4;
             }
-            temp_t9 = *(s32 *)((char *) var_s6 + 0x14);
-            var_s6 = (s32 *)((char *) var_s6 + 0x14);
-        } while (temp_t9 != 0);
+            func_80000B34(&it);
+        }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800014A8);
-#endif
 
 /* func_80001594: split out of func_800014A8.s (2026-10-16) -- the .s bundled
  * two functions (14A8 ends jr ra at 0x158C; 1594 opens its own sp -0x20
