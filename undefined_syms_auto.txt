@@ -3759,3 +3759,9 @@ D_gl68B04 = 0x00000000;
 /* gl_func_000695F4: blank USO jal alias of the in-unit gl_func_00062F64, and the base-0 vtable store address */
 gl_func_00062F64_695F4 = 0x00000000;
 D_sym_695F4 = 0x00000000;
+D_87A4_rd = 0x00000000;  /* func_000087A4 base-0 config word read (target lui t8 / lw 0(t8)) */
+D_87A4_wr = 0x00000000;  /* func_000087A4 base-0 OR-store (target lui at / sw 0(at)), distinct from the read */
+D_87A4_cfg = 0x00000000;  /* func_000087A4 base-0 +4/+0 store pair (target lui v0 / addiu v0) */
+D_87A4_vt = 0x00000000;  /* func_000087A4 child +0x30 base-0 address (target lui t4 / addiu t4, no reloc) */
+D_87A4_tail = 0x00000000;  /* func_000087A4 final callback arg load (target lui a0 / lw 0(a0)) */
+func_00000000_087A4_f = 0x00000000;  /* func_000087A4 prototyped (char*,char*,int,float,float) blank alias: single-float stack arg via swc1 */
