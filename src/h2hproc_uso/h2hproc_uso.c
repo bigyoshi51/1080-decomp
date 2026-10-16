@@ -593,63 +593,20 @@ void h2hproc_uso_func_00000A80(int *a0) {
     *(int*)((char*)a0 + 0x504) = 0;
 }
 
-#ifdef NON_MATCHING
-/* h2hproc_uso_func_00000A88: 73-insn / 0x124 state-machine dispatcher on
- * a0->0x504 (player slot/state).
- *
- * 3-way switch on `a0->0x504`:
- *   Case 0:
- *     gl_func(D[0x190], 3, 1)            ; "register player at slot 3"?
- *     a0->0x504 = 1
- *     gl_func(7, 0, 0)                    ; "kind=7"?
- *     return
- *   Case 1:
- *     v0 = gl_func(D[0x190])              ; query (signature unresolved)
- *     if (v0 == 0) return
- *     gl_func(7, 0, 0)
- *     gl_func(a0)
- *     diff_a = D[0x170]
- *     diff_b = D[0x174]
- *     min = (diff_b < diff_a) ? diff_b : diff_a   ; sltu pattern
- *     gl_func(a0, min + 0x26000F)
- *     p = gl_func(0, a0)                  ; alloc/setup, returns ptr
- *     a0->0x6AC = p
- *     a3 = a0->0x56C
- *     gl_func(a3 + 0x10, p)              ; link returned object
- *     if (p->0x14 != 0) p->0x4 = 1
- *     p->0x14 = a3
- *     gl_func(D[0x190], 1, 1)
- *     return
- *   Default (other v1):
- *     return (just epilogue restore)
- *
- * 2026-07-30 (89.12 -> 97.14 fuzzy): four levers.
- *  (1) LOGIC FIX: the register call is 2-arg gl(a3+0x10, p) — the old 3rd
- *      arg `1` emitted a phantom li a2,1 (+1 insn, frame +8).
- *  (2) state/p ONE-LOCAL UNIFICATION: target colors the dispatch temp AND
- *      the p-pointer $v1 with home 44(sp) — a single reused `int tmp`
- *      (dispatch temp, then reassigned to the alloc result) builds the
- *      jal-crossing named web that can never color $v0 (IDO_CODEGEN named-
- *      web-jal-v0-conflict) -> lands $v1 both places, flipping the whole
- *      dispatch off $v0.
- *  (3) PAIRED-BASE via twin-indexed array extern: A88_diffpair[0x170/4] /
- *      [0x174/4] (array-typed extern, same reloc target) %hi-CSEs into the
- *      target's lui+addiu,0 + lw 368/372 pair (char*-base +K spelling emits
- *      two per-site folded luis). Also reuse tmp as diff_b -> $v1.
- * 2026-09-09: 69/73 raw words now exact with the correct 0x124 size.
- * The claimed min-register ceiling above was a prototype artifact: TextReloc
- * at section 0xB00 identifies the local void helper at section 0xC14
- * (splat C18). Its void-returning alias releases v0 for min. Declaring tmp,
- * s0, a3, base in that order gives the target's 44(sp)/36(sp) spill homes.
- * The query at section 0xAE4 is a DIFFERENT import (Sym134) from the
- * three-argument setter (Sym122). A one-argument spelling removes the extra
- * li a1,3; the target still has a1=3 from the switch delay slot, so the
- * actual query signature remains unconfirmed, not a proven one-arg API.
- * RESIDUAL: only the four-word paired-array address/load group uses a0 as
- * base instead of a2. IDO 5.3/7.1 agree; signedness, typed void calls,
- * struct/array/pointer bases, comma/ternary forms and register min tried;
- * 1,347 random permuter trials did not improve the base score of 110.
- * Keep NM: exact instruction count is not an exact match. */
+/* h2hproc_uso_func_00000A88: 0x124 state-machine dispatcher on a0->0x504.
+ *   case 0: setter(D[0x190], 3, 1); a0->0x504 = 1; gl(7, 0, 0)
+ *   case 1: if (!query(D[0x190])) return; gl(7, 0, 0); local C18(a0);
+ *           min(pair[0x170], pair[0x174]) + 0x26000F -> gl(a0, ., pair);
+ *           p = gl(0, a0); a0->0x6AC = p; link(a0->0x56C + 0x10, p);
+ *           if (p->0x14) p->4 = 1; p->0x14 = a0->0x56C; setter(D[0x190], 1, 1)
+ * EXACT 2026-10-16: the residual a0-vs-a2 base of the paired lw 368/372
+ * group was a MISSING THIRD ARGUMENT. The table call is gl(a0, min + K,
+ * pair) -- passing the pair base itself as a2, so IDO materializes the
+ * address straight into the outgoing-argument register and reuses it as
+ * the load base (docs/IDO_CODEGEN.md#hidden-arg-register-base-a88).
+ * Earlier levers kept: one reused tmp for dispatch temp + p (44(sp) home),
+ * void alias for the local helper at 0xC18, twin-indexed array extern for
+ * the lui+addiu,0 paired base, decl order tmp/s0/a3/base. */
 extern unsigned A88_diffpair[];
 extern void h2hproc_call_00000C18(int *);
 void h2hproc_uso_func_00000A88(int *a0) {
@@ -671,7 +628,7 @@ void h2hproc_uso_func_00000A88(int *a0) {
         min = A88_diffpair[0x170 / 4];
         tmp = A88_diffpair[0x174 / 4];
         if ((unsigned)tmp < min) min = (unsigned)tmp;
-        gl_func_00000000(s0, min + 0x26000F);
+        gl_func_00000000(s0, min + 0x26000F, A88_diffpair);
         tmp = gl_func_00000000(0, s0);
         a3 = *(int*)((char*)s0 + 0x56C);
         *(int*)((char*)s0 + 0x6AC) = tmp;
@@ -685,9 +642,6 @@ void h2hproc_uso_func_00000A88(int *a0) {
     }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000A88);
-#endif
 
 void h2hproc_uso_func_00000BAC(int *a0) {
     int v0, v1;
