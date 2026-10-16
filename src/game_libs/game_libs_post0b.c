@@ -7847,8 +7847,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D2C8);
 //   RESIDUAL (1 word, PERMANENT baked-USO-symbol cap): target word 9 is a
 //   reloc-free absolute `jal 0x51630` (fixed intra-USO helper); C can only
 //   emit jal+R_MIPS_26(placeholder). Stays NM wrap at the 46/47 ceiling.
-#ifdef NON_MATCHING
+// Unwrapped EXACT 2026-10-16 (run 96): that word is a baked in-unit target,
+//   so the call goes through gl_func_0003D3C4_51630, pinned to 0x51630 in
+//   undefined_syms_auto.txt; the link writes the ROM's 0x0C01458C.
 extern int D_00000000;
+extern int gl_func_0003D3C4_51630();
 void gl_func_0003D3C4(char *o) {
     int count;
     char *s3 = o + 0x2C;
@@ -7857,7 +7860,7 @@ void gl_func_0003D3C4(char *o) {
     char *h2;
     int s2;
     *(int *)(o + 0x10) = 0;
-    gl_func_00000000(&count);
+    gl_func_0003D3C4_51630(&count);
     gl_func_00000000((char *)&D_00000000 + 0x0001F2C0, (float *)(o + 0x2C), count);
     if (count == 0) {
         return;
@@ -7875,9 +7878,6 @@ void gl_func_0003D3C4(char *o) {
         s2++;
     } while ((u32)s2 < (u32)count);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D3C4);
-#endif
 
 int game_libs_func_0003D480(int a0) {
     return 0;
