@@ -118,19 +118,19 @@ void mgrproc_uso_func_00000C14(void) {
     }
 }
 
-void mgrproc_uso_func_00000CC4(int *dst) {
+static void mgrproc_uso_func_00000CC4(int *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
-void mgrproc_uso_func_00000D00(float *dst) {
+static void mgrproc_uso_func_00000D00(float *dst) {
     float buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
-void mgrproc_uso_func_00000D3C(Quad4 *dst) {
+static void mgrproc_uso_func_00000D3C(Quad4 *dst) {
     Quad4 buf;
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = buf;
@@ -138,7 +138,7 @@ void mgrproc_uso_func_00000D3C(Quad4 *dst) {
 
 typedef struct { int a, b, c; } Tri3i;
 typedef struct { float x, y, z; } Vec3;
-void mgrproc_uso_func_00000D94(Vec3 *dst) {
+static void mgrproc_uso_func_00000D94(Vec3 *dst) {
     int pad_top[1];
     Tri3i raw;
     int pad_mid[2];

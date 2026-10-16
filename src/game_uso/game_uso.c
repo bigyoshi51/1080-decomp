@@ -153,7 +153,7 @@ void game_uso_func_000000E0(Vec3 *out, Vec3 **ctrl, float *weights) {
            + (ctrl[1]->z * weights[1] + weights[0] * ctrl[0]->z));
 }
 
-void game_uso_func_000001D4(Vec3 *dst) {
+static void game_uso_func_000001D4(Vec3 *dst) {
     int pad_top[1];
     Tri3i raw;
     int pad_mid[2];
@@ -166,25 +166,25 @@ void game_uso_func_000001D4(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
-void game_uso_func_00000244(float *dst) {
+static void game_uso_func_00000244(float *dst) {
     float buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
-void game_uso_func_00000280(int *dst) {
+static void game_uso_func_00000280(int *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
-void game_uso_func_000002BC(Quad4 *dst) {
+static void game_uso_func_000002BC(Quad4 *dst) {
     Quad4 buf;
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = buf;
 }
 
-void game_uso_func_00000314(Pair2 *dst) {
+static void game_uso_func_00000314(Pair2 *dst) {
     Pair2 buf;
     gl_func_00000000(&D_00000000, &buf, 8);
     *dst = buf;
@@ -207,13 +207,13 @@ void game_uso_func_00000314(Pair2 *dst) {
  * one-word t7/t9/t6 sequence. (Sibling 039C below is the same struct-copy form,
  * 4 words.) See docs/IDO_CODEGEN.md struct-copy-recompute-vs-scalar-index. */
 typedef struct { int a; } One1;
-void game_uso_func_0000035C(One1 *dst) {
+static void game_uso_func_0000035C(One1 *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = *(One1*)buf;
 }
 
-void game_uso_func_0000039C(Quad4 *dst) {
+static void game_uso_func_0000039C(Quad4 *dst) {
     Quad4 buf;
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = buf;
@@ -2758,19 +2758,19 @@ void game_uso_func_00003FAC(float *a0, float *a1, float *a2, float a3, float arg
     a1[2] = (new_scale * a2[2]) + (a2[0] * (nsd = orig_scale));
 }
 
-void game_uso_func_00004080(int *dst) {
+static void game_uso_func_00004080(int *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
-void game_uso_func_000040BC(float *dst) {
+static void game_uso_func_000040BC(float *dst) {
     float buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
-void game_uso_func_000040F8(Vec3 *dst) {
+static void game_uso_func_000040F8(Vec3 *dst) {
     int pad_top[1];
     Tri3i raw;
     int pad_mid[2];
@@ -2783,7 +2783,7 @@ void game_uso_func_000040F8(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
-void game_uso_func_00004168(Quad4 *dst) {
+static void game_uso_func_00004168(Quad4 *dst) {
     Quad4 buf;
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = buf;
@@ -7580,25 +7580,25 @@ int *game_uso_func_0000AC78(int *arg0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_0000AC78_pad.s")
 
-void game_uso_func_0000AD10(float *dst) {
+static void game_uso_func_0000AD10(float *dst) {
     float buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
-void game_uso_func_0000AD4C(int *dst) {
+static void game_uso_func_0000AD4C(int *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
-void game_uso_func_0000AD88(Quad4 *dst) {
+static void game_uso_func_0000AD88(Quad4 *dst) {
     Quad4 buf;
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = buf;
 }
 
-void game_uso_func_0000ADE0(int *dst) {
+static void game_uso_func_0000ADE0(int *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
@@ -8548,7 +8548,7 @@ void game_uso_func_0000C0BC(char *dst) {
  * at 0xC0F0 (docs/MATCHING_WORKFLOW.md, asm-processor 1-word-pad defect). */
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_0000C0BC_pad.s")
 
-void game_uso_func_0000C0F0(int *dst) {
+static void game_uso_func_0000C0F0(int *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
@@ -8557,7 +8557,7 @@ void game_uso_func_0000C0F0(int *dst) {
 /* Struct assignment makes IDO emit the target 3-ints-per-iteration copy loop.
  * The Makefile patch strips relocations from the D_00000000 load and jal
  * words so objdiff sees the same raw .word baseline. */
-void game_uso_func_0000C12C(int *a0) {
+static void game_uso_func_0000C12C(int *a0) {
     typedef struct {
         int v[16];
     } I16;
@@ -8566,19 +8566,19 @@ void game_uso_func_0000C12C(int *a0) {
     *(I16*)a0 = buf;
 }
 
-void game_uso_func_0000C194(int *dst) {
+static void game_uso_func_0000C194(int *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
-void game_uso_func_0000C1D0(float *dst) {
+static void game_uso_func_0000C1D0(float *dst) {
     float buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
-void game_uso_func_0000C20C(Vec3 *dst) {
+static void game_uso_func_0000C20C(Vec3 *dst) {
     int pad_top[1];
     Tri3i raw;
     int pad_mid[2];
@@ -8591,7 +8591,7 @@ void game_uso_func_0000C20C(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
-void game_uso_func_0000C27C(Quad4 *dst) {
+static void game_uso_func_0000C27C(Quad4 *dst) {
     Quad4 buf;
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = buf;

@@ -11,6 +11,8 @@ import argparse
 import struct
 from pathlib import Path
 
+from elf_text_addends import rebase_text_addends
+
 ELF_HDR_FMT = ">16sHHIIIIIHHHHHH"
 SECT_HDR_FMT = ">IIIIIIIIII"
 SYM_FMT = ">IIIBBH"
@@ -424,11 +426,17 @@ def main():
     delta = dest.replace_text_range(old_start, old_size, payload)
     dest.fix_symbols(args.func, old_start, old_size, len(payload), delta)
     dest.fix_relocations(old_start, old_size, delta)
+    # Section-relative (.text+X) addends past the splice moved with the code
+    # (static-callee jals, jumptable words, &static_fn): rebase them like ld -r.
+    # Before import_donor_relocs, so donor relocs are never touched.
+    rebased = rebase_text_addends(dest.data, old_start + old_size, delta)
     imported = dest.import_donor_relocs(donor, donor_func_start, donor_func_size, old_start,
                                         func_name=args.func)
     dest.realign_sections()
     dest_path.write_bytes(dest.data)
     suffix = f" + imported {imported} donor reloc(s)" if imported else ""
+    if rebased:
+        suffix += f" + rebased {rebased} .text addend(s)"
     print(f"replace-body: {args.func} {old_size:#x}->{len(payload):#x} in {dest_path}{suffix}")
 
 

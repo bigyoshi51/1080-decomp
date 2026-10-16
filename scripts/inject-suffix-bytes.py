@@ -39,6 +39,8 @@ import struct
 import sys
 from pathlib import Path
 
+from elf_text_addends import rebase_text_addends
+
 ELF_HDR_FMT = ">16sHHIIIIIHHHHHH"
 SECT_HDR_FMT = ">IIIIIIIIII"
 SYM_FMT = ">IIIBBH"
@@ -297,6 +299,9 @@ def inject_suffix(o_path: Path, func_name: str, suffix_words: list[int],
     elf.shift_symbols(tail_addr, n_bytes, exempt_sym_idx=sym_idx)
     # Shift relocations whose r_offset is at or after the suffix point.
     elf.shift_relocations(tail_addr, n_bytes)
+    # Section-relative (.text+X) addends past the insertion point moved too
+    # (static-callee jals, jumptable words): rebase them like ld -r would.
+    rebase_text_addends(elf.data, tail_addr, n_bytes)
 
     o_path.write_bytes(bytes(elf.data))
     print(f"inject-suffix: {func_name} appended {n_bytes} bytes "

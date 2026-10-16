@@ -1756,25 +1756,24 @@ build/assets/%.bin.o: assets/%.bin
 #   region1 = mgrproc_uso_head.c.o   (-O0, [0x170,0x19C)) func_00000170
 #   region2 = mgrproc_uso_o0_19C.c.o (-O0, [0x19C,0xAE0)) func_0000019C..A14
 #   region3 = mgrproc_uso.c.o        (-O2, [0xAE0,end))  the rest
-# Each region's .text is objcopy'd to raw binary; bake-data-relocs.py then bakes
-# HI16/LO16 data relocs (e.g. func_000009A8's D_0000014C %lo) into the bytes —
-# objcopy leaves them raw (pre-link) but the USO ships them baked. R_MIPS_26
-# jals stay raw (USO load-time relocs). Pad to the exact block size; the 0xC
-# gap before region3 (func_00000A14's trailing block-align pad) is the
-# intermediate pad-to-0xAE0.
-build/assets/mgrproc_uso_block1_yay0.bin: build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o build/src/mgrproc_uso/mgrproc_uso_head.c.o build/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o build/src/mgrproc_uso/mgrproc_uso.c.o
+# The regions are combined with a relocatable link (ld -r), as the original
+# module was: region3's .text (sh_addralign 16) lands at 0xAE0 by itself (the
+# 0xC zero fill after func_00000A14 is the alignment pad), and ld -r adds each
+# region's offset to its .text-section addends, so `static` callees
+# (CC4/D00/D3C/D94) get the module-relative jal field the ROM ships. Global
+# callees/imports keep field 0 (USO load-time relocs). bake-data-relocs.py then
+# bakes HI16/LO16 data relocs (e.g. func_000009A8's D_0000014C %lo) from the
+# linked object. .mdebug is stripped from the inputs (GNU ld -r segfaults on it).
+build/assets/mgrproc_uso_block1_yay0.bin: build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o build/src/mgrproc_uso/mgrproc_uso_head.c.o build/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o build/src/mgrproc_uso/mgrproc_uso.c.o undefined_syms_auto.txt
 	@mkdir -p $(dir $@)
-	$(OBJCOPY) -O binary --only-section=.text $(word 1,$^) $(@:.bin=.text0.bin)
-	python3 scripts/bake-data-relocs.py $(word 1,$^) $(@:.bin=.text0.bin) undefined_syms_auto.txt
-	$(OBJCOPY) -O binary --only-section=.text $(word 2,$^) $(@:.bin=.text1.bin)
-	python3 scripts/bake-data-relocs.py $(word 2,$^) $(@:.bin=.text1.bin) undefined_syms_auto.txt
-	$(OBJCOPY) -O binary --only-section=.text $(word 3,$^) $(@:.bin=.text2.bin)
-	python3 scripts/bake-data-relocs.py $(word 3,$^) $(@:.bin=.text2.bin) undefined_syms_auto.txt
-	$(OBJCOPY) -O binary --only-section=.text $(word 4,$^) $(@:.bin=.text3.bin)
-	python3 scripts/bake-data-relocs.py $(word 4,$^) $(@:.bin=.text3.bin) undefined_syms_auto.txt
-	cat $(@:.bin=.text0.bin) $(@:.bin=.text1.bin) $(@:.bin=.text2.bin) > $(@:.bin=.pre.bin)
-	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert len(d)<=n,(hex(len(d)),hex(n)); open(f,'ab').write(b'\x00'*(n-len(d)))" $(@:.bin=.pre.bin) 0xAE0
-	cat $(@:.bin=.pre.bin) $(@:.bin=.text3.bin) > $(@:.bin=.text.bin)
+	$(OBJCOPY) -R .mdebug $(word 1,$^) $(@:.bin=.r0.o)
+	$(OBJCOPY) -R .mdebug $(word 2,$^) $(@:.bin=.r1.o)
+	$(OBJCOPY) -R .mdebug $(word 3,$^) $(@:.bin=.r2.o)
+	$(OBJCOPY) -R .mdebug $(word 4,$^) $(@:.bin=.r3.o)
+	$(LD) -r -o $(@:.bin=.lnk.o) $(@:.bin=.r0.o) $(@:.bin=.r1.o) $(@:.bin=.r2.o) $(@:.bin=.r3.o)
+	$(CROSS)nm $(@:.bin=.lnk.o) | grep -q '^00000ae0 T mgrproc_uso_func_00000AE0$$' || { echo "mgrproc block: region3 not at 0xAE0"; exit 1; }
+	$(OBJCOPY) -O binary --only-section=.text $(@:.bin=.lnk.o) $(@:.bin=.text.bin)
+	python3 scripts/bake-data-relocs.py $(@:.bin=.lnk.o) $(@:.bin=.text.bin) undefined_syms_auto.txt
 	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert d[n:]==b'\x00'*len(d[n:]), ('nonzero discarded tail', hex(len(d)), d[n:].hex()); d=d[:n]+b'\x00'*(n-len(d)); open(f,'wb').write(d)" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
@@ -1786,11 +1785,18 @@ build/assets/mgrproc_uso_block1_yay0.bin: build/src/mgrproc_uso/mgrproc_uso_o0_0
 # Dropping that asserted-zero word is a pure data/alignment op (no
 # instruction bytes are created or modified); remove it if asm-processor
 # ever learns to emit 4-byte blocks. See docs/MATCHING_WORKFLOW.md
-# (asm-processor 1-word-pad defect).
+# (asm-processor 1-word-pad defect). The word is dropped from a COPY of the
+# object (scripts/drop-text-word.py), not from the extracted binary, so later
+# symbols, r_offsets and `.text+X` addends move with the code: the `static`
+# in-unit callees past the pad (C0F0/C12C/C194/C1D0/C20C/C27C) then get the
+# module-relative jal field the ROM ships, like the ones before it
+# (docs/MATCHING_WORKFLOW.md#yay0-block-static-callee-ld-r-addend-rebase).
 build/assets/game_uso_block1_yay0.bin: build/src/game_uso/game_uso.c.o
 	@mkdir -p $(dir $@)
-	$(OBJCOPY) -O binary --only-section=.text $< $(@:.bin=.text.bin)
-	python3 -c "import sys; f=sys.argv[1]; n=0x11B30; d=open(f,'rb').read(); off=0xC0F0; assert d[off:off+4]==b'\x00'*4, ('placeholder leftover not zero', d[off:off+4].hex()); d=d[:off]+d[off+4:]; assert len(d)>=n and d[n:]==b'\x00'*(len(d)-n), ('len/tail', hex(len(d)), d[n:].hex()); open(f,'wb').write(d[:n])" $(@:.bin=.text.bin)
+	$(OBJCOPY) -R .mdebug $< $(@:.bin=.r0.o)
+	python3 scripts/drop-text-word.py $(@:.bin=.r0.o) $(@:.bin=.lnk.o) 0xC0F0
+	$(OBJCOPY) -O binary --only-section=.text $(@:.bin=.lnk.o) $(@:.bin=.text.bin)
+	python3 -c "import sys; f=sys.argv[1]; n=0x11B30; d=open(f,'rb').read(); assert len(d)>=n and d[n:]==b'\x00'*(len(d)-n), ('len/tail', hex(len(d)), d[n:].hex()); open(f,'wb').write(d[:n])" $(@:.bin=.text.bin)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
 # timproc_uso code blocks (1: 55 fn, 3: 55 fn, 5: 99 fn). Blocks 1 and 3 each
@@ -1804,13 +1810,18 @@ build/assets/timproc_uso_block1_yay0.bin: build/src/timproc_uso_b1/timproc_uso_b
 	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert d[n:]==b'\x00'*len(d[n:]), ('nonzero discarded tail', hex(len(d)), d[n:].hex()); d=d[:n]+b'\x00'*(n-len(d)); open(f,'wb').write(d)" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
+# Regions are combined with a relocatable link (ld -r), as the original module
+# was: ld -r places the main TU at 0xB0 and adds that to every .text-section
+# addend, so `static` in-unit callees get the module-relative jal field the ROM
+# ships (205C/208C/20BC -> 0x854/0x890/0x8CC). .mdebug is stripped from the
+# link inputs first (GNU ld -r segfaults on IDO .mdebug).
 build/assets/timproc_uso_block3_yay0.bin: build/src/timproc_uso_b3/timproc_uso_b3_o0_0.c.o build/src/timproc_uso_b3/timproc_uso_b3.c.o undefined_syms_auto.txt
 	@mkdir -p $(dir $@)
-	$(OBJCOPY) -O binary --only-section=.text $(word 1,$^) $(@:.bin=.text0.bin)
-	python3 scripts/bake-data-relocs.py $(word 1,$^) $(@:.bin=.text0.bin) undefined_syms_auto.txt
-	$(OBJCOPY) -O binary --only-section=.text $(word 2,$^) $(@:.bin=.text1.bin)
-	python3 scripts/bake-data-relocs.py $(word 2,$^) $(@:.bin=.text1.bin) undefined_syms_auto.txt
-	cat $(@:.bin=.text0.bin) $(@:.bin=.text1.bin) > $(@:.bin=.text.bin)
+	$(OBJCOPY) -R .mdebug $(word 1,$^) $(@:.bin=.r0.o)
+	$(OBJCOPY) -R .mdebug $(word 2,$^) $(@:.bin=.r1.o)
+	$(LD) -r -o $(@:.bin=.lnk.o) $(@:.bin=.r0.o) $(@:.bin=.r1.o)
+	$(OBJCOPY) -O binary --only-section=.text $(@:.bin=.lnk.o) $(@:.bin=.text.bin)
+	python3 scripts/bake-data-relocs.py $(@:.bin=.lnk.o) $(@:.bin=.text.bin) undefined_syms_auto.txt
 	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert d[n:]==b'\x00'*len(d[n:]), ('nonzero discarded tail', hex(len(d)), d[n:].hex()); d=d[:n]+b'\x00'*(n-len(d)); open(f,'wb').write(d)" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 

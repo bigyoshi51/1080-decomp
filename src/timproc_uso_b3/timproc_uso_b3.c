@@ -235,19 +235,19 @@ void timproc_uso_b3_func_00000818(void) {
     gl_func_00000000(D_state_b3_818, -1, 0);
 }
 
-void timproc_uso_b3_func_00000854(int *dst) {
+static void timproc_uso_b3_func_00000854(int *dst) {
     int buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
-void timproc_uso_b3_func_00000890(float *dst) {
+static void timproc_uso_b3_func_00000890(float *dst) {
     float buf[2];
     gl_func_00000000(&D_00000000, buf, 4);
     *dst = buf[0];
 }
 
-void timproc_uso_b3_func_000008CC(Quad4 *dst) {
+static void timproc_uso_b3_func_000008CC(Quad4 *dst) {
     Quad4 buf;
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = buf;

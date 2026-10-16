@@ -10,7 +10,7 @@ void map4_data_uso_b2_func_00000000(int *dst) {
     *dst = buf[0];
 }
 
-void map4_data_uso_b2_func_0000003C(Quad4 *dst) {
+static void map4_data_uso_b2_func_0000003C(Quad4 *dst) {
     Quad4 buf;
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = buf;
