@@ -954,7 +954,13 @@ void game_libs_func_00001818(char *o) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00001818);
 #endif
 
-#ifdef NON_MATCHING
+/* gl_func_00001C54: EXACT 2026-10-16 (agent-g). The "sibling-scope slot-sharing
+ * cap" below was the 4244 lever: ONE function-scope `char *m; struct SB1C54 t;`
+ * declared LAST (homes 0x88/0x84) instead of per-block pairs, with an empty
+ * `if (1) {}` after each of the 16 ctor calls so neither m nor &t is colored
+ * (no s-reg, no &t CSE); plus the unit-15 `u15.v = ...; srcC0[2] = ...;` pair on
+ * ONE line for the lui at / lui t3 order. See docs/IDO_CODEGEN.md
+ * #if1-bbs-uncolor-shared-name-4244. */
 /* gl_func_00001C54: PASS-5 2026-07-15 (agent-h) 77.1 -> ~85: 7BC/135C
  * struct-by-value ||-alloc-fallback kit, BLOCK-SCOPED {m,t} per expansion.
  * ALL 458/458 instructions now have exact mnemonic+register shape (m in $a0
@@ -1027,6 +1033,8 @@ char *gl_func_00001C54(char *self) {
     char *p;
     volatile int pad1;
     volatile int pad2;
+    char *m;
+    struct SB1C54 t;
     if (self != 0 || (self = (char *)gl_func_00000000(0x194)) != 0) {
         if ((p = self) != 0 || (p = (char *)gl_func_00000000(8)) != 0) {
             FW(p, 0) = (int)&gl_ref_0000CC6C;
@@ -1034,147 +1042,117 @@ char *gl_func_00001C54(char *self) {
         }
         u1.v = gl_ref_0000CC74_i;
         {
-            char *m;
-            struct SB1C54 t;
             t = u1;
             if ((m = self + 0x8) != 0 || (m = (char *)gl_func_00000000(0x18)) != 0) {
-                gl_func_00000000(m, self, t, 1);
+                gl_func_00000000(m, self, t, 1); if (1) {}
                 FW(m, 0xC) = (int)&gl_ref_0000C764_1C54_1; FW(m, 0x10) = 0x1E; FW(m, 0x14) = 0;
             }
         }
         u2.v = gl_ref_0000CC78_i;
         {
-            char *m;
-            struct SB1C54 t;
             t = u2;
             if ((m = self + 0x20) != 0 || (m = (char *)gl_func_00000000(0x18)) != 0) {
-                gl_func_00000000(m, self, t, 1);
+                gl_func_00000000(m, self, t, 1); if (1) {}
                 FW(m, 0xC) = (int)&gl_ref_0000C764_1C54_2; FW(m, 0x10) = 0x1E; FW(m, 0x14) = 0;
             }
         }
         u3.v = gl_ref_0000CC7C_i;
         {
-            char *m;
-            struct SB1C54 t;
             t = u3;
             if ((m = self + 0x38) != 0 || (m = (char *)gl_func_00000000(0x18)) != 0) {
-                gl_func_00000000(m, self, t, 1);
+                gl_func_00000000(m, self, t, 1); if (1) {}
                 FW(m, 0xC) = (int)&gl_ref_0000C764_1C54_3; FW(m, 0x10) = 0xA; FW(m, 0x14) = 0;
             }
         }
         u4.v = gl_ref_0000CC80_i;
         {
-            char *m;
-            struct SB1C54 t;
             t = u4;
             if ((m = self + 0x50) != 0 || (m = (char *)gl_func_00000000(0x18)) != 0) {
-                gl_func_00000000(m, self, t, 1);
+                gl_func_00000000(m, self, t, 1); if (1) {}
                 FW(m, 0xC) = (int)&gl_ref_0000C764_1C54_4; FW(m, 0x10) = 0x73; FW(m, 0x14) = 0;
             }
         }
         u5.v = gl_ref_0000CC84_i;
         {
-            char *m;
-            struct SB1C54 t;
             t = u5;
             if ((m = self + 0x68) != 0 || (m = (char *)gl_func_00000000(0x18)) != 0) {
-                gl_func_00000000(m, self, t, 1);
+                gl_func_00000000(m, self, t, 1); if (1) {}
                 FW(m, 0xC) = (int)&gl_ref_0000C764_1C54_5; FW(m, 0x14) = 0; FW(m, 0x10) = 0;
             }
         }
         u6.v = gl_ref_0000CC88_i;
         {
-            char *m;
-            struct SB1C54 t;
             t = u6;
             if ((m = self + 0x80) != 0 || (m = (char *)gl_func_00000000(0x18)) != 0) {
-                gl_func_00000000(m, self, t, 1);
+                gl_func_00000000(m, self, t, 1); if (1) {}
                 FW(m, 0xC) = (int)&gl_ref_0000C764_1C54_6; FW(m, 0x14) = 0; FW(m, 0x10) = 0;
             }
         }
         u7.v = gl_ref_0000CC8C_i;
         {
-            char *m;
-            struct SB1C54 t;
             t = u7;
             if ((m = self + 0x98) != 0 || (m = (char *)gl_func_00000000(0x18)) != 0) {
-                gl_func_00000000(m, self, t, 1);
+                gl_func_00000000(m, self, t, 1); if (1) {}
                 FW(m, 0xC) = (int)&gl_ref_0000C764_1C54_7; FW(m, 0x10) = 0xB; FW(m, 0x14) = 0;
             }
         }
         u8.v = gl_ref_0000CC90_i;
         {
-            char *m;
-            struct SB1C54 t;
             t = u8;
             if ((m = self + 0xB0) != 0 || (m = (char *)gl_func_00000000(0x18)) != 0) {
-                gl_func_00000000(m, self, t, 1);
+                gl_func_00000000(m, self, t, 1); if (1) {}
                 FW(m, 0xC) = (int)&gl_ref_0000C764_1C54_8; FW(m, 0x10) = 0xD; FW(m, 0x14) = 0;
             }
         }
         u9.v = gl_ref_0000CC94_i;
         {
-            char *m;
-            struct SB1C54 t;
             t = u9;
             if ((m = self + 0xC8) != 0 || (m = (char *)gl_func_00000000(0x18)) != 0) {
-                gl_func_00000000(m, self, t, 1);
+                gl_func_00000000(m, self, t, 1); if (1) {}
                 FW(m, 0xC) = (int)&gl_ref_0000C764_1C54_9; FW(m, 0x14) = 0; FW(m, 0x10) = 0;
             }
         }
         u10.v = gl_ref_0000CC98_i;
         {
-            char *m;
-            struct SB1C54 t;
             t = u10;
             if ((m = self + 0xE0) != 0 || (m = (char *)gl_func_00000000(0x18)) != 0) {
-                gl_func_00000000(m, self, t, 1);
+                gl_func_00000000(m, self, t, 1); if (1) {}
                 FW(m, 0xC) = (int)&gl_ref_0000C764_1C54_10; FW(m, 0x14) = 0; FW(m, 0x10) = 0;
             }
         }
         u11.v = gl_ref_0000CC9C_i;
         {
-            char *m;
-            struct SB1C54 t;
             t = u11;
             if ((m = self + 0xF8) != 0 || (m = (char *)gl_func_00000000(0x18)) != 0) {
-                gl_func_00000000(m, self, t, 1);
+                gl_func_00000000(m, self, t, 1); if (1) {}
                 FW(m, 0xC) = (int)&gl_ref_0000C764_1C54_11; FW(m, 0x10) = 0x10C; FW(m, 0x14) = 0;
             }
         }
         u12.v = gl_ref_0000CCA0_i;
         {
-            char *m;
-            struct SB1C54 t;
             t = u12;
             if ((m = self + 0x110) != 0 || (m = (char *)gl_func_00000000(0x18)) != 0) {
-                gl_func_00000000(m, self, t, 1);
+                gl_func_00000000(m, self, t, 1); if (1) {}
                 FW(m, 0xC) = (int)&gl_ref_0000C764_1C54_12; FW(m, 0x10) = 0x50; FW(m, 0x14) = 0;
             }
         }
         u13.v = gl_ref_0000CCA4_i;
         {
-            char *m;
-            struct SB1C54 t;
             t = u13;
             if ((m = self + 0x128) != 0 || (m = (char *)gl_func_00000000(0x18)) != 0) {
-                gl_func_00000000(m, self, t, 1);
+                gl_func_00000000(m, self, t, 1); if (1) {}
                 FW(m, 0xC) = (int)&gl_ref_0000C764_1C54_13; FW(m, 0x10) = 0xA0; FW(m, 0x14) = 0;
             }
         }
         u14.v = gl_ref_0000CCA8_i;
         {
-            char *m;
-            struct SB1C54 t;
             t = u14;
             if ((m = self + 0x140) != 0 || (m = (char *)gl_func_00000000(0x18)) != 0) {
-                gl_func_00000000(m, self, t, 1);
+                gl_func_00000000(m, self, t, 1); if (1) {}
                 FW(m, 0xC) = (int)&gl_ref_0000C764_1C54_14; FW(m, 0x10) = 0xDC; FW(m, 0x14) = 0;
             }
         }
         {
-            char *m;
-            struct SB1C54 t;
             volatile int padA[11];
             char *mf;
             volatile int pad3;
@@ -1186,8 +1164,7 @@ char *gl_func_00001C54(char *self) {
             srcA0[0] = 1.0f; srcA0[1] = 1.0f; srcA0[2] = 1.0f; srcA0[3] = 1.0f;
             srcC0[0] = 0.0f;
             srcB0[0] = 0.0f; srcB0[1] = 0.0f; srcB0[2] = 0.0f; srcB0[3] = 0.0f;
-            u15.v = gl_ref_0000CCAC_i;
-            srcC0[2] = gl_ref_00000C98_f;
+            u15.v = gl_ref_0000CCAC_i; srcC0[2] = gl_ref_00000C98_f;
             dst40 = *(Quad4 *)srcC0;
             dst30 = *(Quad4 *)srcB0;
             dst20 = *(Quad4 *)srcA0;
@@ -1201,20 +1178,15 @@ char *gl_func_00001C54(char *self) {
         }
         u16.v = gl_ref_0000CCB0_i;
         {
-            char *m;
-            struct SB1C54 t;
             t = u16;
             if ((m = self + 0x17C) != 0 || (m = (char *)gl_func_00000000(0x18)) != 0) {
-                gl_func_00000000(m, self, t, 1);
+                gl_func_00000000(m, self, t, 1); if (1) {}
                 FW(m, 0xC) = (int)&gl_ref_0000C764_1C54_15; FW(m, 0x14) = 0; FW(m, 0x10) = 0;
             }
         }
     }
     return self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001C54);
-#endif
 
 /* gl_func_0000237C: get-or-create constructor (0x2FC object) + eleven
  * sub-object inits at +0x1F4..+0x2E4 (0x148, 82 words). EXACT in-unit.
