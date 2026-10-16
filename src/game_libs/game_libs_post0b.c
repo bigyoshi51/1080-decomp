@@ -11600,7 +11600,6 @@ int gl_func_00041124() {
 // keys and the u32->float/1024 conversion are exact. Caps: &D_g/0x4C160
 // globals, the &D_0002F5xx strings and cbN signatures untyped. Full body
 // INCLUDE_ASM-preserved.
-#ifdef NON_MATCHING
 /* gl_func_00041148: debug-instrumented allocator. size = arg0 (+arg1 align pad);
  * dispatch on D+0x20 state (1/7 vs other) to two allocators; on failure logs
  * (D+0x1F57C, size>>10); if D+0x3C160 debug-flag set, format-logs (D+0x1F598,
@@ -11609,14 +11608,14 @@ int gl_func_00041124() {
  * body byte-exact. Levers: (1) variable-divisor `float div=1024.0f` forces the
  * runtime div.s (literal /1024.0f folds to *reciprocal); (2) read-modify-write
  * `s1 += arg1` (not `s1 = arg1 + arg0`) makes IDO emit the target's accumulate
- * `addu` operand order. RESIDUAL (4 diffs): IDO still defers the `move s1,a0`
- * save past the ra/s0 stores (target emits it first) — list-scheduler placement
- * of the conditionally-reassigned saved reg, the same cap as gl_func_00062368. */
+ * `addu` operand order. (3) EXACT 2026-10-16: the deferred `move s1,a0` was
+ * the param-vs-copy prologue lever (docs/IDO_CODEGEN.md
+ * #prologue-move-param-vs-copy-62368) -- drop the `s1 = arg0` copy and make
+ * the reassigned size the parameter itself; the move then lands first. */
 extern int gl_func_00000000();
 extern void gl_proto_41148(int, int, int, int, int, double);
 extern int D_00000000;
-int gl_func_00041148(unsigned int arg0, int arg1) {
-    unsigned int s1 = arg0;
+int gl_func_00041148(unsigned int s1, int arg1) {
     int *s0;
     float div = 1024.0f;
     if (arg1 != 0) {
@@ -11642,9 +11641,6 @@ int gl_func_00041148(unsigned int arg0, int arg1) {
     }
     return (int)s0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041148);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_00041258() {
