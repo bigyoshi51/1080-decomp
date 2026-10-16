@@ -2690,8 +2690,9 @@ void func_000038C0(char *s1, int a1) {
  * 0x183 lbu, flags2=Dg->0x182|0x8008, tag 0x14); r2->0x38C=0; b3=builder(s2,2,
  * s2->0x80,r1,o1); row=&D+a1*0x1C; f1=builder(s2,row,b3); r1/r2->0x8DC=f1. Both
  * register calls are func(Dg,o1)/func(Dg,o2) [not o2,o1]. All field stores
- * byte-match; residual ~46% = regalloc (saved-reg renumber + &D const-fold). */
-#ifdef NON_MATCHING
+ * byte-match; residual ~46% = regalloc (saved-reg renumber + &D const-fold).
+ * Later closed to objdiff-100 (merged o1/o2 $s1 web + address-escaped o1).
+ * Unwrapped EXACT 2026-10-16 (run 96): every reloc resolves to 0. */
 /* typed-float proto (0x0-alias): 10-arg builders, args 7,8 single floats. */
 extern char *func_39d8_r(char *, int, int, int, char *, int, float, float, int, int);
 extern unsigned char D_39d8_g[];  /* D_g placeholder alias — array-typed so base lives in $s0 */
@@ -2728,9 +2729,6 @@ void func_000039D8(char *s2, int a1) {
     *(char**)(r1 + 0x8DC) = f1;
     *(char**)(r2 + 0x8DC) = f1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000039D8);
-#endif
 
 /* func_00003B78 - verified structural decode (0x1C4, 113 insns,
  * multi-stage builder chain). MEMBER of the func_000038C0 /
