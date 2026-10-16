@@ -231,7 +231,6 @@ void timproc_uso_b5_func_00000470(void) {
 }
 
 
-#ifdef NON_MATCHING
 /* timproc_uso_b5_func_00000478: 190-insn constructor/initializer.
  * Boundary fix: split-fragments separated the trailing 2-insn
  * timproc_uso_b5_func_00000770 leaf; this body is now a single function
@@ -259,7 +258,11 @@ void timproc_uso_b5_func_00000470(void) {
  * emits [move][sw] regardless of statement order/same-line join/if(1)
  * barrier/+0 disguise/slot-inline/decl swaps (all probed). Pure
  * allocator-internal spill-vs-copy emission order at the pre-call
- * boundary -- as1-schedule cap class. Default build INCLUDE_ASM. */
+ * boundary -- as1-schedule cap class.
+ * 2026-10-16 EXACT: not a cap. Writing the node copy INSIDE the
+ * registration call's argument list, 07ACE0(slot, node = result1), after
+ * a separate `slot = arg0 + 0x10;` statement gives [sw slot][move s0,v0]
+ * (docs/IDO_CODEGEN.md#assign-in-call-arg-spill-before-copy-0478). */
 extern int timproc_uso_b5_func_055750();
 extern int timproc_uso_b5_func_04C678();
 extern int timproc_uso_b5_func_074710();
@@ -328,8 +331,8 @@ after_sub:
         result1 = (int)timproc_uso_b5_func_00008FC8(0,
                       (int *)(&timproc_uso_b5_D_807FE88C + 0x100C),
                       (int *)(&timproc_uso_b5_D_807FE88C + 0x101C));
-        slot = (int *)((char *)arg0 + 0x10); node = (int *)result1;
-        timproc_uso_b5_func_07ACE0(slot, result1);
+        slot = (int *)((char *)arg0 + 0x10);
+        timproc_uso_b5_func_07ACE0(slot, node = (int *)result1);
         if (node[0x14 / 4] != 0) {
             node[0x04 / 4] = 1;
         }
@@ -351,8 +354,8 @@ after_sub:
         result1 = (int)timproc_uso_b5_func_00008FC8(0,
                       (int *)(&timproc_uso_b5_D_807FE88C + 0x102C),
                       (int *)(&timproc_uso_b5_D_807FE8AC + 0x103C));
-        slot = (int *)((char *)arg0 + 0x10); node = (int *)result1;
-        timproc_uso_b5_func_07ACE0(slot, result1);
+        slot = (int *)((char *)arg0 + 0x10);
+        timproc_uso_b5_func_07ACE0(slot, node = (int *)result1);
         if (node[0x14 / 4] != 0) {
             node[0x04 / 4] = 1;
         }
@@ -395,9 +398,6 @@ after_sub:
 done:
     return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000478);
-#endif
 
 /* timproc_uso_b5_func_00000770: 2-insn save-arg sentinel.
  * Body is `jr ra; sw $a0, 0($sp)` — arg spilled to caller's arg-save slot
