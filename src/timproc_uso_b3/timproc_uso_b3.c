@@ -734,16 +734,19 @@ extern char *D_b3_1240_ptr138;
  *   3. Removing the now-unused `char *tmp` local fixes the a0-spill slot
  *      0x20 -> 0x24 (named-local-count frame rule) (idx 66/68).
  *
- * RESIDUAL CAP (2 words, idx 53/54): the `255.0f * x` multiply schedules
- * lwc1(x)-then-mtc1(const) into f18/f4 vs target's mtc1(const)-then-lwc1(x).
- * Same-register scheduler swap ("mtc1/lwc1 order"). Tried preload-x-local,
- * const-float-local, double-const, operand swap — all regress. IDO scheduler
- * cap; was formerly the INSN_PATCH item. 92/94 is the natural NM ceiling.
+ * 2026-10-16 (agent-g) EXACT (97.82 -> 100): the last 2 words were not a
+ * scheduler cap but commutative FP operand RANK -- an inline field load
+ * ranks before a literal, so `255.0f * x` emits mul.s(x, K). The comma
+ * constant `x * (0, 255.0f)` makes the literal an expression operand and
+ * uopt orders it first (mtc1 K -> f18, lwc1 x -> f4 = target); see
+ * docs/IDO_CODEGEN.md#comma-constant-const-first-mul-5d754. That form drops
+ * the a0 spill home from 0x24 to 0x20; `char pad[28]` (was 32) moves it back
+ * with the frame unchanged. The undefined_syms values above are not needed
+ * for the bytes (the .text is taken from the unlinked object).
  */
-#ifdef NON_MATCHING
 void timproc_uso_b3_func_00001240(char *a0) {
     float color[4];
-    char pad[32];
+    char pad[28];
     char *saved;
     int armed;
 
@@ -770,7 +773,7 @@ void timproc_uso_b3_func_00001240(char *a0) {
 
             if (armed != 0) {
                 gl_func_00000000(&D_b3_1240_base,
-                                 (int)(255.0f * *(float*)(a0 + 0x72C)),
+                                 (int)(*(float*)(a0 + 0x72C) * (0, 255.0f)),
                                  a0 + 0x2F0,
                                  a0 + 0x314);
                 saved = a0 + 0x6E4;
@@ -785,9 +788,6 @@ void timproc_uso_b3_func_00001240(char *a0) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001240);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
