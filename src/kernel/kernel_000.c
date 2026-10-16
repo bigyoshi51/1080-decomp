@@ -1739,6 +1739,12 @@ void func_800014A8(void) {
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800014A8);
 #endif
 
+/* func_80001594: split out of func_800014A8.s (2026-10-16) -- the .s bundled
+ * two functions (14A8 ends jr ra at 0x158C; 1594 opens its own sp -0x20
+ * prologue). USO loader init: fills the D_80012BC0 dispatch table, clears
+ * the D_80012D60/D_800130A0 slot arrays, copies 16 segment records. */
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80001594);
+
 
 
 
