@@ -9517,24 +9517,46 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000D440);
  * func_00008B44 + K addresses (data aliases, lui/addiu %hi/%lo(sym+K)); the
  * 0.1/0.2 f64 are symbols (lui at + ldc1 %lo); the case-6 fields are f32;
  * sp48 -> sp54 -> sp6C and the 0xE0 copy are Vec3 struct copies (target
- * base-register lw/sw pairs), not word casts with an (f32) conversion. */
-extern f64 bu_d900_k988, bu_d900_k990;  /* rodata f64 0.1 / 0.2 (target lui at + ldc1 %lo) */
+ * base-register lw/sw pairs), not word casts with an (f32) conversion.
+ * PASS-4 2026-10-16 (agent-c, 87.02 -> 99.08; 305/305 words, 34 of them
+ * differ, all in the clamp + scale block and one rodata addend):
+ * - frame 0x90: locals are homed top-down in DECLARATION order, scalars too
+ *   (sp8C, temp_v0_3, sp84, vA, v6C, vB, v54, v48, seven scalars, v20); vA/vB
+ *   are unused Vec3 slots and temp_t1 was the same variable as temp_v0_2.
+ * - the case-0x3ED call takes a 4-byte struct BY VALUE (sw a1,4(sp) arg-area
+ *   copy); `sp8C.w = sp84->w` stores it direct (whole-struct copy goes through
+ *   an addiu base).
+ * - clamp as one ternary; the three products as named locals with the
+ *   y-product written back into the scale variable and a copy for z (target
+ *   f0/f2/f14 + mov.s f12 copy).
+ * - both dot products: `z + (y + x)` (sum of x,y first, x loads first) into a
+ *   named temp, then `old + (f64)dot * K`.
+ * - case 6: payload read inline (no named pointer: the t-register ring
+ *   matches again), `v20.x *= 4.0f` x3, stores B4, B8, BC, then the zeros.
+ * Residual: the clamp colours s in f0 + 0.0 in f2 and puts the copy at the
+ *   join; the target copies at entry (t = f0) and keeps 0.0 in f12. Ternary,
+ *   if/else, copy-first, register, if (1) and comma spellings all give the
+ *   same colouring. bu_d900_k990 needs a pin at 0x990 for an exact. */
+extern f64 D_00000988, bu_d900_k990;  /* rodata f64 0.1 (pinned 0x988) / 0.2 (0x990; target spells it func_0000098C + 4) */
 extern char bu_d900_aec[], bu_d900_b44[];  /* data aliases of func_00008AEC / func_00008B44 (target lui/addiu %hi/%lo(sym+K)) */
+typedef struct { s32 w; } S4D900;  /* 4-byte struct passed by value (target sw a1,4(sp) arg-area copy) */
 void func_0000D900(char *arg0, char *arg1) {
-    s32 sp8C;
-    s32 *sp84;
+    S4D900 sp8C;
+    s32 temp_v0_3;
+    S4D900 *sp84;
+    Vec3 vA;
     Vec3 v6C;
+    Vec3 vB;
     Vec3 v54;
     Vec3 v48;
-    Vec3 v20;
     f32 temp_f16;
     f32 temp_f2;
     f32 var_f2;
-    s32 temp_a1;
     s32 temp_v0;
-    s32 temp_v0_3;
-    char *temp_t1;
     char *temp_v0_2;
+    f32 px;
+    f32 pz;
+    Vec3 v20;
 
     temp_v0 = *(s32 *)((char *)(arg1) + 0x0);
     if (temp_v0 == 0x14) goto c14;
@@ -9553,20 +9575,17 @@ c14:
         if (*(s32 *)((char *)(arg0) + 0xA80) == 0) {
             temp_v0_2 = *(s32 *)((char *)(arg1) + 0x4);
             temp_f2 = *(f32 *)((char *)(temp_v0_2) + 0xC);
-            if (((f64) temp_f2 < bu_d900_k988) && (*(u16 *)((char *)(*(s32 *)((char *)(temp_v0_2) + 0x28)) + 0xC) == 0x74)) {
+            if (((f64) temp_f2 < D_00000988) && (*(u16 *)((char *)(*(s32 *)((char *)(temp_v0_2) + 0x28)) + 0xC) == 0x74)) {
                 func_00000000(arg0 + 0x808);
                 return;
             }
-            if (temp_f2 < 0.0f) {
-                var_f2 = 0.0f;
-            } else if (temp_f2 > 50.0f) {
-                var_f2 = 50.0f;
-            } else {
-                var_f2 = temp_f2;
-            }
-            v48.x = *(f32 *)((char *)(temp_v0_2) + 0x0) * var_f2;
-            v48.y = *(f32 *)((char *)(temp_v0_2) + 0x4) * var_f2;
-            v48.z = *(f32 *)((char *)(temp_v0_2) + 0x8) * var_f2;
+            temp_f2 = (temp_f2 < 0.0f) ? 0.0f : ((temp_f2 > 50.0f) ? 50.0f : temp_f2);
+            {
+            px = *(f32 *)((char *)(temp_v0_2) + 0x0) * temp_f2;
+            var_f2 = temp_f2;
+            temp_f2 = *(f32 *)((char *)(temp_v0_2) + 0x4) * temp_f2;
+            pz = *(f32 *)((char *)(temp_v0_2) + 0x8) * var_f2;
+            v48.x = px; v48.y = temp_f2; v48.z = pz; }
             v54 = v48;
             v6C = v54;
             *(f32 *)((char *)(arg0) + 0xB4) = (f32) (*(f32 *)((char *)(arg0) + 0xB4) + v6C.x);
@@ -9575,11 +9594,13 @@ c14:
             *(f32 *)((char *)(arg0) + 0x318) = (f32) (*(f32 *)((char *)(arg0) + 0x318) + v6C.x);
             *(f32 *)((char *)(arg0) + 0x31C) = (f32) (*(f32 *)((char *)(arg0) + 0x31C) + v6C.y);
             *(f32 *)((char *)(arg0) + 0x320) = (f32) (*(f32 *)((char *)(arg0) + 0x320) + v6C.z);
-            *(f32 *)((char *)(arg0) + 0xA1C) = (f32) ((f64) *(f32 *)((char *)(arg0) + 0xA1C) + ((f64) ((*(f32 *)((char *)(arg0) + 0x3BC) * v6C.x) + (*(f32 *)((char *)(arg0) + 0x3C0) * v6C.y) + (*(f32 *)((char *)(arg0) + 0x3C4) * v6C.z)) * bu_d900_k990));
+            temp_f16 = (*(f32 *)((char *)(arg0) + 0x3C4) * v6C.z) + ((*(f32 *)((char *)(arg0) + 0x3C0) * v6C.y) + (*(f32 *)((char *)(arg0) + 0x3BC) * v6C.x));
+            *(f32 *)((char *)(arg0) + 0xA1C) = (f32) ((f64) *(f32 *)((char *)(arg0) + 0xA1C) + (f64) temp_f16 * bu_d900_k990);
+            temp_f16 = (*(f32 *)((char *)(arg0) + 0x3D0) * v6C.z) + ((*(f32 *)((char *)(arg0) + 0x3CC) * v6C.y) + (*(f32 *)((char *)(arg0) + 0x3C8) * v6C.x));
             *(u16 *)((char *)(arg0) + 0xA10) = (u16) (*(u16 *)((char *)(arg0) + 0xA10) | 0x1F0);
-            *(f32 *)((char *)(arg0) + 0xA24) = (f32) ((f64) *(f32 *)((char *)(arg0) + 0xA24) + ((f64) -((*(f32 *)((char *)(arg0) + 0x3C8) * v6C.x) + (*(f32 *)((char *)(arg0) + 0x3CC) * v6C.y) + (*(f32 *)((char *)(arg0) + 0x3D0) * v6C.z)) * 0.5));
-            *(s32 *)((char *)(arg0) + 0xA80) = 0xA;
+            *(f32 *)((char *)(arg0) + 0xA24) = (f32) ((f64) *(f32 *)((char *)(arg0) + 0xA24) + (f64) -temp_f16 * 0.5);
             *(u16 *)((char *)(arg0) + 0x9A4) = (u16) *(u16 *)((char *)(*(s32 *)((char *)(temp_v0_2) + 0x28)) + 0xC);
+            *(s32 *)((char *)(arg0) + 0xA80) = 0xA;
             return;
         }
         return;
@@ -9587,18 +9608,16 @@ c9:
         func_00000000(arg0);
         return;
 c6:
-        temp_t1 = *(s32 *)((char *)(arg1) + 0x4);
-        v20 = *(Vec3 *)((char *)(temp_t1) + 0xE0);
-        temp_f16 = v20.x * 4.0f;
-        v20.x = temp_f16;
+        v20 = *(Vec3 *)((char *)(*(s32 *)((char *)(arg1) + 0x4)) + 0xE0);
+        v20.x *= 4.0f;
         v20.y *= 4.0f;
         v20.z *= 4.0f;
-        *(f32 *)((char *)(arg0) + 0xB4) = (f32) (*(f32 *)((char *)(arg0) + 0xB4) + temp_f16);
+        *(f32 *)((char *)(arg0) + 0xB4) = (f32) (*(f32 *)((char *)(arg0) + 0xB4) + v20.x);
         *(f32 *)((char *)(arg0) + 0xB8) = (f32) (*(f32 *)((char *)(arg0) + 0xB8) + v20.y);
+        *(f32 *)((char *)(arg0) + 0xBC) = (f32) (*(f32 *)((char *)(arg0) + 0xBC) + v20.z);
         *(f32 *)((char *)(arg0) + 0x320) = 0.0f;
         *(f32 *)((char *)(arg0) + 0x31C) = 0.0f;
         *(f32 *)((char *)(arg0) + 0x318) = 0.0f;
-        *(f32 *)((char *)(arg0) + 0xBC) = (f32) (*(f32 *)((char *)(arg0) + 0xBC) + v20.z);
         return;
 c3E8:
         *(s32 *)((char *)(arg0) + 0xA54) = 1;
@@ -9630,15 +9649,14 @@ c3ED:
         *(s32 *)((char *)(arg0) + 0xA54) = 6;
         func_00000000(bu_d900_b44 + 0x10);
         if (*(s32 *)((char *)(arg0) + 0x848) == 2) {
-            sp84 = (s32 *)(bu_d900_b44 + 0x24);
+            sp84 = (S4D900 *)(bu_d900_b44 + 0x24);
             func_00000000(*(s32 *)((char *)(arg0) + 0x840));
         } else {
-            sp84 = (s32 *)(bu_d900_b44 + 0x28);
+            sp84 = (S4D900 *)(bu_d900_b44 + 0x28);
             func_00000000(*(s32 *)((char *)(arg0) + 0x840));
         }
-        temp_a1 = *sp84;
-        sp8C = temp_a1;
-        temp_v0_3 = func_00000000(*(s32 *)((char *)&D_00000000 + 0), temp_a1, 0, arg0);
+        sp8C.w = sp84->w;
+        temp_v0_3 = func_00000000(*(s32 *)((char *)&D_00000000 + 0), sp8C, 0, arg0);
         if (temp_v0_3 != 0) {
             func_00000000(arg0, temp_v0_3 + 0x30);
             return;
