@@ -18,6 +18,10 @@ the game_libs-local --vaddr (validated: gl_func_0006E224 52-case table extracted
 all targets landed in range). The decoded m2c may need extra cleanup for
 register-carrying switches (unset-reg reads) + pointer post-incr (->unk-N).
 
+NOTE (fixed 2026-10-16): reloc offset fields point 4 bytes BEFORE the patched
+word, and text-section words are already project vaddrs (no +symval); table
+entry 0 is at RoData offset imm+4 for the function's `lui/addiu imm` base.
+
 NOTE the Text section has a leading marker word, so disasm-func.py offsets are
 text-data-relative (= vaddr - module_text_base_in_proj); map accordingly.
 """
@@ -34,7 +38,7 @@ def walk(d, mod):
         o+=12+(0 if typ==8 else ((size+3)&~3))
     return secs
 
-def extract(rom, mod, vaddr, size, symnames):
+def extract(rom, mod, vaddr, size, symnames, add_symval=False):
     d=open(rom,'rb').read()
     secs=walk(d,mod)
     syms=json.load(open(symnames)) if symnames else {}
@@ -51,9 +55,19 @@ def extract(rom, mod, vaddr, size, symnames):
             f1=u32(d,p+4); off=u32(d,p+8); si=f1>>4
             sv=symval(si)
             if sv is not None:
-                addend=u32(d,sdata+off) if sdata+off+4<=sdata+ssize else 0
-                t=sv+addend
-                if lo<=t<hi: hits.append((off,t))
+                # The reloc's offset field names the word BEFORE the patched
+                # word: the patched word is at section offset off+4 (bootup
+                # 2DA4: relocs 0x4F4..0x520 patch the table 0x4F8..0x524;
+                # 0x4F4 itself is the float 0.04f). Reading at `off` both
+                # mis-anchored entry 0 and dropped the LAST entry.
+                woff=off+4
+                addend=u32(d,sdata+woff) if sdata+woff+4<=sdata+ssize else 0
+                # Text-section relocs are section-relative: the stored word is
+                # already the project vaddr (2DA4's table words 0x2F10.. are
+                # the real case targets). Adding the anchor symbol's value
+                # (func_000008 -> 8) shifted every target by +8.
+                t=(sv+addend) if add_symval else addend
+                if lo<=t<hi: hits.append((woff,t))
             p+=12
         # group consecutive 4-spaced offsets -> a table
         hits.sort()
@@ -74,7 +88,10 @@ if __name__=='__main__':
     ap.add_argument('--size',required=True)
     ap.add_argument('--shim',default='0',help='add to --vaddr; game_libs-in-bootup = 0x1466C')
     ap.add_argument('--symnames',default='scripts/emu-symdump/bootup_uso.symnames.json')
+    ap.add_argument('--add-symval',action='store_true',help='legacy: target = symval+word (was +8 off for bootup)')
     a=ap.parse_args()
-    ts=extract(a.rom,int(a.module,0),int(a.vaddr,0)+int(a.shim,0),int(a.size,0),a.symnames)
+    ts=extract(a.rom,int(a.module,0),int(a.vaddr,0)+int(a.shim,0),int(a.size,0),a.symnames,a.add_symval)
     out={'func':a.func,'vaddr':int(a.vaddr,0),'tables':ts}
-    print(json.dumps(out,indent=2,default=lambda x:hex(x) if isinstance(x,int) else x))
+    for t in ts:
+        t['roff']=hex(t['roff']); t['targets_vaddr']=[hex(x) for x in t['targets_vaddr']]
+    print(json.dumps(out,indent=2))
