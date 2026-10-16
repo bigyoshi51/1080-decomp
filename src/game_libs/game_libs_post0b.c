@@ -24340,58 +24340,49 @@ void gl_func_00052AE8(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052AE8);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_00052BBC: dual-row directory min/max scan (clean leaf, NO calls).
- * RE-DECODED 2026-05-31 (was a wrong 0%% 2-arg stub): actually 5 args
- * f(a0, row1, row2, flagX, flagY). Seeds lo=hi=0x7530, v1=-1; loops dir offset
- * t0 = 0/2/4, processing TWO rows (row1*8+t0, row2*8+t0) per iter: idx = u16 at
- * a0->0x68[row*8 + t0 + 2]; rec = a0->0x64 + idx*4; x=rec[0], y=rec[1]; when
- * (x>=lo)!=flagX AND (y>=hi)!=flagY, set lo=x, hi=y, v1=idx. Returns v1 (last idx).
- * flagX/flagY are min-vs-max direction selectors. 0%%->44.5%%: logic/sig/structure
- * exact. 2026-07-09 (w46 batch) REBUILT: x/y/lo/hi as ONE short m[4] array =
- * the target's contiguous sp+0xC/E/10/12 sh/lh spill homes (kills the old
- * "no-spill" cap note); volatile padA+padB[8] = frame 0x20 with m at 0xC.
- * Now 70w/70w LENGTH-EXACT, epilogue + several spill words positional-exact.
- * RESIDUAL (cap): IDO hoists rowN*8 slls to the preheader (target recomputes
- * in-loop) — copy-prop defeats every de-invariant spelling tried (multi-def
- * row var, self-assign, +=0/|=0, t0*0 phantom, array-IXA typedef, -O1 (no:
- * target has beql/bnel = -O2), IDO 5.3, lim-var (triggers peel)); the 2-word
- * placement shift plus the a0-vs-a2 param-eviction choice (mine evicts a0->s0,
- * target evicts a2/row2->s0) rotates the whole t-reg ring. Genuine
- * LICM-placement + eviction-order cap. */
+ * f(a0, row1, row2, flagX, flagY): seeds lo=hi=0x7530, v1=-1; for each of
+ * the 3 vertex slots of row1 and row2 (u16 index at a0->0x68[row][slot+1]),
+ * rec = a0->0x64 + idx*4 (s16 x,y); when (x>=lo) differs from flagX AND
+ * (y>=hi) differs from flagY, lo=x, hi=y, v1=idx. Returns v1. flagX/flagY are
+ * min-vs-max direction selectors.
+ * EXACT 2026-10-16 (agent-g, 86.5 -> 100). Three fixes over the old
+ * "LICM-placement cap": (1) index the directory as a 2-D array
+ * `((u16 (*)[4])p68)[row][i + 1]` -- the IXA keeps `row * 8` inside the loop
+ * (every flat `p + row*8 + t0` spelling was hoisted), which also gives the
+ * target's row2 -> s0 eviction; (2) `v1 = -1; m[2] = m[3] = 0x7530;` for the
+ * li/sh order; (3) the tests as `(m[0] >= m[2]) ^ flagX` (or `- flagX`):
+ * `!=` always emits `beq flag,cmp`, the truthiness form emits the target's
+ * `beq cmp,flag` and the t-reg ring follows. */
 int gl_func_00052BBC(int *a0, int row1, int row2, int flagX, int flagY) {
-    volatile int padA;               /* pad pair: frame 0x20 with m[] at sp+0xC (target layout) */
+    volatile int padA;               /* pad pair: frame 0x20 with m[] at sp+0xC */
     volatile char padB[8];
-    short m[4];                      /* m[0]=x m[1]=y m[2]=lo m[3]=hi — contiguous sp homes like target */
+    short m[4];                      /* m[0]=x m[1]=y m[2]=lo m[3]=hi */
     int v1;
-    int t0;
-    unsigned short idx;
+    int i;
+    int idx;
     short *rec;
 
-    m[2] = 0x7530;
-    m[3] = 0x7530;
     v1 = -1;
-    for (t0 = 0; t0 != 6; t0 += 2) {
-        idx = *(unsigned short *)((char *)a0[0x68 / 4] + (row1 * 8) + t0 + 2);
+    m[2] = m[3] = 0x7530;
+    for (i = 0; i != 3; i++) {
+        idx = ((unsigned short (*)[4])a0[0x68 / 4])[row1][i + 1];
         rec = (short *)((char *)a0[0x64 / 4] + idx * 4);
         m[0] = rec[0];
         m[1] = rec[1];
-        if ((m[0] >= m[2]) != flagX) {
-            if ((m[1] >= m[3]) != flagY) { m[2] = m[0]; m[3] = m[1]; v1 = idx; }
+        if ((m[0] >= m[2]) ^ flagX) {
+            if ((m[1] >= m[3]) ^ flagY) { m[2] = m[0]; m[3] = m[1]; v1 = idx; }
         }
-        idx = *(unsigned short *)((char *)a0[0x68 / 4] + (row2 * 8) + t0 + 2);
+        idx = ((unsigned short (*)[4])a0[0x68 / 4])[row2][i + 1];
         rec = (short *)((char *)a0[0x64 / 4] + idx * 4);
         m[0] = rec[0];
         m[1] = rec[1];
-        if ((m[0] >= m[2]) != flagX) {
-            if ((m[1] >= m[3]) != flagY) { m[2] = m[0]; m[3] = m[1]; v1 = idx; }
+        if ((m[0] >= m[2]) ^ flagX) {
+            if ((m[1] >= m[3]) ^ flagY) { m[2] = m[0]; m[3] = m[1]; v1 = idx; }
         }
     }
     return v1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052BBC);
-#endif
 
 /* gl_func_00052CD4: command-stream decoder (0x468 / 282 words). op =
  * *strm & 0xFFFF; loop until op == 2: switch (op) over 0..36 (out-of-range
