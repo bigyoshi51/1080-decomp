@@ -21789,35 +21789,15 @@ int gl_func_0004F704(char *a0, int a1, float px, float py, float pz, float *out,
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F704);
 #endif
 
-// gl_func_0004F85C — STRUCTURAL PASS (0x14C / 84 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
-// (saves ra). Multi-stage lazy allocate-and-link constructor (cb = jal 0
-// USO-relocated alloc).
+// gl_func_0004F85C — EXACT (unwrapped 2026-10-16; 0x150 / 84 words).
+// The ROM's jal words are `jal 0`; gl_func_00034458 is defined in this
+// directly linked unit, so the body calls it through the blank alias
+// gl_func_00034458_4F85C (= 0 in undefined_syms_auto.txt). D_4F85C_a/b are
+// pinned to 0. Raw-.word USO. One clean function, frame 0x20 (saves ra).
+// Inline-expanded 3-level base-ctor chain with alloc fallbacks (see the
+// decode note below).
 //
-//   void *gl_func_0004F85C(void *a0, int a1, void *a2, void *a3) {
-//     void *o0 = a0;
-//     if (o0 == 0) { o0 = cb1(0x90); if (!o0) return 0; }   // alloc obj A
-//     void *o1 = a2;
-//     if (o1 == 0) { o1 = cb2(0x90); if (!o1) return 0; }   // alloc obj B
-//     void *o2 = a3;
-//     if (o2 == 0) { o2 = cb3(0x60); if (!o2) return 0; }   // alloc sub C
-//     o1->p5C = &D_reloc;                                    // bind global
-//     if (o1 != (void*)-0x34) { v = (char*)o1 + 0x34; ... }   // link sub
-//     // wire o0 / o1 / o2 together off the +0x34 link region.
-//   }
-// Lazily allocates up to three objects (cb1/cb2/cb3: 0x90 + 0x90 + 0x60
-// bytes) only when the corresponding arg is null, bailing on any alloc
-// failure, then binds a module global pointer into a1->0x5C and links the
-// sub-objects via the a1+0x34 region. Family: cb-driven lazy
-// multi-subobject constructor (siblings gl_func_000412E8 / 00040070 /
-// 0004B0A8 / 0004D468). Post-link wiring tail representative; the
-// alloc-if-null guards, the 0x90/0x90/0x60 sizes, the null-check bails and
-// the a1->0x5C = &D_reloc bind are exact.
-//
-// Caps (DEFERRED): object struct + cb signatures untyped. Real-C
-//   STRUCTURAL body below. Byte-match deferred. Name pre-checked: no
-//   extern reuse.
-#ifdef NON_MATCHING
+extern int gl_func_00034458_4F85C(); /* blank alias (= 0): ROM jal words are jal 0 */
 /* Real-C decode (2026-09-04 agent-g): inline-expanded 3-deep base-ctor
  * chain on ONE object (each level re-tests the same pointer: `s = self`,
  * `s2 = s` — the or-copies in the bne delays — with its own sizeof
@@ -21835,18 +21815,18 @@ char *gl_func_0004F85C(char *self, char *spec) {
     char *s2;
     char *m;
 
-    if (self != 0 || (self = (char *)gl_func_00034458(0x90)) != 0) {
-        if ((s = self) != 0 || (s = (char *)gl_func_00034458(0x90)) != 0) {
-            if ((s2 = s) != 0 || (s2 = (char *)gl_func_00034458(0x60)) != 0) {
+    if (self != 0 || (self = (char *)gl_func_00034458_4F85C(0x90)) != 0) {
+        if ((s = self) != 0 || (s = (char *)gl_func_00034458_4F85C(0x90)) != 0) {
+            if ((s2 = s) != 0 || (s2 = (char *)gl_func_00034458_4F85C(0x60)) != 0) {
                 *(char **)(s2 + 0x5C) = (char *)&D_4F85C_a;
-                if ((m = s2 + 0x34) != 0 || (m = (char *)gl_func_00034458(8)) != 0) {
+                if ((m = s2 + 0x34) != 0 || (m = (char *)gl_func_00034458_4F85C(8)) != 0) {
                     *(int *)(m + 4) = 0;
                     *(int *)(m + 0) = 0;
                 }
-                if ((m = s2 + 0x58) != 0 || (m = (char *)gl_func_00034458(4)) != 0) {
+                if ((m = s2 + 0x58) != 0 || (m = (char *)gl_func_00034458_4F85C(4)) != 0) {
                     *(int *)(m + 0) = 0;
                 }
-                gl_func_00034458(s2);
+                gl_func_00034458_4F85C(s2);
             }
             *(char **)(s + 0x5C) = (char *)&D_4F85C_b;
         }
@@ -21857,9 +21837,6 @@ char *gl_func_0004F85C(char *self, char *spec) {
     }
     return self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F85C);
-#endif
 
 extern int gl_ref_00062B54();
 extern int gl_ref_00062B90();
