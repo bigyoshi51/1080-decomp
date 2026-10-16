@@ -2838,45 +2838,12 @@ void game_libs_func_00020030(int *obj) {
 }
 
 
-// game_libs_func_000200F4 (MERGED 2026-07-23: orphan 200F4 3-insn
-// lui/addiu v0 + lw t6,0x21E8(v0) is this fn's own hoisted head-store
-// load, same mis-split family as 1FF28/1FFAC/20030; was
-// gl_func_00020100; 0xC+0xB8=0xC4) — STRUCTURAL PASS (0xC4 / 49
-// words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). Near-identical SIBLING of gl_func_0002003C — same multi-
-// field struct dump, different format descriptors.
-//
-//   void gl_func_00020100(S *obj) {
-//     *(int*)(&D_0 + 0x21EC) = ...;             // stash a value
-//     (*pr)(&D_21E8, *(int*)reg);                // jal 0 USO-reloc
-//     (*pr)(&D_22D0, obj->w_0);
-//     (*pr)(&D_21E8, *(int*)reg2);
-//     (*pr)(&D_23E0, obj->w_4);
-//     (*pr)(&D_21E8, *(int*)reg3);
-//     (*pr)(&D_24F0, obj->w_8);
-//     (*pr)(&D_22CC, ...);                        // trailing pair(s)
-//     (*pr)(&D_23DC, ...);
-//   }
-//
-// Struct-typing reference: identical structure to gl_func_0002003C
-//   (see its comment) — USO-reloc printf-like reporter `jal 0` slots,
-//   obj (s0 from a0) dumped field-by-field (obj->0/4/8) with &D_21E8
-//   label lines and &D_22D0/&D_23E0/&D_24F0/&D_22CC/&D_23DC value
-//   descriptors. Handle stashed at &D_0+0x21EC. Same game_libs
-//   report/dump support family — this and gl_func_0002003C are the
-//   per-object-type dump variants (different descriptor sets per
-//   record kind).
-// Caps (DEFERRED): single jr $ra. Twin of gl_func_0002003C —
-//   dump-object report sequence, same support family, different
-//   &D_2xxx descriptor offsets. Real-C STRUCTURAL body below per
-//   the analysis (stash handle &D_0+0x21EC, then label+value jal-0
-//   reporter pairs fed from obj->0/4/8 plus three trailing footer
-//   lines). Byte-match deferred — placeholder jal-0 reporter needs
-//   USO reloc infra. Name pre-checked: no extern reuse
-//   (collision-safe). gl_func_00000000 = canonical never-defined
-//   USO placeholder for the reporter.
-#ifdef NON_MATCHING
+// game_libs_func_000200F4 -- twin of game_libs_func_00020030 with another
+// descriptor set: stash *(D+0x21E8) at D+0x21EC, label/value reporter pairs
+// (D+0x21E8 then D+0x22D0 / 0x23E0 / 0x24F0) fed from obj[0..2], then footer
+// lines D+0x22CC / 0x23DC / 0x24EC. Orphan 3-insn head merged 2026-07-23.
+// EXACT (unwrapped 2026-10-16): every reloc is gl_func_00000000 /
+// D_00000000, both absolute 0.
 extern int gl_func_00000000();
 extern int D_00000000;
 /* Post-merge body (2026-07-23): head store sources the merged-in hoisted
@@ -2895,9 +2862,6 @@ void game_libs_func_000200F4(int *obj) {
     gl_func_00000000(D + 0x23DC);
     gl_func_00000000(D + 0x24EC);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000200F4);
-#endif
 
 // gl_func_000201B8 -- double-buffered pool allocator (0x704, 449 insns), NM (no episode).
 // mode 0/1/2 picks a Pool (sym1255 +0x21F8 / 0x2308 / 0x2418, stride 0x110) and a u8
