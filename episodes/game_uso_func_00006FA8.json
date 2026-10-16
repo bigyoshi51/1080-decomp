@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_00006FA8",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-10-16T14:26:24.848290+00:00",
+  "end_time": "2026-10-16T14:26:24.848303+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-16T14:26:24.848299+00:00",
+      "assistant_text": "Exact via IDO 7.1 NCC donor. Vec3 value class with void set(); d/e are named Vec3 locals assigned inside the compare through the implicit operator=. The frame needed a named Vec3 &w used by the first subtraction (4-byte named slot above d) and a named const Vec3 &u = *this local inside the first stage inline only (lifts stage 1 by 8 bytes); a Vec3 &set() return temp instead lands at the frame bottom below r2.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 127,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 NCC (C++) donor for game_uso_func_00006FA8 (0x1FC / 127 words).\n *\n * Picks the closer of two 0xA374 lookups (handles from D_807FEB60+0x570 /\n * D_807FEB64+0x574) to s0->w->pos: returns 10 if the first is closer,\n * 11 otherwise, 0 if 0x7A98 >= 0 or either lookup failed.\n *\n * edg / frame facts this body depends on (cfe and the earlier NCC drafts\n * capped at 123/127 words):\n *  - `d` / `e` are named Vec3 locals assigned inside the one compare\n *    expression through the implicit operator= (r -> ret -> d hops).\n *  - `w` is a named reference used by the first subtraction only: it is\n *    the 4-byte named slot above d.\n *  - set() returns void. The first subtraction goes through an inline\n *    member with a named `const Vec3 &u = *this;` local: that nested-block\n *    slot sits between the two stages and lifts stage 1 by 8 bytes while\n *    the second stage keeps its gap above r2 (a `Vec3 &set()` return temp\n *    lands below r2 instead).\n * Spliced into game_uso.c.o via REPLACE_FUNC_BODY\n * (docs/MATCHING_WORKFLOW.md#game-uso-ncc-cplusplus-donor-recipe). Every\n * symbol is extern \"C\". */\nstruct Vec3 {\n    float x, y, z;\n    Vec3() {}\n    void set(float a, float b, float c) { x = a; y = b; z = c; }\n    Vec3(float a, float b, float c) { set(a, b, c); }\n    Vec3 operator-(const Vec3 &v) const { return Vec3(x - v.x, y - v.y, z - v.z); }\n    Vec3 to(const Vec3 &v) const { const Vec3 &u = *this; return Vec3(u.x - v.x, u.y - v.y, u.z - v.z); }\n    float lenSq() const { return x * x + y * y + z * z; }\n};\nstruct Handle { int id; };\nstruct Obj { char pad[0x30]; Vec3 pos; };\nstruct W { char pad0[0xB4]; Vec3 pos; };\nstruct Self { char pad0[0x30]; W *w; };\nextern \"C\" {\nextern char game_uso_D_807FEB60;\nextern char game_uso_D_807FEB64;\nfloat game_uso_func_00007A98(Self *);\nObj *game_uso_func_0000A374(Self *, Handle, Vec3 *);\n}\nextern \"C\" int game_uso_func_00006FA8(Self *s0) {\n    int result = 0;\n    if (game_uso_func_00007A98(s0) < 0.0f) {\n        Handle h1;\n        Handle h2;\n        Obj *a;\n        Obj *b;\n        h1.id = (*(Handle **)(&game_uso_D_807FEB60 + 0x570))->id;\n        a = game_uso_func_0000A374(s0, h1, &s0->w->pos);\n        h2.id = (*(Handle **)(&game_uso_D_807FEB64 + 0x574))->id;\n        b = game_uso_func_0000A374(s0, h2, &s0->w->pos);\n        if (a != 0 && b != 0) {\n            Vec3 &w = s0->w->pos;\n            Vec3 d, e;\n            if ((d = a->pos.to(w)).lenSq() < (e = b->pos - s0->w->pos).lenSq()) {\n                result = 10;\n            } else {\n                result = 11;\n            }\n        }\n    }\n    return result;\n}\n",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso_ncc_6FA8.cpp",
+    "asm_path": "asm/nonmatchings/game_uso/game_uso/game_uso_func_00006FA8.s",
+    "segment": "game_uso",
+    "compiler": "IDO 7.1 NCC (C++)",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Wab,-r4300_mul",
+    "verification": "NCC donor 127/127 words raw-equal to expected (7 relocs imported); spliced into game_uso.c.o via REPLACE_FUNC_BODY; report.json 100.0; ROM byte-identical; verify-blocks OK; 0 exacts lost."
+  }
+}
