@@ -34387,11 +34387,13 @@ void gl_func_00062E10(int *a0, int a1, int a2) {
  *   s0->0x58 = a1;
  *   return s0;
  * USO reloc convention: calls→func_00000000, data→&D_00000000+off (per 62E10).
- * The s0==-48 sentinel is faithful to `bne s0, (addiu zero,-48)`. */
-#ifdef NON_MATCHING
-void *gl_func_00062E80(void *a0, int a1) {
-    void *s0 = a0;
-    if (a0 == 0) {
+ * The s0==-48 sentinel is faithful to `bne s0, (addiu zero,-48)`.
+ * 2026-10-16: EXACT (was 80.6). Two fixes: reassign the PARAM (no
+ * `s0 = a0` copy, so the prologue moves a0 into s0 early) and store a1 at
+ * 0x58 BEFORE the final call (the target's `sw t7,88(s0)` sits in that
+ * jal's delay slot, so it runs first). */
+void *gl_func_00062E80(void *s0, int a1) {
+    if (s0 == 0) {
         s0 = (void *)func_00000000(0xB0);
         if (s0 == 0) goto end;
     }
@@ -34406,14 +34408,11 @@ void *gl_func_00062E80(void *a0, int a1) {
         *v1 = 0;
     }
 L64:
-    func_00000000(s0);
     *(int *)((char *)s0 + 0x58) = a1;
+    func_00000000(s0);
 end:
     return s0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062E80);
-#endif
 
 /* game_libs_func_00062F08: 20-insn no-frame multi-field init.
  * Bulk-initializes 15 fields of struct a0 with constants -1, -1000, 0, 1
