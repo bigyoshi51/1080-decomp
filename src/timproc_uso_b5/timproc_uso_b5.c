@@ -153,36 +153,31 @@ done:
  * previously documented as INSN_PATCH-promotable per
  * docs/POST_CC_RECIPES.md "Pure register-rename at any scale" —
  * INSN_PATCH REMOVED 2026-05-23 and docs/POST_CC_RECIPES.md deprecated
- * (per feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
-extern int D_b5_24C_save_v0;
-extern int D_b5_24C_save_v1;
-#ifdef NON_MATCHING
+ * (per feedback_no_instruction_forcing_matches_policy).
+ * 2026-10-16 EXACT: not a ceiling. (1) idx/fn unnamed (ring temps
+ * t6..t9); (2) array-of-entry form for base-first addu; (3) 048E7C is
+ * declared VOID so its dead return frees v0 for p; (4) real reloc names
+ * (the save globals are D_807FF480 + 0 and D_807FF484 + 4). */
+typedef struct { void (*fn)(void); char pad[0x24]; } B5Ent24C;
+extern int timproc_uso_b5_func_011E00();
+extern void timproc_uso_b5_func_048E7C();
+extern char timproc_uso_b5_D_807FD924, timproc_uso_b5_D_807FF480, timproc_uso_b5_D_807FF484;
 void timproc_uso_b5_func_0000024C(int *a0) {
-    int *v0;
-    int idx;
-    void (*fn)(void);
+    int *p;
 
-    if (gl_func_00000000(&D_00000000, 0x300) == 0) {
-        if (gl_func_00000000(&D_00000000, 0x40000) == 0) {
+    if (timproc_uso_b5_func_011E00(&import_80020098, 0x300) == 0) {
+        if (timproc_uso_b5_func_011E00(&import_80020098, 0x40000) == 0) {
             return;
         }
     }
-    gl_func_00000000((char*)&D_00000000 + 0xB4);
-    v0 = (int*)a0[0x48 / 4];
-    idx = v0[0x7C / 4];
-    fn = *(void(**)(void))((char*)v0 + idx * 0x28 + 0x90);
-    if (fn == 0) return;
-    D_b5_24C_save_v0 = (int)v0;
-    D_b5_24C_save_v1 = (int)a0;
-    v0 = (int*)a0[0x48 / 4];
-    idx = v0[0x7C / 4];
-    fn = *(void(**)(void))((char*)v0 + idx * 0x28 + 0x90);
-    fn();
+    timproc_uso_b5_func_048E7C(&timproc_uso_b5_D_807FD924 + 0xB4);
+    p = (int *)a0[0x48 / 4];
+    if (((B5Ent24C *)((char *)p + 0x90))[p[0x7C / 4]].fn == 0) return;
+    *(int *)&timproc_uso_b5_D_807FF480 = (int)p;
+    *(int *)(&timproc_uso_b5_D_807FF484 + 4) = (int)a0;
+    p = (int *)a0[0x48 / 4];
+    ((B5Ent24C *)((char *)p + 0x90))[p[0x7C / 4]].fn();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000024C);
-#endif
 
 /* Empty body, K&R-style 1-arg signature emits `jr ra; sw a0, 0(sp)` —
  * IDO -O2 keeps the K&R arg-save in the jr delay slot even when unused.
@@ -6442,7 +6437,7 @@ extern int timproc_uso_b5_func_07ACE0();
 extern int timproc_uso_b5_func_04DFFC();
 extern int timproc_uso_b5_func_05D0E0();
 extern int timproc_uso_b5_func_04C774();
-extern int timproc_uso_b5_func_048E7C();
+extern void timproc_uso_b5_func_048E7C();
 extern int timproc_uso_b5_func_0546DC(char *, char *, f32, f32, f32);
 extern int timproc_uso_b5_func_0000A95C();
 void timproc_uso_b5_func_0000A928(int *a0);
