@@ -12201,73 +12201,56 @@ void gl_func_00041D40(s32 arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041D40);
 #endif
 
-// gl_func_00041EDC — NM WRAP 80.2% (2026-05-28, was documented-only). cb-scoped
-// list-iterate-and-dispatch over an intrusive {cur,next} cursor pair.
-//
-//   void gl_func_00041EDC(void *a0) {
-//     cb1(&D_0002F6D0);                            // open named scope
-//     void *it = a0->p2C;                           // list head
-//     if (it) {
-//       cur  = it->p00;                             // iterator pair held in
-//       next = it->p04;                             //   sp+0x18 / sp+0x1C
-//       while (cur != 0) {
-//         void *o = *cur;
-//         if (o->p18 & 4) {                          // per-node enable bit
-//           Vt vt = o->p28;
-//           short k = (short)o->p18;
-//           (*(fnptr)vt->...)(k + o);                // virtual dispatch
-//         }
-//         it   = next;                               // advance iterator
-//         cur  = it ? it->p00 : 0;
-//         next = it ? it->p04 : next;
-//       }
-//     }
-//     cb2();                                         // close scope
-//   }
-// Iterates the intrusive list rooted at a0->0x2C (a {cur,next} cursor pair
-// kept in sp+0x18/0x1C, chained via node->0x00 / node->0x04) and, for each
-// node whose 0x18 has bit 2 set, dispatches a virtual method (fnptr resolved
-// from the node's 0x28 vtable, arg = (short)node->0x18 + node), all bracketed
-// by a cb1/cb2 named-scope open/close. Family: cb-scope + list-walk +
-// vtable-dispatch (sibling of gl_func_0003E2B0 / 00040640 / 00040974).
-// Levers that got it to 80.2%: cursor pair modeled as `int *cursor[2]` (forces
-// the sp+0x18/0x1C stack-resident two-slot form, no s-reg promotion); SEPARATE
-// entry_chk (v1, entry test) vs cont (v0, loop continue) vars; `&self` to keep
-// self stack-homed+reloaded across the first call (not promoted to an s-reg).
-// RESIDUAL (~20%): `cont` still lands in s0 (target keeps it a v0 temp) and the
-// frame is 0x28 vs target 0x20 — a no-s-reg-at-all regalloc the C can't fully
-// force. Logic/structure exact; stays NM pending a regalloc lever.
+// gl_func_00041EDC — NM WRAP 97.29 (2026-10-16 agent-c; was 80.2). cb-scoped
+// list-iterate-and-dispatch: cb1(&D+0x1F6D0); walk the {cur,next} cursor
+// rooted at self->0x2C; for each node with node->0x18 & 4 call
+// vt->0x1C((short)vt->0x18 + node) with vt = node->0x28; cb2().
+// Re-decoded on the gl_func_00039EE4 iterator kit (exact sibling, same
+// dispatch body): dead while(0){pp=&cur;pp=&next;} anchor = sp+0x18/0x1C
+// memory homes; ternary-comma advance = collapsed-else b+1; if(0){vt=NULL;}
+// = vt in v1. The entry sw a0 / lw t6 home reload is just the param
+// call-spilled across cb1 (a `void **sp = &self` read via *sp per
+// #addr-taken-param-home-reload-t6-51714 is byte-identical). Frame 0x20, word count,
+// branches and the whole shape now EXACT (45/45 mnemonics).
+// RESIDUAL (register names only): (1) the ENTRY advance's result sits in v1
+// in the target (v0 here; the body/bottom copies are v0 in both), and
+// (2) the target's entry block burns two extra ugen ring slots (t8 after the
+// head load, t0 after cur[1]) so every later temp is +1/+2 (t9/t1/t2.. vs
+// t8/t9/t0..). The same two skipped slots appear in 39EE4 when the head
+// base is a REGISTER (param a0) — and reappear here only when the base is a
+// coloured local (`s = self` -> v0, ring t6/[t7]/t8/[t9]/t0) — but no spelling
+// gets both the t6 reload AND the skips. Probed (all byte-identical or worse):
+// separate entry var (first/t), while-cond comma form, for/if/goto entries,
+// pointer-form {cur,next} struct, typed LNode/owner structs, h-temp and
+// cur-first inits, int/ptr casts on every term, volatile self + named s,
+// register self, while(0) colour anchors in all 16 orders, if(0) demotion
+// on s/head, call-result-in-v0 occupancy.
 #ifdef NON_MATCHING
 void gl_func_00041EDC(void *self) {
-    int *cursor[2];  /* sp+0x18 = cursor[0] (cur), sp+0x1C = cursor[1] (next) */
-    int entry_chk;   /* v1 - entry test only */
-    int cont;        /* v0 - loop-continue */
-    void **selfp = &self;  /* force self stack-resident (homed+reloaded, no s-reg) */
+    int *next;
+    int *cur;
+    int *node;
+    int **pp;
 
-    (void)selfp;
     gl_func_00000000((char*)&D_00000000 + 0x1F6D0);
-    cursor[0] = *(int**)((char*)self + 0x2C);
-    cursor[1] = cursor[0];
-    entry_chk = 0;
-    if (cursor[0] != 0) {
-        cursor[1] = *(int**)((char*)cursor[0] + 4);
-        entry_chk = *(int*)cursor[0];
+    while (0) {
+        pp = &cur;
+        pp = &next;
     }
-    if (entry_chk != 0) {
-        do {
-            int *o = *(int**)cursor[0];
-            if (*(int*)((char*)o + 0x18) & 4) {
-                int *vt = *(int**)((char*)o + 0x28);
-                int (*fn)() = *(int(**)())((char*)vt + 0x1C);
-                fn(*(short*)((char*)vt + 0x18) + (int)o);
+    next = *(int **)((char *)self + 0x2C);
+    cur = next;
+    node = (cur != NULL) ? (next = (int *)cur[1], (int *)cur[0]) : NULL;
+    while (node != NULL) {
+        node = (int *)cur[0];
+        if (node[0x18 / 4] & 0x4) {
+            int *vt = (int *)node[0x28 / 4];
+            if (0) {
+                vt = NULL;
             }
-            cont = 0;
-            if (cursor[1] != 0) {
-                cursor[0] = cursor[1];
-                cursor[1] = *(int**)((char*)cursor[0] + 4);
-                cont = *(int*)cursor[0];
-            }
-        } while (cont != 0);
+            ((void (*)(int))vt[0x1C / 4])(*(short *)((char *)vt + 0x18) + (int)node);
+        }
+        cur = next;
+        node = (cur != NULL) ? (next = (int *)cur[1], (int *)cur[0]) : NULL;
     }
     gl_func_00000000();
 }
