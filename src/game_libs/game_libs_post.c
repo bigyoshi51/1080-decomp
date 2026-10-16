@@ -2762,50 +2762,24 @@ void game_libs_func_0001FF28(int *arg) {
 }
 
 
-// game_libs_func_0001FFAC (MERGED 2026-07-23: orphan 1FFAC 3-insn
-// lui/addiu v0 + lw t6,0x21C8(v0) is this fn's own hoisted head-store
-// load, same mis-split as sibling 1FF28+1FF34; was gl_func_0001FFB8;
-// 0xC+0x78=0x84) — STRUCTURAL PASS (0x84 / 33 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). Near-identical SIBLING of gl_func_0001FF34 — same 4-step
-// diagnostic / status-print sequence, different format descriptors.
-//
-//   void gl_func_0001FFB8(int arg) {
-//     *(int*)(&D_0 + 0x21CC) = ...;             // stash a value
-//     (*pr)(&D_21C8, *(int*)reg);                // jal 0 USO-reloc
-//     (*pr)(&D_21D8, arg);                        // jal 0 USO-reloc
-//     (*pr)(&D_21C8, *(int*)(reg2 + 4));          // jal 0 USO-reloc
-//     (*pr)(&D_21E8, arg);                        // jal 0 USO-reloc
-//   }
-//
-// Struct-typing reference: identical structure to gl_func_0001FF34
-//   (see its comment) — USO-relocated printf-like reporter `jal 0`
-//   slots, caller arg preserved across calls via sp+0x18. This
-//   variant uses descriptor blobs &D_21C8 / &D_21D8 / &D_21E8 from
-//   the same &D_21xx pool and reads the second value from reg2+0x4
-//   (vs +0xC in gl_func_0001FF34); stashes its handle at &D_0+0x21CC.
-//   Same game_libs report/dump support family.
-// Caps (DEFERRED): single jr $ra. Exact twin of gl_func_0001FF34 —
-//   report/dump-state sequence, same support family, different
-//   &D_21xx descriptor offsets and a +0x4 field (vs +0xC). Real-C
-//   STRUCTURAL body below per the analysis. Byte-match deferred —
-//   placeholder jal-0 reporter needs USO reloc infra. Name
-//   pre-checked: no extern reuse (collision-safe). gl_func_00000000
-//   = canonical never-defined USO placeholder for the reporter.
-#ifdef NON_MATCHING
-extern int gl_func_0001CA10();
+// game_libs_func_0001FFAC -- twin of game_libs_func_0001FF28 with another
+// descriptor set: stash *(D+0x21C8) at D+0x21CC, then four chained reporter
+// calls (D+0x21C8 / 0x21D8 / 0x21C8 / 0x21E8, values arg[0] / arg[1]).
+// Orphan 3-insn head merged 2026-07-23.
+// EXACT (unwrapped 2026-10-16): the reporter is called through the blank
+// alias gl_func_0001CA10_1FFAC (= 0 in undefined_syms_auto.txt). The ROM word
+// is `jal 0`; calling gl_func_0001CA10 directly would link its real in-unit
+// address (0x1CA10) into the jal and break cmp.
+extern int gl_func_0001CA10_1FFAC();
 void game_libs_func_0001FFAC(int *arg) {
     char *D = (char *)&D_00000000;
     int v;
     *(int *)(D + 0x21CC) = *(int *)(D + 0x21C8);
-    v = gl_func_0001CA10(D + 0x21C8, arg[0]);
-    v = gl_func_0001CA10(D + 0x21D8, v, arg[0]);
-    v = gl_func_0001CA10(D + 0x21C8, arg[1]);
-    gl_func_0001CA10(D + 0x21E8, v, arg[1]);
+    v = gl_func_0001CA10_1FFAC(D + 0x21C8, arg[0]);
+    v = gl_func_0001CA10_1FFAC(D + 0x21D8, v, arg[0]);
+    v = gl_func_0001CA10_1FFAC(D + 0x21C8, arg[1]);
+    gl_func_0001CA10_1FFAC(D + 0x21E8, v, arg[1]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FFAC);
-#endif
 
 
 // game_libs_func_00020030 -- "dump this object" report helper, fullest
