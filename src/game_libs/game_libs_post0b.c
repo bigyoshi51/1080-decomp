@@ -10687,43 +10687,148 @@ void gl_func_0003FC2C(int *a0) {
     a0[1] = 1;
 }
 
-// gl_func_0003FC58 — STRUCTURAL PASS (0x2E4 / 186 words, no episode). Raw-.word
-// USO. realjr=1, single prologue frame 0x180 (saves ra) → ONE clean function
-// (large opcode-switch). Carries a trailing _pad.s GLOBAL_ASM (left intact).
-// Command dispatcher (cb = jal 0 USO-relocated; per-case vtable method calls).
-//
-//   void gl_func_0003FC58(void *a0, int op, ...) {
-//     char scratch[..];                       // sp+0xE0 region
-//     cb(&scratch);                            // preamble emit/init
-//     *(int*)&D_flags |= 4;                    // set a module status bit
-//     switch (op) {                            // a1 = command/opcode
-//       case 0x34: case 0x16: case 0x0A: case 0x09: case 0x07:
-//       case 0x08: case 0x15: case 0x17: case 0x19: case 0x1B:
-//       case 0x1C:  // ...further li-at / beq-a1 arms follow...
-//         {
-//           // typical arm: resolve target object, then vtable dispatch
-//           Vt vt = obj->p28;
-//           short k = (short)vt->p28;
-//           (*(fnptr)vt->p2C)(k + obj);         // virtual method call
-//           // some arms read obj->0x28 -> +0xC fnptr / +0x08 short bias
-//           // variant, plus cb(...) emits with a format/string literal
-//         }
-//         break;
-//       default:  // fallthrough to common tail
-//     }
-//     // common tail: cb(...) finalize emits, return.
-//   }
-// Big li-immediate / beq-a1 opcode ladder (enumerated set above is the
-// leading run; ladder continues to ~0x84-offset default). Each arm resolves
-// an object and tail-dispatches through its vtable (vt = obj->0x28; fnptr at
-// vt->0x2C or vt->0x0C; arg = (short)vt->0x{28,08} + obj) interleaved with
-// cb staged emits. Family: command-handler/opcode dispatch + vtable (same
-// dispatch idiom as gl_func_0003EBDC/EC5C and the segment's serializers).
-// Per-arm bodies not individually decoded (186-word switch) — structure,
-// preamble, flag-set, opcode set and dispatch shape are exact; arm payloads
-// are representative. Caps: object/vtable struct + D_flags global + per-arm
-// detail untyped. Full body INCLUDE_ASM-preserved.
+// gl_func_0003FC58 -- NM decode 2026-10-17 agent-c (186 words vs 187 incl. pad).
+// Message dispatcher: fetch a 0xA0-byte message into a stack buffer, set bit 2
+// of a module flags word, dispatch on msg.type (unsorted beq chain 52, 22,
+// 10, 9, then ascending 7, 8, 21, 23, 25, 27, 28, default = error print of
+// the type), clear the bit. Arms: vtable calls on msg+0x08 / msg+0x48 objects
+// (vt at +0x28 or +0), a re-post of the message as type 9 with the value
+// fetched through msg+0x10 (int / float by msg+0x08), typed stores through
+// msg+0x10 (short / int / float), AND / OR masks, the 0x1C8 global object.
+// Load-bearing: msg.p12 as an int/float union (a cast through &msg.p12 makes
+// &msg a v1 candidate for the whole function); the flags RMW spelled as two
+// distinct symbols (`W = R | 4`: one symbol gives the lui/addiu address
+// register, the target has separate lui/lw + lui/sw); the type in a1 because
+// the default arm passes it as the printf argument. Residual: IDO pulls the
+// call-free 7 / 8 arms (AND / OR) inline after the compare chain (target keeps
+// them at their source position), so the bodies after them are shifted.
+#ifdef NON_MATCHING
+typedef struct VT3FC58 { char pad[8]; short off8; char padA[2]; void (*fnC)(); char pad10[0x18]; short off28; char pad2A[2]; void (*fn2C)(); } VT3FC58;
+typedef struct { VT3FC58 *vt0; char pad[0x24]; VT3FC58 *vt28; } O3FC58;
+typedef struct { int w; } W3FC58;
+typedef struct {
+    int type;        /* 0x00 */
+    int p4;
+    int p8;          /* 0x08 */
+    union { int i; float f; short h; } p12; /* 0x0C */
+    void *p16;       /* 0x10 */
+    char pad14[0x34];
+    O3FC58 *obj;     /* 0x48 */
+    int p4C;         /* 0x4C */
+    char pad50[0x50];
+} M3FC58;
+extern int D_3FC58_flags, D_3FC58_flagsW, D_3FC58_flags2, D_3FC58_flags2W;
+extern char D_3FC58_s1[];
+extern char D_3FC58_g[];
+
+void gl_func_0003FC58(int arg0) {
+    M3FC58 msg;
+    M3FC58 out;
+    O3FC58 *o;
+    int pad[6];
+    W3FC58 tmp;
+
+    gl_func_00000000(&msg);
+    D_3FC58_flagsW = D_3FC58_flags | 4;
+    if (msg.type == 52) goto c52;
+    if (msg.type == 22) goto c22;
+    if (msg.type == 10) goto c10;
+    if (msg.type == 9) goto c9;
+    switch (msg.type) {
+    case 7: goto c7;
+    case 8: goto c8;
+    case 21: goto c21;
+    case 23: goto c23;
+    }
+    switch (msg.type) {
+    case 25: goto c25;
+    case 27: goto c27;
+    case 28: goto c28;
+    default: goto cdef;
+    }
+    {
+    c52:
+            o = (O3FC58 *)msg.p8;
+            tmp.w = msg.p12.i;
+            o->vt28->fn2C(o->vt28->off28 + (char *)o, &tmp);
+            goto end;
+    c22:
+            o = msg.obj;
+            o->vt28->fnC(o->vt28->off8 + (char *)o);
+            gl_func_00000000(D_3FC58_s1);
+            goto end;
+    c10:
+            out = msg;
+            switch (msg.p8) {
+            case 1:
+                out.p12.i = *(int *)msg.p16;
+                break;
+            case 2:
+                out.p12.f = *(float *)msg.p16;
+                break;
+            }
+            out.type = 9;
+            gl_func_00000000(&out);
+            goto end;
+    c9:
+            switch (msg.p8) {
+            case 0:
+                *(short *)msg.p16 = msg.p12.i;
+                break;
+            case 1:
+                *(int *)msg.p16 = msg.p12.i;
+                break;
+            case 2:
+                *(float *)msg.p16 = msg.p12.f;
+                break;
+            }
+            goto end;
+    c7:
+            *(int *)msg.p16 &= msg.p12.i;
+            goto end;
+    c8:
+            *(int *)msg.p16 |= msg.p12.i;
+            goto end;
+    c21:
+            o = msg.obj;
+            o->vt0->fnC(o->vt0->off8 + (char *)o);
+            if (msg.p4C) {
+                gl_func_00000000(arg0);
+            }
+            goto end;
+    c23:
+            o = msg.obj;
+            o->vt0->fnC(o->vt0->off8 + (char *)o);
+            if (msg.p4C) {
+                gl_func_00000000(arg0);
+            }
+            goto end;
+    c25:
+            goto end;
+    c27:
+            gl_func_00000000();
+            goto end;
+    c28:
+            o = *(O3FC58 **)(D_3FC58_g + 0x1C8);
+            out.type = 25;
+            out.obj = o;
+            if (o == 0) {
+                gl_func_00000000((char *)&D_00000000 + 0x1F3B0);
+            } else {
+                o->vt28->fnC(o->vt28->off8 + (char *)o);
+            }
+            gl_func_00000000(arg0);
+            goto end;
+    cdef:
+            gl_func_00000000((char *)&D_00000000 + 0x1F3CC, msg.type);
+            goto end;
+    }
+end:
+    D_3FC58_flags2W = D_3FC58_flags2 & ~4;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FC58);
+#endif
 
 // gl_func_0003FF44 — STRUCTURAL PASS (0x94 / 38 words, no episode). Raw-.word
 // USO. realjr=1, single prologue frame 0x30 (saves ra, s0) → ONE clean
