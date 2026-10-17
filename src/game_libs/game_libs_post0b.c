@@ -30681,79 +30681,55 @@ void gl_func_0005CCF4(char *arg0, char *arg1, char *arg2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CCF4);
 #endif
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005CE68)();
+/* gl_func_0005CE68 - quaternion slerp with extra spins (Graphics Gems III,
+ * Morrison). EXACT 2026-10-17 (96.8 -> 100), replacing the m2c-lift body:
+ *  - the textbook form: NO x/y/z/w/bx locals; a->x etc. are read in the dot
+ *    and again in the blend, and uopt's CSE temps take the 40..24 homes (in
+ *    the no-call path the dot loads are reused, the call path re-reads).
+ *    Decls beta, theta, sin_t, cos_t, phi, bflip = homes 68..48; the t*phi
+ *    CSE temp takes 44. alpha (the float param) is reused as the second scale.
+ *  - operand order: cfe evaluates a plain float variable leaf LAST in a
+ *    commutative op; `(f32)beta * a->x` and `(f32)theta + ...` put the
+ *    variable first as in the target (same no-op cast lever as 5EF00).
+ *  - pi is a pinned extern (D_5CE68_pi = 0x2040): spelled as a
+ *    `*(f32 *)(&D_00000000 + 0x2040)` cast-deref it outranks the (f32)spin
+ *    conversion and rotates the whole FP temp ring by one. */
+typedef struct { f32 x, y, z, w; } Quat_5CE68;
 extern float gl_func_00000000_5ce68a(float); /* acos-slot USO callee */
 extern float gl_func_00000000_5ce68s(float); /* sin-slot USO callee */
-/* Quaternion slerp (Shoemake) with extra spins: q1 = scale0*q1 + t*q2 (flip t
- * when the dot is negative). NM 96.6 (2026-10-16 agent-c; was 84.3 under the
- * 2026-07-18 m2c-lift pass, 66.3 before). Frame 0x48, 123/123 words.
- * Levers: (1) the float param t is REUSED as scale1 (`t = sin(tt)/sinom`), not
- * copied into a local: the copy coalesced into t's incoming home (entry
- * `sw a2` + lwc1 reloads), the reuse gives the target's `mtc1 a2,f14` capture
- * with the swc1 spill to its home only on the call path. (2) named x = q1[0]
- * and bx = q2[0], both re-read after the calls, colour f16/f18 (de-naming
- * either leaves a CSE temp spilled to a frame home). (3) y/z/w named = spill
- * homes reloaded per use; natural x,y,z,w dot order; per-site prototyped
- * (float)->float acos/sin blank aliases (direct jal, single precision).
- * RESIDUAL: home layout -- the target homes tt (t*theta) at 0x2C between flip
- * and y, with y/z/w at 0x24/0x20/0x1C; here tt is unnamed (its CSE spill goes
- * to 0x18) and y/z/w sit one slot higher. Naming tt makes 12 names (frame
- * 0x50); folding cosom into scale0/sinom/theta/omega or de-naming x/bx all
- * cost more than they fix. Plus f16/f18 swapped for x/bx at entry. */
-void gl_func_0005CE68(f32 *q1, f32 *q2, f32 t, s32 spin) {
-    f32 scale0;
-    f32 omega;
-    f32 sinom;
-    f32 cosom;
+extern f32 D_5CE68_pi;
+void gl_func_0005CE68(Quat_5CE68 *a, Quat_5CE68 *b, f32 alpha, s32 spin) {
+    f32 beta;
     f32 theta;
-    s32 flip;
-    f32 x;
-    f32 y;
-    f32 z;
-    f32 w;
-    f32 bx;
+    f32 sin_t;
+    f32 cos_t;
+    f32 phi;
+    s32 bflip;
 
-    bx = q2[0];
-    x = q1[0];
-    y = q1[1];
-    z = q1[2];
-    w = q1[3];
-    cosom = x * bx + y * q2[1] + z * q2[2] + w * q2[3];
-    if (cosom < 0.0) {
-        cosom = -cosom;
-        flip = 1;
+    cos_t = a->x * b->x + a->y * b->y + a->z * b->z + a->w * b->w;
+    if (cos_t < 0.0) {
+        cos_t = -cos_t;
+        bflip = 1;
     } else {
-        flip = 0;
+        bflip = 0;
     }
-    if ((1.0f - cosom) < *(f64 *)((char *)&D_00000000 + 0x2038)) {
-        scale0 = 1.0f - t;
+    if (1.0f - cos_t < *(f64 *)((char *)&D_00000000 + 0x2038)) {
+        beta = 1.0f - alpha;
     } else {
-        omega = gl_func_00000000_5ce68a(cosom);
-        theta = omega + *(f32 *)((char *)&D_00000000 + 0x2040) * (f32)spin;
-        sinom = gl_func_00000000_5ce68s(omega);
-        scale0 = gl_func_00000000_5ce68s(omega - t * theta) / sinom;
-        t = gl_func_00000000_5ce68s(t * theta) / sinom;
-        bx = q2[0];
-        x = q1[0];
-        y = q1[1];
-        z = q1[2];
-        w = q1[3];
+        theta = gl_func_00000000_5ce68a(cos_t);
+        phi = (f32)theta + (f32)spin * D_5CE68_pi;
+        sin_t = gl_func_00000000_5ce68s(theta);
+        beta = gl_func_00000000_5ce68s(theta - alpha * phi) / sin_t;
+        alpha = gl_func_00000000_5ce68s(alpha * phi) / sin_t;
     }
-    if (flip) {
-        t = -t;
+    if (bflip) {
+        alpha = -alpha;
     }
-    q1[0] = scale0 * x + t * bx;
-    q1[1] = scale0 * y + t * q2[1];
-    q1[2] = scale0 * z + t * q2[2];
-    q1[3] = scale0 * w + t * q2[3];
+    a->x = (f32)beta * a->x + alpha * b->x;
+    a->y = (f32)beta * a->y + alpha * b->y;
+    a->z = (f32)beta * a->z + alpha * b->z;
+    a->w = (f32)beta * a->w + alpha * b->w;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CE68);
-#endif
 
 /* gl_func_0005D054: quaternion (Hamilton) product a2 = a0 * a1.
  * BYTE-EXACT C FOUND 2026-06-10 (56/56 standalone, zero diffs): the

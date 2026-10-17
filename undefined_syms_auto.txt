@@ -3878,3 +3878,6 @@ gl_func_00000000_5ef00q = 0x00000000;  /* (float)->float sqrt-slot blank for gl_
 gl_func_00000000_5ef00s = 0x00000000;  /* (float)->float sin-slot blank for gl_func_0005EF00 */
 gl_func_00000000_5ef00c = 0x00000000;  /* (float)->float cos-slot blank for gl_func_0005EF00 */
 gl_func_00000000_5ef00i = 0x00000000;  /* (mtx) void ident-slot blank for gl_func_0005EF00 */
+gl_func_00000000_5ce68a = 0x00000000;  /* (float)->float acos-slot blank for gl_func_0005CE68 */
+gl_func_00000000_5ce68s = 0x00000000;  /* (float)->float sin-slot blank for gl_func_0005CE68 */
+D_5CE68_pi = 0x00002040;  /* gl_func_0005CE68 pi literal in bootup.uso RoData (+0x2040), pinned so it ranks as a global load */
