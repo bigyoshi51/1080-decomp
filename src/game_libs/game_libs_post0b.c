@@ -31349,43 +31349,25 @@ void gl_func_0005E664(float *src, float scale, int a2) {
     func_00000000(buf, a2);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0005E718: 53-insn 3x3 matrix multiply into a stack result, then a call.
- * result[r][c] = sum_k src[r][k] * dst[k][c]  (row stride 4 floats / 0x10 bytes),
- * computed by 3 nested do-while loops (IDO unrolls the inner dot-product via
- * beql/bnel + the doubled add.s), then func_00000000(result, savedArg). Sibling
- * of the gl_func_0005E138 matrix family. NM (reference decode): reloc-depressed
- * placeholder call (raw-.word game_libs) + the inner branch-likely/unroll +
- * FP-accumulation reg pattern won't byte-match from straight C. */
-extern int func_00000000();
-void gl_func_0005E718(float *src, float *dst, int arg) {
-    float result[12];
-    float *rrow = result;
-    float *srow = src;
-    do {
-        float *rcell = rrow;
-        int col = 0;
-        do {
-            float *s = srow;
-            float *d = dst + col;
-            int k = 0;
-            *rcell = 0.0f;
-            do {
-                *rcell = *rcell + (*s) * (*d);
-                s++;
-                d += 4;
-            } while (++k != 3);
-            rcell++;
-            col++;
-        } while (col != 3);
-        rrow += 4;
-        srow += 4;
-    } while (rrow != result + 12);
-    func_00000000(result, arg);
+/* gl_func_0005E718: 3x3 matrix product into a stack 4x4, then a call
+ * (0xD4, frame 0x88). EXACT: the natural triple loop. IDO pipelines the
+ * k loop (beql/bnel rotation) because both sources are parameters; the
+ * result is a full f32[4][4] (the frame's 16 bytes above the 3 used
+ * rows), not [3][4]. */
+void gl_func_0005E718(f32 (*a)[4], f32 (*b)[4], s32 arg) {
+    f32 r[4][4];
+    s32 i, j, k;
+
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 3; j++) {
+            r[i][j] = 0.0f;
+            for (k = 0; k < 3; k++) {
+                r[i][j] += a[i][k] * b[k][j];
+            }
+        }
+    }
+    gl_func_00000000(r, arg);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E718);
-#endif
 
 // Identity-init a 4x4 matrix: diagonal (0x0/0x14/0x28/0x3C) = 1.0f, the other
 // 12 floats = 0.0f. 1.0f stores written first so 1.0f owns $f0, 0.0f -> $f2
