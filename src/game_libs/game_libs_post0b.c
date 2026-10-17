@@ -15755,99 +15755,38 @@ void game_libs_func_00046788(int *a0, int a1) {
 // extraction are exact. Caps: table/stream struct + &D_0+0x240 global
 // untyped. Full body INCLUDE_ASM-preserved.
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00046790)();
-void gl_func_00046790(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
-    s16 *sp0;
-    s16 *temp_a2;
-    s16 *temp_a2_2;
-    s16 *temp_a2_3;
-    s16 *temp_a2_4;
-    s16 *temp_t1;
-    s16 var_a1;
-    s16 var_a1_2;
-    s16 var_a1_3;
-    s16 var_a1_4;
-    s32 temp_v0;
-    s32 temp_v1;
-    s32 temp_v1_2;
-    s32 temp_v1_3;
-    s32 var_a0;
-    s32 var_v0;
-    s32 var_v1;
+/* NM re-decode 2026-10-17 agent-c: draw ASCII glyph ch (< 128) from a 4bpp
+ * 128-px-wide font sheet into the 320-wide u16 framebuffer at (x, y);
+ * set pixels = 0xFFFE, clear = 0. */
+extern char D_46790_g[];
+extern unsigned char D_46790_font[];
+void gl_func_00046790(char *o, unsigned char ch, int x, int y) {
+    unsigned short *dst;
+    int c;
+    int idx;
+    int i, j;
+    unsigned short px;
 
-    temp_t1 = FW((*(s32 *)0x240 + (FW(arg0, 0x204) * 4)), 0xF4);
-    temp_v0 = arg1 & 0xFF;
-    sp0 = temp_t1;
-    sp0 = &temp_t1[(arg3 * 0x140) + (int)arg2];
-    if (temp_v0 < 0x80) {
-        var_v1 = ((temp_v0 / 16) << 0xA) + ((temp_v0 & 0xF) * 8);
-        var_a0 = 0;
-        do {
-            var_v0 = 0;
-loop_3:
-            var_a1 = 0;
-            if (var_v1 & 1) {
-                if (*(int*)(var_v1 >> 1) & 0xF) {
-                    goto block_7;
+    if (1) { unsigned short **q = &dst; }
+    dst = *(unsigned short **)(*(char **)(D_46790_g + 576) + *(int *)(o + 516) * 4 + 244);
+    dst += y * 320 + x;
+    c = ch;
+    if (c < 128) {
+        idx = (c / 16) * 1024 + (c & 15) * 8;
+        for (i = 0; i < 8; i++) {
+            for (j = 0; j < 8; j++) {
+                px = 0;
+                if (idx & 1) {
+                    if (D_46790_font[idx >> 1] & 0xF) px = 0xFFFE;
+                } else {
+                    if (D_46790_font[idx >> 1] & 0xF0) px = 0xFFFE;
                 }
-            } else if (*(int*)(var_v1 >> 1) & 0xF0) {
-block_7:
-                var_a1 = 0xFFFE;
+                *dst++ = px;
+                idx++;
             }
-            temp_a2 = sp0;
-            temp_v1 = var_v1 + 1;
-            sp0 = temp_a2 + 2;
-            *temp_a2 = var_a1;
-            var_a1_2 = 0;
-            if (temp_v1 & 1) {
-                if (*(int*)(temp_v1 >> 1) & 0xF) {
-                    goto block_12;
-                }
-            } else if (*(int*)(temp_v1 >> 1) & 0xF0) {
-block_12:
-                var_a1_2 = 0xFFFE;
-            }
-            temp_a2_2 = sp0;
-            temp_v1_2 = temp_v1 + 1;
-            sp0 = temp_a2_2 + 2;
-            *temp_a2_2 = var_a1_2;
-            var_a1_3 = 0;
-            if (temp_v1_2 & 1) {
-                if (*(int*)(temp_v1_2 >> 1) & 0xF) {
-                    goto block_17;
-                }
-            } else if (*(int*)(temp_v1_2 >> 1) & 0xF0) {
-block_17:
-                var_a1_3 = 0xFFFE;
-            }
-            temp_a2_3 = sp0;
-            temp_v1_3 = temp_v1_2 + 1;
-            sp0 = temp_a2_3 + 2;
-            *temp_a2_3 = var_a1_3;
-            var_a1_4 = 0;
-            if (temp_v1_3 & 1) {
-                if (*(int*)(temp_v1_3 >> 1) & 0xF) {
-                    goto block_22;
-                }
-            } else if (*(int*)(temp_v1_3 >> 1) & 0xF0) {
-block_22:
-                var_a1_4 = 0xFFFE;
-            }
-            temp_a2_4 = sp0;
-            var_v0 += 4;
-            var_v1 = temp_v1_3 + 1;
-            sp0 = temp_a2_4 + 2;
-            *temp_a2_4 = var_a1_4;
-            if (var_v0 != 8) {
-                goto loop_3;
-            }
-            var_a0 += 1;
-            var_v1 += 0x78;
-            sp0 += 0x270;
-        } while (var_a0 != 8);
+            dst += 312;
+            idx += 120;
+        }
     }
 }
 #else
