@@ -10971,38 +10971,112 @@ void gl_func_000402A4(int *a0, float dx, float dy, float dz) {
 }
 
 
-// gl_func_00040304 — STRUCTURAL PASS (0x338 / 207 words, no episode). Raw-.word
-// USO. realjr=1 (the early 01E00008 is jr t7 = jump-table dispatch, NOT a
-// function boundary), single prologue frame 0x90 (saves ra, s0) → ONE clean
-// function. 6-way jump-table command handler (cb = jal 0 USO-relocated).
-//
-//   void gl_func_00040304(void *a0, int *a1) {
-//     self = a0;
-//     unsigned idx = (unsigned)(*a1 - 0x6D);    // opcode rebased
-//     if (idx >= 6) goto def;                    // sltiu/beqz range guard
-//     goto *jumptab[idx];                        // table at &D_0+0x1AE4
-//     // each of the 6 arms:
-//     //   t = cb(&self->p..., a2, a3);          // build/resolve a payload
-//     //   copy 3-word block from t into a sp scratch (sp+0x6C..)
-//     //   load a float vec/quad from the scratch and store it into the
-//     //   object at +0xE8 / +0xEC / +0xF0 / +0xF4 / +0xF8 (Vec3/Quad set)
-//     //   cb(&scratch, ...) re-emit / commit the transformed block
-//     //   self pointers reloaded from self+0xC0 / +0xCC across arms
-//     def:
-//     // default arm: same copy/emit shape with a different source offset
-//   }
-// Per-opcode geometry/transform property setter: rebases the command byte
-// *(a1) by 0x6D, range-checks to [0,5], dispatches through a 6-entry jump
-// table at &D_0+0x1AE4 (USO-relocated data region — extends the &D_0 table
-// block), each arm copying a float Vec3/Quad from a cb-populated sp scratch
-// into the object's +0xE8.. field group and re-emitting via cb. Family:
-// jump-table command dispatch + FP-vec property set (relates to the segment's
-// cb-serialize / geometry routines). Per-arm bodies not individually decoded
-// (207-word table handler) — dispatch math, range guard, table address and
-// the +0xE8 vec-store shape are exact; arm payloads are representative.
-// Caps: object struct, the &D_0+0x1AE4 jump table and cb signature untyped.
-// Full body INCLUDE_ASM-preserved.
+// gl_func_00040304 -- NM decode 2026-10-17 agent-c (207/207 words, 8 words off).
+// Transform-command handler: switch on cmd->op 0x6D..0x72 through the USO
+// RoData jumptable at +0x1AE4 (0x70/0x71 = default holes, so the switch keeps
+// the target's `sll` in the bound-check delay). 0x6D/0x6E/0x6F decode a Vec3 /
+// quaternion / Vec3 into self (+0xC0 / +0xCC / +0xB4) via the stream reader and
+// mirror it into +0xE8 / +0xF4 / +0xDC through a Vec3 stack copy; 0x72 reads
+// a packed s16[10] record (pos, quat * 1/32767 [RoData +0x1AFC literal], scale
+// * 0.01f [RoData +0x1AE0, a memory load: the target never hoists it]),
+// mirrors all three, rebuilds the 0x30 matrix and copies it to +0x70.
+// Load-bearing: frame map by decl order (Vec3 z/x/y at 132/108/60, sp+p in
+// the 120..132 gap); `sp = &self->scl` + `sp->z` store (the alias that keeps
+// the pos-copy loads below the scale stores); if(1) after the first quat
+// product and before `y = *sp` (FP ring = target); dead `while (0)` anchor
+// orders the FP candidates a,b,kt,d. Residual: K1 colours f18 (target f14)
+// and c/d f16/f14 (target f16/f18); the &self->m30 spill takes 32(sp) vs
+// 36(sp). Exact route: the 44B78 donor splice (game_libs_func_..._rodata =
+// 0x1AE4, D_40304_k001 = 0x1AE0).
+#ifdef NON_MATCHING
+typedef struct { float m[16]; } Mtx44_40304;
+typedef struct {
+    char pad0[0x30];
+    Mtx44_40304 m30;      /* 0x30 */
+    Mtx44_40304 m70;      /* 0x70 */
+    float padB0;
+    Vec3 pos;       /* 0xB4 */
+    Vec3 scl;       /* 0xC0 */
+    float q[4];     /* 0xCC */
+    Vec3 pos2;      /* 0xDC */
+    Vec3 scl2;      /* 0xE8 */
+    float q2[4];    /* 0xF4 */
+} Obj40304;
+typedef struct { int op; short **cur; } Cmd40304;
+extern float D_40304_k001;
+extern void gl_func_00000000_q(float *, float, float, float);
+
+void gl_func_00040304(Obj40304 *self, Cmd40304 *cmd) {
+    Vec3 z;
+    Vec3 *sp;
+    short **p;
+    float kt;
+    Vec3 x;
+    Vec3 pad2[3];
+    Vec3 y;
+    short *v;
+    float a, b, c, d;
+
+    switch (cmd->op) {
+        case 0x6D:
+            gl_func_00000000(cmd, &self->scl);
+            x = self->scl;
+            self->scl2.x = x.x; self->scl2.y = x.y; self->scl2.z = x.z;
+            break;
+        case 0x6E:
+            gl_func_00000000(cmd, &z);
+            gl_func_00000000_q(self->q, z.x, z.y, z.z);
+            x = *(Vec3 *)self->q;
+            self->q2[0] = x.x; self->q2[1] = x.y; self->q2[2] = x.z; self->q2[3] = self->q[3];
+            break;
+        case 0x6F:
+            gl_func_00000000(cmd, &self->pos);
+            x = self->pos;
+            self->pos2.x = x.x; self->pos2.y = x.y; self->pos2.z = x.z;
+            break;
+        case 0x72:
+            while (0) { a = 0; b = 0; kt = 0; d = kt * (1.0f / 32767.0f); }
+            p = cmd->cur; cmd->cur = p + 1; v = *p;
+            sp = &self->scl;
+            a = v[3] * (1.0f / 32767.0f);
+            if (1) {}
+            b = v[4] * (1.0f / 32767.0f);
+            c = v[5] * (1.0f / 32767.0f);
+            d = v[6] * (1.0f / 32767.0f);
+            self->q[0] = a;
+            self->q[1] = b;
+            self->q[2] = c;
+            self->q[3] = d;
+            self->pos.x = v[0];
+            self->pos.y = v[1];
+            self->pos.z = v[2];
+            kt = D_40304_k001;
+            a = v[7] * kt;
+            b = v[8] * kt;
+            c = v[9] * kt;
+            self->scl.x = a;
+            self->scl.y = b;
+            sp->z = c;
+            x = self->pos;
+            self->pos2.x = x.x; self->pos2.y = x.y; self->pos2.z = x.z;
+            if (1) {}
+            y = *sp;
+            self->scl2.x = y.x; self->scl2.y = y.y; self->scl2.z = y.z;
+            y = *(Vec3 *)self->q;
+            self->q2[0] = y.x; self->q2[1] = y.y; self->q2[2] = y.z; self->q2[3] = self->q[3];
+            gl_func_00000000(&self->pos2, &self->m30, sp);
+            self->m70 = self->m30;
+            break;
+        case 0x70:
+        case 0x71:
+        default:
+            gl_func_00000000(self, cmd);
+            break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040304);
+#endif
 
 // gl_func_00040640 — STRUCTURAL PASS (0x330 / 205 words, no episode). Raw-.word
 // USO. realjr=1, regjr=1 (the 01E00008 at +0x44 is jr t7 = jump-table
