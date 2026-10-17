@@ -34004,7 +34004,17 @@ void game_libs_func_00061F70(GlFunc61F70Struct *a0, int a1) {
     a0->f18 = a1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061F8C);
+/* gl_func_00061F8C: (cmd, val) record loader (0x208 / 130 words). Reads
+ * int pairs from the stream until cmd == 0; switch (cmd) cases 1..5 (alloc +
+ * read a val*8 block, set the s16 at +0, read/skip a block, skip, set the s16
+ * at +2), default prints cmd; then checks the +0 id against (+0x18)->0x38 and
+ * sets +4 = 7. WIRED via REPLACE_FUNC_BODY donor splice: the real C lives in
+ * the IDO 7.1 -O2 donor unit game_libs_o2_61F8C.c; the splice renames the
+ * donor-local jumptable reloc to gl_func_00061F8C_rodata, pinned to the USO
+ * RoData at +0x2080. Body below is a placeholder for the splice. */
+void gl_func_00061F8C(char *self) {
+    *(volatile int *)(self + 4) = 7;
+}
 
 #ifdef NON_MATCHING
 /* gl_func_00062194: 65-insn 64-bit-multiply-based scale + dispatch (0x104, frame 0x28).

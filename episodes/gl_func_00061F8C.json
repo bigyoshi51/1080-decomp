@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00061F8C",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-10-17T22:41:23.577113+00:00",
+  "end_time": "2026-10-17T22:41:23.577132+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-10-17T22:41:23.577128+00:00",
+      "assistant_text": "Exact via donor splice: 5-case jumptable pinned at RoData +0x2080, nonzero baked jals pinned, store-forwarded print arg, volatile base read.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 130,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 -O2 donor for gl_func_00061F8C -- (cmd, val) record loader\n * (0x208 / 130 words; 130/130 word-exact apart from reloc fields).\n *\n * WIRED via REPLACE_FUNC_BODY donor splice into game_libs_post0b.c.o (the\n * 52CD4 / 3AC5C recipe, docs/MATCHING_WORKFLOW.md#post0b-jumptable-donor-52cd4).\n * switch (cmd) cases 1..5: the 5-entry table sits at donor .rodata +0, renamed\n * gl_func_00061F8C_rodata and pinned to bootup.uso RoData +0x2080 (the\n * extractor dump at roff 0x2084 lists exactly the five arms in address order).\n *\n * Load-bearing shapes:\n *  - the stream reader (jal 0x0C01D913) and the debug print (jal 0x0C01D900)\n *    are NONZERO baked jals -> gl_ref_0007644C / gl_ref_00076400 pins; the\n *    default arm and the exit check are plain jal 0 (gl_func_00000000).\n *  - the default arm passes cmd as a1, which is why cmd is loaded into a1.\n *  - case 1 prints the value it just stored (`*(int *)(self + 0xC)`): IDO\n *    forwards the stored t7 (`or a1,t7`); passing `val` reloads it from the\n *    stack (&val escaped), and a named copy adds 8 frame bytes.\n *  - `base[1]` with base = &D_00000000 constant-folds to a fresh lui t0; a\n *    volatile read through the s3 base keeps the target's `lw t0,4(s3)`. */\n#include \"common.h\"\n\nextern int gl_func_00000000();\nextern int D_00000000;\nextern int gl_ref_0007644C(); /* baked jal 0x0C01D913: stream int reader */\nextern int gl_ref_00076400(); /* baked jal 0x0C01D900: debug print */\nextern char gl_ref_0002205C_61F8C[], gl_ref_00022068_61F8C[], gl_ref_00022078_61F8C[];\nextern char gl_ref_00022088_61F8C[], gl_ref_00022098_61F8C[], gl_ref_000220AC_61F8C[];\n\nvoid gl_func_00061F8C(char *self) {\n    int *base;\n    int cmd;\n    int val;\n    int n;\n    int buf;\n\n    base = &D_00000000;\n    *(s16 *)(self + 0) = 0;\n    for (;;) {\n        gl_ref_0007644C(&cmd);\n        gl_ref_0007644C(&val);\n        if (cmd == 0) {\n            break;\n        }\n        switch (cmd) {\n        case 1:\n            n = val * 8;\n            if (*(int *)(self + 0x1C) == 0) {\n                *(int *)(self + 0xC) = val;\n                gl_ref_00076400(gl_ref_0002205C_61F8C, *(int *)(self + 0xC));\n                *(int *)(self + 0x10) = gl_func_00000000(*(int *)(self + 0xC) * 8);\n                gl_func_00000000(base, *(int *)(self + 0x10), n);\n            } else {\n                buf = gl_func_00000000(n);\n                gl_func_00000000(base, buf, n);\n                gl_func_00000000(buf);\n            }\n            break;\n        case 2:\n            *(s16 *)(self + 0) = val;\n            gl_ref_00076400(gl_ref_00022068_61F8C, *(s16 *)(self + 0));\n            break;\n        case 3:\n            n = val;\n            gl_ref_00076400(gl_ref_00022078_61F8C, n);\n            if (((volatile int *)base)[1] == 0) {\n                *(int *)(self + 8) = gl_func_00000000(n, 8);\n                gl_func_00000000(base, *(int *)(self + 8), n);\n            } else {\n                *(int *)(self + 8) = 0;\n                *(int *)(self + 0x14) = gl_func_00000000(base, 1, 0);\n                gl_func_00000000(base, 1, n);\n            }\n            break;\n        case 4:\n            gl_func_00000000(base, 1, val);\n            break;\n        case 5:\n            *(s16 *)(self + 2) = val;\n            gl_ref_00076400(gl_ref_00022088_61F8C, *(s16 *)(self + 2));\n            break;\n        default:\n            gl_func_00000000(gl_ref_00022098_61F8C, cmd);\n            break;\n        }\n    }\n    if (*(s16 *)(self + 0) != 0 && *(int *)(*(char **)(self + 0x18) + 0x38) != *(s16 *)(self + 0)) {\n        gl_func_00000000(gl_ref_000220AC_61F8C);\n    }\n    *(int *)(self + 4) = 7;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o2_61F8C.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_00061F8C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "ROM byte-identical (cmp tenshoe.z64 baserom.z64); make verify-blocks 6/6; non_matching_objects; refresh-report 100.0; donor splice, diffs only at reloc sites"
+  }
+}
