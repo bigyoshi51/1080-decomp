@@ -31245,169 +31245,84 @@ void gl_func_0005E190(int a0, float *m) {
     } while (i < 4);
 }
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005E288)();
-/* gl_func_0005E288: 362-insn 4x4-matrix-multiply chain (frame -0x298).
- * 2026-06-04 RECONSTRUCT 28.8% -> 65.2% (+36.4pp): the m2c decode had the
- * matrix locals as adjacent scalars (sp258/sp218/...) which collapsed the
- * frame to -0x148 and degenerated the inner multiply loops to 1 iteration.
- * Ghidra (scripts/ghidra-decompile-func.sh) revealed the true 4x4 layout —
- * arrays m22c[19]/m1e0[20]/m190[16]/s150[4]/m140[20]/.../a40[16], each loop
- * bound being the NEXT array's address. Rewrote as the three matrix-multiply
- * sections Ghidra shows (arg0 x c0 -> m190; the param2-loop c0 x m140 -> m1e0;
- * m140 x arg0 -> m22c). gl_func_00034458 is the Mat4 op. Remaining ~35% is
- * register-allocation grind inside the MAC loops (the v10..v14 temps and
- * p1..p7 walkers color differently than IDO). See MATCHING_WORKFLOW.md
- * "Next-target lead: gl_func_0005E288" for the layout. */
-void gl_func_0005E288(f32 *arg0, s32 arg1) {
-    f32 m22c[19];
-    f32 m1e0[20];
-    f32 m190[16];
-    f32 s150[4];
-    f32 m140[20];
-    f32 f0a[4];
-    f32 e0a[4];
-    f32 d0a[4];
-    f32 c0[20];
-    f32 m70[4];
-    f32 m60[4];
-    f32 m50[4];
-    f32 a40[16];
-    f32 *p1, *p2, *p3, *p4, *p5, *p6, *p7;
-    int *p9;
-    int i;
-    f32 v10, v11, v12, v13, v14;
+extern s32 gl_ref_00021AC8_5E288[];
+/* gl_func_0005E288: 4x4 matrix chain (0x3DC, frame 0x298). EXACT.
+ * B = op(a); r1 = a x B; then ops on r1/X/Y/Z/W; for m = 1..n-1:
+ * T = Y x Z, then three ops pulling gl_ref_00021AC8_5E288[m]; finally
+ * R = W x a and op(R, a). All three products are the natural triple loop
+ * (IDO unrolls the inner sum by 4). Load-bearing (2026-10-17 agent-g):
+ *  - the product reading a local through a pointer alias (d = Y, d = R)
+ *    keeps the per-iteration row loads (a direct Y[i][k] hoists them out
+ *    of the column loop), and a product reading the param `a` gets IDO's
+ *    pipelined (beql/bnel-rotated) column loop, matching loops 1 and 3;
+ *  - `a = arg0` puts the param in s1 (spelled on the param it stays in its
+ *    home and is reloaded);
+ *  - the index letters per loop: loop 1 rows i / cols k / sum j, loop 3
+ *    rows i / cols m / sum k. That keeps j's (IV-eliminated) live range
+ *    off a2, so the column pointers colour a2/a3 as in the target;
+ *  - every declared scalar gets a frame home in declaration order: the
+ *    i/j/k/m homes are the 16 bytes between r1 and T, pad1 is the 16
+ *    bytes between W and r1, pad2 the 12 between T and R, and d/a/e the
+ *    homes below R (e is unused; it moves the spill slot to sp+76). */
+void gl_func_0005E288(f32 (*arg0)[4], s32 n) {
+    f32 X[4][4];
+    f32 B[4][4];
+    f32 Y[4][4];
+    f32 Z[4][4];
+    f32 W[4][4];
+    f32 pad1[4];
+    f32 r1[4][4];
+    s32 i;
+    s32 j;
+    s32 k;
+    s32 m;
+    f32 T[4][4];
+    f32 pad2[3];
+    f32 R[4][4];
+    f32 (*d)[4];
+    f32 (*a)[4];
+    f32 (*e)[4];
 
-    p3 = c0 + 0x10;
-    gl_func_00034458(arg0, p3);
-    p6 = m190;
-    p7 = arg0;
-    do {
-        *p6 = 0.0f;
-        p5 = c0 + 0x11;
-        if (p5 == m70) {
-            v14 = *p6 + *p7 * c0[0x10];
-            p1 = p6;
-        } else {
-            v14 = *p6 + *p7 * c0[0x10];
-            p2 = p6;
-            for (;;) {
-                v13 = p5[3];
-                v12 = p5[7];
-                v10 = p5[0xb];
-                *p2 = v14;
-                v14 = *p5;
-                p5 = p5 + 1;
-                p1 = p2 + 1;
-                *p2 = *p2 + p7[1] * v13;
-                *p2 = *p2 + p7[2] * v12;
-                v12 = p7[3];
-                *p1 = 0.0f;
-                *p2 = *p2 + v12 * v10;
-                if (p5 == m70) break;
-                v14 = *p1 + *p7 * v14;
-                p2 = p1;
+    a = arg0;
+    gl_func_00000000(a, B);
+    for (i = 0; i < 4; i++) {
+        for (k = 0; k < 4; k++) {
+            r1[i][k] = 0.0f;
+            for (j = 0; j < 4; j++) {
+                r1[i][k] += a[i][j] * B[j][k];
             }
-            v14 = *p1 + *p7 * v14;
         }
-        v13 = p5[3];
-        v12 = p5[7];
-        v10 = p5[0xb];
-        *p1 = v14;
-        *p1 = *p1 + p7[1] * v13;
-        *p1 = *p1 + p7[2] * v12;
-        *p1 = *p1 + p7[3] * v10;
-        p6 = p6 + 4;
-        p7 = p7 + 4;
-    } while (p6 != s150);
-    gl_func_00034458(m190, p3);
-    gl_func_00034458(a40);
-    gl_func_00034458(arg0, a40, c0);
-    p7 = m140 + 0x10;
-    gl_func_00034458(p7);
-    gl_func_00034458(m140);
-    v14 = 0.0f;
-    if (arg1 >= 2) {
-        p9 = (int *)((char *)&D_00000000 + 0x21ACC);
-        do {
-            p5 = m1e0;
-            p6 = c0;
-            do {
-                p2 = p5;
-                p1 = m140 + 0x10;
-                do {
-                    v12 = *p6;
-                    v11 = *p1;
-                    *p2 = 0.0f;
-                    v13 = p1[4];
-                    v14 = p6[1];
-                    p4 = p1 + 1;
-                    v10 = p1[8];
-                    *p2 = *p2 + v12 * v11;
-                    v12 = p6[2];
-                    v11 = p1[0xc];
-                    *p2 = *p2 + v14 * v13;
-                    v14 = p6[3];
-                    *p2 = *p2 + v12 * v10;
-                    *p2 = *p2 + v14 * v11;
-                    p2 = p2 + 1;
-                    p1 = p4;
-                } while (p4 != f0a);
-                p6 = p6 + 4;
-                p5 = p5 + 4;
-            } while (p6 != c0 + 0x10);
-            gl_func_00034458(m1e0, p7);
-            gl_func_00034458(p7, *p9, p3);
-            gl_func_00034458(m140, p3, m140);
-            v14 = 0.0f;
-            p9 = p9 + 1;
-        } while (p9 != (int *)((char *)&D_00000000 + 0x21AC8 + arg1 * 4));
     }
-    p6 = m22c;
-    p7 = m140;
-    do {
-        *p6 = v14;
-        i = 4;
-        v10 = *p6 + *p7 * *arg0;
-        p3 = p6;
-        p5 = arg0;
-        for (;;) {
-            v11 = p7[1];
-            v13 = p7[2];
-            v12 = p7[3];
-            *p3 = v10;
-            v10 = *p7;
-            i = i + 4;
-            p2 = p3 + 1;
-            *p3 = *p3 + v11 * p5[4];
-            *p3 = *p3 + v13 * p5[8];
-            v13 = p5[0xc];
-            *p2 = v14;
-            *p3 = *p3 + v12 * v13;
-            v10 = v10 * p5[1];
-            if (i == 0x10) break;
-            v10 = *p2 + v10;
-            p3 = p2;
-            p5 = p5 + 1;
+    gl_func_00000000(r1, B);
+    gl_func_00000000(X);
+    gl_func_00000000(a, X, Y);
+    gl_func_00000000(Z);
+    gl_func_00000000(W);
+    for (m = 1; m < n; m++) {
+        d = Y;
+        for (i = 0; i < 4; i++) {
+            for (j = 0; j < 4; j++) {
+                T[i][j] = 0.0f;
+                for (k = 0; k < 4; k++) {
+                    T[i][j] += d[i][k] * Z[k][j];
+                }
+            }
         }
-        v11 = p7[1];
-        v13 = p7[2];
-        v12 = p7[3];
-        *p2 = *p2 + v10;
-        *p2 = *p2 + v11 * p5[5];
-        *p2 = *p2 + v13 * p5[9];
-        *p2 = *p2 + v12 * p5[0xd];
-        p7 = p7 + 4;
-        p6 = p6 + 4;
-    } while (p7 != m140 + 0x10);
-    gl_func_00034458(m22c, arg0);
+        gl_func_00000000(T, Z);
+        gl_func_00000000(Z, gl_ref_00021AC8_5E288[m], B);
+        gl_func_00000000(W, B, W);
+    }
+    d = R;
+    for (i = 0; i < 4; i++) {
+        for (m = 0; m < 4; m++) {
+            d[i][m] = 0.0f;
+            for (k = 0; k < 4; k++) {
+                d[i][m] += W[i][k] * a[k][m];
+            }
+        }
+    }
+    gl_func_00000000(R, a);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E288);
-#endif
 
 /* gl_func_0005E664: 45-insn 4x4-matrix scale + dispatch (0xB4, frame 0x68).
  *
