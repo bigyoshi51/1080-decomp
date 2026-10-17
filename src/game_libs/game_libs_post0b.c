@@ -30243,7 +30243,35 @@ void gl_func_0005BE20(void *arg0, void *arg1) {
 #undef H
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C284);
+/* gl_func_0005C284 - 4x4 matrix DETERMINANT by cofactor expansion along row 0
+ * through the 3x3-determinant helper gl_func_00034458 (the same float-typed
+ * alias as gl_func_0005BE20). EXACT 2026-10-17. Frame homes follow the
+ * column-wise declaration order (5BE20 rule); M is declared FIRST (its unused
+ * home is the top word, 124). The three cofactors go through named temps
+ * a/b/c (homes 56/52/48) so the calls run in target order and the last call's
+ * $f0 feeds the m0 product directly. The one load-bearing detail: ONE SOURCE
+ * LINE PER MATRIX ROW. With one statement per line the target's m7-before-m6 /
+ * m11-before-m10 load order and the f0/f2 + f16/f18 colours could not both be
+ * had (every per-line assignment order got one and lost the other); putting
+ * a row's four loads on one line gives both. */
+float gl_func_0005C284(void *arg0) {
+    float *M = (float *)arg0;
+    float m0, m4, m8, m12;
+    float m1, m5, m9, m13;
+    float m2, m6, m10, m14;
+    float m3, m7, m11, m15;
+    float a, b, c;
+    m0 = M[0]; m1 = M[1]; m2 = M[2]; m3 = M[3];
+    m4 = M[4]; m5 = M[5]; m6 = M[6]; m7 = M[7];
+    m8 = M[8]; m9 = M[9]; m10 = M[10]; m11 = M[11];
+    m12 = M[12]; m13 = M[13]; m14 = M[14]; m15 = M[15];
+#define H gl_func_00000000_5be20
+    a = H(m4, m8, m12, m6, m10, m14, m7, m11, m15);
+    b = H(m4, m8, m12, m5, m9, m13, m7, m11, m15);
+    c = H(m4, m8, m12, m5, m9, m13, m6, m10, m14);
+    return m0 * H(m5, m9, m13, m6, m10, m14, m7, m11, m15) - m1 * a + m2 * b - m3 * c;
+#undef H
+}
 
 /* gl_func_0005C43C: cross-of-callee-results. cb(float,float,int,int)->float
  * applied 3 ways over the 9 args; returns a0*r3 - a3*r1 + a6*r2. Matched
