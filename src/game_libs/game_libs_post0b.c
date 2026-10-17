@@ -6302,27 +6302,53 @@ end:
 //   decoded here. Byte-match deferred. Name pre-checked: no extern
 //   reuse.
 #ifdef NON_MATCHING
-void gl_func_0003B01C(char *o) {
-    int fl = *(int *)(o + 0x30);
-    float ax, ay, az;
-    float bx, by, bz;
+/* NM decode 2026-10-17 agent-c: guarded by o->0x30 bits 1|2; sets bit 2,
+ * takes d = other->pos - o->pos (+0x54) through inlined Vec3 temporaries,
+ * r = cb(o); if r < 0: n = o->0x6C, cb(&n), n *= -r, set bit 1, return 1. */
+extern float gl_3B01C_f();
+int gl_func_0003B01C(char *o, char *other) {
+    Vec3 *pa;
+    Vec3 *pb;
     float dx, dy, dz;
-    if (!(fl & 6)) {
-        *(int *)(o + 0x30) = fl | 2;
-        return;
+    Vec3 t;
+    Vec3 t2;
+    Vec3 t3;
+    Vec3 n;
+    float r;
+    int fl;
+
+    pa = (Vec3 *)(o + 0x54);
+    fl = *(int *)(o + 0x30);
+    if (fl & 6) {
+        return 0;
     }
-    ax = *(float *)(o + 0x54);
-    ay = *(float *)(o + 0x58);
-    az = *(float *)(o + 0x5C);
-    bx = *(float *)(o + 0x60);
-    by = *(float *)(o + 0x64);
-    bz = *(float *)(o + 0x68);
-    dx = bx - ax;
-    dy = by - ay;
-    dz = bz - az;
-    *(float *)(o + 0x6C) = dx;
-    *(float *)(o + 0x70) = dy;
-    *(float *)(o + 0x74) = dz;
+    *(int *)(o + 0x30) = fl | 2;
+    pb = (Vec3 *)(other + 0x54);
+    dx = pb->x - pa->x;
+    dy = pb->y - pa->y;
+    dz = pb->z - pa->z;
+    t.x = dx;
+    t.y = dy;
+    t.z = dz;
+    t2 = t;
+    t3 = t2;
+    n.x = t3.x;
+    n.y = t3.y;
+    n.z = t3.z;
+    r = gl_3B01C_f(o);
+    if (0.0f <= r) {
+        return 0;
+    }
+    t2 = *(Vec3 *)(o + 0x6C);
+    n.x = t2.x;
+    n.y = t2.y;
+    n.z = t2.z;
+    gl_func_00000000(&n);
+    n.x = n.x * -r;
+    n.y = n.y * -r;
+    n.z = n.z * -r;
+    *(int *)(o + 0x30) |= 1;
+    return 1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B01C);
@@ -17839,101 +17865,66 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000493AC);
 //   no extern reuse.
 // gl_func_00049B3C — m2c DECODE (28.98% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
+/* NM decode 2026-10-17 agent-c: four registrations, then an inlined
+ * array-iterator (ctor with dead alloc(12) fallback, copied twice) walks
+ * self->0x84's element pointers calling each element's vtable +0x5C slot
+ * (+0x1C fn / +0x18 delta); one more registration; the {cur,next} list
+ * iterator over (self->0x2C)->0x10 calls vt(+0x28)->+0xC; banner; log self. */
+typedef struct { char pad[8]; short d8; short pad2; void (*fn12)(); char pad10[8]; short d24; short pad3; void (*fn28)(); } VS49B3C;
+typedef struct { char **data; int pad4, pad8; int count; } A49B3C;
+typedef struct { A49B3C *a; int idx; int last; } AI49B3C;
+typedef struct L49B3C { char *data; struct L49B3C *next; } L49B3C;
+typedef struct { L49B3C *cur; L49B3C *next; } LI49B3C;
+extern void gl_49B3C_regf(char *, char *, char *, int, float, int);
+extern char D_49B3C_s1[], D_49B3C_s2[], D_49B3C_s3[], D_49B3C_s4[], D_49B3C_s5[], D_49B3C_s6[];
+void gl_func_00049B3C(char *self) {
+    LI49B3C li;
+    AI49B3C ai0;
+    AI49B3C ai1;
+    AI49B3C ai;
+    AI49B3C *p;
+    A49B3C *arr;
+    char **v;
+    char *e;
+    char *l;
+    VS49B3C *vs;
 
-
-
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00049B3C)();
-typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00049B3C;
-void gl_func_00049B3C(char *arg0) {
-    Q_00049B3C sp50;
-    Q_00049B3C sp5C;
-    Q_00049B3C sp74;
-    char **sp2C;
-    char **sp28;
-    int *temp_v0;
-    int *var_v1;
-    s32 temp_a1;
-    s32 temp_v0_4;
-    s32 var_a0;
-    s32 var_v0;
-    char **temp_t1;
-    char **temp_t6;
-    char *temp_a1_2;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_v0_5;
-    char *temp_v0_6;
-    char *temp_v1;
-    char *var_a1;
-    char *var_v0_2;
-
-    gl_func_00034458(0, (int *)0x1FFD4, 0);
-    gl_func_00034458(0, (int *)0x1FFE0, (int)arg0 + 0x40, 0);
-    gl_func_00034458(0, (int *)0x1FFE8, (int)arg0 + 0x44, 0);
-    gl_func_00034458(0, (int *)0x1FFF4, (int)arg0 + 0x9C, 0, 0x41200000, 0);
-    var_v1 = &sp50;
-    if ((&sp50 != 0) || (temp_v0 = gl_func_00034458((char *)0xC, &sp50), var_v1 = temp_v0, (temp_v0 != 0))) {
-        FW(var_v1, 0x4) = -1;
-        temp_v0_2 = (int)arg0 + 0x84;
-        FW(var_v1, 0x0) = temp_v0_2;
-        FW(var_v1, 0x8) = (s32) (FW(temp_v0_2, 0xC) - 1);
+    if (1) { LI49B3C *q = &li; AI49B3C *q2 = &ai; char **q3 = &self; }
+    gl_func_00000000(D_49B3C_s1, (char *)&D_00000000 + 0x1FFD4, 0);
+    gl_func_00000000(D_49B3C_s2, (char *)&D_00000000 + 0x1FFE0, self + 64, 0);
+    gl_func_00000000(D_49B3C_s3, (char *)&D_00000000 + 0x1FFE8, self + 68, 0);
+    gl_49B3C_regf(D_49B3C_s4, (char *)&D_00000000 + 0x1FFF4, self + 156, 0, 10.0f, 0);
+    p = &ai0;
+    if ((unsigned)p == 0) {
+        p = (AI49B3C *)gl_func_00000000(12);
+        if (p == 0) goto skip;
     }
-    sp5C.unk0 = (s32 *) sp50.unk0;
-    sp5C.unk4 = (s32) sp50.unk4;
-    sp5C.unk8 = (s32) sp50.unk8;
-    sp74.unk0 = sp5C.unk0;
-    sp74.unk4 = (s32) sp5C.unk4;
-    var_v0 = 0;
-    sp74.unk8 = (s32) sp5C.unk8;
-    if (sp74.unk4 < sp74.unk8) {
-        temp_a1 = sp74.unk4 + 1;
-        sp74.unk4 = temp_a1;
-        var_v0 = *(int*)sp74.unk0 + (temp_a1 * 4);
+    p->idx = -1;
+    p->a = arr = (A49B3C *)(self + 132);
+    p->last = arr->count - 1;
+skip:
+    ai1 = ai0;
+    ai = ai1;
+    v = ai.idx < ai.last ? &ai.a->data[++ai.idx] : 0;
+    while (v != 0) {
+        e = ai.a->data[ai.idx];
+        vs = *(VS49B3C **)(e + 92);
+        vs->fn28(e + vs->d24);
+        v = ai.idx < ai.last ? &ai.a->data[++ai.idx] : 0;
     }
-    if (var_v0 != 0) {
-        do {
-            temp_v0_3 = *(int*)(*(int*)sp74.unk0 + (sp74.unk4 * 4));
-            temp_a1_2 = FW(temp_v0_3, 0x5C);
-            ((GP_00049B3C)FW(temp_a1_2, 0x1C))(FW(temp_a1_2, 0x18) + temp_v0_3, temp_a1_2);
-            var_a0 = 0;
-            if (sp74.unk4 < sp74.unk8) {
-                temp_v0_4 = sp74.unk4 + 1;
-                sp74.unk4 = temp_v0_4;
-                var_a0 = *(int*)sp74.unk0 + (temp_v0_4 * 4);
-            }
-        } while (var_a0 != 0);
-    }
-    gl_func_00034458(0, (int *)0x20004, (int)arg0 + 0xA4, -1, FW(arg0, 0x8C), 0);
-    temp_v0_5 = FW(arg0, 0x2C);
-    if (temp_v0_5 != 0) {
-        temp_t1 = FW(temp_v0_5, 0x10);
-        var_a1 = 0;
-        sp2C = temp_t1;
-        sp28 = temp_t1;
-        if (temp_t1 != 0) {
-            sp2C = FW(temp_t1, 0x4);
-            var_a1 = FW(temp_t1, 0x0);
-        }
-        if (var_a1 != 0) {
-            do {
-                temp_v0_6 = *(int*)sp28;
-                temp_v1 = FW(temp_v0_6, 0x28);
-                ((GP_00049B3C)FW(temp_v1, 0xC))(FW(temp_v1, 0x8) + temp_v0_6);
-                temp_t6 = sp2C;
-                var_v0_2 = 0;
-                sp28 = temp_t6;
-                if (temp_t6 != 0) {
-                    sp2C = FW(temp_t6, 0x4);
-                    var_v0_2 = FW(temp_t6, 0x0);
-                }
-            } while (var_v0_2 != 0);
+    gl_func_00000000(D_49B3C_s5, (char *)&D_00000000 + 0x20004, self + 164, -1, *(int *)(self + 140), 0);
+    if ((l = *(char **)(self + 44)) != 0) {
+        li.next = *(L49B3C **)(l + 16);
+        l = (li.cur = li.next) != 0 ? (li.next = li.cur->next, li.cur->data) : 0;
+        while (l != 0) {
+            e = li.cur->data;
+            vs = *(VS49B3C **)(e + 40);
+            vs->fn12(e + vs->d8);
+            l = (li.cur = li.next) != 0 ? (li.next = li.cur->next, li.cur->data) : 0;
         }
     }
-    gl_func_00034458(0);
-    gl_func_00034458(arg0);
+    gl_func_00000000(D_49B3C_s6);
+    gl_func_00000000(self);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049B3C);

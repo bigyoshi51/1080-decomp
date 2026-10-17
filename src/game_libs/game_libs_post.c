@@ -18833,24 +18833,52 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00032E18);
 //   Vec3/child layout typed. Real-C STRUCTURAL body below per the
 //   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void gl_func_00033094(char *o, float s) {
-    float bx = *(float *)(o + 0xA0);
-    float by = *(float *)(o + 0xA4);
-    float bz = *(float *)(o + 0xA8);
-    char *child = *(char **)(o + 0xF4);
-    float ox, oy, oz;
-    if (child != 0) {
-        ox = *(float *)(child + 0xA0);
-        oy = *(float *)(child + 0xA4);
-        oz = *(float *)(child + 0xA8);
+/* NM decode 2026-10-17 agent-c: eye = o->pos (+0xA0); target = parent->pos
+ * (o->0xF4) or o->pos + o->dir(+0x104) * 10; both scaled by a module Vec3;
+ * emit (o + 0xB4, eye, target, o->up(+0x140)), then two optional calls keyed
+ * by o->0x130. */
+extern void gl_33094_emit(void *, float, float, float, float, float, float, float, float, float);
+extern char D_33094_k[];
+int gl_func_00033094(char *o) {
+    Vec3 a;
+    Vec3 b;
+    Vec3 t;
+    Vec3 *k;
+    char *p;
+
+    if (1) { Vec3 *q = &a; q = &b; }
+    a.x = *(float *)(o + 0xA0);
+    a.y = *(float *)(o + 0xA4);
+    a.z = *(float *)(o + 0xA8);
+    p = *(char **)(o + 0xF4);
+    if (p != 0) {
+        b.x = *(float *)(p + 0xA0);
+        b.y = *(float *)(p + 0xA4);
+        b.z = *(float *)(p + 0xA8);
     } else {
-        ox = *(float *)(o + 0x104) + 10.0f;
-        oy = *(float *)(o + 0x108);
-        oz = *(float *)(o + 0x10C);
+        t = *(Vec3 *)(o + 0x104);
+        b.x = t.x;
+        b.y = t.y;
+        b.x = b.x * 10.0f;
+        b.y = b.y * 10.0f;
+        b.x = b.x + a.x;
+        b.y = b.y + a.y;
+        b.z = t.z * 10.0f + a.z;
     }
-    *(float *)(o + 0xA0) = bx * s + ox;
-    *(float *)(o + 0xA4) = by * s + oy;
-    *(float *)(o + 0xA8) = bz * s + oz;
+    k = (Vec3 *)(D_33094_k + 296);
+    a.x = a.x * k->x;
+    a.y = a.y * k->y;
+    a.z = a.z * k->z;
+    b.x = b.x * k->x;
+    b.y = b.y * k->y;
+    b.z = b.z * k->z;
+    gl_33094_emit(o + 0xB4, a.x, a.y, a.z, b.x, b.y, b.z,
+                  *(float *)(o + 0x140), *(float *)(o + 0x144), *(float *)(o + 0x148));
+    if (*(int *)(o + 0x130) != 0) {
+        gl_func_00000000(o + 0xB4, 1, *(int *)(o + 0x138), 0);
+        gl_func_00000000(o + 0xB4, 0, *(int *)(o + 0x134), 0);
+    }
+    return 1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033094);
