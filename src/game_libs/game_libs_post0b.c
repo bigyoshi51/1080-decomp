@@ -2565,7 +2565,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003695C);
 //   matchable without proper USO mnemonic disasm + the element/
 //   arg structs typed; structural pass only, no byte body.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+#ifdef NON_MATCHING
+extern Vec3 gl_36A48_cb(void *, Vec3, Vec3);
+int gl_func_00036A48(void *o, Vec3 dir, Vec3 *arr, int n) {
+    float best;
+    int bi;
+    int i;
+    Vec3 v;
+    Vec3 r;
+    float d;
+
+    if (1) { Vec3 **q = &arr; int *qq = &n; }
+    best = -1.0f;
+    bi = 0;
+    for (i = 0; i < n; i++) {
+        v = r = gl_36A48_cb(o, dir, arr[i]);
+        d = r.x * dir.x + r.y * dir.y + r.z * dir.z;
+        if (best < d) {
+            best = d;
+            bi = i;
+        }
+    }
+    return bi;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036A48);
+#endif
 
 /* gl_func_00036B9C: 27-insn alloc-or-given + init constructor (sibling
  * of gl_func_0003C814 and gl_func_0003CAA0). Same `goto end` recipe
@@ -8350,7 +8375,43 @@ end:
 //   mnemonic disasm + FP-pool/struct symbolization; structural
 //   pass only, no byte body.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+#ifdef NON_MATCHING
+typedef struct L3DA14 { struct N3DA14 *data; struct L3DA14 *next; } L3DA14;
+typedef struct N3DA14 { char pad[0x30]; Vec3 pos; } N3DA14;
+typedef struct { L3DA14 *cur; L3DA14 *next; int pad[2]; } I3DA14;
+extern float D_3DA14_max;
+#define ABS3DA14(a, b) ((a) < (b) ? -((a) - (b)) : ((a) - (b)))
+N3DA14 *game_libs_func_0003DA14(char *o, Vec3 *ref, N3DA14 *excl) {
+    I3DA14 it;
+    N3DA14 *n;
+    N3DA14 *best;
+    float bestd;
+    float d;
+    float dx, dy, dz;
+    Vec3 *p;
+
+    if (1) { I3DA14 *q = &it; }
+    bestd = D_3DA14_max;
+    best = 0;
+    it.next = *(L3DA14 **)(o + 0x10);
+    while ((n = ((it.cur = it.next) != 0 ? (it.next = it.next->next, it.cur->data) : 0)) != 0) {
+        if (n != excl) {
+            p = &n->pos;
+            dx = ABS3DA14(p->x, ref->x);
+            dy = ABS3DA14(p->y, ref->y);
+            dz = ABS3DA14(p->z, ref->z);
+            d = dx + dy + dz;
+            if (d < bestd) {
+                best = n;
+                bestd = d;
+            }
+        }
+    }
+    return best;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DA14);
+#endif
 
 
 // game_libs_func_0003DB38 (ex gl_func_0003DB3C) — STRUCTURAL PASS (0xB4 / 45 words, no episode).
@@ -21715,7 +21776,60 @@ void gl_func_0004E920(int *a0, int *a1) {
 // the &D_0+0x1B84 table address, the jr-t7 dispatch and the a1->0x04
 // post-increment cursor are exact. Caps: object struct, the &D_0+0x1B84
 // jump table untyped. Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+typedef struct { int op; int *args; } C4E96C;
+#define A4E96C(c) (p = (c)->args, (c)->args = p + 1, *p)
+void gl_func_0004E96C(char *a0, C4E96C *a1) {
+    int *p;
+    int *q;
+    int v;
+    int w;
+    switch (a1->op) {
+    case 109:
+        w = (q = a1->args, a1->args = q + 1, *q);
+        *(int *)(a0 + 0x100) = 0;
+        *(int *)(a0 + 0x104) = w;
+        break;
+    case 117:
+        *(int *)(a0 + 0x108) = A4E96C(a1);
+        break;
+    case 110:
+        v = (int)(float)A4E96C(a1);
+        *(int *)(a0 + 0xC0) = v;
+        *(int *)(a0 + 0xD0) = v;
+        v = (int)(float)A4E96C(a1);
+        *(int *)(a0 + 0xC4) = v;
+        *(int *)(a0 + 0xD4) = v;
+        break;
+    case 111:
+        v = (int)(float)A4E96C(a1);
+        *(int *)(a0 + 0xB8) = v;
+        *(int *)(a0 + 0xC8) = v;
+        v = (int)(float)A4E96C(a1);
+        *(int *)(a0 + 0xBC) = v;
+        *(int *)(a0 + 0xCC) = v;
+        break;
+    case 112:
+        w = (q = a1->args, a1->args = q + 1, *q);
+        *(int *)(a0 + 0x78) = w;
+        break;
+    case 113:
+        *(int *)(a0 + 0x7C) = A4E96C(a1);
+        break;
+    case 115:
+        *(float *)(a0 + 0xAC) = A4E96C(a1);
+        break;
+    case 116:
+        *(float *)(a0 + 0xB0) = A4E96C(a1);
+        break;
+    default:
+        gl_func_00000000(a0, a1);
+        break;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E96C);
+#endif
 
 /* Split off from gl_func_0004E96C bundle 2026-05-08: 9-insn FPU int-to-float
  * divide. a0->_B4 (float) = (float)a0->_B8 / (float)a0->_BC.
