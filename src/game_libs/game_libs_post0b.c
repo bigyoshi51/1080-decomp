@@ -30764,92 +30764,63 @@ void game_libs_func_0005D754(Xform5D754 *o, float m[4][4]) {
     m[3][3] = 1.0f;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0005D908: recursive FP transform-tree combine over three
-   structs src(a0)/other(a1)/out(a2). reloc1(src+0x18, other, out)
-   fills the out 0x00..0x14 region; then for the (0,4,8)/(C,10,14)
-   triple pairing out[i] = src[i] + src[i+3]*out[i]; reloc2(src+0x18,
-   other+0x18, out+0x18) recurses on the sub-region; finally
-   out[3..5] = src[3..5] * other[3..5].
-   DEFERRED: medium FP struct-math cap — two unresolved recursive jal
-   relocs (likely this fn / a sibling on the +0x18 child), $s0=src /
-   $s1=other callee-save pinning, dense lwc1/mul.s/add.s read-modify
-   interleave with the out struct as both in and out, and a stack
-   arg-shuffle (src+0x18 at sp+0x20, a2 saved/reloaded at sp+0x38
-   across reloc1's delay slot). Next pass: resolve the two relocs and
-   grind the FP-op / sreg schedule. */
-extern int gl_func_00000000();
-void gl_func_0005D908(float *src, float *other, float *out) {
-    gl_func_00000000((char *)src + 0x18, other, out);
-    out[0] = src[0] + src[3] * out[0];
-    out[1] = src[1] + src[4] * out[1];
-    out[2] = src[2] + src[5] * out[2];
-    gl_func_00000000((char *)src + 0x18, (char *)other + 0x18, (char *)out + 0x18);
-    out[3] = src[3] * other[3];
-    out[4] = src[4] * other[4];
-    out[5] = src[5] * other[5];
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D908);
-#endif
+/* gl_func_0005D908: recursive transform combine over three 6-float
+ * records src(a0)/other(a1)/out(a2) (0xE4, frame 0x30). EXACT.
+ * op(src + 6, other, out); out[0..2] = out[0..2] * src[3..5] + src[0..2]
+ * as two separate store passes; op(src + 6, other + 6, out + 6);
+ * out[3..5] = other[3..5] * src[3..5]. Operand order is load order: the
+ * textually-first operand is loaded second, so `out[i] * src[j]` gives the
+ * target's src-first lwc1 and `mul src, out`. The two unused words above
+ * `child` (homed at sp+32 across both calls) make the 0x30 frame. */
+void gl_func_0005D908(f32 *src, f32 *other, f32 *out) {
+    s32 pad0;
+    s32 pad1;
+    f32 *child = src + 6;
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005D9EC)();
-void gl_func_0005D9EC(char *arg0, char *arg1, f32 arg2, f32 arg3) {
-    f32 sp18;
-    f32 spC;
-    f32 sp8;
-    f32 sp4;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f10;
-    f32 temp_f12;
-    f32 temp_f12_2;
-    f32 temp_f14;
-    f32 temp_f14_2;
-    f32 temp_f16;
-    f32 temp_f2;
-    f32 temp_f4;
-    f32 temp_f4_2;
-
-    temp_f4 = (*(f32*)((char*)arg1 + 0x0));
-    sp18 = temp_f4;
-    temp_f10 = 1.0f - arg3;
-    temp_f16 = (*(f32*)((char*)arg1 + 0x4));
-    temp_f2 = (*(f32*)((char*)arg1 + 0x8));
-    temp_f0 = temp_f10 * temp_f4;
-    spC = temp_f10;
-    temp_f12 = temp_f0 * temp_f16;
-    (*(f32*)((char*)arg0 + 0x0)) = (f32) ((temp_f0 * temp_f4) + arg3);
-    temp_f14 = arg2 * temp_f2;
-    (*(f32*)((char*)arg0 + 0x4)) = (f32) (temp_f12 + temp_f14);
-    temp_f4_2 = arg2 * temp_f16;
-    sp8 = temp_f0 * temp_f2;
-    sp4 = temp_f4_2;
-    (*(f32*)((char*)arg0 + 0x10)) = (f32) (temp_f12 - temp_f14);
-    (*(f32*)((char*)arg0 + 0xC)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x8)) = (f32) (sp8 - temp_f4_2);
-    temp_f12_2 = spC * temp_f16;
-    temp_f14_2 = temp_f12_2 * temp_f2;
-    (*(f32*)((char*)arg0 + 0x14)) = (f32) ((temp_f12_2 * temp_f16) + arg3);
-    (*(f32*)((char*)arg0 + 0x1C)) = 0.0f;
-    temp_f0_2 = arg2 * temp_f4;
-    (*(f32*)((char*)arg0 + 0x18)) = (f32) (temp_f14_2 + temp_f0_2);
-    (*(f32*)((char*)arg0 + 0x24)) = (f32) (temp_f14_2 - temp_f0_2);
-    (*(f32*)((char*)arg0 + 0x20)) = (f32) (sp8 + sp4);
-    (*(f32*)((char*)arg0 + 0x2C)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x30)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x34)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x38)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x3C)) = 1.0f;
-    (*(f32*)((char*)arg0 + 0x28)) = (f32) ((temp_f10 * temp_f2 * temp_f2) + arg3);
+    gl_func_00000000(child, other, out);
+    out[0] = out[0] * src[3];
+    out[1] = out[1] * src[4];
+    out[2] = out[2] * src[5];
+    out[0] = out[0] + src[0];
+    out[1] = out[1] + src[1];
+    out[2] = out[2] + src[2];
+    gl_func_00000000(child, other + 6, out + 6);
+    out[3] = other[3] * src[3];
+    out[4] = other[4] * src[4];
+    out[5] = other[5] * src[5];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D9EC);
-#endif
+
+/* gl_func_0005D9EC: axis-angle rotation matrix (0x114, frame 0x20). EXACT.
+ * m = R(axis v, sine s, cosine c) with t = 1 - c, written as the textbook
+ * formula; uopt finds the t*x, t*x*y, s*z, t*x*z, s*y CSEs itself and
+ * homes t / t*x*z / s*y in frame temps. Only the scalar declaration order
+ * matters: x must be the SECOND declared scalar (its home is sp+24), so
+ * `t, x, y, z`. */
+typedef struct { f32 x, y, z; } Vec3f_5D9EC;
+void gl_func_0005D9EC(f32 (*m)[4], Vec3f_5D9EC *v, f32 s, f32 c) {
+    f32 t, x, y, z;
+
+    x = v->x;
+    y = v->y;
+    z = v->z;
+    t = 1.0f - c;
+    m[0][0] = t * x * x + c;
+    m[0][1] = t * x * y + s * z;
+    m[0][2] = t * x * z - s * y;
+    m[0][3] = 0.0f;
+    m[1][0] = t * x * y - s * z;
+    m[1][1] = t * y * y + c;
+    m[1][2] = t * y * z + s * x;
+    m[1][3] = 0.0f;
+    m[2][0] = t * x * z + s * y;
+    m[2][1] = t * y * z - s * x;
+    m[2][2] = t * z * z + c;
+    m[2][3] = 0.0f;
+    m[3][0] = 0.0f;
+    m[3][1] = 0.0f;
+    m[3][2] = 0.0f;
+    m[3][3] = 1.0f;
+}
 
 /* game_libs_func_0005DB00: one 22-insn (0x58) FPU helper. BOUNDARY MERGED
  * 2026-06-02: splat had split it into 0005DB00 (3-insn FP-const prologue:
