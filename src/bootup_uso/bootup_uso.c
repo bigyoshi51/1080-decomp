@@ -7864,11 +7864,16 @@ void func_0000B49C(int idx, int j) {
  * deref chain + Vec3 stack-copy shuffles. Full body INCLUDE_ASM-
  * preserved (.s = source of truth). INCLUDE_ASM (no episode;
  * tautology-trap rule). */
-#ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-/* PASS-2 2026-10-16 (agent-c, 36.90 -> 99.34): m2c had the Vec3 copies as
+/* EXACT 2026-10-17 (agent-c): the f0/f2 swap goes away when the step
+ * magnitude reuses `t` (the 0xA58-bit-14 target value): one variable for both
+ * webs, as in the target (s and t both f2). `if (1) {}` before the v50 stores
+ * splits the block so the v5C copy base reuses v0 after q. The pool reads are
+ * pinned scalars (bu_b520_k48/k44/kc = 0x48/0x44/0xC in
+ * undefined_syms_auto.txt; target func_00008124 + K / func_000008B4 + 0xC).
+ * PASS-2 2026-10-16 (agent-c, 36.90 -> 99.34): m2c had the Vec3 copies as
  * int structs with (f32)/(s32) casts (4 cvt + 4 trunc too many) and a K&R call
  * carrying stale f12/f14. 143/143 words; 19 differ: the 0.0 constant / s
  * swap f0<->f2, the v5C copy base v1 (target v0), and the four pool addends
@@ -7898,19 +7903,20 @@ void func_0000B520(char *arg0) {
     char *q;
 
     q = arg0 + 0x3C8;
-    s = 0.0f;
+    t = 0.0f;
     if (FW(arg0, 0xA58) & 0x100) {
         p = (char *)FW(arg0, 0x800);
         if (FW(p, 0x10) & 4) {
-            s += 10.0f;
+            t += 10.0f;
         }
         if (*(volatile int *)(p + 0x10) & 8) {
-            s -= 10.0f;
+            t -= 10.0f;
         }
     }
-    px = F520(q, 0) * s;
-    py = F520(q, 4) * s;
-    pz = F520(q, 8) * s;
+    px = F520(q, 0) * t;
+    py = F520(q, 4) * t;
+    pz = F520(q, 8) * t;
+    if (1) {}
     v50.x = px; v50.y = py; v50.z = pz;
     v5C = v50;
     v74 = v5C;
@@ -7946,9 +7952,6 @@ void func_0000B520(char *arg0) {
         F520(arg0, 0x320) = F520(arg0, 0x320) * k;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B520);
-#endif
 
 // func_0000B75C — STRUCTURAL PASS (0x830 / 524 insns, no episode).
 // Per-frame camera/transform interpolation update over a large scene-

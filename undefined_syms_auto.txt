@@ -3857,3 +3857,6 @@ gl_1f6a8_kE70 = 0x00000E70;
 gl_1f6a8_kE74 = 0x00000E74;
 gl_ref_00000148_51AD8 = 0x00000148;
 gl_ref_00000160_51AD8 = 0x00000160;
+bu_b520_k48 = func_00008124 + 0x48;  /* func_0000B520 rodata pool reads (target relocs func_00008124 + 0x48 / + 0x44, func_000008B4 + 0xC) */
+bu_b520_k44 = func_00008124 + 0x44;
+bu_b520_kc = func_000008B4 + 0xC;
