@@ -25467,68 +25467,31 @@ void gl_func_00053C04(char *arg0, s32 arg1) {
     }
 }
 
+/* game_libs_func_00054144: centroid of mesh triangle t: average of its three
+ * s16 vertices (Mesh: verts @0x60, tris @0x68, Tri = {u16 flags; u16 v[3]}).
+ * 50/51 words; the one residual is the vertex-address addu operand order
+ * (target `addu v0,verts,idx*6`; every C spelling of &verts[idx], verts+idx,
+ * char arithmetic or a commuted index emits idx*6 first; a separate `v = verts;
+ * v += idx` gets base-first but colours the base v0). */
 #ifdef NON_MATCHING
-/* game_libs_func_00054144: triangle-centroid (average of 3 vertices).
- * Zeros the Vec3 at a1, loops 3x reading three u16 vertex indices
- * from the a0->0x68 directory entry [a2] (8-byte stride, indices at
- * byte offsets +2/+4/+6), indexes the a0->0x60 6-byte record array
- * (rec = base + idx*6), reads 3 s16 fields (x/y/z @ +0/+2/+4),
- * accumulates as float into a1[0..2], divides each by 3.0f. Decoded
- * algorithm is correct and verified against the .s.
- *
- * 2026-07-08 (agent-e): the "6-word post-jr-ra tail / $t9-$t1 stolen
- * prologue / SUFFIX_BYTES plan" is OBSOLETE — those 6 words were the
- * real HEAD of the successor, now merged as gl_func_00054210 (exact,
- * plain C, no inheritance). This function is a clean 51-word body. */
-/* (historical analysis below predates that merge)
- *
- * Progress 2026-05-18: statement-order fix applied (zero a1[] BEFORE
- * loading a0->0x68/0x60) — confirmed builds ERR=0. IDO -O2 still
- * emits 76 insns vs target 51: the target keeps the Vec3 sum in
- * MEMORY at a1[] with a tight load/add/store per component AND uses
- * v1 as both the dir byte-offset (0/2/4) and the loop bound
- * (bne v1,6) with idx*6 via `li a3,6; multu t1,a3; mflo`. The C
- * draft explodes the per-component conversions + address math.
- * Needs the standalone `-S` compare diagnostic (tools/gcc -O2 -S vs
- * the .s) to localize the 25-insn excess — a deep FP-regalloc /
- * scheduling grind, not a one-tick win. Real C preserved for the
- * focused tightening pass. */
-/* UNROLL DEFEATED 2026-06-02: 16.8% -> 70.57% (+53.8pp). The prior cap
- * was "IDO -O2 2x-unrolls this known-small-trip loop (76 vs 51 insns),
- * no C lever to suppress it while keeping a `li 6` bound." LEVER FOUND:
- * DE-HOIST the loop-invariant base reads (a0->0x68, a0->0x60, a2*8)
- * back INTO the loop body each iteration (was: `dir`/`recbase` locals
- * computed before the loop). The fatter per-iteration body pushes IDO's
- * unroll cost-heuristic past its threshold, so it emits the single
- * non-unrolled do-while. See
- * docs/IDO_CODEGEN.md#feedback-ido-unroll-suppress-by-body-inflation.
- * Residual ~29% = IDO still LICM-hoists the a0->0x68/0x60 reloads that
- * the target keeps per-iter (the float a1[] stores don't block IDO's
- * hoist of the int a0[] loads — type-disjoint alias classes), plus the
- * target's duplicate `li 6` (separate bound vs multiplier reg) and
- * $t-register renaming. Those are regalloc/alias-class — permuter-tier.
- * Unlock (C-emit of the 6-word $t9/$t1 tail for successor
- * gl_func_00054228) is now closer but still gated on the LICM reload. */
-void game_libs_func_00054144(int *a0, float *a1, int a2) {
-    int v1;
-    a1[0] = 0.0f;
-    a1[1] = 0.0f;
-    a1[2] = 0.0f;
-    v1 = 0;
-    do {
-        /* de-hoisted: re-read both bases inside the loop each iteration to
-         * match the target's per-iter reloads AND inflate body cost above
-         * IDO's small-known-trip unroll threshold (2026-06-02). */
-        unsigned short vi = *(unsigned short *)((char *)a0[0x1A] + a2 * 8 + v1 + 2);
-        short *rec = (short *)((char *)a0[0x18] + vi * 6);
-        a1[0] += (float)rec[0];
-        a1[1] += (float)rec[1];
-        a1[2] += (float)rec[2];
-        v1 += 2;
-    } while (v1 != 6);
-    a1[0] /= 3.0f;
-    a1[1] /= 3.0f;
-    a1[2] /= 3.0f;
+typedef struct { s16 x, y, z; } Vec3s_54144;
+typedef struct { u16 flags; u16 v[3]; } Tri_54144;
+typedef struct { char pad[0x60]; Vec3s_54144 *verts; s32 pad64; Tri_54144 *tris; } Mesh_54144;
+void game_libs_func_00054144(Mesh_54144 *m, Vec3 *out, s32 t) {
+    s32 i;
+    Vec3s_54144 *v;
+    out->x = 0.0f;
+    out->y = 0.0f;
+    out->z = 0.0f;
+    for (i = 0; i < 3; i++) {
+        v = &m->verts[m->tris[t].v[i]];
+        out->x += v->x;
+        out->y += v->y;
+        out->z += v->z;
+    }
+    out->x /= 3.0f;
+    out->y /= 3.0f;
+    out->z /= 3.0f;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00054144);
@@ -34588,29 +34551,26 @@ void gl_func_00062A2C(O_62A2C *o, s32 arg1, s32 arg2, f32 t, s32 mode, f32 t2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062A2C);
 #endif
 
-#ifdef NON_MATCHING
-/* game_libs_func_00062D70: convert 7 shorts from a1 to floats in a2 — the first
- * 4 (a1[3..6]) scaled by D[0x2094] -> a2[6..9], the last 3 (a1[0..2]) unscaled
- * -> a2[0..2]. Logic exact (incl. the leading sw a0,0(sp): an unused leading
- * int param DOES reproduce the home at -O2 when it's the first insn, not in a
- * delay slot — unlike the 62F58 unfilled-delay home cap). Won't byte-match: the
- * 4 scaled conversions are FP software-pipelined in the target (loads/mtc1/
- * cvt.s.w/mul.s/swc1 interleaved, scale held in $f16) — sequential C can't
- * reproduce the schedule (40/40 schedule+FP-reg diffs). FP-pipeline cap;
- * straight-line + FP-heavy is a schedule cap (vs integer straight-line clean). */
-void game_libs_func_00062D70(int a0, short *a1, float *a2) {
-    float scale = *(float *)((char *)&D_00000000 + 0x2094);
-    a2[6] = (float)a1[3] * scale;
-    a2[7] = (float)a1[4] * scale;
-    a2[8] = (float)a1[5] * scale;
-    a2[9] = (float)a1[6] * scale;
-    a2[0] = (float)a1[0];
-    a2[1] = (float)a1[1];
-    a2[2] = (float)a1[2];
+/* game_libs_func_00062D70: unpack a packed s16 record into floats: q =
+ * a1[3..6] * scale -> a2[6..9] (named x, y, z, w computed before the four
+ * stores), then a1[0..2] -> a2[0..2] unscaled. The "FP-pipeline cap" was a
+ * colouring order: the scale (pinned RoData D_62D70_scale, +0x2094) must
+ * colour after x..w ($f16); a dead `while (0)` assigning x..w first gives
+ * them the earlier candidates. The leading int param reproduces the a0 home. */
+extern f32 D_62D70_scale;
+void game_libs_func_00062D70(s32 a0, s16 *a1, f32 *a2) {
+    f32 x, y, z, w, s;
+    while (0) { x = 0; y = 0; z = 0; w = 0; }
+    s = D_62D70_scale;
+    x = a1[3] * s;
+    y = a1[4] * s;
+    z = a1[5] * s;
+    w = a1[6] * s;
+    a2[6] = x; a2[7] = y; a2[8] = z; a2[9] = w;
+    a2[0] = a1[0];
+    a2[1] = a1[1];
+    a2[2] = a1[2];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062D70);
-#endif
 
 /* gl_func_00062E10: 28-insn assert-then-store.  EXACT (2026-10-15
  * agent-c): the old 2-word `li at,0x17` vs `lui a0` slot swap was the
