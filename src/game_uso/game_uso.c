@@ -5886,7 +5886,10 @@ int game_uso_func_00007ACC(int *a0, int *a1, int arg3, int *arg4) {
  * evaluate their non-constant components into function-scope temps tx/tz
  * before the stores (target loads-first ctor shape; per-component stores
  * through p block the later loads from hoisting). Temps in STORE order beat
- * x-then-z order (79.96). docs/IDO_CODEGEN.md#alloc-guard-vec3-temps-first-8cd8. */
+ * x-then-z order (79.96). docs/IDO_CODEGEN.md#alloc-guard-vec3-temps-first-8cd8.
+ * 2026-10-17 (agent-g run 103, 79.99 -> 88.20): the nine `hitA/hitB/hitC/result =
+ * scratch` Vec3 assignments are member-wise FLOAT copies in the target (lwc1/swc1:
+ * the C++ Vec3 operator=), not struct assignment (lw/sw). */
 
 int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
                            char *arg4, f32 *arg5) {
@@ -6082,7 +6085,7 @@ int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
         }
         *(Tri3i *)&scratch = *(Tri3i *)&mD2;
         *(Tri3i *)&resDir = *(Tri3i *)&scratch;
-        result = scratch;
+        result.x = scratch.x; result.y = scratch.y; result.z = scratch.z;
 
         if (mode == 1) {
             s1a.x = segDir.x * 250.0f;
@@ -6196,7 +6199,7 @@ int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
             }
             *(Tri3i *)&scratch = *(Tri3i *)&lF;
             *(Tri3i *)&lRD = *(Tri3i *)&scratch;
-            hitC = scratch;
+            hitC.x = scratch.x; hitC.y = scratch.y; hitC.z = scratch.z;
 
             if (mode == 1) {
                 l1a.x = lDir.x * 250.0f;
@@ -6251,21 +6254,21 @@ int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
                     if (notFirst) {
                         if (hitA.z * fA.x < hitA.x * fA.z) {
                             *(Tri3i *)&scratch = *(Tri3i *)&fA;
-                            hitA = scratch;
+                            hitA.x = scratch.x; hitA.y = scratch.y; hitA.z = scratch.z;
                         }
                         if (hitB.x * fB.z < hitB.z * fB.x) {
                             *(Tri3i *)&scratch = *(Tri3i *)&fB;
-                            hitB = scratch;
+                            hitB.x = scratch.x; hitB.y = scratch.y; hitB.z = scratch.z;
                         }
                     } else {
                         *(Tri3i *)&scratch = *(Tri3i *)&fA;
-                        hitA = scratch;
+                        hitA.x = scratch.x; hitA.y = scratch.y; hitA.z = scratch.z;
                         *(Tri3i *)&scratch = *(Tri3i *)&fB;
-                        hitB = scratch;
+                        hitB.x = scratch.x; hitB.y = scratch.y; hitB.z = scratch.z;
                     }
                 }
                 *(Tri3i *)&scratch = *(Tri3i *)&hitC;
-                result = scratch;
+                result.x = scratch.x; result.y = scratch.y; result.z = scratch.z;
                 arg3 = node;
                 node = *(char **)(node + 0x2C);
                 continue;
@@ -6284,10 +6287,10 @@ int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
             game_uso_func_071028(&n2);
             if ((n0.x * n2.x + n0.z * n2.z) < (n0.x * n1.x + n0.z * n1.z)) {
                 *(Tri3i *)&scratch = *(Tri3i *)&hitA;
-                result = scratch;
+                result.x = scratch.x; result.y = scratch.y; result.z = scratch.z;
             } else {
                 *(Tri3i *)&scratch = *(Tri3i *)&hitB;
-                result = scratch;
+                result.x = scratch.x; result.y = scratch.y; result.z = scratch.z;
             }
         }
     }
@@ -6315,7 +6318,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
  * stores through p (may alias), so it interleaved load/sub/store; the target
  * loads both x and z first (the inlined C++ Vec3(x, y, z) ctor shape).
  * Residual: guard pointer colours v1/a2 vs target a0/a3 (bnezl + lw v0 in the
- * delay slot), y-store placement, and the Tri3i copy-chain scheduling. */
+ * delay slot), y-store placement, and the Tri3i copy-chain scheduling.
+ * 2026-10-17 (agent-g run 103, 81.42 -> 83.07): `/ 2` int literal keeps the two
+ * div.s by a held 2.0 (`/ two` const-propagated into `* 0.5f` once); the zero
+ * phase is `*= (f32)0` (a 0.0f literal multiply is folded away). Open: the
+ * target's phase switch is a 4-entry jumptable (cc lowers 4 labels to a beq
+ * chain; the NCC front end likely differs). */
 void *game_uso_func_00008CD8(char *arg0, char *arg1, char *arg2, char *arg3, s32 arg4) {
     Vec3 sp204;   /* sp+516 */
     Vec3 sp1F8;   /* sp+504 */
@@ -6448,7 +6456,7 @@ void *game_uso_func_00008CD8(char *arg0, char *arg1, char *arg2, char *arg3, s32
         *(f32 *)(arg1 + 0x8C) = sp11C.z;
 
         two = 2.0f;
-        dot = lenf + ((*(f32 *)(*(s32 *)(arg1 + 0x30) + 0x348) * *(f32 *)(arg1 + 0xDC)) / two);
+        dot = lenf + ((*(f32 *)(*(s32 *)(arg1 + 0x30) + 0x348) * *(f32 *)(arg1 + 0xDC)) / 2);
         prodA.x = sp1B0.x * dot;
         prodA.y = sp1B0.y * dot;
         prodA.z = sp1B0.z * dot;
@@ -6458,7 +6466,7 @@ void *game_uso_func_00008CD8(char *arg0, char *arg1, char *arg2, char *arg3, s32
         *(f32 *)(arg1 + 0x88) += sp1C8.y;
         *(f32 *)(arg1 + 0x8C) += sp1C8.z;
 
-        dot = lenf - ((*(f32 *)(*(s32 *)(arg1 + 0x30) + 0x348) * *(f32 *)(arg1 + 0xDC)) / two);
+        dot = lenf - ((*(f32 *)(*(s32 *)(arg1 + 0x30) + 0x348) * *(f32 *)(arg1 + 0xDC)) / 2);
         prodB.x = sp1B0.x * dot;
         prodB.y = sp1B0.y * dot;
         prodB.z = sp1B0.z * dot;
@@ -6602,9 +6610,9 @@ void *game_uso_func_00008CD8(char *arg0, char *arg1, char *arg2, char *arg3, s32
         if ((u32)idxm < 4U) {
             switch (idxm) {
             case 0:
-                sp60.x *= 0.0f;
-                sp60.y *= 0.0f;
-                sp60.z *= 0.0f;
+                sp60.x *= (f32)0;
+                sp60.y *= (f32)0;
+                sp60.z *= (f32)0;
                 break;
             case 1:
                 sp60.x *= -1.0f;
