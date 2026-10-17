@@ -31232,75 +31232,40 @@ void gl_func_0005DBB0(f32 (*m)[4], f32 *q) {
     }
 }
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005DDE4)();
-void gl_func_0005DDE4(char *arg0, char *arg1) {
-    f32 sp40;
-    f32 sp3C;
-    f32 sp38;
-    f32 sp34;
-    f32 sp30;
-    f32 sp2C;
-    f32 sp28;
-    f32 sp24;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f0_3;
-    f32 temp_f12;
-    f32 temp_f14;
-    f32 temp_f16;
-    f32 temp_f18;
-    f32 temp_f22;
-    f32 temp_f2;
-    f32 temp_f8;
-    f32 var_f20;
+/* gl_func_0005DDE4 - quaternion -> 4x4 rotation matrix (Shoemake Qt_ToMatrix,
+ * Graphics Gems IV; the matrix -> quaternion half is the function above).
+ * EXACT 2026-10-17 (56.4 -> 100), replacing the m2c temp soup. Plain textbook
+ * statements; the products wx..yz live in frame homes (stored at the def,
+ * reloaded at the use) and zz/xs/ys/zs/s in registers. The one lever: ys goes
+ * through a COPY `t = q->y * s; ys = t;`, t declared LAST. Without it uopt
+ * gives yz a register and 1.0f is materialised early into f14 (frame 0x50,
+ * one home short); the copy's extra web shifts the colouring so yz is homed
+ * at 36 and 1.0f lands in f2 after xz, and t's own (unused) home is the
+ * target's empty slot at 32. Found by a 14-iteration permuter run, then the
+ * decl moved to the bottom by hand (the permuter's mid-list decl shifted
+ * xx..yz down 4; its score ignores sp offsets). */
+typedef struct { f32 x, y, z, w; } Quat_5DDE4;
+void gl_func_0005DDE4(f32 (*mat)[4], Quat_5DDE4 *q) {
+    f32 Nq, s;
+    f32 xs, ys, zs;
+    f32 wx, wy, wz;
+    f32 xx, xy, xz;
+    f32 yy, yz, zz;
+    f32 t;
 
-    temp_f2 = (*(f32*)((char*)arg1 + 0x0));
-    temp_f12 = (*(f32*)((char*)arg1 + 0x4));
-    temp_f18 = (*(f32*)((char*)arg1 + 0x8));
-    temp_f14 = (*(f32*)((char*)arg1 + 0xC));
-    temp_f0 = (temp_f2 * temp_f2) + (temp_f12 * temp_f12) + (temp_f18 * temp_f18) + (temp_f14 * temp_f14);
-    if (temp_f0 > 0.0f) {
-        var_f20 = 2.0f / temp_f0;
-    } else {
-        var_f20 = 0.0f;
-    }
-    temp_f16 = temp_f2 * var_f20;
-    temp_f0_2 = temp_f12 * var_f20;
-    temp_f22 = temp_f18 * var_f20;
-    sp40 = temp_f14 * temp_f16;
-    temp_f8 = temp_f2 * temp_f16;
-    sp3C = temp_f14 * temp_f0_2;
-    sp38 = temp_f14 * temp_f22;
-    sp34 = temp_f8;
-    sp30 = temp_f2 * temp_f0_2;
-    sp2C = temp_f2 * temp_f22;
-    temp_f0_3 = temp_f18 * temp_f22;
-    sp28 = temp_f12 * temp_f0_2;
-    sp24 = temp_f12 * temp_f22;
-    (*(f32*)((char*)arg0 + 0x10)) = (f32) (sp30 + sp38);
-    (*(f32*)((char*)arg0 + 0x0)) = (f32) (1.0f - (sp28 + temp_f0_3));
-    (*(f32*)((char*)arg0 + 0x4)) = (f32) (sp30 - sp38);
-    (*(f32*)((char*)arg0 + 0x20)) = (f32) (sp2C - sp3C);
-    (*(f32*)((char*)arg0 + 0x14)) = (f32) (1.0f - (temp_f8 + temp_f0_3));
-    (*(f32*)((char*)arg0 + 0x24)) = (f32) (sp24 + sp40);
-    (*(f32*)((char*)arg0 + 0x8)) = (f32) (sp2C + sp3C);
-    (*(f32*)((char*)arg0 + 0x18)) = (f32) (sp24 - sp40);
-    (*(f32*)((char*)arg0 + 0xC)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x1C)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x2C)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x30)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x34)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x38)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x3C)) = 1.0f;
-    (*(f32*)((char*)arg0 + 0x28)) = (f32) (1.0f - (sp34 + sp28));
+    Nq = q->x * q->x + q->y * q->y + q->z * q->z + q->w * q->w;
+    if (Nq > 0.0f) s = 2.0f / Nq; else s = 0.0f;
+    xs = q->x * s; t = q->y * s; ys = t; zs = q->z * s;
+    wx = q->w * xs; wy = q->w * ys; wz = q->w * zs;
+    xx = q->x * xs; xy = q->x * ys; xz = q->x * zs;
+    yy = q->y * ys; yz = q->y * zs; zz = q->z * zs;
+    mat[0][0] = 1.0f - (yy + zz); mat[1][0] = xy + wz; mat[2][0] = xz - wy;
+    mat[0][1] = xy - wz; mat[1][1] = 1.0f - (xx + zz); mat[2][1] = yz + wx;
+    mat[0][2] = xz + wy; mat[1][2] = yz - wx; mat[2][2] = 1.0f - (xx + yy);
+    mat[0][3] = mat[1][3] = mat[2][3] = 0.0f;
+    mat[3][0] = mat[3][1] = mat[3][2] = 0.0f;
+    mat[3][3] = 1.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DDE4);
-#endif
 
 /* game_libs_func_0005DF64: copy 16 floats a0[] -> a1[] (e.g. a 4x4 matrix).
  * EXACT 32/32 (2026-07-09, w46 batch). The target is the SOURCE-hand-unrolled
