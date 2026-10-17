@@ -26702,88 +26702,113 @@ end:
     return r;
 }
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_000561A8)();
-s32 gl_func_000561A8(char *arg0) {
-    s32 temp_a1;
-    s32 temp_v0;
-    s32 temp_v1;
+/* gl_func_000561A8: render-mode -> other-mode word lookup (0x264 / 153 words).
+ * EXACT 2026-10-16 agent-g (NM 36.9 -> EXACT). Flags at a0->4: bit 19 ->
+ * 0xC8000000, (bit 19 || bit 23) -> 0x0C080000, bit 18 -> 0x0C4C3078, else a
+ * lookup on the low byte. The lookup's compare chain is UNSORTED (0, 3, 34,
+ * 35, 33, 7, ...), so it is an if-goto chain, not a switch (docs/IDO_CODEGEN.md
+ * #unsorted-dispatch-if-goto-plus-switch-54aec); paired keys share one label
+ * and as1 hoists the label's lui into the first beq's delay. The default call
+ * sits after every return label: the last test is the inverted skip
+ * `if (m != 9) goto dflt; goto c9;` (a plain `if (m == 9) goto c9; goto dflt;`
+ * folds to bne). The message is &D_00000000 + 0x218D0 (addiu, a plain
+ * constant gives ori). */
+s32 gl_func_000561A8(char *a0) {
+    s32 v;
+    s32 f;
+    s32 m;
 
-    temp_v0 = FW(arg0, 0x4);
-    temp_v1 = temp_v0 & 0x80000;
-    if (temp_v1 != 0) {
+    v = *(s32 *)(a0 + 4);
+    f = v & 0x80000;
+    if (f != 0) {
         return 0xC8000000;
     }
-    if ((temp_v1 != 0) || (temp_v0 & 0x800000)) {
+    if (f != 0 || (v & 0x800000)) {
         return 0x0C080000;
     }
-    temp_a1 = temp_v0 & 0xFF;
-    if (temp_v0 & 0x40000) {
+    m = v & 0xFF;
+    if (v & 0x40000) {
         return 0x0C4C3078;
     }
-    switch (temp_a1) {                              /* irregular */
-    case 0x0:
-        return 0x0C084000;
-    case 0x3:
-        return 0x442478;
-    case 0x22:
-        return 0x442438;
-    case 0x23:
-        return 0x442438;
-    case 0x21:
-        return 0x442008;
-    case 0x7:
-        return 0x443078;
-    case 0x6:
-        return 0x443078;
-    case 0x1B:
-    case 0x1F:
-        return 0x404DD8;
-    case 0x9B:
-    case 0x9F:
-        return 0x40484DD8;
-    case 0x80:
-        return 0x0C084200;
-    case 0x13:
-        return 0x442D58;
-    case 0xD:
-        return 0x4041C8;
-    case 0xB:
-    case 0xF:
-        return 0x4045D8;
-    case 0x8B:
-    case 0x8F:
-        return 0x404845D8;
-    case 0xCB:
-        return 0x404845F8;
-    case 0x1:
-        return 0x442048;
-    case 0x5:
-        return 0x443048;
-    case 0x2:
-        return 0x442230;
-    case 0xA:
-        return 0x404A50;
-    case 0x4A:
-    case 0x4B:
-        return 0x405078;
-    case 0x4:
-        return 0x0C087008;
-    case 0x8:
-        return 0x404240;
-    case 0x9:
-        return 0x4041C8;
-    default:
-        gl_func_00034458(0x218D0, temp_a1);
-        return 0;
-    }
+    if (m == 0) goto c0;
+    if (m == 3) goto c3;
+    if (m == 34) goto c34;
+    if (m == 35) goto c35;
+    if (m == 33) goto c33;
+    if (m == 7) goto c7;
+    if (m == 6) goto c6;
+    if (m == 27) goto c27;
+    if (m == 31) goto c27;
+    if (m == 155) goto c155;
+    if (m == 159) goto c155;
+    if (m == 128) goto c128;
+    if (m == 19) goto c19;
+    if (m == 13) goto c13;
+    if (m == 11) goto c11;
+    if (m == 15) goto c11;
+    if (m == 139) goto c139;
+    if (m == 143) goto c139;
+    if (m == 203) goto c203;
+    if (m == 1) goto c1;
+    if (m == 5) goto c5;
+    if (m == 2) goto c2;
+    if (m == 10) goto c10;
+    if (m == 74) goto c74;
+    if (m == 75) goto c74;
+    if (m == 4) goto c4;
+    if (m == 8) goto c8;
+    if (m != 9) goto dflt;
+    goto c9;
+c0:
+    return 0xC084000;
+c3:
+    return 0x442478;
+c34:
+    return 0x442438;
+c35:
+    return 0x442438;
+c33:
+    return 0x442008;
+c7:
+    return 0x443078;
+c6:
+    return 0x443078;
+c27:
+    return 0x404DD8;
+c155:
+    return 0x40484DD8;
+c128:
+    return 0xC084200;
+c19:
+    return 0x442D58;
+c13:
+    return 0x4041C8;
+c11:
+    return 0x4045D8;
+c139:
+    return 0x404845D8;
+c203:
+    return 0x404845F8;
+c1:
+    return 0x442048;
+c5:
+    return 0x443048;
+c2:
+    return 0x442230;
+c10:
+    return 0x404A50;
+c74:
+    return 0x405078;
+c4:
+    return 0xC087008;
+c8:
+    return 0x404240;
+c9:
+    return 0x4041C8;
+dflt:
+    gl_func_00000000((char *)&D_00000000 + 0x218D0, m);
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000561A8);
-#endif
 
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
