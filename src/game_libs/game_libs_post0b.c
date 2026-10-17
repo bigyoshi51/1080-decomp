@@ -7235,7 +7235,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C43C);
 //
 // Body left INCLUDE_ASM; pseudo-C above is documentation only (below the
 // 80% NM-wrap-promote threshold per CLAUDE.md).
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003C7A4);
+/* game_libs_func_0003C7A4: for each zero-weight entry of o->0x84's table
+ * (count +0x44, 12-byte records, float at +4), mark o->0x2C[i].s4 = -1. */
+void game_libs_func_0003C7A4(char *a0) {
+    unsigned int i;
+    char *rec;
+
+    if (*(char **)(a0 + 132) == 0) {
+        return;
+    }
+    for (i = 0; i < *(unsigned int *)(*(char **)(a0 + 132) + 68); i++) {
+        rec = *(char **)(*(char **)(a0 + 132) + 84) + i * 12;
+        if (0.0f == *(float *)(rec + 4)) {
+            *(short *)(*(char **)(a0 + 44) + i * 12 + 4) = -1;
+        }
+    }
+}
 
 /* gl_func_0003C814: 22-insn optional-alloc + init constructor (sibling of
  * gl_func_0003CAA0). Same alloc-or-init recipe — uses `goto end` to merge
@@ -16302,7 +16317,12 @@ void gl_func_000476DC(void **a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000476DC);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004771C);
+/* game_libs_func_0004771C: float RGB [0,1] -> u16 triple at +0x1FC via (u32)(c * 255.0f). */
+void game_libs_func_0004771C(char *a0, float *a1) {
+    *(unsigned short *)(a0 + 508) = (unsigned int)(a1[0] * 255.0f);
+    *(unsigned short *)(a0 + 510) = (unsigned int)(a1[1] * 255.0f);
+    *(unsigned short *)(a0 + 512) = (unsigned int)(a1[2] * 255.0f);
+}
 
 /* Self-ref init: a0->0x1F4 = 1; a0->0xE0 = &a0->0x60. Register-exact from C
  * (1->$t6, a0+0x60->$t7); only the two stores trade positions (IDO fills the
