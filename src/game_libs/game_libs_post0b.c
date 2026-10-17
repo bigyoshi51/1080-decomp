@@ -31896,70 +31896,51 @@ void game_libs_func_0005ED54(f32 (*a)[4], s32 axis, f32 angle, s32 flag) {
     gl_func_00000000(R, a);
 }
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005EF00)();
-/* PASS 2026-07-18 (agent-f): 67.85 -> 82.94. Y-axis-angle rotation-matrix
- * builder (len=sqrt(x^2+z^2), angle*=D+0x2050 (deg->rad slot), sin/cos, mtx
- * ident, then fill 3x3 if len!=0). Decode-error fixes:
- *  - fn-ptr-cast cvt.d.s fingerprint: all 4 calls were `((f32(*)())...)(..)`
- *    -> jalr via s2 + f64 promotion. Typed per-site externs (sqrt/sin/cos
- *    f32(f32), ident void(char*)) restore direct jal; frame 0x50 -> 0x30 and
- *    the whole call section + prologue now byte-match.
- *  - `arg2 *= CONST` (compound assign) matches mul.s $f12,$f12,$f8 operand
- *    order; `arg2 = arg2 * CONST` and `CONST * arg2` both emit the flipped
- *    mul.s $f12,$f8,$f12.
- *  - decl-order spill-slot lever: temp_f0_2 declared FIRST pushes its phantom
- *    slot to 0x2c so sp28/sp24/sp20 land at target 0x28/0x24/0x20.
- *  - embedded-assign `(temp_f0_2 = 1.0f/sp28)` inside the out[0] store sinks
- *    div.s to the target position (statement form hoists the m1/m0 loads
- *    above the div); costs one flipped mul operand pair in out[0].
- * RESIDUAL (~17%): FP temp-ring rotation through blocks 2-4 (f4/f8/f10
- * permuted, sub.s operand webs mirrored, one nop filled) — same
- * eval-order/coloring class as sibling 5CE68. */
-extern float gl_func_00000000_5ef00q(float);  /* sqrt-slot USO callee */
-extern float gl_func_00000000_5ef00s(float);  /* sin-slot USO callee */
-extern float gl_func_00000000_5ef00c(float);  /* cos-slot USO callee */
-extern void gl_func_00000000_5ef00i(char *);  /* mtx-ident-slot USO callee */
-void gl_func_0005EF00(char *arg0, char *arg1, f32 arg2) {
-    f32 temp_f0_2;
-    f32 sp28;
-    f32 sp24;
-    f32 sp20;
-    f32 temp_f0;
-    f32 temp_f2;
+/* gl_func_0005EF00 - axis-aligning rotation matrix: len = |(x, z)|, angle in
+ * degrees scaled by the D+0x2050 deg->rad constant, sin/cos, identity, then
+ * (len != 0) the 3x3 block. EXACT 2026-10-17 (82.9 -> 100), replacing the old
+ * m2c expression soup with the textbook form:
+ *  - the block is written COLUMN by column (m[0][0], m[1][0], m[2][0],
+ *    m[3][0], m[0][1], ...): that is the target's compute order; the scattered
+ *    store order is as1's.
+ *  - the four quotients share one named inv = 1 / len (decl inv, len, c, s =
+ *    homes 44/40/36/32; inv never touches its home).
+ *  - cfe evaluates a plain float variable leaf AFTER a negated deref no matter
+ *    which side it is written on (`c * -v->x` and `-v->x * c` both give
+ *    mul (-x), c). The target's c-first `mul.s f8,f12,f10` in m[0][2] needs the
+ *    no-op cast `(f32)c` (or `c + 0.0f`), which ranks c as an expression. */
+extern float gl_func_00000000_5ef00q(float);   /* sqrt-slot USO callee */
+extern float gl_func_00000000_5ef00s(float);   /* sin-slot USO callee */
+extern float gl_func_00000000_5ef00c(float);   /* cos-slot USO callee */
+extern void gl_func_00000000_5ef00i(f32 (*)[4]); /* mtx-ident-slot USO callee */
+void gl_func_0005EF00(f32 (*m)[4], Vec3 *v, f32 angle) {
+    f32 inv, len, c, s;
 
-    temp_f0 = (*(f32*)((char*)arg1 + 0x0));
-    temp_f2 = (*(f32*)((char*)arg1 + 0x8));
-    sp28 = gl_func_00000000_5ef00q((temp_f0 * temp_f0) + (temp_f2 * temp_f2));
-    arg2 *= (*(f32*)((char*)&D_00000000 + 0x2050));
-    sp20 = gl_func_00000000_5ef00s(arg2);
-    sp24 = gl_func_00000000_5ef00c(arg2);
-    gl_func_00000000_5ef00i(arg0);
-    if (sp28 != 0.0f) {
-        (*(f32*)((char*)arg0 + 0x0)) = (f32) ((((*(f32*)((char*)arg1 + 0x8)) * sp24) - (sp20 * -(*(f32*)((char*)arg1 + 0x4)) * -(*(f32*)((char*)arg1 + 0x0)))) * (temp_f0_2 = 1.0f / sp28));
-        (*(f32*)((char*)arg0 + 0x10)) = (f32) (((-(*(f32*)((char*)arg1 + 0x8)) * sp20) - (sp24 * -(*(f32*)((char*)arg1 + 0x4)) * -(*(f32*)((char*)arg1 + 0x0)))) * temp_f0_2);
-        (*(f32*)((char*)arg0 + 0x30)) = 0.0f;
-        (*(f32*)((char*)arg0 + 0x4)) = (f32) (sp20 * sp28);
-        (*(f32*)((char*)arg0 + 0x20)) = (f32) (*(f32*)((char*)arg1 + 0x0));
-        (*(f32*)((char*)arg0 + 0x14)) = (f32) (sp24 * sp28);
-        (*(f32*)((char*)arg0 + 0x34)) = 0.0f;
-        (*(f32*)((char*)arg0 + 0x24)) = (f32) (*(f32*)((char*)arg1 + 0x4));
-        (*(f32*)((char*)arg0 + 0x8)) = (f32) (((sp24 * -(*(f32*)((char*)arg1 + 0x0))) - (sp20 * -(*(f32*)((char*)arg1 + 0x4)) * -(*(f32*)((char*)arg1 + 0x8)))) * temp_f0_2);
-        (*(f32*)((char*)arg0 + 0x18)) = (f32) (((-sp20 * -(*(f32*)((char*)arg1 + 0x0))) - (sp24 * -(*(f32*)((char*)arg1 + 0x4)) * -(*(f32*)((char*)arg1 + 0x8)))) * temp_f0_2);
-        (*(f32*)((char*)arg0 + 0x38)) = 0.0f;
-        (*(f32*)((char*)arg0 + 0xC)) = 0.0f;
-        (*(f32*)((char*)arg0 + 0x1C)) = 0.0f;
-        (*(f32*)((char*)arg0 + 0x2C)) = 0.0f;
-        (*(f32*)((char*)arg0 + 0x3C)) = 1.0f;
-        (*(f32*)((char*)arg0 + 0x28)) = (f32) (*(f32*)((char*)arg1 + 0x8));
+    len = gl_func_00000000_5ef00q(v->x * v->x + v->z * v->z);
+    angle *= *(f32 *)((char *)&D_00000000 + 0x2050);
+    s = gl_func_00000000_5ef00s(angle);
+    c = gl_func_00000000_5ef00c(angle);
+    gl_func_00000000_5ef00i(m);
+    if (len != 0.0f) {
+        inv = 1.0f / len;
+        m[0][0] = (v->z * c - s * -v->y * -v->x) * inv;
+        m[1][0] = (-v->z * s - c * -v->y * -v->x) * inv;
+        m[2][0] = v->x;
+        m[3][0] = 0.0f;
+        m[0][1] = s * len;
+        m[1][1] = c * len;
+        m[2][1] = v->y;
+        m[3][1] = 0.0f;
+        m[0][2] = ((f32)c * -v->x - s * -v->y * -v->z) * inv;
+        m[1][2] = (-s * -v->x - c * -v->y * -v->z) * inv;
+        m[2][2] = v->z;
+        m[3][2] = 0.0f;
+        m[0][3] = 0.0f;
+        m[1][3] = 0.0f;
+        m[2][3] = 0.0f;
+        m[3][3] = 1.0f;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005EF00);
-#endif
 
 /* game_libs_func_0005F0B8: one 113-insn (0x1C4) function. BOUNDARY MERGED
  * 2026-06-02: splat had split it into 0005F0B8 (3-insn FP-const prologue:

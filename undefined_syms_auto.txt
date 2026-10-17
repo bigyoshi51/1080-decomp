@@ -3874,3 +3874,7 @@ gl_ref_00000160_51AD8 = 0x00000160;
 bu_b520_k48 = func_00008124 + 0x48;  /* func_0000B520 rodata pool reads (target relocs func_00008124 + 0x48 / + 0x44, func_000008B4 + 0xC) */
 bu_b520_k44 = func_00008124 + 0x44;
 bu_b520_kc = func_000008B4 + 0xC;
+gl_func_00000000_5ef00q = 0x00000000;  /* (float)->float sqrt-slot blank for gl_func_0005EF00 */
+gl_func_00000000_5ef00s = 0x00000000;  /* (float)->float sin-slot blank for gl_func_0005EF00 */
+gl_func_00000000_5ef00c = 0x00000000;  /* (float)->float cos-slot blank for gl_func_0005EF00 */
+gl_func_00000000_5ef00i = 0x00000000;  /* (mtx) void ident-slot blank for gl_func_0005EF00 */
