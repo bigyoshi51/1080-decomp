@@ -30672,40 +30672,44 @@ void game_libs_func_0005D588(float *a0, float *a1, float *a2) {
 }
 
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005D628)();
-void gl_func_0005D628(char *arg0, char *arg1, char *arg2) {
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f2;
+/* gl_func_0005D628: split a quaternion q into a unit swing axis a in the XY
+ * plane and b (0x124, frame 0x18). EXACT. len = sqrtf(qx^2 + qy^2) through a
+ * (float)->float blank alias. a = (-qy, qx, 0) / len, or (0, 1, 0) when
+ * len == 0. b = (qw*ax - qz*ay, qw*ay + qz*ax, qx*ay - qy*ax), and a is
+ * negated when qw < 0. Load-bearing: BOTH quotients go into named nx/ny
+ * before any store to a, which gives the target's two loads ahead of both
+ * div.s. The same nx/ny are reused for the in-place negation (f12/f14 neg
+ * in place); writing `a->x = -a->x` picks fresh temps instead. */
+typedef struct { f32 x, y, z, w; } Quat_5D628;
+typedef struct { f32 x, y, z; } Vec3f_5D628;
+extern f32 gl_func_00000000_5d628(f32);
+void gl_func_0005D628(Quat_5D628 *q, Vec3f_5D628 *a, Vec3f_5D628 *b) {
+    f32 len;
+    f32 nx, ny;
 
-    temp_f0 = (*(f32*)((char*)arg0 + 0x0));
-    temp_f2 = (*(f32*)((char*)arg0 + 0x4));
-    temp_f0_2 = ((f32(*)())gl_func_00034458)((temp_f0 * temp_f0) + (temp_f2 * temp_f2));
-    if (temp_f0_2 == 0.0f) {
-        (*(f32*)((char*)arg1 + 0x0)) = 0.0f;
-        (*(f32*)((char*)arg1 + 0x8)) = 0.0f;
-        (*(f32*)((char*)arg1 + 0x4)) = 1.0f;
+    len = gl_func_00000000_5d628(q->x * q->x + q->y * q->y);
+    if (len == 0.0f) {
+        a->x = 0.0f;
+        a->y = 1.0f;
+        a->z = 0.0f;
     } else {
-        (*(f32*)((char*)arg1 + 0x8)) = 0.0f;
-        (*(f32*)((char*)arg1 + 0x4)) = (f32) ((*(f32*)((char*)arg0 + 0x0)) / temp_f0_2);
-        (*(f32*)((char*)arg1 + 0x0)) = (f32) (-(*(f32*)((char*)arg0 + 0x4)) / temp_f0_2);
+        nx = -q->y / len;
+        ny = q->x / len;
+        a->x = nx;
+        a->y = ny;
+        a->z = 0.0f;
     }
-    (*(f32*)((char*)arg2 + 0x0)) = (f32) (((*(f32*)((char*)arg0 + 0xC)) * (*(f32*)((char*)arg1 + 0x0))) - ((*(f32*)((char*)arg0 + 0x8)) * (*(f32*)((char*)arg1 + 0x4))));
-    (*(f32*)((char*)arg2 + 0x4)) = (f32) (((*(f32*)((char*)arg0 + 0xC)) * (*(f32*)((char*)arg1 + 0x4))) + ((*(f32*)((char*)arg0 + 0x8)) * (*(f32*)((char*)arg1 + 0x0))));
-    (*(f32*)((char*)arg2 + 0x8)) = (f32) (((*(f32*)((char*)arg0 + 0x0)) * (*(f32*)((char*)arg1 + 0x4))) - ((*(f32*)((char*)arg0 + 0x4)) * (*(f32*)((char*)arg1 + 0x0))));
-    if ((*(f32*)((char*)arg0 + 0xC)) < 0.0f) {
-        (*(f32*)((char*)arg1 + 0x8)) = 0.0f;
-        (*(f32*)((char*)arg1 + 0x0)) = (f32) -(*(f32*)((char*)arg1 + 0x0));
-        (*(f32*)((char*)arg1 + 0x4)) = (f32) -(*(f32*)((char*)arg1 + 0x4));
+    b->x = q->w * a->x - q->z * a->y;
+    b->y = q->w * a->y + q->z * a->x;
+    b->z = q->x * a->y - q->y * a->x;
+    if (q->w < 0.0f) {
+        nx = -a->x;
+        ny = -a->y;
+        a->x = nx;
+        a->y = ny;
+        a->z = 0.0f;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D628);
-#endif
 
 /* game_libs_func_0005D754 -- MERGED 2026-09-09 (agent-c): the 3-word orphan
  * `lui at,0x4000; mtc1 at,$f4; lwc1 $f2,0x1C(a0)` was the hoisted 2.0f

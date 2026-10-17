@@ -3651,6 +3651,7 @@ gl_ref_00021AC8_5E288 = 0x00021AC8;  /* gl_func_0005E288 per-step table (read fr
 gl_func_00000000_5e944 = 0x00000000;  /* (ptr, int, float) void blank for game_libs_func_0005E944 */
 gl_func_00000000_5eb4c = 0x00000000;  /* (ptr, Vec3 *, float) void blank for gl_func_0005EB4C */
 gl_func_00000000_5ed54 = 0x00000000;  /* (ptr, Vec3 *, float) void blank for game_libs_func_0005ED54 */
+gl_func_00000000_5d628 = 0x00000000;  /* (float)->float sqrt blank for gl_func_0005D628 */
 gl_func_0003AC5C_rodata = 0x00001A90;  /* gl_func_0003AC5C 5-entry jumptable (cases 0..4) in bootup.uso RoData at +0x1A90; donor-local .rodata reloc renamed by replace-function-body.py (game_libs_o2_3AC5C.c) */
 gl_ref_0001EE18_3AC5C = 0x0001EE18;  /* gl_func_0003AC5C baked lui/addiu message address (init cb) */
 gl_ref_0001EE24_3AC5C = 0x0001EE24;  /* gl_func_0003AC5C baked lui/addiu message address (second cb) */
