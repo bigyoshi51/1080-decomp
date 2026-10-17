@@ -12057,43 +12057,80 @@ end:
     return a0;
 }
 
-// gl_func_000415A4 — STRUCTURAL PASS (0x1C0 / 113 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x38
-// (saves ra). Subsystem init / config-table setup (cb = jal 0 USO-relocated
-// registrar; string literals around &D_0002F5D0).
-//
-//   void gl_func_000415A4(void *a0) {
-//     *(int*)0x4C160 = 0;                          // clear module-ready flag
-//     cb(&D_str0, &sp_outA, &sp_outB);              // registration call 1
-//     cb(&D_str1, sp_outA + sp_outB);               // registration call 2
-//     cb(&D_str2, 0);
-//     cb(&D_str3, 0x32);                            // (li a1,0x32)
-//     *(void**)&D_g = saved_a0;                      // stash arg ptr global
-//     cb(0); cfg->p0C = &D_0002F5D0;                 // name/string field
-//     cb(0); *(int*)&D_g2 = ...;
-//     cb(0); *(int*)&D_g3 = ...;
-//     // fill a config struct with literal constants:
-//     cfg->p04 = 2;        // 0x24180002
-//     cfg->p00 = 0;
-//     cfg->p10 = 0; cfg->p14 = 0;
-//     cfg->p08 = 0x140;    // 0x24190140
-//     cfg->p0C = 0xF0;     // 0x240800F0  (overwrites the name slot path)
-//     // v0 = 0x406 (0x24020406) used as a tag/version
-//     cfg->fpA = 100.0f;   // 0x42C80000 via mtc1
-//     cfg->fpB = 16000.0f; // 0x467A0000 via mtc1
-//   }
-// One-shot subsystem initializer: resets the 0x4C160 ready/verbose global,
-// performs a short sequence of cb registration calls (string-literal keyed,
-// sp scratch out-params), then writes a fixed constant block into a module
-// config struct (int fields 2 / 0x140 / 0xF0 / 0x406 at +0x00..+0x14, two
-// float params 100.0 and 16000.0, and a &D_0002F5D0 name pointer). Family:
-// cb-driven init/registration + constant config-table fill (siblings
-// 0003E5E0 / 00040DE8 / 000412E8). Constant-to-offset assignment order is
-// representative; the 0x4C160 clear, the cb call shape, and the literal
-// values (2/0x140/0xF0/0x406, 100.0f/16000.0f, &D_0002F5D0) are exact. Caps:
-// config struct, &D_g globals and cb signatures untyped. Full body
-// INCLUDE_ASM-preserved.
+// gl_func_000415A4 -- NM decode 2026-10-17 agent-c (112/113 words).
+// Module init: clear the 0x3C160 word, size/print the heap, register self in
+// a global and point self->0xC at the Data block +0x1F5D0, allocate two
+// handles, fill the 320x240 viewport/projection record (100.0 / 16000.0 clip
+// planes, mode 1030 | 6 | 0x400 at +0x28), zero a Vec4, print two banners,
+// allocate a 128-byte object, publish it at (*global)->0x34, call self's
+// vtable +0x6C hook and log self. Load-bearing: one if(1) after the first call
+// makes self's live range reject (homed at 56(sp), reloaded per use, like the
+// target) and a second before the self use gives it v0 (dead-v0 poison). Open:
+// the record block -- the target stores the +0x28 word twice through a
+// separate lui (first 1030, then the ori'd value) and the Vec4 through a
+// +0x30 base register, in source order; every spelling probed (one symbol
+// via pointer + direct, two symbols, |= chain, single OR) reorders or merges.
+#ifdef NON_MATCHING
+typedef struct { char pad[0x68]; short off68; char pad6A[2]; void (*fn6C)(); } VT415A4;
+typedef struct { char pad[0xC]; void *pC; char pad10[0x18]; VT415A4 *vt; } O415A4;
+typedef struct { int a0, a4, a8, aC, a10, a14; float f18, f1C; char pad20[8]; int a28; int a2C; float v30[4]; } T415A4;
+extern int D_415A4_z;
+extern char D_415A4_s1[], D_415A4_s2[], D_415A4_s3[], D_415A4_s4[], D_415A4_s5[], D_415A4_s6[];
+extern O415A4 *D_415A4_g1;
+extern int D_415A4_g2, D_415A4_g3;
+extern T415A4 D_415A4_t;
+extern char D_415A4_u[];
+extern char D_415A4_v[];
+extern char *D_415A4_g4;
+
+void gl_func_000415A4(O415A4 *self) {
+    int a;
+    int b;
+    char *p;
+    T415A4 *t;
+    float *v;
+
+    *(int *)((char *)&D_415A4_z + 0x3C160) = 0;
+    gl_func_00000000(D_415A4_s1, &a, &b);
+    if (1) {}
+    gl_func_00000000(D_415A4_s2, a, a + b);
+    gl_func_00000000(0);
+    gl_func_00000000(D_415A4_s3, 50);
+    if (1) {}
+    (D_415A4_g1 = self)->pC = (char *)&D_00000000 + 0x1F5D0;
+    D_415A4_g2 = gl_func_00000000(0);
+    D_415A4_g3 = gl_func_00000000(0);
+    t = &D_415A4_t;
+    t->a4 = 2;
+    t->a0 = 0;
+    t->a10 = 0;
+    t->a14 = 0;
+    t->aC = 240;
+    t->a8 = 320;
+    t->f18 = 100.0f;
+    t->f1C = 16000.0f;
+    D_415A4_t.a28 = 1030;
+    D_415A4_t.a28 = D_415A4_t.a28 | 6 | 0x400;
+    t->a2C = 1;
+    if (1) { v = D_415A4_t.v30; }
+    v[0] = v[1] = v[2] = v[3] = 0.0f;
+    gl_func_00000000((char *)&D_00000000 + 0x1F5D4, 0);
+    gl_func_00000000(D_415A4_s4);
+    gl_func_00000000();
+    gl_func_00000000((char *)&D_00000000 + 0x1F5DC, 0);
+    gl_func_00000000(D_415A4_s5);
+    gl_func_00000000();
+    p = (char *)gl_func_00000000(128);
+    if (p != 0) {
+        gl_func_00000000(p, 1);
+    }
+    *(char **)(D_415A4_g4 + 0x34) = p;
+    self->vt->fn6C(self->vt->off68 + (char *)self);
+    gl_func_00000000(D_415A4_s6, self);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000415A4);
+#endif
 
 /* gl_func_00041768: 25-insn 3-call vtable-dispatch.
  *   func(0x1F5E4);
