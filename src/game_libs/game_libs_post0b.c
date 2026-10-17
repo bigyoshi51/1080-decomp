@@ -30621,65 +30621,29 @@ void game_libs_func_0005CCC4(float *a0, float *a1) {
     a1[3] = a0[3];
 }
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005CCF4)();
-void gl_func_0005CCF4(char *arg0, char *arg1, char *arg2) {
-    f32 sp34;
-    f32 sp30;
-    f32 sp2C;
-    f32 sp24;
-    f32 sp20;
-    f32 sp1C;
-    f32 sp18;
-    f32 sp14;
-    f32 sp10;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f12;
-    f32 temp_f14;
-    f32 temp_f16;
-    f32 temp_f18;
-    f32 temp_f20;
-    f32 temp_f2;
-    f32 temp_f4;
-    f32 temp_f4_2;
-    f32 temp_f4_3;
-    f32 temp_f6;
-    f32 temp_f8;
+/* gl_func_0005CCF4 - rotate a vector by a quaternion: out = q * (v, 0) *
+ * conj(q), written out as the two Hamilton products with the v.w = 0 terms
+ * dropped. EXACT 2026-10-17 (64.5 -> 100), replacing the m2c soup. Decls
+ * tx, ty, tz, tw, cx, cy, cz = homes 52..28 (tw stays in f0); the -q->x CSE
+ * temp spills to 24 and is copied into cx's home 36. The only lever is the
+ * no-op cast in `(f32)tx * q->w`: cfe evaluates a plain float variable leaf
+ * after a deref on either side, the target loads tx first. */
+typedef struct { f32 x, y, z, w; } Quat_5CCF4;
+void gl_func_0005CCF4(Quat_5CCF4 *q, Vec3 *v, Vec3 *out) {
+    f32 tx, ty, tz, tw;
+    f32 cx, cy, cz;
 
-    temp_f0 = (*(f32*)((char*)arg0 + 0x0));
-    sp18 = -temp_f0;
-    sp24 = sp18;
-    temp_f2 = (*(f32*)((char*)arg0 + 0x4));
-    temp_f4 = -temp_f2;
-    sp20 = temp_f4;
-    temp_f12 = (*(f32*)((char*)arg0 + 0x8));
-    sp1C = -temp_f12;
-    temp_f14 = (*(f32*)((char*)arg1 + 0x8));
-    temp_f16 = (*(f32*)((char*)arg1 + 0x4));
-    temp_f18 = (*(f32*)((char*)arg0 + 0xC));
-    temp_f20 = (*(f32*)((char*)arg1 + 0x0));
-    temp_f4_2 = ((temp_f2 * temp_f14) - (temp_f12 * temp_f16)) + (temp_f18 * temp_f20);
-    sp34 = temp_f4_2;
-    sp10 = temp_f4_2;
-    temp_f8 = (sp18 * temp_f14) + (temp_f12 * temp_f20) + (temp_f18 * temp_f16);
-    sp30 = temp_f8;
-    sp14 = temp_f8;
-    temp_f6 = ((temp_f0 * temp_f16) - (temp_f2 * temp_f20)) + (temp_f18 * temp_f14);
-    sp2C = temp_f6;
-    temp_f0_2 = ((sp18 * temp_f20) - (temp_f2 * temp_f16)) - (temp_f12 * temp_f14);
-    temp_f4_3 = sp14;
-    sp14 = temp_f6;
-    (*(f32*)((char*)arg2 + 0x0)) = (f32) ((((temp_f4_2 * temp_f18) + (temp_f4_3 * sp1C)) - (sp14 * temp_f4)) + (temp_f0_2 * sp18));
-    (*(f32*)((char*)arg2 + 0x4)) = (f32) ((-sp34 * sp1C) + (sp30 * (*(f32*)((char*)arg0 + 0xC))) + (sp2C * sp24) + (temp_f0_2 * sp20));
-    (*(f32*)((char*)arg2 + 0x8)) = (f32) (((sp34 * temp_f4) - (sp30 * sp24)) + (sp2C * (*(f32*)((char*)arg0 + 0xC))) + (temp_f0_2 * sp1C));
+    cx = -q->x;
+    cy = -q->y;
+    cz = -q->z;
+    tx = q->y * v->z - q->z * v->y + q->w * v->x;
+    ty = -q->x * v->z + q->z * v->x + q->w * v->y;
+    tz = q->x * v->y - q->y * v->x + q->w * v->z;
+    tw = -q->x * v->x - q->y * v->y - q->z * v->z;
+    out->x = (f32)tx * q->w + ty * cz - tz * cy + tw * cx;
+    out->y = -tx * cz + ty * q->w + tz * cx + tw * cy;
+    out->z = tx * cy - ty * cx + tz * q->w + tw * cz;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CCF4);
-#endif
 
 /* gl_func_0005CE68 - quaternion slerp with extra spins (Graphics Gems III,
  * Morrison). EXACT 2026-10-17 (96.8 -> 100), replacing the m2c-lift body:
