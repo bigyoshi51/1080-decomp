@@ -30488,60 +30488,34 @@ void game_libs_func_0005C4F0(float *a0, float *a1, float a2, float a3, float a4)
     for (i = 1; i < 4; i++) a0[i] = 0.0f;
 }
 
+/* game_libs_func_0005C548: add d * (column `i` of the rotation matrix of
+ * quaternion q = (w, x, y, z)) to the Euler-ish vector v (1-based axis i,
+ * j/k the cyclic successors); sign < 0 just subtracts d from v[i-1]. The
+ * v[n] = v[n] self-copies are real (load/store pairs at entry and exit); the
+ * entry copy needs one statement per line or the loads come out reversed.
+ * 50/73 words. Residual: the target copies q into a2 (a0 home-stored, a0
+ * reused for k, j in v1); here q is spilled to its home and reloaded, which
+ * shifts j/k/i*4 one register and moves the slti into the bgez delay. */
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005C548)();
-void game_libs_func_0005C548(f32 *arg0, char *arg1, f32 arg2, s32 arg3, s32 arg4) {
-    f32 temp_f0;
-    f32 temp_f14;
-    f32 temp_f16;
-    f32 temp_f18;
-    f32 temp_f2;
-    s32 temp_t0;
-    s32 temp_t1;
-    s32 temp_v0;
-    s32 var_a0;
-    s32 var_v1;
-    char *temp_t2;
-    char *temp_t2_2;
-    char *temp_v0_2;
-    char *temp_v1;
-
-    (*(f32*)((char*)arg1 + 0x0)) = (f32) (*(f32*)((char*)arg1 + 0x0));
-    (*(f32*)((char*)arg1 + 0x4)) = (f32) (*(f32*)((char*)arg1 + 0x4));
-    (*(f32*)((char*)arg1 + 0x8)) = (f32) (*(f32*)((char*)arg1 + 0x8));
-    var_v1 = (int)arg3 + 1;
-    if (arg4 < 0) {
-        temp_t2 = (int)arg1 + (arg3 * 4);
-        (*(f32*)((char*)temp_t2 + -0x4)) = (f32) ((*(f32*)((char*)temp_t2 + -0x4)) - arg2);
+void game_libs_func_0005C548(f32 *q, f32 *v, f32 d, s32 i, s32 sign) {
+    s32 j, k;
+    f32 qi, w, qj, qk, d2;
+    v[0] = v[0];
+    v[1] = v[1];
+    v[2] = v[2];
+    k = i + 1; j = k;
+    if (sign < 0) {
+        v[i - 1] -= d;
     } else {
-        temp_v0 = arg3 * 4;
-        if (var_v1 >= 4) {
-            var_v1 = 1;
-        }
-        var_a0 = var_v1 + 1;
-        if (var_a0 >= 4) {
-            var_a0 = 1;
-        }
-        temp_f16 = *(f32*)((char*)arg0 + temp_v0);
-        temp_f14 = *arg0;
-        temp_t0 = var_v1 * 4;
-        temp_f0 = *(f32*)((char*)arg0 + temp_t0);
-        temp_t1 = var_a0 * 4;
-        temp_f2 = *(f32*)((char*)arg0 + temp_t1);
-        temp_t2_2 = (int)arg1 + temp_v0;
-        temp_v0_2 = (int)arg1 + temp_t0;
-        temp_v1 = (int)arg1 + temp_t1;
-        temp_f18 = 2.0f * arg2;
-        (*(f32*)((char*)temp_t2_2 + -0x4)) = (f32) ((*(f32*)((char*)temp_t2_2 + -0x4)) + (arg2 * ((((temp_f16 * temp_f16) + (temp_f14 * temp_f14)) - (temp_f0 * temp_f0)) - (temp_f2 * temp_f2))));
-        (*(f32*)((char*)temp_v0_2 + -0x4)) = (f32) ((*(f32*)((char*)temp_v0_2 + -0x4)) + (temp_f18 * ((temp_f16 * temp_f0) + (temp_f14 * temp_f2))));
-        (*(f32*)((char*)temp_v1 + -0x4)) = (f32) ((*(f32*)((char*)temp_v1 + -0x4)) + (temp_f18 * ((temp_f16 * temp_f2) + (temp_f14 * temp_f0))));
+        if (j >= 4) j = 1;
+        k = j + 1;
+        if (k >= 4) k = 1;
+        qj = q[j]; qk = q[k]; w = q[0]; qi = q[i]; d2 = d + d;
+        v[i - 1] += d * (qi * qi + w * w - qj * qj - qk * qk);
+        v[j - 1] += d2 * (qi * qj + w * qk);
+        v[k - 1] += d2 * (qi * qk + w * qj);
     }
-    (*(f32*)((char*)arg1 + 0x0)) = (f32) (*(f32*)((char*)arg1 + 0x0));
-    (*(f32*)((char*)arg1 + 0x4)) = (f32) (*(f32*)((char*)arg1 + 0x4));
-    (*(f32*)((char*)arg1 + 0x8)) = (f32) (*(f32*)((char*)arg1 + 0x8));
+    v[0] = v[0]; v[1] = v[1]; v[2] = v[2];
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C548);
@@ -30890,39 +30864,28 @@ void gl_func_0005D054(float *a0, float *a1, float *a2) {
     a2[3] = w;
 }
 
+/* game_libs_func_0005D134: rotate quaternion q = (w, x, y, z) about its own
+ * axis i (1-based) by the half-angle pair (c, s): the (q[i], w) and
+ * (q[j], q[k]) Givens pairs. The unfolded `lui 0x3f80; mul.s` is `(f32)1 * s`
+ * (a float literal 1.0f * s is folded by cfe; the int-literal cast is not).
+ * Residual (+2 words): q is moved to a1 and home-stored (the target keeps q
+ * in a0 and puts &q[i]/&q[k] in a2/a1), and c/s colour f14/f12 swapped --
+ * same param-coalescing miss as 0005C548. */
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005D134)();
-void game_libs_func_0005D134(f32 *arg0, f32 arg1, f32 arg2, s32 arg3) {
-    f32 *temp_a1;
-    f32 *temp_a2;
-    f32 *temp_t0;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f2;
-    s32 var_v0;
-    s32 var_v1;
-
-    var_v0 = (int)arg3 + 1;
-    if (var_v0 >= 4) {
-        var_v0 = 1;
-    }
-    var_v1 = var_v0 + 1;
-    if (var_v1 >= 4) {
-        var_v1 = 1;
-    }
-    temp_a2 = (int)arg0 + (arg3 * 4);
-    temp_f2 = 1.0f * arg2;
-    temp_f0 = *temp_a2;
-    temp_t0 = (int)arg0 + (var_v0 * 4);
-    temp_a1 = (int)arg0 + (var_v1 * 4);
-    *temp_a2 = (temp_f0 * arg1) + (temp_f2 * *arg0);
-    *arg0 = (*arg0 * arg1) - (temp_f2 * temp_f0);
-    temp_f0_2 = *temp_t0;
-    *temp_t0 = (temp_f0_2 * arg1) + (arg2 * *temp_a1);
-    *temp_a1 = (*temp_a1 * arg1) - (arg2 * temp_f0_2);
+void game_libs_func_0005D134(f32 *q, f32 c, f32 s, s32 i) {
+    s32 j, k;
+    f32 t, a;
+    j = i + 1;
+    if (j >= 4) j = 1;
+    k = j + 1;
+    if (k >= 4) k = 1;
+    t = (f32)1 * s;
+    a = q[i];
+    q[i] = a * c + t * q[0];
+    q[0] = q[0] * c - t * a;
+    a = q[j];
+    q[j] = a * c + s * q[k];
+    q[k] = q[k] * c - s * a;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D134);
@@ -31036,35 +30999,28 @@ void gl_func_0005D414(int *a0, float x, float y, float z) {
 }
 
 
-#ifdef NON_MATCHING
-/* game_libs_func_0005D474: one 33-insn (0x84) Vec3-scale + 3-call cascade.
- * BOUNDARY MERGED 2026-06-02: splat had split it into 0005D474 (3-insn FP-const
- * prologue: `mtc1 a2,$f14` + `lui 0x3f00`→`$f4`=0.5 — hoisted above the frame
- * setup; the real entry) + gl_func_0005D480 (the `addiu sp` prologue + body
- * doing `mul.s $f12,$f14,$f4` reading f14/f4 uninitialized). SINGLE-entry per
- * the dual-vs-single test (docs/MATCHING_WORKFLOW.md): f14 is ARG-DERIVED
- * (bit-cast of the 3rd arg a2), not a baked default, and gl_func_0005D480 has
- * no callers. Absorbed 0005D480's 30 words into 0005D474 (0xC -> 0x84); dropped
- * the 0005D480 symbol. Merging brings f14 (=a2) and f4 (=0.5) in-scope,
- * RETRACTING the bogus "caller-set float convention" cap. Remaining caps keep
- * it NM: placeholder calls + the (float)(int) result casts. */
-void game_libs_func_0005D474(int a0, float *a1, int a2) {
-    float f14 = *(float *)&a2;   /* mtc1 a2,$f14 in the merged prologue */
-    float f4 = 0.5f;             /* lui 0x3f00 = 0.5f */
-    float buf[4];
-    float scalar1, scalar2;
-    float product = f14 * f4;
-    scalar1 = (float)(int)gl_func_00000000(product);
-    scalar2 = (float)(int)gl_func_00000000(scalar1);
-    buf[0] = a1[0] * scalar1;
-    buf[1] = a1[1] * scalar1;
-    buf[2] = a1[2] * scalar1;
-    buf[3] = scalar2;
-    gl_func_00000000(&buf, a0, a0);
+/* game_libs_func_0005D474: rotate quaternion q by angle about a unit axis:
+ * build r = (axis * sin(angle/2), cos(angle/2)) and call the quaternion
+ * multiply blank as mul(r, q, q). sin/cos are (float)->float blanks. Frame
+ * 0x50: s homes at the top, r[4] below it, then seven scalar homes (h, c,
+ * x, y, z + two unused) above the arg-spill temp at sp+28. */
+extern float gl_func_00000000_f54c(float);
+extern void gl_func_00000000_5d474(f32 *, f32 *, f32 *);
+void game_libs_func_0005D474(f32 *q, f32 *axis, f32 angle) {
+    f32 s;
+    f32 r[4];
+    f32 h, c, x, y, z, pad1, pad2;
+
+    h = angle * 0.5f;
+    s = gl_func_00000000_f54c(h);
+    c = gl_func_00000000_f54c(h);
+    x = axis[0] * s; y = axis[1] * s; z = axis[2] * s;
+    r[0] = x;
+    r[1] = y;
+    r[2] = z;
+    r[3] = c;
+    gl_func_00000000_5d474(r, q, q);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D474);
-#endif
 
 // gl_func_0005D4F8 — 4-component normalize (quaternion / 4-float vector).
 //   Loads 4 floats from a0[0..3], sums squares, calls sqrtf, divides 1.0 by
@@ -31855,35 +31811,17 @@ void game_libs_func_0005E944(f32 (*a)[4], s32 axis, f32 angle) {
     gl_func_00000000(R, b);
 }
 
-/* gl_func_0005EAA4 - verified structural decode (42-insn per-Vec3-axis
- * conditional dispatch; 3x bc1tl FP branch-likely = documented sub-80
- * ceiling -> INCLUDE_ASM build path; struct-typing reference).
- *   if (a1->x != 0.0f) gl_func_00000000(a0, 0, *(int*)&a1->x, 0);
- *   if (a1->y != 0.0f) gl_func_00000000(a0, 1, *(int*)&a1->y, 0);
- *   if (a1->z != 0.0f) gl_func_00000000(a0, 2, *(int*)&a1->z, 0);
- * Struct-typing: a1 is a Vec3 (float x/y/z @0/4/8); for each non-zero
- * axis it calls gl_func_00000000(a0, axis_index, <raw float bits via
- * mfc1>, 0) - a per-component apply/notify (e.g. set non-zero
- * translation/rotation axes). Caps <80: c.eq.s + bc1tl branch-likely
- * x3 (each `if(comp!=0)` is a likely-annulled FP branch with the call
- * setup in the delay region) + mfc1 float-bits-as-int arg; clean C
- * if/return does not reproduce the bc1tl annul shape. Documented
- * FP-branch-likely ceiling. INCLUDE_ASM (no episode). */
-#ifdef NON_MATCHING
-void gl_func_0005EAA4(void *a0, float *a1) {
-    if (a1[0] != 0.0f) {
-        gl_func_00000000(a0, 0, *(int *)&a1[0], 0);
-    }
-    if (a1[1] != 0.0f) {
-        gl_func_00000000(a0, 1, *(int *)&a1[1], 0);
-    }
-    if (a1[2] != 0.0f) {
-        gl_func_00000000(a0, 2, *(int *)&a1[2], 0);
-    }
+/* gl_func_0005EAA4: apply an Euler rotation (x, y, z order) to matrix m: for
+ * each non-zero component, call the rotate-about-axis-index blank
+ * (gl_func_0005EB4C's signature: mtx, axis, angle, flag). The "bc1tl
+ * ceiling" was the K&R blank: a prototyped (ptr, int, float, int) alias gives
+ * the mfc1 a2 float arg and the bc1tl/delay-reload shape directly. */
+extern void gl_func_00000000_5eaa4(f32 (*)[4], s32, f32, s32);
+void gl_func_0005EAA4(f32 (*m)[4], f32 *r) {
+    if (r[0] != 0.0f) gl_func_00000000_5eaa4(m, 0, r[0], 0);
+    if (r[1] != 0.0f) gl_func_00000000_5eaa4(m, 1, r[1], 0);
+    if (r[2] != 0.0f) gl_func_00000000_5eaa4(m, 2, r[2], 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005EAA4);
-#endif
 
 /* gl_func_0005EB4C: rotate a matrix about a unit axis picked by index
  * (0x208, frame 0xD8). EXACT. axis 0/1/2 -> v = X/Y/Z unit vector (default
@@ -32020,89 +31958,45 @@ void gl_func_0005EF00(f32 (*m)[4], Vec3 *v, f32 angle) {
     }
 }
 
-/* game_libs_func_0005F0B8: one 113-insn (0x1C4) function. BOUNDARY MERGED
- * 2026-06-02: splat had split it into 0005F0B8 (3-insn FP-const prologue:
- * `mtc1 a2,$f14` (input, ARG-DERIVED) + `lwc1 $f4,D[0x2354]` — hoisted above the
- * frame; the real entry) + gl_func_0005F0C4 (the prologue+body using f14 in
- * `mul.s $f20,$f14,$f4`). SINGLE-entry per the dual-vs-single test (f14 arg-
- * derived + FP-op use; no callers). Absorbed 0005F0C4's 110 words into 0005F0B8
- * (0xC -> 0x1C4); dropped the 0005F0C4 symbol. Brings f14(=a2)/f4(=D const)
- * in-scope, retracting the implicit caller-set-float cap; body decodable later. */
+/* game_libs_func_0005F0B8: axis-angle rotation matrix (guRotateF family, axis
+ * passed as a Vec3 pointer and normalised here): a = angle * pi/180, s/c =
+ * sin/cos(a), len = sqrt(|axis|^2), x/y/z = axis/len, then the Rodrigues
+ * matrix with (1 - c) written inline. 113/113 words, frame 0x80 and the
+ * prologue/sqrt block match. Residual: the target keeps the 0.0f store
+ * constant in callee-saved $f22 (here $f0, which pushes t/x/y/z one FP
+ * register up) and divides x first (here y first); the two extra homes at
+ * sp+60/56 are the zy/xz copies. sin/cos/sqrt are (float)->float blanks;
+ * pi/180 is the pinned RoData literal D_5F0B8_dtor (+0x2054). */
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005F0B8)();
-void game_libs_func_0005F0B8(char *arg0, char *arg1, f32 arg2) {
-    f32 sp78;
-    f32 sp70;
-    f32 sp6C;
-    f32 sp64;
-    f32 sp60;
-    f32 sp5C;
-    f32 sp3C;
-    f32 sp38;
-    f32 sp34;
-    f32 sp30;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f12;
-    f32 temp_f14;
-    f32 temp_f14_2;
-    f32 temp_f16;
-    f32 temp_f16_2;
-    f32 temp_f16_3;
-    f32 temp_f18;
-    f32 temp_f18_2;
-    f32 temp_f20;
-    f32 temp_f20_2;
-    f32 temp_f2;
-    f32 temp_f2_2;
-    f32 temp_f4;
-    f32 temp_f6;
+extern float gl_func_00000000_f54c(float);
+extern f32 D_5F0B8_dtor;
+void game_libs_func_0005F0B8(f32 mf[4][4], f32 *axis, f32 angle) {
+    f32 a, s, c, xx, yy, zz, xy, yz, zx, x, y, z, len, t, p1, zy, xz;
 
-    temp_f20 = arg2 * (*(f32*)((char*)&D_00000000 + 0x2054));
-    sp78 = ((f32(*)())gl_func_00034458)(temp_f20, arg2);
-    temp_f2 = (*(f32*)((char*)arg1 + 0x0));
-    temp_f14 = (*(f32*)((char*)arg1 + 0x4));
-    temp_f16 = (*(f32*)((char*)arg1 + 0x8));
-    temp_f20_2 = ((f32(*)())gl_func_00034458)(temp_f20);
-    temp_f0 = ((f32(*)())gl_func_00034458)((temp_f2 * temp_f2) + (temp_f14 * temp_f14) + (temp_f16 * temp_f16), temp_f14);
-    temp_f2_2 = (*(f32*)((char*)arg1 + 0x0)) / temp_f0;
-    temp_f12 = (*(f32*)((char*)arg1 + 0x4)) / temp_f0;
-    temp_f4 = temp_f2_2 * temp_f2_2;
-    sp70 = temp_f4;
-    temp_f14_2 = (*(f32*)((char*)arg1 + 0x8)) / temp_f0;
-    temp_f6 = temp_f12 * temp_f12;
-    temp_f0_2 = 1.0f - temp_f20_2;
-    sp6C = temp_f6;
-    sp64 = temp_f2_2 * temp_f12;
-    temp_f16_2 = temp_f12 * temp_f14_2;
-    temp_f18 = temp_f14_2 * temp_f2_2;
-    sp60 = temp_f16_2;
-    sp3C = temp_f16_2;
-    sp5C = temp_f18;
-    sp38 = temp_f18;
-    (*(f32*)((char*)arg0 + 0x0)) = (f32) ((temp_f0_2 * temp_f4) + temp_f20_2);
-    temp_f18_2 = temp_f0_2 * sp64;
-    temp_f16_3 = temp_f14_2 * sp78;
-    (*(f32*)((char*)arg0 + 0x10)) = (f32) (temp_f18_2 - temp_f16_3);
-    sp30 = temp_f12 * sp78;
-    (*(f32*)((char*)arg0 + 0x30)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x4)) = (f32) (temp_f18_2 + temp_f16_3);
-    (*(f32*)((char*)arg0 + 0x20)) = (f32) ((temp_f0_2 * sp5C) + sp30);
-    (*(f32*)((char*)arg0 + 0x14)) = (f32) ((temp_f0_2 * temp_f6) + temp_f20_2);
-    sp34 = temp_f2_2 * sp78;
-    (*(f32*)((char*)arg0 + 0x34)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x24)) = (f32) ((temp_f0_2 * sp60) - sp34);
-    (*(f32*)((char*)arg0 + 0x8)) = (f32) ((temp_f0_2 * sp38) - sp30);
-    (*(f32*)((char*)arg0 + 0x38)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0xC)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x1C)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x2C)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x18)) = (f32) ((temp_f0_2 * sp3C) + sp34);
-    (*(f32*)((char*)arg0 + 0x3C)) = 1.0f;
-    (*(f32*)((char*)arg0 + 0x28)) = (f32) ((temp_f0_2 * (temp_f14_2 * temp_f14_2)) + temp_f20_2);
+    a = angle * D_5F0B8_dtor;
+    s = gl_func_00000000_f54c(a);
+    c = gl_func_00000000_f54c(a);
+    len = gl_func_00000000_f54c(axis[2] * axis[2] + (axis[1] * axis[1] + axis[0] * axis[0]));
+    x = axis[0] / len;
+    y = axis[1] / len;
+    z = axis[2] / len;
+    xx = x * x; yy = y * y; xy = x * y; yz = y * z; zx = z * x; zy = yz; xz = zx;
+    mf[0][0] = (1 - c) * xx + c;
+    mf[1][0] = (1 - c) * xy - z * s;
+    mf[2][0] = (1 - c) * zx + y * s;
+    mf[3][0] = 0;
+    mf[0][1] = (1 - c) * xy + z * s;
+    mf[1][1] = (1 - c) * yy + c;
+    mf[2][1] = (1 - c) * yz - x * s;
+    mf[3][1] = 0;
+    mf[0][2] = (1 - c) * xz - y * s;
+    mf[1][2] = (1 - c) * zy + x * s;
+    mf[2][2] = (1 - c) * (z * z) + c;
+    mf[3][2] = 0;
+    mf[0][3] = 0;
+    mf[1][3] = 0;
+    mf[2][3] = 0;
+    mf[3][3] = 1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005F0B8);
@@ -32163,39 +32057,26 @@ void gl_func_0005F3E0(f32 mf[4][4], f32 l, f32 r, f32 b, f32 t, f32 n, f32 f, f3
     }
 }
 
-#ifdef NON_MATCHING
-/* game_libs_func_0005F534: one 47-insn (0xBC) GL frustum/perspective projection-
- * matrix builder. BOUNDARY MERGED 2026-06-02: splat had split it into 0005F534
- * (6-insn FP-const prologue: `mtc1 a1,$f14` (input, ARG-DERIVED) + `lui 0x4000`
- * ->$f6=2.0 [+ a D-reloc load] — hoisted above the frame; the real entry) +
- * gl_func_0005F54C (the prologue+body using f14 in `div.s $f12,$f14,$f6`).
- * SINGLE-entry per the dual-vs-single test (f14 arg-derived + FP-op use; no
- * callers). Absorbed 0005F54C's 41 words into 0005F534 (0x18 -> 0xBC); dropped
- * the 0005F54C symbol. Brings f14(=a1)/f6(=2.0) in-scope, RETRACTING the
- * "caller-set floats" cap.
- * Builds the classic GL frustum matrix into a0 (4x4 float): x-scale q/near @0x00,
- * y-scale q @0x14, (r+l)/(r-l) @0x28, 2rl/(r-l) @0x38, -1 @0x2C, 0 @0x3C; the
- * 2 transcendental calls map fov->scale (cos/tan/cot). Byte-match deferred
- * (div.s/mul.s pipeline + 2-call f-reg spill interleave — FP-regalloc). */
+/* game_libs_func_0005F534: guPerspectiveF without the identity fill / perspNorm
+ * (libultra perspective.c shape). sinf and cosf are both blank (float)->float
+ * USO calls; the sine is named first (`s`) so the cosine result is the dividend
+ * in f0, and `float cot, s;` declared in that order puts the arg spill at sp+28.
+ * pi/180 is the pinned RoData literal D_5F534_deg2rad (+0x2058). */
 extern float gl_func_00000000_f54c(float);
-void game_libs_func_0005F534(float *a0, int a1, float near, float r, float l) {
-    float f14 = *(float *)&a1;   /* mtc1 a1,$f14 in the merged prologue */
-    float t = f14 / 2.0f;        /* $f6 = 0x40000000 = 2.0 */
-    float c1 = gl_func_00000000_f54c(t);
-    float c2 = gl_func_00000000_f54c(c1);
-    float q = c2 / c1;
-    float d = r - l;
-    float s = r + l;
-    a0[0x2C / 4] = -1.0f;
-    a0[0x3C / 4] = 0.0f;
-    a0[0x28 / 4] = s / d;
-    a0[0x14 / 4] = q;
-    a0[0x00 / 4] = q / near;
-    a0[0x38 / 4] = (2.0f * r * l) / d;
+extern f32 D_5F534_deg2rad;
+void game_libs_func_0005F534(float mf[4][4], float fovy, float aspect, float near, float far) {
+    float cot, s;
+
+    fovy *= D_5F534_deg2rad;
+    s = gl_func_00000000_f54c(fovy / 2);
+    cot = gl_func_00000000_f54c(fovy / 2) / s;
+    mf[0][0] = cot / aspect;
+    mf[1][1] = cot;
+    mf[2][2] = (near + far) / (near - far);
+    mf[2][3] = -1;
+    mf[3][2] = (2 * near * far) / (near - far);
+    mf[3][3] = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005F534);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005F5F0 — DECODE CORRECTED (agent-f 2026-07-30): custom guLookAtF
@@ -32359,27 +32240,21 @@ void gl_func_0005F984(register f32 (*m)[4], f32 (*rot)[4], f32 x, f32 y, f32 z, 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F984);
 #endif
 
-#ifdef NON_MATCHING
-/* Copy 16 floats (4 rows x 4) from a1 to a0, returns a0. Faithful decode, but
- * IDO unrolls this 4-iteration loop (37 insns) while the target keeps it rolled
- * (24 insns, v0 counter / li a3,4 / bne) — an unroll-heuristic mismatch no
- * tested loop form avoids. Stays INCLUDE_ASM. */
-float *game_libs_func_0005FC64(float *a0, float *a1) {
-    int i = 0;
-    float *d = a0;
-    do {
-        d[0] = *a1++;
-        d[1] = *a1++;
-        d[2] = *a1++;
-        d[3] = *a1++;
-        d += 4;
-        i++;
-    } while (i != 4);
-    return a0;
+/* 4x4 matrix load from a flat float stream: the post-increment read through a
+ * named copy `p = a1++` keeps the per-element `or v1,a1` copies and the rolled
+ * outer loop (IDO fully unrolls only the inner j loop). */
+float *game_libs_func_0005FC64(float (*a0)[4], float *a1) {
+    int i, j;
+    float *p;
+
+    /* both loop headers on ONE line: split lines swap the final a1/row
+     * pointer bumps before the bne */
+    for (i = 0; i < 4; i++) { for (j = 0; j < 4; j++) {
+        p = a1++;
+        a0[i][j] = *p;
+    } }
+    return (float *)a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005FC64);
-#endif
 
 /* 23-insn alloc-or-passthrough + 2-call init wrapper. Sibling of
  * gl_func_0005FDCC. NATURAL CEILING: C body produces target shape EXCEPT

@@ -435,8 +435,8 @@ build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_SUFFIX_BYTES
 # 62F08 NM offset 0x2e27c + 0x50.
 # Re-probed 2026-10-17 agent-c (gl_func_000415A4 NM decode, 112 vs 113 words): 0x2e494 -> 0x2e474.
 # Re-probed 2026-10-17 agent-c run 104 (gl_func_0003B01C / gl_func_00049B3C stubs -> real decodes): 0x2e494 -> 0x2e654;
-# gl_func_00046790 re-decode: 0x2e654 -> 0x2e694.
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2e694 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# gl_func_00046790 re-decode: 0x2e654 -> 0x2e694; agent-g run 103 math decodes: -> 0x2e674.
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2e674 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0

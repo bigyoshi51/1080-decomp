@@ -3881,3 +3881,7 @@ gl_func_00000000_5ef00i = 0x00000000;  /* (mtx) void ident-slot blank for gl_fun
 gl_func_00000000_5ce68a = 0x00000000;  /* (float)->float acos-slot blank for gl_func_0005CE68 */
 gl_func_00000000_5ce68s = 0x00000000;  /* (float)->float sin-slot blank for gl_func_0005CE68 */
 D_5CE68_pi = 0x00002040;  /* gl_func_0005CE68 pi literal in bootup.uso RoData (+0x2040), pinned so it ranks as a global load */
+D_5F534_deg2rad = 0x00002058;  /* game_libs_func_0005F534 pi/180 literal in RoData (+0x2058), pinned extern */
+gl_func_00000000_5eaa4 = 0x00000000;  /* (mtx, int axis, float angle, int flag) void blank for gl_func_0005EAA4 */
+gl_func_00000000_5d474 = 0x00000000;  /* (quat *, quat *, quat *) void quat-multiply blank for game_libs_func_0005D474 */
+D_5F0B8_dtor = 0x00002054;  /* game_libs_func_0005F0B8 pi/180 literal in RoData (+0x2054), pinned extern */
