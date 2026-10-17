@@ -12349,7 +12349,83 @@ void gl_func_00041A74(int a0) {
 // alloc-and-null-check pair and the &D_0002F4B0 seed are exact; ordering of
 // the global-wire tail representative. Caps: node struct, &D_g globals and
 // cb signatures untyped. Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+typedef struct N41A9C { int data; struct N41A9C *next; } N41A9C;
+typedef struct { N41A9C *cur; N41A9C *next; } I41A9C;
+extern char D_41A9C_s1[], D_41A9C_s2[], D_41A9C_s3[], D_41A9C_s4[], D_41A9C_s5[];
+extern char D_41A9C_s6[], D_41A9C_s7[], D_41A9C_s8[], D_41A9C_s9[], D_41A9C_s10[];
+extern char D_41A9C_s12[], D_41A9C_s14[], D_41A9C_s15[], D_41A9C_s16[];
+extern char D_41A9C_s17[], D_41A9C_s18[];
+extern int D_41A9C_v1[], D_41A9C_v2[], D_41A9C_v3[], D_41A9C_v4[];
+extern int D_41A9C_t1[], D_41A9C_t2[];
+extern int D_41A9C_vb;
+
+void gl_func_00041A9C(char *self) {
+    char buf[64];
+    I41A9C it;
+    char *p;
+    int *n;
+    int *b;
+
+    if (1) { I41A9C *q = &it; }
+    gl_func_00000000(D_41A9C_s1, (char *)&D_00000000 + 0x1F658, 0);
+    gl_func_00000000(D_41A9C_s2, (char *)&D_00000000 + 0x1F65C);
+    gl_func_00000000(p = self + 60, buf);
+    if (1) {}
+    gl_func_00000000(D_41A9C_s3, buf);
+    if (1) {}
+    gl_func_00000000(p, buf);
+    gl_func_00000000(D_41A9C_s4, buf);
+    gl_func_00000000(D_41A9C_s5);
+    n = (int *)gl_func_00000000(8);
+    if (n == 0) goto end1;
+    b = n;
+    if (b != 0) goto store1;
+    b = (int *)gl_func_00000000(4);
+    if (b == 0) goto skip1;
+store1:
+    b[0] = (int)((char *)&D_00000000 + 0x1F4B0);
+skip1:
+    n[0] = (int)D_41A9C_v1;
+    n[1] = (int)D_41A9C_v2;
+end1:
+    gl_func_00000000(D_41A9C_s6, (char *)&D_00000000 + 0x1F668, n, 0);
+    gl_func_00000000(D_41A9C_s7, (char *)&D_00000000 + 0x1F670, D_41A9C_s8, 1);
+    gl_func_00000000(D_41A9C_s9, (char *)&D_00000000 + 0x1F678, D_41A9C_s10, 4);
+    if (1) { int *t = D_41A9C_t1; gl_func_00000000(buf, (char *)&D_00000000 + 0x1F680, t[2], t[0]); }
+    gl_func_00000000(D_41A9C_s12, buf);
+    if (1) { int *t = D_41A9C_t2; gl_func_00000000(buf, (char *)&D_00000000 + 0x1F690, t[2], t[0]); }
+    gl_func_00000000(D_41A9C_s14, buf);
+    n = (int *)gl_func_00000000(8);
+    if (n == 0) goto end2;
+    b = n;
+    if (b != 0) goto store2;
+    b = (int *)gl_func_00000000(4);
+    if (b == 0) goto skip2;
+store2:
+    b[0] = (int)((char *)&D_41A9C_vb + 0x1F4B0);
+skip2:
+    n[0] = (int)D_41A9C_v3;
+    n[1] = (int)D_41A9C_v4;
+end2:
+    gl_func_00000000(D_41A9C_s15, (char *)&D_00000000 + 0x1F6A0, n, 1);
+    gl_func_00000000(D_41A9C_s16, (char *)&D_00000000 + 0x1F6AC);
+    {
+        int v;
+        it.next = *(N41A9C **)(self + 0x2C);
+        v = (it.cur = it.next) != 0 ? (it.next = it.cur->next, it.cur->data) : 0;
+        while (v != 0) {
+            gl_func_00000000(it.cur->data);
+            v = (it.cur = it.next) != 0 ? (it.next = it.cur->next, it.cur->data) : 0;
+        }
+    }
+    gl_func_00000000(D_41A9C_s17);
+    gl_func_00000000(D_41A9C_s18);
+    gl_func_00000000(self);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041A9C);
+#endif
 
 // gl_func_00041D40 — STRUCTURAL PASS (0x198 / 103 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x88
@@ -16598,7 +16674,35 @@ void game_libs_func_00048104(int a0, short *a1, short *a2, short *a3, short arg5
     *((char *)a1 + 0xF) = (char)arg5;
 }
 
+// game_libs_func_00048184 -- NM decode 2026-10-17 agent-c. Clears a W*H u16
+// framebuffer (owner->0x240->0x148 table [owner->0x204] +0xF4) and blits a
+// 128x128 u16 image centred in it.
+#ifdef NON_MATCHING
+extern int D_48184_w, D_48184_h;
+extern unsigned short D_48184_img[];
+void game_libs_func_00048184(char *a0) {
+    unsigned short *dst;
+    unsigned short *src;
+    int i, x, y, x0, y0;
+
+    src = D_48184_img;
+    x0 = D_48184_w / 2 - 64;
+    y0 = D_48184_h / 2 - 64;
+    dst = *(unsigned short **)(*(char **)(*(char **)(a0 + 576) + 328) + *(int *)(a0 + 516) * 4 + 244);
+    for (i = 0; i < D_48184_w * D_48184_h; i++) {
+        dst[i] = 0;
+    }
+    for (y = y0; y < y0 + 128; y++) {
+        for (x = x0; x < x0 + 128; x++) {
+            unsigned short *p = src;
+            src = p + 1;
+            dst[y * D_48184_w + x] = *p;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00048184);
+#endif
 
 /* gl_func_00048354: bounded queue append (ctr @+0x258, slots @+0x25C, cap 8;
  * overflow calls placeholder(&D+0x1FF30)). BYTE-EXACT 19/19 (2026-07-15,
