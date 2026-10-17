@@ -10,7 +10,8 @@ into the `glabel <fn>` + tab-indented-instruction shape m2c expects.
 Usage:
     python3 scripts/disasm-func.py <func_name> [--obj <path.o>] [--m2c]
 
-Without --obj it searches build/non_matching/**/*.c.o then expected/**/*.c.o.
+Without --obj it reads the TARGET: expected/**/*.c.o first (build/non_matching holds
+whatever the current NM body compiles to, possibly clip-shifted -- pass --nm for that).
 With --m2c it pipes the result through `uv run m2c --target mips-ido-c`.
 """
 import argparse
@@ -36,12 +37,12 @@ def main():
     ap.add_argument("func")
     ap.add_argument("--obj")
     ap.add_argument("--m2c", action="store_true")
+    ap.add_argument("--nm", action="store_true", help="disassemble the NM build instead of the target")
     args = ap.parse_args()
 
-    objs = [args.obj] if args.obj else (
-        glob.glob("build/non_matching/**/*.c.o", recursive=True)
-        + glob.glob("expected/**/*.c.o", recursive=True)
-    )
+    nm = glob.glob("build/non_matching/**/*.c.o", recursive=True)
+    exp = glob.glob("expected/**/*.c.o", recursive=True)
+    objs = [args.obj] if args.obj else (nm + exp if args.nm else exp + nm)
     hit = None
     for o in objs:
         r = find_symbol(o, args.func)
