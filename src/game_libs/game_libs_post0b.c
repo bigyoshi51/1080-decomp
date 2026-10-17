@@ -11078,41 +11078,135 @@ void gl_func_00040304(Obj40304 *self, Cmd40304 *cmd) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040304);
 #endif
 
-// gl_func_00040640 — STRUCTURAL PASS (0x330 / 205 words, no episode). Raw-.word
-// USO. realjr=1, regjr=1 (the 01E00008 at +0x44 is jr t7 = jump-table
-// dispatch, NOT a boundary — exactly the docs/N64_FORENSICS ADDENDUM-18c
-// register-indirect-jr pattern), single prologue frame 0xE8 (saves ra, s0)
-// → ONE clean function. 10-way jump-table diagnostic dispatcher
-// (cb = jal 0 USO-relocated emit).
-//
-//   void gl_func_00040640(void *a0) {
-//     self = a0;
-//     cb1(a0->p0C);                              // entry hook on sub-handle
-//     scratch = self->p10;                        // saved to sp+0xE4
-//     int st = self->pB0;                         // dispatch selector
-//     if (st == 0)  goto def;                      // beqz guard
-//     if ((unsigned)st >= 0xA) goto def;           // sltiu/beqz range guard
-//     goto *jumptab[st];                           // table at &D_0+0x1B00
-//     // each of the ~9 arms (st = 1..9):
-//     //   a0 = &D_str_k;  a1 = &D_..+0xE8 (or +0x70);
-//     //   cb2(a0, a1, ...);                        // emit labeled message k
-//     //   b shared_tail;                           // all arms converge
-//     def:
-//     // default arm: cb2 with the generic/unknown-state string, fallthrough
-//     // shared_tail: final cb(...) flush using sp+0xE4 (saved self->0x10)
-//   }
-// Per-state diagnostic/trace emitter: switches on self->0xB0, each case
-// prints a distinct labeled line through cb keyed by string literals at
-// &D_..+0xE8 / &D_..+0x70, all branching to a common flush tail. Sibling of
-// gl_func_00040304 (that one a 6-way geometry-setter jump table at
-// &D_0+0x1AE4; this one a 10-way string-emit table at &D_0+0x1B00 — same
-// IDO switch idiom `idx=sel; if(idx>=N) def; jr tab[idx];`). Per-arm strings
-// and bodies not individually decoded (205-word table handler) — dispatch
-// math, range guard, table address and the per-arm cb-emit shape are exact;
-// arm payloads representative. Caps: object struct, &D_0+0x1B00 jump table,
-// the &D_.. string literals and cb signatures untyped. Full body
-// INCLUDE_ASM-preserved.
+// gl_func_00040640 -- NM decode 2026-10-17 agent-c (205/205 words, 5 words off).
+// Per-state diagnostic dump + child-list walk: switch on self->0xB0 (cases
+// 1..9, jumptable at RoData +0x1B00 includes the 0 entry, so `case 0: break;`
+// under the outer `if (state)`), each arm printing labelled lines through the
+// blank-jal printer (case 8 copies the 0x40-byte Data matrix at +0xE8 and
+// scales self->0xA0 by the Data table at +0x128), then walks the 0x10 list with
+// a {cur, next} iterator kept in memory (dead `while (0)` address-take = the
+// target's reload of cur in every loop BB), wiring self into flagged children
+// and calling their vtable hook. Load-bearing: if(1) after the head call and
+// after `o = global` (v0 poison: state v0, o v1, vtbl v0); if(1) after the
+// struct copy (keeps &table below the copy loop); fx/fy/fz named products
+// declared in the pad region (homes at decl position). Residual: the loop's
+// first/third node loads colour v1 (target a1).
+#ifdef NON_MATCHING
+typedef struct { float m[16]; } Mtx44_40640;
+typedef struct VObj40640 VObj40640T;
+typedef struct { char pad[0x18]; short off18; char pad1A[2]; void (*fn1C)(); char pad20[0x38]; short off58; char pad5A[2]; int (*fn5C)(); } VTbl40640;
+struct VObj40640 { char pad[0x14]; void *p14; int flags18; char pad1C[4]; int mask20; char pad24[4]; VTbl40640 *vt; };
+typedef struct { VObj40640T *data; void *next; } LNode40640;
+typedef struct {
+    char pad0[0xC];
+    int hC;
+    LNode40640 *list;   /* 0x10 */
+    char pad14[0x18];
+    int flags2C;   /* 0x2C */
+    char pad30[0x40];
+    char m70[0x30];/* 0x70 */
+    Vec3 vA0;      /* 0xA0 */
+    char padAC[4];
+    int state;     /* 0xB0 */
+} Obj40640;
+typedef struct { char pad[0x128]; float x, y, z; } Tbl40640;
+extern char D_40640_s1[], D_40640_s2[], D_40640_s3[], D_40640_s4[], D_40640_s5[], D_40640_s6[], D_40640_s7[], D_40640_s8[], D_40640_s9[], D_40640_s10[], D_40640_s11[], D_40640_s12[], D_40640_s13[];
+extern char D_40640_d[];
+extern char D_40640_e[];
+extern Tbl40640 D_40640_t;
+extern VObj40640T *D_40640_g;
+extern void *D_40640_g2;
+
+void gl_func_00040640(Obj40640 *self) {
+    LNode40640 *itn;
+    LNode40640 *itc;
+    int pad0[4];
+    Mtx44_40640 m;
+    Vec3 v;
+    VObj40640T *o;
+    VObj40640T *n;
+    int padt;
+    int r;
+    float fx, fy, fz;
+    int pad1[12];
+    Vec3 v2;
+
+    while (0) { LNode40640 **pp; pp = &itc; pp = &itn; }
+    gl_func_00000000((char *)self->hC, self->hC);
+    itn = self->list;
+    if (1) {}
+    if (self->state != 0) {
+        switch (self->state) {
+            case 0:
+                break;
+            case 6:
+                gl_func_00000000(D_40640_s1, D_40640_d + 0xE8);
+                gl_func_00000000(D_40640_s2, self->m70);
+                break;
+            case 7:
+                gl_func_00000000(D_40640_s3, D_40640_d + 0xE8);
+                break;
+            case 1:
+                gl_func_00000000(D_40640_s4, self->m70);
+                break;
+            case 2:
+                gl_func_00000000(D_40640_s5, self->m70);
+                break;
+            case 3:
+                gl_func_00000000(D_40640_s6, D_40640_d + 0xE8);
+                o = D_40640_g;
+                if (1) {}
+                gl_func_00000000(D_40640_s7, o->vt->fn5C(o->vt->off58 + (char *)o));
+                gl_func_00000000(D_40640_s8, self->m70);
+                break;
+            case 4:
+                gl_func_00000000(D_40640_s9, D_40640_d + 0xE8);
+                o = D_40640_g;
+                if (1) {}
+                gl_func_00000000(D_40640_s10, o->vt->fn5C(o->vt->off58 + (char *)o));
+                break;
+            case 5:
+                gl_func_00000000(D_40640_s11);
+                break;
+            case 8:
+                m = *(Mtx44_40640 *)(D_40640_d + 0xE8);
+                if (1) {}
+                fx = self->vA0.x * D_40640_t.x;
+                fy = self->vA0.y * D_40640_t.y;
+                fz = self->vA0.z * D_40640_t.z;
+                v.x = fx; v.y = fy; v.z = fz;
+                gl_func_00000000(&m, &v);
+                gl_func_00000000(D_40640_s12, &m);
+                break;
+            case 9:
+                fx = self->vA0.x * D_40640_t.x;
+                fy = self->vA0.y * D_40640_t.y;
+                fz = self->vA0.z * D_40640_t.z;
+                v2.x = fx; v2.y = fy; v2.z = fz;
+                gl_func_00000000(D_40640_e + 0xA0, &v2);
+                break;
+        }
+    }
+    while (((itc = itn) != 0 ? (itn = (LNode40640 *)itc->next, itc->data) : 0) != 0) {
+        n = itc->data;
+        if (n->flags18 & 4) {
+            if (self->flags2C & 2) {
+                D_40640_g2 = self;
+            }
+            r = gl_func_00000000();
+            n = itc->data;
+            if (n->mask20 & r) {
+                n->p14 = self;
+                n = itc->data;
+                n->vt->fn1C(n->vt->off18 + (char *)n);
+            }
+        }
+    }
+    gl_func_00000000();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040640);
+#endif
 
 // gl_func_00040974 — DECODE PROGRESS 57->70->80->91.4% (0x334 / 206 words, no
 // episode). 2026-07-15 agent-f: (a) if(1) region barriers around the d-init and
