@@ -16006,7 +16006,12 @@ void game_libs_func_00046DA0(int a0, char *a1, char *a2) {
     a1[2] = a2[2];
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00046DC0);
+/* game_libs_func_00046DC0: float RGB [0,1] -> u8 RGB via (u32)(c * 255.0f). */
+void game_libs_func_00046DC0(int a0, unsigned char *a1, float *a2) {
+    a1[0] = (unsigned int)(a2[0] * 255.0f);
+    a1[1] = (unsigned int)(a2[1] * 255.0f);
+    a1[2] = (unsigned int)(a2[2] * 255.0f);
+}
 
 extern int gl_func_00000000();
 void gl_func_00046F80(int a0, int a1, int a2) {
