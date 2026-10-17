@@ -5318,9 +5318,11 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000076F4);
  * unrolled per-row halfword copy + branch-likely guards. Full
  * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM
  * (no episode; tautology-trap rule). */
-#ifdef NON_MATCHING
-/* PASS-2 2026-10-16 (agent-c, 0 -> 99.75): source rewrite. 158/158 words,
- * 8 differ: tbl and the 320 stride swap t0/t1 (target tbl = t0).
+/* EXACT 2026-10-17 (agent-c): the last 8 words (tbl and the 320 stride
+ * swapped t0/t1) fall to a dead `if (tbl) {}` at the top of the mode-0 outer
+ * loop: its loop-weighted refs lift tbl's compute_save above the stride
+ * constant, so tbl colors first and takes t0. (Outside the loop it is inert.)
+ * PASS-2 2026-10-16 (agent-c, 0 -> 99.75): source rewrite.
  * - stores go through a copy: `t = dst; dst++; *t = v;` is the target's
  *   `or v0,a1,zero; addiu a1,a1,2; sh tN,0(v0)` (a plain *dst++ = v gets
  *   strength-reduced to one +8 bump and sh -8/-6/-4/-2), same for the mode-1
@@ -5338,6 +5340,7 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000076F4);
  *   before the +0x60 adjust (target lw v0 + or a3,v0). The frame depends on
  *   the declaration list (every local takes a slot): `s32 pad[5]` and the
  *   unused `u` give 0x48 with the call spill at 32(sp). */
+extern float func_411c_rf(void);
 #define PUT77(v) { t = dst; dst++; *t = (v); }
 void func_000077D0(char *arg0, u16 *dst, s32 arg2) {
     s32 pad[5];
@@ -5373,6 +5376,7 @@ void func_000077D0(char *arg0, u16 *dst, s32 arg2) {
     goto m1;
 m0:
     do {
+        if (tbl) {}
         c &= 0xFF;
         i++;
         if (c < 0xF0) {
@@ -5437,9 +5441,6 @@ m1:
         if (m != 0x40) goto l3;
     } while (c != 0x20);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000077D0);
-#endif
 
 void func_00007A48(char *a0) {
     int scratch;
