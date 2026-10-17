@@ -6382,7 +6382,7 @@ void timproc_uso_b5_func_00008F98(char *a0) {
  * m2c via fabricated jtbl entries [A884,A894,A898,A898,A898] = case1 both-store,
  * case2 s0-store, 3-5 empty). */
 #define M2C_FIELD(ptr, type, off) (*(type)((char *)(ptr) + (off)))
-typedef struct { s32 f0; f32 f4; f32 f8; } VecH;
+typedef struct { f32 f0; f32 f4; f32 f8; } VecH;
 extern char timproc_uso_b5_D_807FDB64;
 extern char import_8005EE6C;
 extern char import_80807FB8;
@@ -6556,6 +6556,11 @@ extern f32 DF_320;
  * the just-stored literal; no C spelling found that forwards-but-doesn't-fold.
  * 0xB4/B8/BC zero stores: three distinct `f32 z1,z2,z3 = 0.0f` locals are
  * const-propagated into the f20 web (frame -392, no per-site mtc1 zero). */
+/* 2026-10-17 (agent-g run 103) 81.32 -> 84.66: the six VecH stage chains are
+ * FLOAT data: VecH is {f32,f32,f32} (spD0.f0 = 110.0f, the DS_xxx first members
+ * are lwc1 float loads), the two stage copies are plain struct assignments (lw/sw
+ * through addiu pointers in the target) and the final three stores into the
+ * object are float member reads (lwc1/swc1), not s32 word moves. */
 extern char f8fc8_e304_1[], f8fc8_e304_2[], f8fc8_e304_3[], f8fc8_e304_4[], f8fc8_e3d04_2[], f8fc8_ee6c_sb1[], f8fc8_ee6c_sb2[], f8fc8_ee6c_sb3[];
 void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
     VecH sp154;
@@ -6718,37 +6723,25 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
                 M2C_FIELD(pv0, f32 *, 0x128) = (f32) DF_25C;
             }
             M2C_FIELD(M2C_FIELD(var_s2, char **, 0x5C), s8 **, 0x2B8) = pv0;
-            spD0.f0 = 0x42DC0000;
+            spD0.f0 = 110.0f;
             spD0.f4 = -96.0f;
             spD0.f8 = -510.0f;
             pv1 = M2C_FIELD(var_s2, char **, 0x5C);
-            M2C_FIELD(&sp94, s32 *, 0) = (s32) M2C_FIELD(&spD0, s32 *, 0);
-            it0 = M2C_FIELD(&spD0, s32 *, 4);
-            M2C_FIELD(&sp94, s32 *, 4) = it0;
-            it1 = M2C_FIELD(&spD0, s32 *, 8);
-            M2C_FIELD(&sp84, s32 *, 4) = it0;
-            M2C_FIELD(&sp84, s32 *, 0) = M2C_FIELD(&sp94, s32 *, 0);
-            M2C_FIELD(&sp94, s32 *, 8) = it1;
-            M2C_FIELD(&sp84, s32 *, 8) = it1;
-            M2C_FIELD(pv1, s32 *, 0x23C) = sp84[0];
+            *(VecH *)sp94 = spD0;
+            *(VecH *)sp84 = *(VecH *)sp94;
             pw1 = pv1 + 0x22C;
-            M2C_FIELD(pw1, f32 *, 0x14) = (*(f32 *)&sp84[1]);
-            M2C_FIELD(pw1, f32 *, 0x18) = (*(f32 *)&sp84[2]);
+            M2C_FIELD(pv1, f32 *, 0x23C) = ((VecH *)sp84)->f0;
+            M2C_FIELD(pw1, f32 *, 0x14) = ((VecH *)sp84)->f4;
+            M2C_FIELD(pw1, f32 *, 0x18) = ((VecH *)sp84)->f8;
             spC4.f8 = 0.0f;
             spC4.f4 = 0.0f;
-            spC4.f0 = DS_260;
-            M2C_FIELD(&sp94, s32 *, 0) = (s32) M2C_FIELD(&spC4, s32 *, 0);
-            it0 = M2C_FIELD(&spC4, s32 *, 4);
+            spC4.f0 = *(f32 *)&DS_260;
+            *(VecH *)sp94 = spC4;
+            *(VecH *)sp84 = *(VecH *)sp94;
             pv1 = M2C_FIELD(var_s2, char **, 0x5C) + 0x24C;
-            M2C_FIELD(&sp94, s32 *, 4) = it0;
-            it1 = M2C_FIELD(&spC4, s32 *, 8);
-            M2C_FIELD(&sp84, s32 *, 4) = it0;
-            M2C_FIELD(&sp84, s32 *, 0) = M2C_FIELD(&sp94, s32 *, 0);
-            M2C_FIELD(&sp94, s32 *, 8) = it1;
-            M2C_FIELD(&sp84, s32 *, 8) = it1;
-            M2C_FIELD(pv1, s32 *, 0x10) = sp84[0];
-            M2C_FIELD(pv1, f32 *, 0x14) = (*(f32 *)&sp84[1]);
-            M2C_FIELD(pv1, f32 *, 0x18) = (*(f32 *)&sp84[2]);
+            M2C_FIELD(pv1, f32 *, 0x10) = ((VecH *)sp84)->f0;
+            M2C_FIELD(pv1, f32 *, 0x14) = ((VecH *)sp84)->f4;
+            M2C_FIELD(pv1, f32 *, 0x18) = ((VecH *)sp84)->f8;
             M2C_FIELD((M2C_FIELD(var_s2, char **, 0x5C) + 0x284), f32 *, 0x10) = (f32) DF_264;
             pv0 = M2C_FIELD(var_s2, char **, 0x5C);
             M2C_FIELD(pv0, s8 **, 0x29C) = (s8 *) M2C_FIELD(pv0, s8 **, 0x2B8);
@@ -6945,37 +6938,25 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
             M2C_FIELD(pv0, f32 *, 0x128) = (f32) DF_290;
         }
         M2C_FIELD(M2C_FIELD(var_s2, char **, 0x54), s8 **, 0x2B8) = pv0;
-        sp154.f0 = DS_294;
+        sp154.f0 = *(f32 *)&DS_294;
         sp154.f4 = 528.0f;
         sp154.f8 = 180.0f;
         pv1 = M2C_FIELD(var_s2, char **, 0x54);
-        M2C_FIELD(&sp94, s32 *, 0) = (s32) M2C_FIELD(&sp154, s32 *, 0);
-        it0 = M2C_FIELD(&sp154, s32 *, 4);
-        M2C_FIELD(&sp94, s32 *, 4) = it0;
-        it1 = M2C_FIELD(&sp154, s32 *, 8);
-        M2C_FIELD(&sp84, s32 *, 4) = it0;
-        M2C_FIELD(&sp84, s32 *, 0) = M2C_FIELD(&sp94, s32 *, 0);
-        M2C_FIELD(&sp94, s32 *, 8) = it1;
-        M2C_FIELD(&sp84, s32 *, 8) = it1;
-        M2C_FIELD(pv1, s32 *, 0x23C) = sp84[0];
+        *(VecH *)sp94 = sp154;
+        *(VecH *)sp84 = *(VecH *)sp94;
         pw1 = pv1 + 0x22C;
-        M2C_FIELD(pw1, f32 *, 0x14) = (*(f32 *)&sp84[1]);
-        M2C_FIELD(pw1, f32 *, 0x18) = (*(f32 *)&sp84[2]);
-        sp148.f0 = DS_298;
+        M2C_FIELD(pv1, f32 *, 0x23C) = ((VecH *)sp84)->f0;
+        M2C_FIELD(pw1, f32 *, 0x14) = ((VecH *)sp84)->f4;
+        M2C_FIELD(pw1, f32 *, 0x18) = ((VecH *)sp84)->f8;
+        sp148.f0 = *(f32 *)&DS_298;
         sp148.f4 = DF_29C;
         sp148.f8 = DF_2A0;
-        M2C_FIELD(&sp94, s32 *, 0) = (s32) M2C_FIELD(&sp148, s32 *, 0);
-        it0 = M2C_FIELD(&sp148, s32 *, 4);
+        *(VecH *)sp94 = sp148;
+        *(VecH *)sp84 = *(VecH *)sp94;
         pv1 = M2C_FIELD(var_s2, char **, 0x54) + 0x24C;
-        M2C_FIELD(&sp94, s32 *, 4) = it0;
-        it1 = M2C_FIELD(&sp148, s32 *, 8);
-        M2C_FIELD(&sp84, s32 *, 4) = it0;
-        M2C_FIELD(&sp84, s32 *, 0) = M2C_FIELD(&sp94, s32 *, 0);
-        M2C_FIELD(&sp94, s32 *, 8) = it1;
-        M2C_FIELD(&sp84, s32 *, 8) = it1;
-        M2C_FIELD(pv1, s32 *, 0x10) = sp84[0];
-        M2C_FIELD(pv1, f32 *, 0x14) = (*(f32 *)&sp84[1]);
-        M2C_FIELD(pv1, f32 *, 0x18) = (*(f32 *)&sp84[2]);
+        M2C_FIELD(pv1, f32 *, 0x10) = ((VecH *)sp84)->f0;
+        M2C_FIELD(pv1, f32 *, 0x14) = ((VecH *)sp84)->f4;
+        M2C_FIELD(pv1, f32 *, 0x18) = ((VecH *)sp84)->f8;
         M2C_FIELD((M2C_FIELD(var_s2, char **, 0x54) + 0x284), f32 *, 0x10) = (f32) DF_2A4;
         pv0 = M2C_FIELD(var_s2, char **, 0x54);
         M2C_FIELD(pv0, s8 **, 0x29C) = (s8 *) M2C_FIELD(pv0, s8 **, 0x2B8);
@@ -7066,32 +7047,24 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
             M2C_FIELD(pv0, f32 *, 0x128) = (f32) DF_2D4;
         }
         M2C_FIELD(M2C_FIELD(var_s2, char **, 0x58), s8 **, 0x2B8) = pv0;
-        sp13C.f0 = DS_2D8;
+        sp13C.f0 = *(f32 *)&DS_2D8;
         sp13C.f4 = 528.0f;
         sp13C.f8 = -480.0f;
-        M2C_FIELD(&sp94, s32 *, 0) = (s32) M2C_FIELD(&sp13C, s32 *, 0);
-        M2C_FIELD(&sp94, s32 *, 4) = (s32) M2C_FIELD(&sp13C, s32 *, 4);
-        M2C_FIELD(&sp94, s32 *, 8) = (s32) M2C_FIELD(&sp13C, s32 *, 8);
-        M2C_FIELD(&sp84, s32 *, 0) = M2C_FIELD(&sp94, s32 *, 0);
+        *(VecH *)sp94 = sp13C;
+        *(VecH *)sp84 = *(VecH *)sp94;
         pv1 = M2C_FIELD(var_s2, char **, 0x58) + 0x22C;
-        M2C_FIELD(&sp84, s32 *, 4) = (s32) M2C_FIELD(&sp94, s32 *, 4);
-        M2C_FIELD(&sp84, s32 *, 8) = (s32) M2C_FIELD(&sp94, s32 *, 8);
-        M2C_FIELD(pv1, s32 *, 0x10) = sp84[0];
-        M2C_FIELD(pv1, f32 *, 0x14) = (*(f32 *)&sp84[1]);
-        M2C_FIELD(pv1, f32 *, 0x18) = (*(f32 *)&sp84[2]);
-        sp130.f0 = DS_2DC;
+        M2C_FIELD(pv1, f32 *, 0x10) = ((VecH *)sp84)->f0;
+        M2C_FIELD(pv1, f32 *, 0x14) = ((VecH *)sp84)->f4;
+        M2C_FIELD(pv1, f32 *, 0x18) = ((VecH *)sp84)->f8;
+        sp130.f0 = *(f32 *)&DS_2DC;
         sp130.f4 = DF_2E0;
         sp130.f8 = DF_2E4;
-        M2C_FIELD(&sp94, s32 *, 0) = (s32) M2C_FIELD(&sp130, s32 *, 0);
+        *(VecH *)sp94 = sp130;
+        *(VecH *)sp84 = *(VecH *)sp94;
         pv1 = M2C_FIELD(var_s2, char **, 0x58) + 0x24C;
-        M2C_FIELD(&sp94, s32 *, 4) = (s32) M2C_FIELD(&sp130, s32 *, 4);
-        M2C_FIELD(&sp94, s32 *, 8) = (s32) M2C_FIELD(&sp130, s32 *, 8);
-        M2C_FIELD(&sp84, s32 *, 0) = M2C_FIELD(&sp94, s32 *, 0);
-        M2C_FIELD(&sp84, s32 *, 4) = (s32) M2C_FIELD(&sp94, s32 *, 4);
-        M2C_FIELD(&sp84, s32 *, 8) = (s32) M2C_FIELD(&sp94, s32 *, 8);
-        M2C_FIELD(pv1, s32 *, 0x10) = sp84[0];
-        M2C_FIELD(pv1, f32 *, 0x14) = (*(f32 *)&sp84[1]);
-        M2C_FIELD(pv1, f32 *, 0x18) = (*(f32 *)&sp84[2]);
+        M2C_FIELD(pv1, f32 *, 0x10) = ((VecH *)sp84)->f0;
+        M2C_FIELD(pv1, f32 *, 0x14) = ((VecH *)sp84)->f4;
+        M2C_FIELD(pv1, f32 *, 0x18) = ((VecH *)sp84)->f8;
         M2C_FIELD((M2C_FIELD(var_s2, char **, 0x58) + 0x284), f32 *, 0x10) = (f32) DF_2E8;
         pv0 = M2C_FIELD(var_s2, char **, 0x58);
         M2C_FIELD(pv0, s8 **, 0x29C) = (s8 *) M2C_FIELD(pv0, s8 **, 0x2B8);
