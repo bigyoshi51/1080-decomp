@@ -1994,7 +1994,83 @@ block_15:
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800018F0);
 #endif
 
+#ifdef NON_MATCHING
+/* func_80001ADC: USO/overlay relocation applier (NM decode, 2026-10-17 agent-g).
+ * rel[n] records of 12 bytes: info (bits 4.. = symbol index into the 12-byte
+ * symtab at obj->0x3C, bit 3 = already applied, bits 0..2 = type), the target
+ * offset from base, and a slot that receives the original word. A symbol whose
+ * flags lack bit 3 (unresolved) is skipped. Types: R_26 (jal target field),
+ * HI16 (remember the half and its address), LO16 (fold hi<<16 + lo + value,
+ * patch the remembered HI16 with the carry-adjusted upper half), R_32 (add).
+ * Bad type: D_80012C44(D_8000A36C, type) and return -2. The case numbers are
+ * guessed from the arm order (the 4-entry jumptable at 0x8000A63C is not in
+ * the ROM image). Open: the target dispatches through that 4-entry jumptable;
+ * IDO 7.1/5.3 at -O1/-O2 lower a 4-label switch to a compare chain (5 labels
+ * are needed for a table), so the switch shape is still unknown; hiptr/hival
+ * are uninitialised locals homed at 0x34/0x28 in the target. */
+extern char D_8000A36C[];
+typedef struct { s32 info; s32 offset; s32 orig; } UsoRel_1ADC;
+typedef struct { s16 flags; s16 pad; s32 value; s32 pad2; } UsoUsoRelSym_1ADC_1ADC;
+
+s32 func_80001ADC(char *obj, char *base, UsoRel_1ADC *rel, s32 n) {
+    UsoUsoRelSym_1ADC_1ADC *symtab;
+    UsoRel_1ADC *r;
+    s32 i;
+    s32 info, type, val, lo, v;
+    UsoUsoRelSym_1ADC_1ADC *sym;
+    u32 *p;
+    s16 *hiptr;
+    s32 hival;
+
+    symtab = *(UsoUsoRelSym_1ADC_1ADC **)(obj + 0x3C);
+    if (base == 0 || rel == 0) {
+        return 0;
+    }
+    r = rel;
+    for (i = 0; i < n; i++, r++) {
+        info = r->info;
+        if (info & 8) {
+            continue;
+        }
+        type = info & 7;
+        sym = &symtab[info >> 4];
+        if (!(sym->flags & 8)) {
+            continue;
+        }
+        val = sym->value;
+        p = (u32 *)(base + r->offset);
+        r->orig = *p;
+        switch (type) {
+        case 2:
+            *p = (*p & 0xFC000000) | ((((u32)val >> 2) & 0x3FFFFFF) + (*p & 0x3FFFFFF));
+            break;
+        case 3:
+            hiptr = (s16 *)p + 1;
+            hival = ((s16 *)p)[1];
+            break;
+        case 4:
+            lo = ((s16 *)p)[1];
+            if (hiptr != 0) {
+                v = (hival << 16) + (s16)lo + val;
+                *hiptr = (u32)(v - (s16)v) >> 16;
+                hiptr = 0;
+            }
+            ((s16 *)p)[1] = (hival << 16) + lo + val;
+            break;
+        case 1:
+            *p += val;
+            break;
+        default:
+            D_80012C44(D_8000A36C, (void *)type);
+            return -2;
+        }
+        r->info |= 8;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001ADC);
+#endif
 
 /* func_80001CF4 - verified structural decode (kernel, 56 insns incl.
  * a leaked predecessor word).
