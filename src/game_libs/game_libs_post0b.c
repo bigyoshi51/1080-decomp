@@ -31433,16 +31433,36 @@ void game_libs_func_0005E8B0(void *arg0, void *arg1) {
     *(float *)((char *)arg0 + 0x28) *= *(float *)((char *)arg1 + 0x8);
 }
 
-/* game_libs_func_0005E944: one 88-insn (0x160) function. BOUNDARY MERGED
- * 2026-06-02: splat had split it into 0005E944 (3-insn FP-const prologue:
- * `mtc1 a2,$f12` (input, ARG-DERIVED) + `lui 0x4000`->$f4=2.0 — hoisted above
- * the frame; the real entry) + gl_func_0005E950 (the prologue+body using f12 in
- * `div.s $f6,$f12,$f4`). SINGLE-entry per the dual-vs-single test (f12 arg-
- * derived + FP-op use; the mfc1 is on the RESULT $f6, not f12; no callers).
- * Absorbed 0005E950's 85 words into 0005E944 (0xC -> 0x160); dropped the
- * 0005E950 symbol. Brings f12 (=a2) and f4 (=2.0) in-scope, retracting the
- * implicit caller-set-float cap; the 85-insn body is decodable in a future pass. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005E944);
+/* game_libs_func_0005E944: rotate a matrix by an angle about one axis
+ * (0x160, frame 0xC8). EXACT. M = op(axis, angle / 2) through a
+ * (ptr, int, float) blank alias (float passed in a2), then R = a x M as the
+ * natural triple loop and op(R, a). Load-bearing: `angle / 2` (an int 2;
+ * `/ 2.0f` folds to `* 0.5f`), the b = a copy (caller-saved a3 spilled to
+ * a0's home across the call; using the param directly reloads it), and the
+ * frame homes: i/j/k are the 12 bytes between M and R, b + three unused
+ * words sit below R. */
+extern void gl_func_00000000_5e944(f32 (*)[4], s32, f32);
+void game_libs_func_0005E944(f32 (*a)[4], s32 axis, f32 angle) {
+    f32 M[4][4];
+    s32 i, j, k;
+    f32 R[4][4];
+    f32 (*b)[4];
+    s32 pad0;
+    s32 pad1;
+    s32 pad2;
+
+    b = a;
+    gl_func_00000000_5e944(M, axis, angle / 2);
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            R[i][j] = 0.0f;
+            for (k = 0; k < 4; k++) {
+                R[i][j] += b[i][k] * M[k][j];
+            }
+        }
+    }
+    gl_func_00000000(R, b);
+}
 
 /* gl_func_0005EAA4 - verified structural decode (42-insn per-Vec3-axis
  * conditional dispatch; 3x bc1tl FP branch-likely = documented sub-80
