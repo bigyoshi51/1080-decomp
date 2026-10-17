@@ -31494,18 +31494,94 @@ void gl_func_0005EAA4(void *a0, float *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005EAA4);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005EB4C);
+/* gl_func_0005EB4C: rotate a matrix about a unit axis picked by index
+ * (0x208, frame 0xD8). EXACT. axis 0/1/2 -> v = X/Y/Z unit vector (default
+ * prints msg 0x21B4C and falls through), M = op(&v, angle / 2), then either
+ * op(a, M, a) (flag) or R = a x M and op(R, a). Same family and levers as
+ * 0005E944/0005ED54: `angle / 2`, a copy of the param (here coloured s0),
+ * i/j/k homes between v and R, two unused words below R. */
+typedef struct { f32 x, y, z; } Vec3f_5EB4C;
+extern void gl_func_00000000_5eb4c(f32 (*)[4], Vec3f_5EB4C *, f32);
+void gl_func_0005EB4C(f32 (*arg0)[4], s32 axis, f32 angle, s32 flag) {
+    f32 M[4][4];
+    Vec3f_5EB4C v;
+    s32 i, j, k;
+    f32 R[4][4];
+    f32 (*a)[4];
+    s32 pad0;
+    s32 pad1;
 
-/* game_libs_func_0005ED54: one 107-insn (0x1AC) function. BOUNDARY MERGED
- * 2026-06-02: splat had split it into 0005ED54 (3-insn FP-const prologue:
- * `mtc1 a2,$f12` (input, ARG-DERIVED) + `lui 0x4000`->$f10=2.0 — hoisted above
- * the frame; the real entry) + gl_func_0005ED60 (the prologue+body using f12 in
- * `div.s $f16,$f12,$f10`). SINGLE-entry per the dual-vs-single test (f12 arg-
- * derived + FP-op use; no callers). Absorbed 0005ED60's 104 words into 0005ED54
- * (0xC -> 0x1AC); dropped the 0005ED60 symbol. Brings f12(=a2)/f10(=2.0)
- * in-scope, retracting the implicit caller-set-float cap; the body is decodable
- * in a future pass. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005ED54);
+    a = arg0;
+    switch (axis) {
+    case 0:
+        v.x = 1.0f;
+        v.y = 0.0f;
+        v.z = 0.0f;
+        break;
+    case 1:
+        v.x = 0.0f;
+        v.y = 1.0f;
+        v.z = 0.0f;
+        break;
+    case 2:
+        v.x = 0.0f;
+        v.y = 0.0f;
+        v.z = 1.0f;
+        break;
+    default:
+        gl_func_00000000((char *)&D_00000000 + 0x21B4C);
+        break;
+    }
+    gl_func_00000000_5eb4c(M, &v, angle / 2);
+    if (flag) {
+        gl_func_00000000(a, M, a);
+        return;
+    }
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            R[i][j] = 0.0f;
+            for (k = 0; k < 4; k++) {
+                R[i][j] += a[i][k] * M[k][j];
+            }
+        }
+    }
+    gl_func_00000000(R, a);
+}
+
+/* game_libs_func_0005ED54: rotate a matrix about its own row `axis`
+ * (0x1AC, frame 0xD8). EXACT. v = a[axis] (three float copies), M =
+ * op(&v, angle / 2), then op(a, M, a) if flag, else R = a x M and
+ * op(R, a). Here the param itself colours s0 (it is read before the call);
+ * i/j/k homes between v and R, three unused words below R. */
+typedef struct { f32 x, y, z; } Vec3f_5ED54;
+extern void gl_func_00000000_5ed54(f32 (*)[4], Vec3f_5ED54 *, f32);
+void game_libs_func_0005ED54(f32 (*a)[4], s32 axis, f32 angle, s32 flag) {
+    f32 M[4][4];
+    Vec3f_5ED54 v;
+    s32 i, j, k;
+    f32 R[4][4];
+    s32 pad0;
+    s32 pad1;
+    s32 pad2;
+
+    v.x = a[axis][0];
+    v.y = a[axis][1];
+    v.z = a[axis][2];
+    gl_func_00000000_5ed54(M, &v, angle / 2);
+    if (flag) {
+        gl_func_00000000(a, M, a);
+        return;
+    }
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            R[i][j] = 0.0f;
+            for (k = 0; k < 4; k++) {
+                R[i][j] += a[i][k] * M[k][j];
+            }
+        }
+    }
+    gl_func_00000000(R, a);
+}
 
 #ifdef NON_MATCHING
 #ifndef FW
